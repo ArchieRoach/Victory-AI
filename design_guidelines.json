@@ -1,0 +1,113 @@
+{
+  "design_system": {
+    "typography": {
+      "font_families": {
+        "heading": "Space Grotesk, sans-serif",
+        "body": "Inter, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "weights": {
+        "heading": [700, 800],
+        "body": [400, 500, 600],
+        "mono": [400, 600]
+      },
+      "cdn_links": [
+        "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@700;800&display=swap"
+      ]
+    },
+    "colors": {
+      "palette": {
+        "background": "#0A0A0F",
+        "card": "#12121A",
+        "card-highlight": "#1A1A26",
+        "border": "#2A2A3A",
+        "primary": "#E8FF47",
+        "secondary": "#FF6B35",
+        "chart-teal": "#47E8C8",
+        "destructive": "#FF4757",
+        "foreground": "#F0F0F5",
+        "muted": "#8888A0",
+        "muted-foreground": "#8888A0"
+      },
+      "usage": {
+        "primary_button": "bg-[#E8FF47] text-[#0A0A0F] hover:bg-[#D4E630]",
+        "secondary_button": "bg-[#1A1A26] text-[#F0F0F5] border border-[#2A2A3A] hover:bg-[#2A2A3A]",
+        "card_surface": "bg-[#12121A] border border-[#2A2A3A]",
+        "chart_accent": "text-[#47E8C8]",
+        "danger": "text-[#FF4757]"
+      }
+    },
+    "spacing": {
+      "container_padding": "p-4 md:p-6",
+      "section_gap": "gap-6",
+      "touch_target": "min-h-[48px] min-w-[48px]"
+    },
+    "layout": {
+      "mobile_first": true,
+      "max_width": "max-w-md mx-auto md:max-w-3xl lg:max-w-7xl",
+      "bottom_nav_height": "h-16"
+    },
+    "visual_enhancers": {
+      "borders": "border border-[#2A2A3A]",
+      "shadows": "none",
+      "radius": "rounded-lg",
+      "glass": "backdrop-blur-md bg-[#0A0A0F]/80"
+    }
+  },
+  "components": {
+    "RadarChart": {
+      "library": "recharts",
+      "props": {
+        "cx": "50%",
+        "cy": "50%",
+        "outerRadius": "80%",
+        "stroke": "#E8FF47",
+        "fill": "#E8FF47",
+        "fillOpacity": 0.6
+      }
+    },
+    "Slider": {
+      "library": "shadcn/ui",
+      "customization": "h-12 thumb-h-6 thumb-w-6 track-h-2 bg-[#1A1A26] text-[#E8FF47]"
+    },
+    "BottomNav": {
+      "type": "fixed",
+      "position": "bottom-0 left-0 right-0",
+      "style": "bg-[#0A0A0F] border-t border-[#2A2A3A] z-50 flex justify-around items-center h-20 pb-safe"
+    }
+  },
+  "image_urls": {
+    "hero_bg": "https://images.unsplash.com/photo-1737381508529-a110d717d5a7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwxfHxib3hlciUyMHNoYWRvdyUyMGJveGluZyUyMHRyYWluaW5nJTIwZGFyayUyMGF0bW9zcGhlcmV8ZW58MHx8fHwxNzcyNDc4Mjc3fDA&ixlib=rb-4.1.0&q=85",
+    "training_card": "https://images.unsplash.com/photo-1696044142631-b4e7411c2f8d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwyfHxib3hlciUyMHNoYWRvdyUyMGJveGluZyUyMHRyYWluaW5nJTIwZGFyayUyMGF0bW9zcGhlcmV8ZW58MHx8fHwxNzcyNDc4Mjc3fDA&ixlib=rb-4.1.0&q=85",
+    "drill_jab": "https://images.unsplash.com/photo-1620123083473-16ec15498174?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzV8MHwxfHNlYXJjaHwyfHxib3hlciUyMHRocm93aW5nJTIwamFiJTIwcHVuY2glMjBkYXJrJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3NzI0NzgyODl8MA&ixlib=rb-4.1.0&q=85",
+    "drill_uppercut": "https://images.unsplash.com/photo-1677355087165-c159e6572a34?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwyfHxib3hlciUyMHRocm93aW5nJTIwdXBwZXJjdXQlMjBwdW5jaCUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc3MjQ3ODI5MHww&ixlib=rb-4.1.0&q=85",
+    "gym_atmosphere": "https://images.unsplash.com/photo-1578762560042-46ad127c95ea?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHw0fHxib3hpbmclMjB0cmFpbmluZyUyMGd5bSUyMGVxdWlwbWVudCUyMGRhcmslMjBtb29keXxlbnwwfHx8fDE3NzI0NzgyNzd8MA&ixlib=rb-4.1.0&q=85"
+  },
+  "instructions_to_main_agent": [
+    "1. FONTS: Add the Google Fonts link to public/index.html immediately.",
+    "2. TAILWIND: Update tailwind.config.js with the custom colors exactly as defined. Do not use default slate/zinc.",
+    "3. BASE STYLES: In index.css, set body { background-color: #0A0A0F; color: #F0F0F5; font-family: 'Inter', sans-serif; }.",
+    "4. COMPONENTS: When using Shadcn, override the default radius to '0.5rem' or '0.3rem' for a sharper athletic look.",
+    "5. CHARTS: Use Recharts. For the Radar Chart, ensure the grid is visible (stroke='#2A2A3A') and the data polygon is filled with Primary color (#E8FF47) at 50% opacity.",
+    "6. MOBILE: Ensure the bottom navigation bar is fixed and has a high z-index. Add padding-bottom to the main container so content isn't hidden behind the nav.",
+    "7. FORMS: Auto-save is a requirement. Implement debounced saving on inputs.",
+    "8. TIMER: The timer text must be HUGE (text-6xl or larger) using 'Space Grotesk' font.",
+    "9. ICONS: Use Lucide-react. Stroke width should be slightly bolder (2px) to match the athletic aesthetic."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Avoid generic 'AI slop' aesthetics. No gradients on backgrounds.",
+    "Create depth through layered design elements with z-index hierarchy, but keep borders subtle.",
+    "Use glass-morphism effects sparingly (only for sticky navs).",
+    "You MUST NOT apply universal transition (transition: all).",
+    "You MUST NOT center align the app container text-align: center.",
+    "Always use modern button styles (sharp or slightly rounded, high contrast).",
+    "NEVER use AI assistant Emoji characters.",
+    "Every interaction needs micro-animations (hover, press).",
+    "Use generous spacing (p-6, p-8) where possible to avoid clutter.",
+    "Prioritize using pre-existing components from src/components/ui.",
+    "Components MUST use named exports.",
+    "Pages MUST use default exports.",
+    "Use 'sonner' for toasts.",
+    "All interactive elements MUST include a data-testid attribute."
+  ]
+}
