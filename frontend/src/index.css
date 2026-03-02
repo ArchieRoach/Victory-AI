@@ -2,114 +2,208 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    margin: 0;
-    font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-        sans-serif;
+@layer base {
+  :root {
+    --background: 240 20% 4%;
+    --foreground: 240 10% 96%;
+    --card: 240 20% 7%;
+    --card-foreground: 240 10% 96%;
+    --popover: 240 20% 7%;
+    --popover-foreground: 240 10% 96%;
+    --primary: 70 100% 63%;
+    --primary-foreground: 240 20% 4%;
+    --secondary: 240 15% 13%;
+    --secondary-foreground: 240 10% 96%;
+    --muted: 240 15% 13%;
+    --muted-foreground: 240 10% 58%;
+    --accent: 240 15% 13%;
+    --accent-foreground: 240 10% 96%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 240 10% 96%;
+    --border: 240 15% 20%;
+    --input: 240 15% 20%;
+    --ring: 70 100% 63%;
+    --chart-1: 70 100% 63%;
+    --chart-2: 168 80% 59%;
+    --chart-3: 20 90% 60%;
+    --chart-4: 0 84% 60%;
+    --chart-5: 240 10% 58%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply bg-victory-bg text-victory-text font-body antialiased;
+    font-size: 16px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-extrabold tracking-tight;
+  }
 }
 
-code {
-    font-family:
-        source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+@layer components {
+  .victory-card {
+    @apply bg-victory-card border border-victory-border rounded-lg;
+  }
+  
+  .victory-card-highlight {
+    @apply bg-victory-card-highlight border border-victory-border rounded-lg;
+  }
+  
+  .victory-btn-primary {
+    @apply bg-victory-lime text-victory-bg font-semibold py-3 px-6 rounded-lg min-h-[48px] w-full
+    transition-colors duration-200 hover:bg-[#D4E630] active:bg-[#C4D620];
+  }
+  
+  .victory-btn-secondary {
+    @apply bg-transparent border border-victory-lime text-victory-lime font-semibold py-3 px-6 rounded-lg min-h-[48px]
+    transition-colors duration-200 hover:bg-victory-lime/10 active:bg-victory-lime/20;
+  }
+  
+  .victory-btn-ghost {
+    @apply bg-victory-card-highlight border border-victory-border text-victory-text font-medium py-3 px-6 rounded-lg min-h-[48px]
+    transition-colors duration-200 hover:bg-victory-border active:bg-victory-border/80;
+  }
+  
+  .victory-input {
+    @apply bg-victory-card border border-victory-border rounded-lg px-4 py-3 min-h-[48px] w-full
+    text-victory-text placeholder:text-victory-muted
+    focus:outline-none focus:ring-2 focus:ring-victory-lime/50 focus:border-victory-lime
+    transition-colors duration-200;
+  }
+  
+  .victory-label {
+    @apply text-sm text-victory-muted mb-2 block;
+  }
+  
+  .touch-target {
+    @apply min-h-[48px] min-w-[48px];
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-victory-lime to-victory-teal bg-clip-text text-transparent;
+  }
+  
+  .stat-pill {
+    @apply bg-victory-card-highlight border border-victory-border rounded-lg px-4 py-3 flex flex-col items-center justify-center;
+  }
+  
+  .dimension-tag {
+    @apply bg-victory-lime/20 text-victory-lime text-xs font-medium px-2 py-1 rounded;
+  }
+  
+  .filter-pill {
+    @apply px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 whitespace-nowrap min-h-[40px]
+    flex items-center justify-center;
+  }
+  
+  .filter-pill-active {
+    @apply bg-victory-lime text-victory-bg;
+  }
+  
+  .filter-pill-inactive {
+    @apply bg-victory-card border border-victory-border text-victory-muted hover:text-victory-text hover:border-victory-muted;
+  }
 }
 
-@layer base {
-    :root {
-        --background: 0 0% 100%;
-        --foreground: 0 0% 3.9%;
-        --card: 0 0% 100%;
-        --card-foreground: 0 0% 3.9%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 3.9%;
-        --primary: 0 0% 9%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 0 0% 96.1%;
-        --secondary-foreground: 0 0% 9%;
-        --muted: 0 0% 96.1%;
-        --muted-foreground: 0 0% 45.1%;
-        --accent: 0 0% 96.1%;
-        --accent-foreground: 0 0% 9%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 89.8%;
-        --input: 0 0% 89.8%;
-        --ring: 0 0% 3.9%;
-        --chart-1: 12 76% 61%;
-        --chart-2: 173 58% 39%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
-        --radius: 0.5rem;
-    }
-    .dark {
-        --background: 0 0% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 3.9%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 9%;
-        --secondary: 0 0% 14.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 0 0% 14.9%;
-        --muted-foreground: 0 0% 63.9%;
-        --accent: 0 0% 14.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 14.9%;
-        --input: 0 0% 14.9%;
-        --ring: 0 0% 83.1%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
-    }
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  }
+  
+  .pb-nav {
+    padding-bottom: 100px;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
-@layer base {
-    * {
-        @apply border-border;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
+/* Custom slider styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
 }
 
-@layer base {
-    [data-debug-wrapper="true"] {
-        display: contents !important;
-    }
+input[type="range"]::-webkit-slider-track {
+  background: #1A1A26;
+  height: 8px;
+  border-radius: 4px;
+}
 
-    [data-debug-wrapper="true"] > * {
-        margin-left: inherit;
-        margin-right: inherit;
-        margin-top: inherit;
-        margin-bottom: inherit;
-        padding-left: inherit;
-        padding-right: inherit;
-        padding-top: inherit;
-        padding-bottom: inherit;
-        column-gap: inherit;
-        row-gap: inherit;
-        gap: inherit;
-        border-left-width: inherit;
-        border-right-width: inherit;
-        border-top-width: inherit;
-        border-bottom-width: inherit;
-        border-left-style: inherit;
-        border-right-style: inherit;
-        border-top-style: inherit;
-        border-bottom-style: inherit;
-        border-left-color: inherit;
-        border-right-color: inherit;
-        border-top-color: inherit;
-        border-bottom-color: inherit;
-    }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #E8FF47;
+  border-radius: 50%;
+  margin-top: -8px;
+  box-shadow: 0 2px 8px rgba(232, 255, 71, 0.3);
+}
+
+input[type="range"]::-moz-range-track {
+  background: #1A1A26;
+  height: 8px;
+  border-radius: 4px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: #E8FF47;
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 2px 8px rgba(232, 255, 71, 0.3);
+}
+
+/* Animation for radar chart spokes */
+@keyframes spoke-reveal {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.spoke-animate {
+  animation: spoke-reveal 0.5s ease-out forwards;
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #12121A 25%, #1A1A26 50%, #12121A 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }

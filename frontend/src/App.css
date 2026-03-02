@@ -1,34 +1,125 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Victory AI Custom Styles */
+
+.App {
+  min-height: 100vh;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Timer large display */
+.timer-display {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 800;
+  font-size: clamp(6rem, 20vw, 12rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Radar chart center score */
+.radar-center-score {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 800;
 }
 
-.App-link {
-    color: #61dafb;
+/* Score value display */
+.score-value {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Confetti animation */
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: confetti 3s ease-out forwards;
+}
+
+@keyframes confetti {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Flash effect for timer */
+.flash-lime {
+  animation: flash-lime 0.3s ease-out;
+}
+
+.flash-teal {
+  animation: flash-teal 0.3s ease-out;
+}
+
+@keyframes flash-lime {
+  0% {
+    background-color: rgba(232, 255, 71, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes flash-teal {
+  0% {
+    background-color: rgba(71, 232, 200, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Bottom nav safe area */
+.bottom-nav {
+  padding-bottom: max(env(safe-area-inset-bottom), 8px);
+}
+
+/* Mini radar chart */
+.mini-radar {
+  width: 48px;
+  height: 48px;
+}
+
+/* Scrollable filter row */
+.filter-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.filter-scroll > * {
+  scroll-snap-align: start;
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Focus visible for accessibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #E8FF47;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+}
+
+/* Press effect */
+.press-effect:active {
+  transform: scale(0.98);
+}
+
+/* Slider track progress */
+.slider-progress {
+  background: linear-gradient(to right, #E8FF47 var(--progress), #1A1A26 var(--progress));
 }
