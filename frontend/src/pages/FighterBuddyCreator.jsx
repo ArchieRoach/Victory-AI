@@ -89,7 +89,7 @@ export default function FighterBuddyCreator() {
       toast.success(`${buddyData.name} is ready to train with you!`);
       navigate("/paywall", { replace: true });
     } catch (error) {
-      toast.error("Failed to create fighter buddy");
+      toast.error("Failed to create training partner");
     } finally {
       setLoading(false);
     }
@@ -100,7 +100,7 @@ export default function FighterBuddyCreator() {
   return (
     <div
       className="min-h-screen bg-victory-bg flex flex-col"
-      data-testid="fighter-buddy-creator"
+      data-testid="training-partner-creator"
     >
       <header className="p-4 border-b border-victory-border">
         <div className="flex items-center gap-2">
@@ -109,10 +109,10 @@ export default function FighterBuddyCreator() {
           </div>
           <div>
             <h1 className="text-lg font-heading font-bold text-victory-text">
-              Create Your Fighter Buddy
+              Create Your AI Training Partner
             </h1>
             <p className="text-victory-muted text-sm">
-              A training buddy, not a coach — your AI sparring partner
+              A training partner, not a coach — your AI sparring companion
             </p>
           </div>
         </div>
@@ -288,7 +288,7 @@ export default function FighterBuddyCreator() {
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  Create {buddyData.name || "Fighter Buddy"}
+                  Create {buddyData.name || "Training Partner"}
                 </>
               )}
             </button>
