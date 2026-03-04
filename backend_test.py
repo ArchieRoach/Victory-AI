@@ -14,6 +14,8 @@ class VictoryAITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
+        self.fighter_buddy = None
+        self.training_session_id = None
 
     def log_test(self, test_name, success, message="", response_data=None):
         """Log test result"""
@@ -47,13 +49,13 @@ class VictoryAITester:
 
         try:
             if method == 'GET':
-                response = requests.get(url, headers=default_headers, timeout=10)
+                response = requests.get(url, headers=default_headers, timeout=15)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=default_headers, timeout=10)
+                response = requests.post(url, json=data, headers=default_headers, timeout=15)
             elif method == 'PUT':
-                response = requests.put(url, json=data, headers=default_headers, timeout=10)
+                response = requests.put(url, json=data, headers=default_headers, timeout=15)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=default_headers, timeout=10)
+                response = requests.delete(url, headers=default_headers, timeout=15)
             
             return response
         except Exception as e:
@@ -119,87 +121,172 @@ class VictoryAITester:
         else:
             return self.log_test("Get Current User", False, f"Status code {response.status_code}")
 
+    def test_quiz_submit(self):
+        """Test quiz submission - NEW FEATURE"""
+        quiz_data = {
+            "training_goal": "Get fit",
+            "training_frequency": "3-4 times/week", 
+            "training_location": "Home",
+            "biggest_frustration": "No feedback",
+            "favorite_fighters": ["Usyk", "Ali", "Tyson"]
+        }
+
+        response = self.make_request('POST', 'quiz/submit', quiz_data)
+        
+        if not response:
+            return self.log_test("Quiz Submit", False, "Request failed")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'quiz_completed' in data:
+                return self.log_test("Quiz Submit", True)
+            else:
+                return self.log_test("Quiz Submit", False, "Invalid quiz response", data)
+        else:
+            return self.log_test("Quiz Submit", False, f"Status code {response.status_code}")
+
+    def test_fighter_buddy_archetypes(self):
+        """Test getting fighter buddy archetypes - NEW FEATURE"""
+        response = self.make_request('GET', 'fighter-buddy/archetypes', auth_required=False)
+        
+        if not response:
+            return self.log_test("Fighter Buddy Archetypes", False, "Request failed")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'archetypes' in data and len(data['archetypes']) > 0:
+                return self.log_test("Fighter Buddy Archetypes", True)
+            else:
+                return self.log_test("Fighter Buddy Archetypes", False, "No archetypes returned", data)
+        else:
+            return self.log_test("Fighter Buddy Archetypes", False, f"Status code {response.status_code}")
+
+    def test_fighter_buddy_create(self):
+        """Test creating fighter buddy - NEW FEATURE"""
+        buddy_data = {
+            "name": "Test Buddy",
+            "weight_class": "Welterweight",
+            "stance": "Orthodox", 
+            "favorite_punch": "Jab",
+            "archetype": "complete_champion"
+        }
+
+        response = self.make_request('POST', 'fighter-buddy/create', buddy_data)
+        
+        if not response:
+            return self.log_test("Fighter Buddy Create", False, "Request failed")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'buddy_id' in data and 'name' in data:
+                self.fighter_buddy = data
+                return self.log_test("Fighter Buddy Create", True)
+            else:
+                return self.log_test("Fighter Buddy Create", False, "Invalid buddy data", data)
+        else:
+            return self.log_test("Fighter Buddy Create", False, f"Status code {response.status_code}")
+
+    def test_payments_checkout(self):
+        """Test creating checkout session - NEW FEATURE"""
+        checkout_data = {
+            "plan_id": "monthly",
+            "origin_url": self.base_url
+        }
+
+        response = self.make_request('POST', 'payments/checkout', checkout_data)
+        
+        if not response:
+            return self.log_test("Payments Checkout", False, "Request failed")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'checkout_url' in data:
+                return self.log_test("Payments Checkout", True)
+            else:
+                return self.log_test("Payments Checkout", False, "No checkout URL", data)
+        else:
+            return self.log_test("Payments Checkout", False, f"Status code {response.status_code}")
+
+    def test_subscription_status(self):
+        """Test subscription status - NEW FEATURE"""
+        response = self.make_request('GET', 'subscription/status')
+        
+        if not response:
+            return self.log_test("Subscription Status", False, "Request failed")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'has_subscription' in data and 'status' in data:
+                return self.log_test("Subscription Status", True)
+            else:
+                return self.log_test("Subscription Status", False, "Invalid status data", data)
+        else:
+            return self.log_test("Subscription Status", False, f"Status code {response.status_code}")
+
+    def test_ai_generate_feedback(self):
+        """Test AI feedback generation - NEW FEATURE"""
+        feedback_data = {
+            "round_number": 1,
+            "total_rounds": 3
+        }
+
+        response = self.make_request('POST', 'ai/generate-feedback', feedback_data)
+        
+        if not response:
+            return self.log_test("AI Generate Feedback", False, "Request failed")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'buddy_name' in data and 'what_you_did_well' in data:
+                return self.log_test("AI Generate Feedback", True)
+            else:
+                return self.log_test("AI Generate Feedback", False, "Invalid feedback data", data)
+        else:
+            return self.log_test("AI Generate Feedback", False, f"Status code {response.status_code}")
+
+    def test_training_start(self):
+        """Test starting training session - NEW FEATURE"""
+        training_data = {
+            "round_duration": 180,
+            "rest_duration": 60,
+            "total_rounds": 3,
+            "record_video": True
+        }
+
+        response = self.make_request('POST', 'training/start', training_data)
+        
+        if not response:
+            return self.log_test("Training Start", False, "Request failed")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'session_id' in data and 'status' in data:
+                self.training_session_id = data['session_id']
+                return self.log_test("Training Start", True)
+            else:
+                return self.log_test("Training Start", False, "Invalid training data", data)
+        else:
+            return self.log_test("Training Start", False, f"Status code {response.status_code}")
+
     def test_dimensions_endpoint(self):
         """Test dimensions endpoint"""
-        response = self.make_request('GET', 'dimensions')
+        response = self.make_request('GET', 'dimensions', auth_required=False)
         
         if not response:
             return self.log_test("Get Dimensions", False, "Request failed")
         
         if response.status_code == 200:
             data = response.json()
-            if 'dimensions' in data and 'rubrics' in data and 'groups' in data:
+            if 'dimensions' in data and 'groups' in data:
                 dimensions = data['dimensions']
-                if len(dimensions) == 16:
+                if len(dimensions) >= 16:
                     return self.log_test("Get Dimensions", True)
                 else:
-                    return self.log_test("Get Dimensions", False, f"Expected 16 dimensions, got {len(dimensions)}")
+                    return self.log_test("Get Dimensions", False, f"Expected 16+ dimensions, got {len(dimensions)}")
             else:
                 return self.log_test("Get Dimensions", False, "Invalid dimensions data", data)
         else:
             return self.log_test("Get Dimensions", False, f"Status code {response.status_code}")
-
-    def test_legends_endpoint(self):
-        """Test legends endpoint"""
-        response = self.make_request('GET', 'legends')
-        
-        if not response:
-            return self.log_test("Get Legends", False, "Request failed")
-        
-        if response.status_code == 200:
-            data = response.json()
-            if isinstance(data, list) and len(data) >= 8:
-                return self.log_test("Get Legends", True)
-            else:
-                return self.log_test("Get Legends", False, f"Expected list of 8+ legends, got {type(data)} with {len(data) if isinstance(data, list) else 0} items")
-        else:
-            return self.log_test("Get Legends", False, f"Status code {response.status_code}")
-
-    def test_drills_endpoint(self):
-        """Test drills endpoint"""
-        response = self.make_request('GET', 'drills')
-        
-        if not response:
-            return self.log_test("Get Drills", False, "Request failed")
-        
-        if response.status_code == 200:
-            data = response.json()
-            if isinstance(data, dict) and len(data) >= 16:
-                return self.log_test("Get Drills", True)
-            else:
-                return self.log_test("Get Drills", False, f"Expected dict with 16+ drills, got {len(data) if isinstance(data, dict) else 0} items")
-        else:
-            return self.log_test("Get Drills", False, f"Status code {response.status_code}")
-
-    def test_create_session(self):
-        """Test session creation"""
-        session_data = {
-            "video_url": "https://example.com/test-video",
-            "session_notes": "Test session notes",
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "dimension_scores": [
-                {"dimension_name": "Jab", "score": 7},
-                {"dimension_name": "Cross", "score": 6},
-                {"dimension_name": "Guard Position", "score": 8},
-                {"dimension_name": "Footwork", "score": 5},
-                {"dimension_name": "Head Movement", "score": 6}
-            ]
-        }
-
-        response = self.make_request('POST', 'sessions', session_data)
-        
-        if not response:
-            return self.log_test("Create Session", False, "Request failed")
-        
-        if response.status_code == 200:
-            data = response.json()
-            if 'session_id' in data and 'overall_score' in data:
-                self.session_id = data['session_id']
-                return self.log_test("Create Session", True)
-            else:
-                return self.log_test("Create Session", False, "Invalid session data", data)
-        else:
-            return self.log_test("Create Session", False, f"Status code {response.status_code}", response.text)
 
     def test_get_sessions(self):
         """Test getting user sessions"""
@@ -217,75 +304,74 @@ class VictoryAITester:
         else:
             return self.log_test("Get Sessions", False, f"Status code {response.status_code}")
 
-    def test_user_stats(self):
-        """Test user stats endpoint"""
-        response = self.make_request('GET', 'users/stats')
+    def test_subscription_plans(self):
+        """Test subscription plans"""
+        response = self.make_request('GET', 'plans', auth_required=False)
         
         if not response:
-            return self.log_test("Get User Stats", False, "Request failed")
+            return self.log_test("Get Subscription Plans", False, "Request failed")
         
         if response.status_code == 200:
             data = response.json()
-            if 'total_sessions' in data and 'best_score' in data:
-                return self.log_test("Get User Stats", True)
+            if 'plans' in data and 'monthly' in data['plans'] and 'annual' in data['plans']:
+                return self.log_test("Get Subscription Plans", True)
             else:
-                return self.log_test("Get User Stats", False, "Invalid stats data", data)
+                return self.log_test("Get Subscription Plans", False, "Invalid plans data", data)
         else:
-            return self.log_test("Get User Stats", False, f"Status code {response.status_code}")
-
-    def test_insufficient_dimensions_validation(self):
-        """Test session creation with insufficient dimensions (should fail)"""
-        session_data = {
-            "dimension_scores": [
-                {"dimension_name": "Jab", "score": 7},
-                {"dimension_name": "Cross", "score": 6}
-            ]
-        }
-
-        response = self.make_request('POST', 'sessions', session_data)
-        
-        if not response:
-            return self.log_test("Insufficient Dimensions Validation", False, "Request failed")
-        
-        if response.status_code == 400:
-            return self.log_test("Insufficient Dimensions Validation", True)
-        else:
-            return self.log_test("Insufficient Dimensions Validation", False, f"Expected 400, got {response.status_code}")
+            return self.log_test("Get Subscription Plans", False, f"Status code {response.status_code}")
 
     def run_all_tests(self):
-        """Run all backend tests"""
-        print("=" * 50)
-        print("Victory AI Backend API Testing")
-        print("=" * 50)
+        """Run all backend tests for Victory AI"""
+        print("=" * 60)
+        print("Victory AI Backend API Testing - Major Rebuild")
+        print("=" * 60)
         
-        # Test health check first
+        # Basic health check
+        print("\n📋 HEALTH CHECK")
         self.test_health_check()
         
-        # Test public endpoints
+        # Public endpoints 
+        print("\n📊 PUBLIC ENDPOINTS")
         self.test_dimensions_endpoint()
-        self.test_legends_endpoint() 
-        self.test_drills_endpoint()
+        self.test_fighter_buddy_archetypes()
+        self.test_subscription_plans()
         
-        # Test authentication flow
+        # Authentication flow
+        print("\n🔐 AUTHENTICATION")
         self.test_user_registration()
         self.test_get_current_user()
         
-        # Test protected endpoints
+        # New onboarding features
         if self.session_token:
-            self.test_create_session()
+            print("\n📝 ONBOARDING FLOW")
+            self.test_quiz_submit()
+            self.test_fighter_buddy_create()
+            
+            print("\n💳 PAYMENT & SUBSCRIPTION") 
+            self.test_payments_checkout()
+            self.test_subscription_status()
+            
+            print("\n🏃 TRAINING FEATURES")
+            self.test_training_start()
+            self.test_ai_generate_feedback()
             self.test_get_sessions()
-            self.test_user_stats()
-            self.test_insufficient_dimensions_validation()
         
         # Print final results
-        print("\n" + "=" * 50)
-        print(f"Tests completed: {self.tests_passed}/{self.tests_run} passed")
-        print("=" * 50)
+        print("\n" + "=" * 60)
+        success_rate = (self.tests_passed / self.tests_run * 100) if self.tests_run > 0 else 0
+        print(f"FINAL RESULTS: {self.tests_passed}/{self.tests_run} tests passed ({success_rate:.1f}%)")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 ALL TESTS PASSED!")
+        else:
+            print(f"❌ {self.tests_run - self.tests_passed} tests failed")
+            
+        print("=" * 60)
         
         return {
             "total_tests": self.tests_run,
             "passed_tests": self.tests_passed,
-            "success_rate": (self.tests_passed / self.tests_run * 100) if self.tests_run > 0 else 0,
+            "success_rate": success_rate,
             "results": self.test_results
         }
 

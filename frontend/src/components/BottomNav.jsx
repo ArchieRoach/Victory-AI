@@ -1,9 +1,9 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Target, Timer, Play } from "lucide-react";
+import { Home, Dumbbell, Timer, Play } from "lucide-react";
 
 const NAV_ITEMS = [
   { path: "/home", icon: Home, label: "Home" },
-  { path: "/score", icon: Target, label: "Score" },
+  { path: "/train", icon: Dumbbell, label: "Train" },
   { path: "/timer", icon: Timer, label: "Timer" },
   { path: "/library", icon: Play, label: "Library" },
 ];
@@ -19,7 +19,7 @@ export const BottomNav = () => {
       <div className="flex justify-around items-center h-20 max-w-lg mx-auto">
         {NAV_ITEMS.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path || 
-            (path === "/score" && location.pathname.startsWith("/score"));
+            (path === "/train" && location.pathname.startsWith("/score"));
           
           return (
             <NavLink
