@@ -73,12 +73,12 @@ export default function WelcomePage() {
         <div className="w-full max-w-md text-center animate-fade-in">
           {/* Logo */}
           <div className="mb-8">
-            <div
-              className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-victory-lime text-victory-bg font-heading text-3xl font-extrabold"
+            <img
+              src="https://static.prod-images.emergentagent.com/jobs/72d6b0b0-059a-45b2-9c71-d2c91058e90f/images/52d94070750f09b557456eb2d4e4cc616812253fb620b3381c1956e7e15e7c98.png"
+              alt="Victory AI"
+              className="w-24 h-24 mx-auto rounded-2xl object-contain bg-victory-card"
               data-testid="app-logo"
-            >
-              VA
-            </div>
+            />
           </div>
 
           {/* Headlines */}
@@ -86,7 +86,7 @@ export default function WelcomePage() {
             className="text-4xl sm:text-5xl font-heading font-extrabold text-victory-text mb-4"
             data-testid="welcome-headline"
           >
-            Your AI fighter buddy is waiting.
+            Your AI training partner is waiting.
           </h1>
           <p className="text-lg text-victory-muted mb-8">
             Train with instant feedback. Track your progress. Get better every round.
@@ -139,7 +139,7 @@ export default function WelcomePage() {
           <ul className="text-left space-y-3 mb-10">
             <li className="flex items-start gap-3 text-victory-text">
               <span className="text-victory-lime text-lg">🥊</span>
-              <span>AI fighter buddy gives you instant technique feedback</span>
+              <span>AI training partner gives you instant technique feedback</span>
             </li>
             <li className="flex items-start gap-3 text-victory-text">
               <span className="text-victory-teal text-lg">📹</span>
@@ -187,7 +187,7 @@ export default function WelcomePage() {
             Create Your Account
           </h2>
           <p className="text-victory-muted mb-6">
-            Quick signup, then we'll match you with your perfect fighter buddy.
+            Quick signup, then we'll match you with your perfect AI training partner.
           </p>
 
           {/* Google Sign Up */}

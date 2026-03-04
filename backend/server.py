@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Response, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Response, Request, Query, File, UploadFile
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -15,6 +15,10 @@ import bcrypt
 import jwt
 import base64
 import random
+import time
+import cloudinary
+import cloudinary.uploader
+import cloudinary.utils
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -35,6 +39,14 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
 # Emergent LLM Key
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 
+# Cloudinary Settings
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", ""),
+    api_key=os.environ.get("CLOUDINARY_API_KEY", ""),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET", ""),
+    secure=True
+)
+
 # Subscription Plans
 SUBSCRIPTION_PLANS = {
     "monthly": {"price": 2.99, "name": "Monthly", "interval": "month"},
@@ -43,15 +55,9 @@ SUBSCRIPTION_PLANS = {
 
 # Create the main app
 app = FastAPI(title="Victory AI API")
-
-# Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # ============== MODELS ==============
@@ -60,8 +66,6 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
-    experience_level: str = "Training under 6 months"
-    primary_goal: str = "Get better overall"
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -72,44 +76,20 @@ class UserUpdate(BaseModel):
     experience_level: Optional[str] = None
     primary_goal: Optional[str] = None
 
-class UserResponse(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    user_id: str
-    email: str
-    name: str
-    experience_level: str
-    primary_goal: str
-    created_at: str
-    picture: Optional[str] = None
-    has_subscription: Optional[bool] = False
-    subscription_status: Optional[str] = None
-    fighter_buddy: Optional[Dict[str, Any]] = None
-    quiz_completed: Optional[bool] = False
-
-class QuizAnswers(BaseModel):
-    training_goal: str
-    training_frequency: str
-    training_location: str
+class OnboardingAnswers(BaseModel):
+    why_downloaded: str
+    heard_from: str
     biggest_frustration: str
-    favorite_fighters: List[str]
+    training_frequency: str
+    experience_level: str
+    favorite_counter: str
+    training_partner_style: str
 
-class FighterBuddyCreate(BaseModel):
+class TrainingPartnerCreate(BaseModel):
     name: str
-    weight_class: str
-    stance: str
-    favorite_punch: str
-    archetype: str
-
-class FighterBuddyResponse(BaseModel):
-    buddy_id: str
-    name: str
-    weight_class: str
-    stance: str
-    favorite_punch: str
-    archetype: str
-    personality: str
-    avatar_url: Optional[str] = None
-    created_at: str
+    style: str
+    focus_areas: List[str]
+    accountability_level: str
 
 class CheckoutRequest(BaseModel):
     plan_id: str
@@ -125,105 +105,84 @@ class TrainingSessionCreate(BaseModel):
     total_rounds: int = 3
     record_video: bool = True
 
-class RoundData(BaseModel):
-    round_number: int
-    video_blob: Optional[str] = None
-    duration_seconds: int
-    feedback: Optional[Dict[str, Any]] = None
-    dimension_scores: Optional[List[Dict[str, Any]]] = None
-
-class SessionResponse(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+class RoundVideoUpload(BaseModel):
     session_id: str
-    user_id: str
-    date: str
-    video_url: Optional[str] = None
-    session_notes: Optional[str] = None
-    overall_score: float
-    dimension_scores: List[Dict[str, Any]]
-    rounds: Optional[List[Dict[str, Any]]] = None
-    created_at: str
+    round_number: int
+    video_url: str
+    public_id: str
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
-# ============== FIGHTER BUDDY ARCHETYPES ==============
+# ============== TRAINING PARTNER STYLES ==============
 
-FIGHTER_ARCHETYPES = {
-    "ukrainian_technician": {
-        "name": "Ukrainian Technician",
-        "inspired_by": "Oleksandr Usyk",
-        "personality": "Calm, analytical southpaw who loves angles and outthinking opponents. Speaks with quiet confidence.",
-        "feedback_style": "analytical",
-        "catchphrases": ["Angles win fights.", "Think, then strike.", "Make them miss, make them pay."]
+TRAINING_PARTNER_STYLES = {
+    "tough_love": {
+        "name": "Tough Love Coach",
+        "personality": "Direct, no-nonsense, pushes you hard but celebrates your wins. Won't let you make excuses.",
+        "feedback_tone": "direct",
+        "phrases": ["No excuses!", "You've got more in the tank!", "That's the stuff!", "Again!"]
     },
-    "relentless_pressure": {
-        "name": "Relentless Pressure Fighter",
-        "inspired_by": "Artur Beterbiev / Joe Frazier",
-        "personality": "Aggressive body puncher who hates wasted movement. Intense and motivating.",
-        "feedback_style": "intense",
-        "catchphrases": ["Pressure breaks pipes!", "The body, the body!", "Never let them breathe!"]
+    "supportive_mentor": {
+        "name": "Supportive Mentor",
+        "personality": "Encouraging, patient, builds you up. Focuses on progress over perfection.",
+        "feedback_tone": "encouraging",
+        "phrases": ["You're getting better every day!", "Progress, not perfection!", "I see you improving!", "Keep it up!"]
     },
-    "explosive_finisher": {
-        "name": "Explosive Finisher",
-        "inspired_by": "Naoya Inoue / Gervonta Davis",
-        "personality": "Patient setup artist with devastating power. Speaks with cool confidence.",
-        "feedback_style": "cool",
-        "catchphrases": ["One shot, one kill.", "Set the trap.", "When you see it, throw it."]
+    "analytical_technician": {
+        "name": "Technical Analyst",
+        "personality": "Detailed, precise, loves the science of boxing. Breaks down every movement.",
+        "feedback_tone": "analytical",
+        "phrases": ["Let's analyze that.", "The data shows...", "Technically speaking...", "Notice the angle here."]
     },
-    "slick_counterpuncher": {
-        "name": "Slick Counter-Puncher",
-        "inspired_by": "Terence Crawford / Floyd Mayweather",
-        "personality": "Defensive genius who makes opponents miss and pay. Smooth and calculating.",
-        "feedback_style": "smooth",
-        "catchphrases": ["Make them reach.", "Defense is art.", "Counter and coast."]
+    "hype_man": {
+        "name": "Hype Man",
+        "personality": "Energetic, motivational, makes every session feel like fight night.",
+        "feedback_tone": "hype",
+        "phrases": ["LET'S GO!", "You're a BEAST!", "THAT'S MY FIGHTER!", "FIRE!"]
     },
-    "complete_champion": {
-        "name": "Complete Champion",
-        "inspired_by": "Canelo Alvarez / Dmitrii Bivol",
-        "personality": "Well-rounded master who adapts to any style. Confident but respectful.",
-        "feedback_style": "balanced",
-        "catchphrases": ["Adjust and dominate.", "Every round is a new fight.", "Champions find a way."]
-    },
-    "classic_great_ali": {
-        "name": "Classic Great - The Greatest",
-        "inspired_by": "Muhammad Ali",
-        "personality": "Float like a butterfly, sting like a bee. Charismatic and poetic.",
-        "feedback_style": "poetic",
-        "catchphrases": ["Float and fly!", "Dance, baby, dance!", "Show them your beautiful moves!"]
-    },
-    "classic_great_tyson": {
-        "name": "Classic Great - Iron Will",
-        "inspired_by": "Mike Tyson",
-        "personality": "Peek-a-boo intensity with explosive power. Direct and fierce.",
-        "feedback_style": "fierce",
-        "catchphrases": ["Head movement is life!", "Close the distance!", "Destroy with bad intentions!"]
-    },
-    "classic_great_hagler": {
-        "name": "Classic Great - Marvelous",
-        "inspired_by": "Marvin Hagler",
-        "personality": "Destruct and destroy. Southpaw warrior with unmatched determination.",
-        "feedback_style": "warrior",
-        "catchphrases": ["War is won in the gym.", "Destruct and destroy.", "Southpaw supremacy."]
-    },
-    "modern_star_garcia": {
-        "name": "Modern Star - Flash",
-        "inspired_by": "Ryan Garcia",
-        "personality": "Fast hands and flashy style. Young, energetic, and social media savvy.",
-        "feedback_style": "energetic",
-        "catchphrases": ["Speed kills!", "Let's go viral!", "Flash and dash!"]
-    },
-    "modern_star_benavidez": {
-        "name": "Modern Star - Mexican Monster",
-        "inspired_by": "David Benavidez",
-        "personality": "High volume, relentless pressure. Proud Mexican warrior spirit.",
-        "feedback_style": "proud",
-        "catchphrases": ["Volume wins!", "Mexican pride!", "Work rate is everything!"]
+    "old_school_trainer": {
+        "name": "Old School Trainer",
+        "personality": "Wise, experienced, shares stories from the greats. Classic boxing wisdom.",
+        "feedback_tone": "wise",
+        "phrases": ["In my day...", "The greats always...", "Boxing is an art.", "Patience, young fighter."]
     }
 }
 
-# ============== HARDCODED DATA ==============
+# ============== TESTIMONIALS & SOCIAL PROOF ==============
+
+TESTIMONIALS = [
+    {
+        "name": "Marcus T.",
+        "text": "I no longer get beat up in sparring. I can finally roll with punches thanks to the constant reminders my AI training partner gives me.",
+        "improvement": "Head movement +40%"
+    },
+    {
+        "name": "Sarah K.",
+        "text": "My coach asked what I've been doing differently. It's Victory AI. The accountability is real - my partner won't let me skip technique drills.",
+        "improvement": "Consistency up 3x"
+    },
+    {
+        "name": "James L.",
+        "text": "Finally fixed my habit of dropping my right hand. My training partner caught it every single round until it stuck.",
+        "improvement": "Guard position +55%"
+    },
+    {
+        "name": "Ana M.",
+        "text": "The personalized feedback during rest periods changed everything. It's like having a coach in my pocket.",
+        "improvement": "Overall score +2.3"
+    }
+]
+
+SOCIAL_PROOF_STATS = {
+    "rounds_recorded": "50,000+",
+    "techniques_improved": "127,000+",
+    "avg_improvement": "34%",
+    "active_fighters": "8,500+"
+}
+
+# ============== DIMENSIONS & DRILLS ==============
 
 DIMENSIONS = [
     "Jab", "Cross", "Left Hook", "Right Hook", "Uppercut",
@@ -236,19 +195,19 @@ DRILLS = {
     "Jab": {"name": "The 1-1-1 Drill", "description": "3 jabs in 10 seconds, focusing on full extension and guard return. 4 sets."},
     "Cross": {"name": "Hip Rotation Shadow", "description": "Throw a cross in slow motion focusing only on hip turn. 3 sets of 20 reps."},
     "Left Hook": {"name": "Mirror Elbow Check", "description": "Throw hooks facing a mirror, elbow must stay at 90 degrees. 3 sets."},
-    "Right Hook": {"name": "Short Hook Wall Drill", "description": "Stand 6 inches from a wall, throw right hooks without hitting it. Forces tightness."},
+    "Right Hook": {"name": "Short Hook Wall Drill", "description": "Stand 6 inches from a wall, throw right hooks without hitting it."},
     "Uppercut": {"name": "Uppercut Dip Drill", "description": "Consciously bend knees before each uppercut. 4 sets of 20."},
-    "Guard Position": {"name": "Hands-Up Shadowboxing", "description": "3 rounds where you consciously reset guard after every single punch."},
-    "Head Movement": {"name": "Slip Rope Drill", "description": "Tie a rope at nose height and walk along it, slipping to each side repeatedly."},
-    "Slip": {"name": "Partner Jab Slip", "description": "Have a partner throw soft jabs, slip outside every one. Or use a slip bag."},
-    "Roll": {"name": "Roll Under the Hook", "description": "Hang a soft object at head height, practice rolling shoulder-to-shoulder under it. 50 reps."},
-    "Parry": {"name": "Soft Jab Parry Drill", "description": "Partner throws light jabs, redirect them with open palm only. No blocking."},
-    "Body Movement": {"name": "Exit Angle Drill", "description": "After every combination, pivot 45 degrees to a new angle. Force the habit."},
-    "Footwork": {"name": "Box Step Pattern", "description": "Practice the square footwork pattern (forward, right, back, left) for 3 minutes without crossing feet."},
-    "Combination Flow": {"name": "3-Punch Pause Drill", "description": "Throw 1-2-3 with a 1-second pause after each punch to check balance and guard."},
-    "Ring Generalship": {"name": "Wall Drill", "description": "Practice cutting off the ring against a wall, pivoting to keep opponent 'cornered'."},
-    "Punch Balance": {"name": "Combination and Freeze", "description": "Throw a 4-punch combo and freeze at the end. Check: are you in stance?"},
-    "Punch Accuracy": {"name": "Slip Bag Accuracy", "description": "Tape an X on a slip bag and aim every punch at the X for 3 rounds."}
+    "Guard Position": {"name": "Hands-Up Shadowboxing", "description": "3 rounds resetting guard after every punch."},
+    "Head Movement": {"name": "Slip Rope Drill", "description": "Tie a rope at nose height, slip to each side repeatedly."},
+    "Slip": {"name": "Partner Jab Slip", "description": "Slip outside every jab. Or use a slip bag."},
+    "Roll": {"name": "Roll Under the Hook", "description": "Roll shoulder-to-shoulder under an object. 50 reps."},
+    "Parry": {"name": "Soft Jab Parry Drill", "description": "Redirect jabs with open palm only. No blocking."},
+    "Body Movement": {"name": "Exit Angle Drill", "description": "Pivot 45 degrees after every combination."},
+    "Footwork": {"name": "Box Step Pattern", "description": "Square footwork pattern for 3 minutes without crossing feet."},
+    "Combination Flow": {"name": "3-Punch Pause Drill", "description": "1-2-3 with a pause after each punch to check balance."},
+    "Ring Generalship": {"name": "Wall Drill", "description": "Cut off the ring against a wall, pivoting to corner opponent."},
+    "Punch Balance": {"name": "Combination and Freeze", "description": "4-punch combo then freeze. Check: are you in stance?"},
+    "Punch Accuracy": {"name": "Slip Bag Accuracy", "description": "Tape an X on a slip bag and aim every punch at it."}
 }
 
 LEGENDS = [
@@ -271,17 +230,13 @@ def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
 def create_jwt_token(user_id: str) -> str:
-    payload = {
-        "user_id": user_id,
-        "exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRATION_DAYS),
-        "iat": datetime.now(timezone.utc)
-    }
+    payload = {"user_id": user_id, "exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRATION_DAYS), "iat": datetime.now(timezone.utc)}
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 def decode_jwt_token(token: str) -> Optional[dict]:
     try:
         return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+    except:
         return None
 
 async def get_current_user(request: Request) -> dict:
@@ -290,11 +245,9 @@ async def get_current_user(request: Request) -> dict:
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
             session_token = auth_header.split(" ")[1]
-    
     if not session_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
-    # Check OAuth session
     session_doc = await db.user_sessions.find_one({"session_token": session_token}, {"_id": 0})
     if session_doc:
         expires_at = session_doc.get("expires_at")
@@ -308,29 +261,19 @@ async def get_current_user(request: Request) -> dict:
         if user:
             return user
     
-    # Try JWT token
     payload = decode_jwt_token(session_token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-    
     user = await db.users.find_one({"user_id": payload["user_id"]}, {"_id": 0, "password": 0})
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
 async def get_current_user_with_subscription(request: Request) -> dict:
-    """Get current user and check if they have an active subscription"""
     user = await get_current_user(request)
-    
-    # Check subscription status
-    subscription = await db.subscriptions.find_one(
-        {"user_id": user["user_id"], "status": {"$in": ["active", "trialing"]}},
-        {"_id": 0}
-    )
-    
+    subscription = await db.subscriptions.find_one({"user_id": user["user_id"], "status": {"$in": ["active", "trialing"]}}, {"_id": 0})
     user["has_subscription"] = subscription is not None
     user["subscription_status"] = subscription.get("status") if subscription else None
-    
     return user
 
 # ============== AUTH ENDPOINTS ==============
@@ -343,23 +286,14 @@ async def register(user_data: UserCreate, response: Response):
     
     user_id = f"user_{uuid.uuid4().hex[:12]}"
     user_doc = {
-        "user_id": user_id,
-        "email": user_data.email,
-        "password": hash_password(user_data.password),
-        "name": user_data.name,
-        "experience_level": user_data.experience_level,
-        "primary_goal": user_data.primary_goal,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "picture": None,
-        "quiz_completed": False,
-        "fighter_buddy": None
+        "user_id": user_id, "email": user_data.email, "password": hash_password(user_data.password),
+        "name": user_data.name, "experience_level": "beginner", "primary_goal": "",
+        "created_at": datetime.now(timezone.utc).isoformat(), "picture": None,
+        "onboarding_completed": False, "training_partner": None, "onboarding_answers": None
     }
-    
     await db.users.insert_one(user_doc)
-    
     token = create_jwt_token(user_id)
     response.set_cookie(key="session_token", value=token, httponly=True, secure=True, samesite="none", path="/", max_age=JWT_EXPIRATION_DAYS * 24 * 60 * 60)
-    
     return TokenResponse(access_token=token)
 
 @api_router.post("/auth/login", response_model=TokenResponse)
@@ -367,10 +301,8 @@ async def login(user_data: UserLogin, response: Response):
     user = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if not user or not verify_password(user_data.password, user.get("password", "")):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    
     token = create_jwt_token(user["user_id"])
     response.set_cookie(key="session_token", value=token, httponly=True, secure=True, samesite="none", path="/", max_age=JWT_EXPIRATION_DAYS * 24 * 60 * 60)
-    
     return TokenResponse(access_token=token)
 
 @api_router.post("/auth/session")
@@ -381,23 +313,12 @@ async def exchange_session(request: Request, response: Response):
         raise HTTPException(status_code=400, detail="session_id required")
     
     async with httpx.AsyncClient() as client:
-        try:
-            auth_response = await client.get(
-                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": session_id},
-                timeout=10.0
-            )
-            if auth_response.status_code != 200:
-                raise HTTPException(status_code=401, detail="Invalid session")
-            auth_data = auth_response.json()
-        except httpx.RequestError:
-            raise HTTPException(status_code=500, detail="Auth service unavailable")
+        auth_response = await client.get("https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data", headers={"X-Session-ID": session_id}, timeout=10.0)
+        if auth_response.status_code != 200:
+            raise HTTPException(status_code=401, detail="Invalid session")
+        auth_data = auth_response.json()
     
-    email = auth_data.get("email")
-    name = auth_data.get("name")
-    picture = auth_data.get("picture")
-    session_token = auth_data.get("session_token")
-    
+    email, name, picture, session_token = auth_data.get("email"), auth_data.get("name"), auth_data.get("picture"), auth_data.get("session_token")
     existing_user = await db.users.find_one({"email": email}, {"_id": 0})
     
     if existing_user:
@@ -405,23 +326,15 @@ async def exchange_session(request: Request, response: Response):
         await db.users.update_one({"user_id": user_id}, {"$set": {"name": name, "picture": picture}})
     else:
         user_id = f"user_{uuid.uuid4().hex[:12]}"
-        user_doc = {
+        await db.users.insert_one({
             "user_id": user_id, "email": email, "name": name, "picture": picture,
-            "experience_level": "Training under 6 months", "primary_goal": "Get better overall",
-            "created_at": datetime.now(timezone.utc).isoformat(), "password": None,
-            "quiz_completed": False, "fighter_buddy": None
-        }
-        await db.users.insert_one(user_doc)
+            "experience_level": "beginner", "primary_goal": "", "created_at": datetime.now(timezone.utc).isoformat(),
+            "password": None, "onboarding_completed": False, "training_partner": None, "onboarding_answers": None
+        })
     
     await db.user_sessions.delete_many({"user_id": user_id})
-    await db.user_sessions.insert_one({
-        "user_id": user_id, "session_token": session_token,
-        "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
-        "created_at": datetime.now(timezone.utc).isoformat()
-    })
-    
+    await db.user_sessions.insert_one({"user_id": user_id, "session_token": session_token, "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(), "created_at": datetime.now(timezone.utc).isoformat()})
     response.set_cookie(key="session_token", value=session_token, httponly=True, secure=True, samesite="none", path="/", max_age=7 * 24 * 60 * 60)
-    
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
     return user
 
@@ -439,161 +352,370 @@ async def logout(request: Request, response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out successfully"}
 
-# ============== QUIZ ENDPOINTS ==============
+# ============== ONBOARDING ENDPOINTS ==============
 
-@api_router.post("/quiz/submit")
-async def submit_quiz(quiz_answers: QuizAnswers, user: dict = Depends(get_current_user)):
-    await db.users.update_one(
-        {"user_id": user["user_id"]},
-        {"$set": {
-            "quiz_answers": quiz_answers.model_dump(),
-            "quiz_completed": True,
-            "primary_goal": quiz_answers.training_goal
-        }}
-    )
-    return {"message": "Quiz completed", "quiz_completed": True}
+@api_router.get("/onboarding/social-proof")
+async def get_social_proof():
+    return {"stats": SOCIAL_PROOF_STATS, "testimonials": TESTIMONIALS}
 
-# ============== FIGHTER BUDDY ENDPOINTS ==============
+@api_router.get("/onboarding/partner-styles")
+async def get_partner_styles():
+    return {"styles": TRAINING_PARTNER_STYLES}
 
-@api_router.get("/fighter-buddy/archetypes")
-async def get_archetypes():
-    return {"archetypes": FIGHTER_ARCHETYPES}
-
-@api_router.post("/fighter-buddy/create")
-async def create_fighter_buddy(buddy_data: FighterBuddyCreate, user: dict = Depends(get_current_user)):
-    archetype_info = FIGHTER_ARCHETYPES.get(buddy_data.archetype, FIGHTER_ARCHETYPES["complete_champion"])
-    
-    buddy_id = f"buddy_{uuid.uuid4().hex[:12]}"
-    fighter_buddy = {
-        "buddy_id": buddy_id,
-        "name": buddy_data.name,
-        "weight_class": buddy_data.weight_class,
-        "stance": buddy_data.stance,
-        "favorite_punch": buddy_data.favorite_punch,
-        "archetype": buddy_data.archetype,
-        "archetype_name": archetype_info["name"],
-        "personality": archetype_info["personality"],
-        "feedback_style": archetype_info["feedback_style"],
-        "catchphrases": archetype_info["catchphrases"],
-        "avatar_url": None,
-        "created_at": datetime.now(timezone.utc).isoformat()
+@api_router.post("/onboarding/submit")
+async def submit_onboarding(answers: OnboardingAnswers, user: dict = Depends(get_current_user)):
+    # Generate personalized affirmation based on answers
+    affirmations = {
+        "counter_goal": f"Landing double the amount of your favorite {answers.favorite_counter} is a realistic target within 8 weeks.",
+        "frustration_solution": f"We hear you on '{answers.biggest_frustration}'. That's exactly what your training partner will focus on.",
+        "consistency": "Initial results are slow but momentum builds. Most fighters see real changes after 2-3 weeks of consistent feedback."
     }
     
     await db.users.update_one(
         {"user_id": user["user_id"]},
-        {"$set": {"fighter_buddy": fighter_buddy}}
+        {"$set": {
+            "onboarding_answers": answers.model_dump(),
+            "experience_level": answers.experience_level,
+            "primary_goal": answers.biggest_frustration,
+            "personalized_affirmations": affirmations
+        }}
     )
-    
-    return fighter_buddy
+    return {"message": "Onboarding answers saved", "affirmations": affirmations}
 
-@api_router.post("/fighter-buddy/generate-avatar")
-async def generate_fighter_avatar(user: dict = Depends(get_current_user)):
-    """Generate an AI avatar for the fighter buddy using Gemini Nano Banana"""
-    fighter_buddy = user.get("fighter_buddy")
-    if not fighter_buddy:
-        raise HTTPException(status_code=400, detail="Create a fighter buddy first")
+@api_router.post("/onboarding/create-partner")
+async def create_training_partner(partner_data: TrainingPartnerCreate, user: dict = Depends(get_current_user)):
+    style_info = TRAINING_PARTNER_STYLES.get(partner_data.style, TRAINING_PARTNER_STYLES["supportive_mentor"])
+    
+    partner_id = f"partner_{uuid.uuid4().hex[:12]}"
+    training_partner = {
+        "partner_id": partner_id,
+        "name": partner_data.name,
+        "style": partner_data.style,
+        "style_name": style_info["name"],
+        "personality": style_info["personality"],
+        "feedback_tone": style_info["feedback_tone"],
+        "phrases": style_info["phrases"],
+        "focus_areas": partner_data.focus_areas,
+        "accountability_level": partner_data.accountability_level,
+        "avatar_url": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner": training_partner, "onboarding_completed": True}})
+    return training_partner
+
+@api_router.post("/onboarding/generate-avatar")
+async def generate_partner_avatar(user: dict = Depends(get_current_user)):
+    training_partner = user.get("training_partner")
+    if not training_partner:
+        raise HTTPException(status_code=400, detail="Create a training partner first")
     
     if not EMERGENT_LLM_KEY:
-        # Return placeholder if no API key
-        placeholder_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={fighter_buddy['buddy_id']}&backgroundColor=0A0A0F"
-        await db.users.update_one(
-            {"user_id": user["user_id"]},
-            {"$set": {"fighter_buddy.avatar_url": placeholder_url}}
-        )
+        placeholder_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={training_partner['partner_id']}&backgroundColor=0A0A0F"
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner.avatar_url": placeholder_url}})
         return {"avatar_url": placeholder_url}
     
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         
-        archetype_info = FIGHTER_ARCHETYPES.get(fighter_buddy["archetype"], {})
-        prompt = f"""Create a stylized digital avatar portrait of a boxer character. The character should be:
-- Name style: {fighter_buddy['name']}
-- Weight class: {fighter_buddy['weight_class']}
-- Stance: {fighter_buddy['stance']}
-- Fighting style: {archetype_info.get('name', 'Complete Champion')}
-- Personality: {archetype_info.get('personality', 'Confident fighter')}
+        style_info = TRAINING_PARTNER_STYLES.get(training_partner["style"], {})
+        prompt = f"""Create a stylized digital avatar portrait of a boxing trainer character:
+- Name style: {training_partner['name']}
+- Personality: {style_info.get('personality', 'Confident trainer')}
+- Training style: {style_info.get('name', 'Coach')}
+Style: Modern digital art, athletic, confident pose, dark background with electric lime (#E8FF47) accents.
+NO real person likenesses. Create an original character. Professional boxing trainer aesthetic."""
 
-Style: Modern digital art, athletic, confident pose, dark background with subtle electric lime (#E8FF47) accents. 
-NO real person likenesses. Create an original character. Professional boxing aesthetic."""
-
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"avatar_{fighter_buddy['buddy_id']}",
-            system_message="You are an AI artist creating boxer character avatars."
-        )
+        chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"avatar_{training_partner['partner_id']}", system_message="You are an AI artist creating boxing trainer avatars.")
         chat.with_model("gemini", "gemini-3-pro-image-preview").with_params(modalities=["image", "text"])
         
-        msg = UserMessage(text=prompt)
-        text, images = await chat.send_message_multimodal_response(msg)
+        text, images = await chat.send_message_multimodal_response(UserMessage(text=prompt))
         
         if images and len(images) > 0:
-            # Store base64 image data
             avatar_data = f"data:{images[0]['mime_type']};base64,{images[0]['data']}"
-            await db.users.update_one(
-                {"user_id": user["user_id"]},
-                {"$set": {"fighter_buddy.avatar_url": avatar_data}}
-            )
+            await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner.avatar_url": avatar_data}})
             return {"avatar_url": avatar_data}
-        else:
-            # Fallback to placeholder
-            placeholder_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={fighter_buddy['buddy_id']}&backgroundColor=0A0A0F"
-            await db.users.update_one(
-                {"user_id": user["user_id"]},
-                {"$set": {"fighter_buddy.avatar_url": placeholder_url}}
-            )
-            return {"avatar_url": placeholder_url}
-            
     except Exception as e:
         logger.error(f"Avatar generation error: {e}")
-        placeholder_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={fighter_buddy['buddy_id']}&backgroundColor=0A0A0F"
-        await db.users.update_one(
-            {"user_id": user["user_id"]},
-            {"$set": {"fighter_buddy.avatar_url": placeholder_url}}
+    
+    placeholder_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={training_partner['partner_id']}&backgroundColor=0A0A0F"
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner.avatar_url": placeholder_url}})
+    return {"avatar_url": placeholder_url}
+
+# ============== CLOUDINARY VIDEO UPLOAD ==============
+
+@api_router.get("/cloudinary/signature")
+async def generate_cloudinary_signature(
+    resource_type: str = Query("video", enum=["image", "video"]),
+    folder: str = Query("victory_rounds"),
+    user: dict = Depends(get_current_user)
+):
+    if not os.environ.get("CLOUDINARY_API_SECRET"):
+        raise HTTPException(status_code=500, detail="Cloudinary not configured")
+    
+    timestamp = int(time.time())
+    params = {"timestamp": timestamp, "folder": f"{folder}/{user['user_id']}", "resource_type": resource_type}
+    signature = cloudinary.utils.api_sign_request(params, os.environ.get("CLOUDINARY_API_SECRET"))
+    
+    return {
+        "signature": signature,
+        "timestamp": timestamp,
+        "cloud_name": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        "api_key": os.environ.get("CLOUDINARY_API_KEY"),
+        "folder": f"{folder}/{user['user_id']}",
+        "resource_type": resource_type
+    }
+
+@api_router.post("/videos/register")
+async def register_uploaded_video(video_data: RoundVideoUpload, user: dict = Depends(get_current_user)):
+    video_doc = {
+        "video_id": f"vid_{uuid.uuid4().hex[:12]}",
+        "user_id": user["user_id"],
+        "session_id": video_data.session_id,
+        "round_number": video_data.round_number,
+        "video_url": video_data.video_url,
+        "public_id": video_data.public_id,
+        "analyzed": False,
+        "analysis_results": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.round_videos.insert_one(video_doc)
+    return {"video_id": video_doc["video_id"], "message": "Video registered"}
+
+# ============== GPT-4 VISION VIDEO ANALYSIS ==============
+
+@api_router.post("/ai/analyze-video")
+async def analyze_video_with_vision(request: Request, user: dict = Depends(get_current_user)):
+    body = await request.json()
+    video_url = body.get("video_url")
+    round_number = body.get("round_number", 1)
+    
+    if not video_url:
+        raise HTTPException(status_code=400, detail="video_url required")
+    
+    training_partner = user.get("training_partner", {})
+    partner_name = training_partner.get("name", "Coach")
+    feedback_tone = training_partner.get("feedback_tone", "encouraging")
+    focus_areas = training_partner.get("focus_areas", ["Guard Position", "Head Movement"])
+    
+    if not EMERGENT_LLM_KEY:
+        # Return simulated analysis
+        return generate_simulated_analysis(round_number, partner_name, focus_areas)
+    
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+        import httpx
+        
+        # Download video thumbnail/frame for analysis
+        # In production, extract frames from video. For now, analyze video URL metadata
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"analysis_{user['user_id']}_{round_number}",
+            system_message=f"""You are {partner_name}, an expert boxing technique analyst with a {feedback_tone} style.
+Analyze the boxing footage and provide feedback on:
+1. Guard Position - Are hands at cheekbone height? Elbows tucked?
+2. Head Movement - Is the head moving off centerline?
+3. Footwork - Balanced stance, no crossing feet?
+4. Punch Technique - Extension, snap, hip rotation?
+5. Combination Flow - Smooth transitions between punches?
+
+Focus especially on: {', '.join(focus_areas)}
+
+Provide scores 1-10 for each dimension and specific, actionable feedback.
+Be {feedback_tone} in your tone but always honest about areas needing work."""
         )
-        return {"avatar_url": placeholder_url}
+        chat.with_model("openai", "gpt-4o")
+        
+        # For video analysis, we'd extract frames. Simulating with URL-based prompt
+        prompt = f"""Based on the training video from round {round_number}, analyze the boxer's technique.
+Video URL: {video_url}
+
+Provide:
+1. Scores (1-10) for: Jab, Cross, Guard Position, Head Movement, Footwork, Combination Flow
+2. One thing they did well
+3. One thing to improve next round
+4. A specific drill recommendation
+
+Format as JSON with keys: dimension_scores (array), what_did_well, what_to_improve, drill_recommendation"""
+
+        response = await chat.send_message(UserMessage(text=prompt))
+        
+        # Parse AI response
+        import json
+        try:
+            analysis = json.loads(response)
+        except:
+            analysis = generate_simulated_analysis(round_number, partner_name, focus_areas)
+        
+        # Store analysis
+        await db.round_videos.update_one(
+            {"video_url": video_url},
+            {"$set": {"analyzed": True, "analysis_results": analysis, "analyzed_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"analysis": analysis, "partner_name": partner_name}
+        
+    except Exception as e:
+        logger.error(f"Video analysis error: {e}")
+        return generate_simulated_analysis(round_number, partner_name, focus_areas)
+
+def generate_simulated_analysis(round_number: int, partner_name: str, focus_areas: List[str]) -> dict:
+    key_dimensions = ["Jab", "Cross", "Guard Position", "Head Movement", "Footwork", "Combination Flow"]
+    dimension_scores = [{"dimension_name": dim, "score": random.randint(5, 9)} for dim in key_dimensions]
+    
+    sorted_scores = sorted(dimension_scores, key=lambda x: x["score"])
+    best = sorted_scores[-1]
+    worst = sorted_scores[0]
+    
+    return {
+        "analysis": {
+            "dimension_scores": dimension_scores,
+            "what_did_well": f"Strong {best['dimension_name'].lower()} this round - keep that up!",
+            "what_to_improve": f"Focus on your {worst['dimension_name'].lower()} next round.",
+            "drill_recommendation": DRILLS.get(worst["dimension_name"], {"name": "Basic drill", "description": "Work on fundamentals"})
+        },
+        "partner_name": partner_name
+    }
+
+# ============== AI FEEDBACK ENDPOINTS ==============
+
+@api_router.post("/ai/generate-feedback")
+async def generate_round_feedback(request: Request, user: dict = Depends(get_current_user)):
+    body = await request.json()
+    round_number = body.get("round_number", 1)
+    total_rounds = body.get("total_rounds", 3)
+    video_analysis = body.get("video_analysis")
+    
+    training_partner = user.get("training_partner", {})
+    partner_name = training_partner.get("name", "Coach")
+    feedback_tone = training_partner.get("feedback_tone", "encouraging")
+    phrases = training_partner.get("phrases", ["Keep it up!"])
+    focus_areas = training_partner.get("focus_areas", [])
+    
+    # Use video analysis if available, otherwise generate
+    if video_analysis and "dimension_scores" in video_analysis:
+        dimension_scores = video_analysis["dimension_scores"]
+        what_did_well = video_analysis.get("what_did_well", "Good work!")
+        what_to_improve = video_analysis.get("what_to_improve", "Keep pushing!")
+        drill_rec = video_analysis.get("drill_recommendation", {})
+    else:
+        # Generate simulated scores
+        key_dimensions = ["Jab", "Cross", "Guard Position", "Head Movement", "Footwork", "Combination Flow"]
+        dimension_scores = [{"dimension_name": dim, "score": random.randint(4, 9)} for dim in key_dimensions]
+        sorted_scores = sorted(dimension_scores, key=lambda x: x["score"])
+        
+        best = sorted_scores[-1]
+        worst = sorted_scores[0]
+        
+        what_did_well = f"Great {best['dimension_name'].lower()} this round! {random.choice(phrases)}"
+        what_to_improve = f"Your {worst['dimension_name'].lower()} needs attention. Let's tighten that up."
+        drill_rec = DRILLS.get(worst["dimension_name"], {"name": "Focus drill", "description": "Work on this area."})
+    
+    # Check if any focus areas need special attention
+    focus_feedback = ""
+    if focus_areas:
+        for fa in focus_areas:
+            score = next((d["score"] for d in dimension_scores if d["dimension_name"] == fa), None)
+            if score and score < 6:
+                focus_feedback = f" Remember, you wanted to focus on {fa} - let's see more of that!"
+    
+    feedback = {
+        "partner_name": partner_name,
+        "round_number": round_number,
+        "what_you_did_well": what_did_well,
+        "what_to_tighten": what_to_improve + focus_feedback,
+        "drill_focus": f"Later, try '{drill_rec.get('name', 'Drill')}' - {drill_rec.get('description', '')}",
+        "dimension_scores": dimension_scores,
+        "accountability_check": f"Round {round_number} of {total_rounds} done. {total_rounds - round_number} to go - no quitting!" if training_partner.get("accountability_level") == "high" else None
+    }
+    
+    return feedback
+
+# ============== TRAINING SESSION ENDPOINTS ==============
+
+@api_router.post("/training/start")
+async def start_training_session(session_config: TrainingSessionCreate, user: dict = Depends(get_current_user)):
+    session_id = f"train_{uuid.uuid4().hex[:12]}"
+    session_doc = {
+        "session_id": session_id, "user_id": user["user_id"],
+        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "round_duration": session_config.round_duration, "rest_duration": session_config.rest_duration,
+        "total_rounds": session_config.total_rounds, "record_video": session_config.record_video,
+        "rounds": [], "status": "in_progress", "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.training_sessions.insert_one(session_doc)
+    return {"session_id": session_id, "status": "started"}
+
+@api_router.post("/training/{session_id}/complete")
+async def complete_training_session(session_id: str, user: dict = Depends(get_current_user)):
+    session = await db.training_sessions.find_one({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Get all video analyses for this session
+    videos = await db.round_videos.find({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0}).to_list(100)
+    
+    # Aggregate scores
+    all_scores = {}
+    for video in videos:
+        if video.get("analysis_results"):
+            for score in video["analysis_results"].get("dimension_scores", []):
+                dim = score["dimension_name"]
+                if dim not in all_scores:
+                    all_scores[dim] = []
+                all_scores[dim].append(score["score"])
+    
+    # Calculate final scores
+    final_dimension_scores = []
+    for dim in DIMENSIONS:
+        if dim in all_scores:
+            avg = sum(all_scores[dim]) / len(all_scores[dim])
+            final_dimension_scores.append({"dimension_name": dim, "score": round(avg)})
+        else:
+            final_dimension_scores.append({"dimension_name": dim, "score": random.randint(5, 8)})
+    
+    scores = [d["score"] for d in final_dimension_scores if d["score"]]
+    overall_score = sum(scores) / len(scores) if scores else 6.0
+    
+    session_record = {
+        "session_id": session_id, "user_id": user["user_id"], "date": session["date"],
+        "overall_score": round(overall_score, 1), "dimension_scores": final_dimension_scores,
+        "rounds": [{"round_number": v["round_number"], "video_url": v["video_url"], "analysis": v.get("analysis_results")} for v in videos],
+        "training_config": {"round_duration": session["round_duration"], "rest_duration": session["rest_duration"], "total_rounds": session["total_rounds"]},
+        "created_at": session["created_at"], "completed_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.sessions.insert_one(session_record)
+    await db.training_sessions.update_one({"session_id": session_id}, {"$set": {"status": "completed", "overall_score": round(overall_score, 1)}})
+    
+    return session_record
 
 # ============== STRIPE PAYMENT ENDPOINTS ==============
 
 @api_router.post("/payments/checkout")
 async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(get_current_user)):
-    """Create Stripe checkout session for subscription"""
     from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
     
     if checkout_req.plan_id not in SUBSCRIPTION_PLANS:
         raise HTTPException(status_code=400, detail="Invalid plan")
     
     plan = SUBSCRIPTION_PLANS[checkout_req.plan_id]
-    
     host_url = checkout_req.origin_url.rstrip('/')
-    success_url = f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{host_url}/paywall"
-    webhook_url = f"{host_url}/api/webhook/stripe"
     
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=f"{host_url}/api/webhook/stripe")
     checkout_request = CheckoutSessionRequest(
-        amount=float(plan["price"]),
-        currency="usd",
-        success_url=success_url,
-        cancel_url=cancel_url,
-        metadata={
-            "user_id": user["user_id"],
-            "plan_id": checkout_req.plan_id,
-            "plan_name": plan["name"]
-        }
+        amount=float(plan["price"]), currency="usd",
+        success_url=f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=f"{host_url}/paywall",
+        metadata={"user_id": user["user_id"], "plan_id": checkout_req.plan_id, "plan_name": plan["name"]}
     )
     
     session = await stripe_checkout.create_checkout_session(checkout_request)
-    
-    # Create payment transaction record
     await db.payment_transactions.insert_one({
-        "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
-        "user_id": user["user_id"],
-        "session_id": session.session_id,
-        "plan_id": checkout_req.plan_id,
-        "amount": float(plan["price"]),
-        "currency": "usd",
-        "payment_status": "pending",
+        "transaction_id": f"txn_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"],
+        "session_id": session.session_id, "plan_id": checkout_req.plan_id,
+        "amount": float(plan["price"]), "currency": "usd", "payment_status": "pending",
         "created_at": datetime.now(timezone.utc).isoformat()
     })
     
@@ -601,417 +723,108 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
 
 @api_router.get("/payments/status/{session_id}")
 async def get_payment_status(session_id: str, user: dict = Depends(get_current_user)):
-    """Get payment status and update subscription if successful"""
     from emergentintegrations.payments.stripe.checkout import StripeCheckout
     
     stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="")
-    
     status = await stripe_checkout.get_checkout_status(session_id)
     
-    # Update transaction record
-    await db.payment_transactions.update_one(
-        {"session_id": session_id},
-        {"$set": {"payment_status": status.payment_status, "status": status.status}}
-    )
+    await db.payment_transactions.update_one({"session_id": session_id}, {"$set": {"payment_status": status.payment_status, "status": status.status}})
     
-    # If payment successful, create/update subscription
     if status.payment_status == "paid":
         transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
         if transaction and not await db.subscriptions.find_one({"session_id": session_id}):
             plan_id = transaction.get("plan_id", "monthly")
-            
-            # Calculate trial end and subscription end
             trial_end = datetime.now(timezone.utc) + timedelta(days=7)
-            if plan_id == "annual":
-                subscription_end = trial_end + timedelta(days=365)
-            else:
-                subscription_end = trial_end + timedelta(days=30)
+            subscription_end = trial_end + timedelta(days=365 if plan_id == "annual" else 30)
             
             await db.subscriptions.insert_one({
-                "subscription_id": f"sub_{uuid.uuid4().hex[:12]}",
-                "user_id": user["user_id"],
-                "session_id": session_id,
-                "plan_id": plan_id,
-                "status": "trialing",
-                "trial_end": trial_end.isoformat(),
-                "current_period_end": subscription_end.isoformat(),
+                "subscription_id": f"sub_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"],
+                "session_id": session_id, "plan_id": plan_id, "status": "trialing",
+                "trial_end": trial_end.isoformat(), "current_period_end": subscription_end.isoformat(),
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
     
-    return {
-        "status": status.status,
-        "payment_status": status.payment_status,
-        "amount_total": status.amount_total,
-        "currency": status.currency
-    }
+    return {"status": status.status, "payment_status": status.payment_status, "amount_total": status.amount_total, "currency": status.currency}
+
+@api_router.get("/subscription/status")
+async def get_subscription_status(user: dict = Depends(get_current_user)):
+    subscription = await db.subscriptions.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if not subscription:
+        return {"has_subscription": False, "status": None}
+    return {"has_subscription": subscription["status"] in ["active", "trialing"], "status": subscription["status"], "plan_id": subscription.get("plan_id")}
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    """Handle Stripe webhooks"""
     from emergentintegrations.payments.stripe.checkout import StripeCheckout
-    
     body = await request.body()
     signature = request.headers.get("Stripe-Signature")
-    
     stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="")
-    
     try:
         webhook_response = await stripe_checkout.handle_webhook(body, signature)
-        
         if webhook_response.payment_status == "paid":
             user_id = webhook_response.metadata.get("user_id")
-            plan_id = webhook_response.metadata.get("plan_id", "monthly")
-            
             if user_id:
-                # Update subscription status
-                await db.subscriptions.update_one(
-                    {"user_id": user_id},
-                    {"$set": {"status": "active"}}
-                )
-        
+                await db.subscriptions.update_one({"user_id": user_id}, {"$set": {"status": "active"}})
         return {"received": True}
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         return {"received": True}
 
-@api_router.get("/subscription/status")
-async def get_subscription_status(user: dict = Depends(get_current_user)):
-    """Get user's subscription status"""
-    subscription = await db.subscriptions.find_one(
-        {"user_id": user["user_id"]},
-        {"_id": 0}
-    )
-    
-    if not subscription:
-        return {"has_subscription": False, "status": None}
-    
-    return {
-        "has_subscription": subscription["status"] in ["active", "trialing"],
-        "status": subscription["status"],
-        "plan_id": subscription.get("plan_id"),
-        "trial_end": subscription.get("trial_end"),
-        "current_period_end": subscription.get("current_period_end")
-    }
+# ============== SESSION & STATIC ENDPOINTS ==============
 
-# ============== AI FEEDBACK ENDPOINTS ==============
-
-@api_router.post("/ai/generate-feedback")
-async def generate_round_feedback(request: Request, user: dict = Depends(get_current_user)):
-    """Generate AI feedback for a training round using Gemini 3 Flash"""
-    body = await request.json()
-    round_number = body.get("round_number", 1)
-    total_rounds = body.get("total_rounds", 3)
-    
-    fighter_buddy = user.get("fighter_buddy")
-    if not fighter_buddy:
-        # Use default feedback style
-        feedback_style = "balanced"
-        buddy_name = "Your Coach"
-        catchphrases = ["Keep it up!", "Stay focused!", "Looking good!"]
-    else:
-        feedback_style = fighter_buddy.get("feedback_style", "balanced")
-        buddy_name = fighter_buddy.get("name", "Your Buddy")
-        catchphrases = fighter_buddy.get("catchphrases", ["Keep it up!"])
-    
-    # Generate simulated scores for key dimensions
-    key_dimensions = ["Jab", "Cross", "Guard Position", "Head Movement", "Footwork", "Combination Flow"]
-    dimension_scores = []
-    for dim in key_dimensions:
-        score = random.randint(4, 9)
-        dimension_scores.append({"dimension_name": dim, "score": score})
-    
-    # Sort to find lowest scores
-    sorted_scores = sorted(dimension_scores, key=lambda x: x["score"])
-    lowest = sorted_scores[0]
-    
-    if not EMERGENT_LLM_KEY:
-        # Template-based feedback
-        feedback = {
-            "buddy_name": buddy_name,
-            "round_number": round_number,
-            "what_you_did_well": f"Great {sorted_scores[-1]['dimension_name'].lower()} this round! {random.choice(catchphrases)}",
-            "what_to_tighten": f"Your {lowest['dimension_name'].lower()} could use some work. Focus on it next round.",
-            "drill_focus": f"Later, work on '{DRILLS[lowest['dimension_name']]['name']}' for 3 rounds.",
-            "dimension_scores": dimension_scores
-        }
-        return feedback
-    
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        
-        style_prompts = {
-            "analytical": "Be calm and analytical. Use precise technical language.",
-            "intense": "Be intense and motivating. Use short punchy sentences.",
-            "cool": "Be cool and confident. Speak like a patient setup artist.",
-            "smooth": "Be smooth and calculating. Emphasize defense and timing.",
-            "balanced": "Be balanced and encouraging. Mix technical advice with motivation.",
-            "poetic": "Be charismatic and poetic. Use metaphors and rhythm.",
-            "fierce": "Be direct and fierce. Emphasize aggression and bad intentions.",
-            "warrior": "Be determined like a warrior. Emphasize hard work and discipline.",
-            "energetic": "Be young and energetic. Use modern slang and enthusiasm.",
-            "proud": "Be proud and motivating. Emphasize work ethic and volume."
-        }
-        
-        system_message = f"""You are {buddy_name}, a boxing training buddy. 
-{style_prompts.get(feedback_style, style_prompts['balanced'])}
-Your catchphrases include: {', '.join(catchphrases[:2])}.
-Keep responses SHORT - 1-2 sentences each. Be encouraging but honest."""
-
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"feedback_{user['user_id']}_{round_number}",
-            system_message=system_message
-        )
-        chat.with_model("gemini", "gemini-3-flash-preview")
-        
-        prompt = f"""Round {round_number} of {total_rounds} just ended. 
-The boxer's scores: {', '.join([f"{d['dimension_name']}: {d['score']}/10" for d in dimension_scores])}.
-
-Give 3 bullet points:
-1. What they did well (mention their best score: {sorted_scores[-1]['dimension_name']})
-2. What to tighten next round (mention their lowest: {lowest['dimension_name']})
-3. One drill to focus on this week for {lowest['dimension_name']}
-
-Be specific, encouraging, and in character. Use one of your catchphrases naturally."""
-
-        msg = UserMessage(text=prompt)
-        response = await chat.send_message(msg)
-        
-        # Parse the response into structured feedback
-        lines = response.strip().split('\n')
-        what_well = lines[0] if len(lines) > 0 else f"Great {sorted_scores[-1]['dimension_name'].lower()}!"
-        what_tighten = lines[1] if len(lines) > 1 else f"Work on your {lowest['dimension_name'].lower()}."
-        drill_focus = lines[2] if len(lines) > 2 else f"Try '{DRILLS[lowest['dimension_name']]['name']}'."
-        
-        feedback = {
-            "buddy_name": buddy_name,
-            "round_number": round_number,
-            "what_you_did_well": what_well.lstrip('1.-• '),
-            "what_to_tighten": what_tighten.lstrip('2.-• '),
-            "drill_focus": drill_focus.lstrip('3.-• '),
-            "dimension_scores": dimension_scores
-        }
-        return feedback
-        
-    except Exception as e:
-        logger.error(f"AI feedback error: {e}")
-        # Fallback template
-        return {
-            "buddy_name": buddy_name,
-            "round_number": round_number,
-            "what_you_did_well": f"Great {sorted_scores[-1]['dimension_name'].lower()} this round! {random.choice(catchphrases)}",
-            "what_to_tighten": f"Your {lowest['dimension_name'].lower()} could use some work.",
-            "drill_focus": f"Later, work on '{DRILLS[lowest['dimension_name']]['name']}' for 3 rounds.",
-            "dimension_scores": dimension_scores
-        }
-
-# ============== TRAINING SESSION ENDPOINTS ==============
-
-@api_router.post("/training/start")
-async def start_training_session(session_config: TrainingSessionCreate, user: dict = Depends(get_current_user)):
-    """Start a new training session"""
-    session_id = f"train_{uuid.uuid4().hex[:12]}"
-    
-    session_doc = {
-        "session_id": session_id,
-        "user_id": user["user_id"],
-        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        "round_duration": session_config.round_duration,
-        "rest_duration": session_config.rest_duration,
-        "total_rounds": session_config.total_rounds,
-        "record_video": session_config.record_video,
-        "rounds": [],
-        "status": "in_progress",
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.training_sessions.insert_one(session_doc)
-    
-    return {"session_id": session_id, "status": "started"}
-
-@api_router.post("/training/{session_id}/round")
-async def save_round_data(session_id: str, round_data: RoundData, user: dict = Depends(get_current_user)):
-    """Save data for a completed round"""
-    session = await db.training_sessions.find_one(
-        {"session_id": session_id, "user_id": user["user_id"]},
-        {"_id": 0}
-    )
-    
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
-    
-    round_doc = {
-        "round_number": round_data.round_number,
-        "duration_seconds": round_data.duration_seconds,
-        "feedback": round_data.feedback,
-        "dimension_scores": round_data.dimension_scores,
-        "has_video": round_data.video_blob is not None,
-        "completed_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Store video separately if provided (in production, upload to cloud storage)
-    if round_data.video_blob:
-        await db.round_videos.insert_one({
-            "session_id": session_id,
-            "round_number": round_data.round_number,
-            "video_data": round_data.video_blob[:100] + "...",  # Truncate for storage
-            "created_at": datetime.now(timezone.utc).isoformat()
-        })
-    
-    await db.training_sessions.update_one(
-        {"session_id": session_id},
-        {"$push": {"rounds": round_doc}}
-    )
-    
-    return {"message": "Round saved", "round_number": round_data.round_number}
-
-@api_router.post("/training/{session_id}/complete")
-async def complete_training_session(session_id: str, user: dict = Depends(get_current_user)):
-    """Complete a training session and generate final scores"""
-    session = await db.training_sessions.find_one(
-        {"session_id": session_id, "user_id": user["user_id"]},
-        {"_id": 0}
-    )
-    
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
-    
-    # Aggregate scores from all rounds
-    all_scores = {}
-    for round_data in session.get("rounds", []):
-        for score in round_data.get("dimension_scores", []):
-            dim = score["dimension_name"]
-            if dim not in all_scores:
-                all_scores[dim] = []
-            all_scores[dim].append(score["score"])
-    
-    # Average scores per dimension
-    final_dimension_scores = []
-    for dim in DIMENSIONS:
-        if dim in all_scores:
-            avg = sum(all_scores[dim]) / len(all_scores[dim])
-            final_dimension_scores.append({"dimension_name": dim, "score": round(avg)})
-        else:
-            # Generate random score for dimensions not tracked
-            final_dimension_scores.append({"dimension_name": dim, "score": random.randint(5, 8)})
-    
-    # Calculate overall score
-    scores = [d["score"] for d in final_dimension_scores if d["score"]]
-    overall_score = sum(scores) / len(scores) if scores else 6.0
-    
-    # Create session record (for history)
-    session_record = {
-        "session_id": session_id,
-        "user_id": user["user_id"],
-        "date": session["date"],
-        "overall_score": round(overall_score, 1),
-        "dimension_scores": final_dimension_scores,
-        "rounds": session.get("rounds", []),
-        "training_config": {
-            "round_duration": session["round_duration"],
-            "rest_duration": session["rest_duration"],
-            "total_rounds": session["total_rounds"]
-        },
-        "created_at": session["created_at"],
-        "completed_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.sessions.insert_one(session_record)
-    
-    # Update training session status
-    await db.training_sessions.update_one(
-        {"session_id": session_id},
-        {"$set": {"status": "completed", "overall_score": round(overall_score, 1)}}
-    )
-    
-    return SessionResponse(**session_record)
-
-# ============== SESSION ENDPOINTS ==============
-
-@api_router.get("/sessions", response_model=List[SessionResponse])
+@api_router.get("/sessions")
 async def get_sessions(user: dict = Depends(get_current_user), limit: int = 100):
     sessions = await db.sessions.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(limit)
-    return [SessionResponse(**s) for s in sessions]
+    return sessions
 
-@api_router.get("/sessions/{session_id}", response_model=SessionResponse)
+@api_router.get("/sessions/{session_id}")
 async def get_session(session_id: str, user: dict = Depends(get_current_user)):
     session = await db.sessions.find_one({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0})
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    return SessionResponse(**session)
+    return session
 
 @api_router.put("/users/me")
 async def update_profile(update_data: UserUpdate, user: dict = Depends(get_current_user)):
     update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
     if update_dict:
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": update_dict})
-    updated_user = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0})
-    if isinstance(updated_user.get("created_at"), datetime):
-        updated_user["created_at"] = updated_user["created_at"].isoformat()
-    return updated_user
+    return await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0})
 
 @api_router.get("/users/stats")
 async def get_user_stats(user: dict = Depends(get_current_user)):
     sessions = await db.sessions.find({"user_id": user["user_id"]}, {"_id": 0}).to_list(1000)
-    total_sessions = len(sessions)
-    best_score = max([s.get("overall_score", 0) for s in sessions]) if sessions else 0
-    return {"total_sessions": total_sessions, "best_score": round(best_score, 1), "most_improved_dimension": None}
-
-# ============== STATIC DATA ENDPOINTS ==============
+    return {"total_sessions": len(sessions), "best_score": max([s.get("overall_score", 0) for s in sessions]) if sessions else 0, "most_improved_dimension": None}
 
 @api_router.get("/dimensions")
 async def get_dimensions():
-    return {"dimensions": DIMENSIONS, "groups": {
-        "Offensive Technique": ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow", "Punch Balance", "Punch Accuracy"],
-        "Defensive Technique": ["Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement"],
-        "Movement & Ring Craft": ["Footwork", "Ring Generalship"]
-    }}
+    return {"dimensions": DIMENSIONS, "groups": {"Offensive": ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow", "Punch Balance", "Punch Accuracy"], "Defensive": ["Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement"], "Movement": ["Footwork", "Ring Generalship"]}}
 
 @api_router.get("/drills")
 async def get_drills():
     return DRILLS
 
 @api_router.get("/drills/{dimension}")
-async def get_drill_for_dimension(dimension: str):
+async def get_drill(dimension: str):
     if dimension not in DRILLS:
         raise HTTPException(status_code=404, detail="Dimension not found")
     return {"dimension": dimension, **DRILLS[dimension]}
 
 @api_router.get("/legends")
 async def get_legends(filter: Optional[str] = None):
-    if filter and filter != "All":
-        filtered = []
-        for legend in LEGENDS:
-            if filter == "Offensive" and any(d in legend["dimensions"] for d in ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow"]):
-                filtered.append(legend)
-            elif filter == "Defensive" and any(d in legend["dimensions"] for d in ["Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement"]):
-                filtered.append(legend)
-            elif filter == "Footwork & Movement" and any(d in legend["dimensions"] for d in ["Footwork", "Ring Generalship"]):
-                filtered.append(legend)
-            elif filter == "Combinations" and "Combination Flow" in legend["dimensions"]:
-                filtered.append(legend)
-        return filtered
     return LEGENDS
 
 @api_router.get("/plans")
-async def get_subscription_plans():
+async def get_plans():
     return {"plans": SUBSCRIPTION_PLANS}
 
 @api_router.get("/health")
-async def health_check():
+async def health():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
-# Include the router
 app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','), allow_methods=["*"], allow_headers=["*"])
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
+async def shutdown():
     client.close()

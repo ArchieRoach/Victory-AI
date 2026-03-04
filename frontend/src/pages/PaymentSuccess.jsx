@@ -73,7 +73,7 @@ export default function PaymentSuccess() {
               Welcome to Victory AI Pro!
             </h1>
             <p className="text-victory-muted mb-4">
-              Your free trial has started. Get ready to train with your fighter buddy!
+              Your free trial has started. Get ready to train with your AI training partner!
             </p>
             <p className="text-victory-muted text-sm">Redirecting you to the app...</p>
           </>

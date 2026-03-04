@@ -46,39 +46,41 @@ export default function PaywallPage() {
     >
       {/* Header */}
       <header className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-victory-lime text-victory-bg font-heading text-2xl font-extrabold mb-4">
-          VA
-        </div>
+        <img
+          src="https://static.prod-images.emergentagent.com/jobs/72d6b0b0-059a-45b2-9c71-d2c91058e90f/images/52d94070750f09b557456eb2d4e4cc616812253fb620b3381c1956e7e15e7c98.png"
+          alt="Victory AI"
+          className="w-20 h-20 mx-auto mb-4 rounded-2xl object-contain bg-victory-card"
+        />
         <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-victory-text mb-2">
           Train like a pro for less than one coffee a month.
         </h1>
         <p className="text-victory-muted">
-          Your fighter buddy runs your rounds, analyses your technique, and
+          Your AI training partner runs your rounds, analyses your technique, and
           tells you exactly what to work on.
         </p>
       </header>
 
       <main className="flex-1 p-6 flex flex-col">
-        {/* Fighter Buddy Preview */}
-        {user?.fighter_buddy && (
+        {/* Training Partner Preview */}
+        {user?.training_partner && (
           <div className="victory-card p-4 mb-6 flex items-center gap-4">
-            {user.fighter_buddy.avatar_url ? (
+            {user.training_partner.avatar_url ? (
               <img
-                src={user.fighter_buddy.avatar_url}
-                alt={user.fighter_buddy.name}
+                src={user.training_partner.avatar_url}
+                alt={user.training_partner.name}
                 className="w-12 h-12 rounded-full object-cover border-2 border-victory-lime"
               />
             ) : (
               <div className="w-12 h-12 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold">
-                {user.fighter_buddy.name?.[0] || "F"}
+                {user.training_partner.name?.[0] || "T"}
               </div>
             )}
             <div>
               <p className="text-victory-lime font-semibold">
-                {user.fighter_buddy.name} is ready
+                {user.training_partner.name} is ready
               </p>
               <p className="text-victory-muted text-sm">
-                Your {user.fighter_buddy.archetype_name?.toLowerCase() || "fighter buddy"} awaits
+                Your {user.training_partner.style_name?.toLowerCase() || "training partner"} awaits
               </p>
             </div>
           </div>
