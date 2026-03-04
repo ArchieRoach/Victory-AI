@@ -686,9 +686,10 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
         "created_at": session["created_at"], "completed_at": datetime.now(timezone.utc).isoformat()
     }
     
-    await db.sessions.insert_one(session_record)
+    await db.sessions.insert_one({**session_record})
     await db.training_sessions.update_one({"session_id": session_id}, {"$set": {"status": "completed", "overall_score": round(overall_score, 1)}})
     
+    # Return a clean copy without _id
     return session_record
 
 # ============== STRIPE PAYMENT ENDPOINTS ==============
