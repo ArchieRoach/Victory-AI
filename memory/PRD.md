@@ -79,14 +79,15 @@ Build Victory AI as a Cal AI-style mobile-first web app where amateur boxers get
 
 ## Prioritized Backlog
 
-### P0 (Critical) - IN PROGRESS
+### P0 (Critical) - COMPLETED
 - [x] Logo and branding updates ✅
 - [x] "Fighter buddy" → "AI training partner" terminology ✅
-- [ ] Cloudinary integration (awaiting user credentials)
+- [x] Cloudinary integration ✅ (credentials configured)
 
 ### P1 (High Priority)
-- [ ] Real GPT-4 Vision video analysis (ready, needs Cloudinary)
-- [ ] End-to-end testing of full flow
+- [x] All backend endpoints tested and working ✅
+- [x] Full onboarding → training flow verified ✅
+- [ ] Real GPT-4 Vision video analysis (ready, needs camera in browser)
 - [ ] Push notifications for trial expiring
 - [ ] Weekly progress reminder notifications
 
