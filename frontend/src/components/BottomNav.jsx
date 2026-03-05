@@ -1,11 +1,12 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Dumbbell, Timer, Play } from "lucide-react";
+import { Home, Dumbbell, Timer, Play, Trophy } from "lucide-react";
 
 const NAV_ITEMS = [
   { path: "/home", icon: Home, label: "Home" },
   { path: "/train", icon: Dumbbell, label: "Train" },
   { path: "/timer", icon: Timer, label: "Timer" },
   { path: "/library", icon: Play, label: "Library" },
+  { path: "/leaderboard", icon: Trophy, label: "Ranks" },
 ];
 
 export const BottomNav = () => {

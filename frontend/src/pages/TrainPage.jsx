@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, RotateCcw,
-  Video, VideoOff, SwitchCamera, Upload, CheckCircle
+  Video, VideoOff, SwitchCamera, Upload, CheckCircle, Volume2, VolumeX
 } from "lucide-react";
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
@@ -21,6 +21,7 @@ export default function TrainPage() {
   const [restDuration, setRestDuration] = useState(60);
   const [totalRounds, setTotalRounds] = useState(3);
   const [recordVideo, setRecordVideo] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [facingMode, setFacingMode] = useState("environment");
 
   // Training state
@@ -207,6 +208,18 @@ export default function TrainPage() {
     }
   };
 
+  // TTS voice playback
+  const playVoiceFeedback = async (text) => {
+    try {
+      const res = await axios.post(`${API}/tts/generate`, { text }, { withCredentials: true });
+      const { audio_data, mime_type } = res.data;
+      const audio = new Audio(`data:${mime_type};base64,${audio_data}`);
+      audio.play().catch(() => {});
+    } catch (error) {
+      // TTS not configured or unavailable — silently skip
+    }
+  };
+
   // Generate feedback
   const generateFeedback = async (roundNum, videoAnalysis = null) => {
     setLoadingFeedback(true);
@@ -217,6 +230,10 @@ export default function TrainPage() {
         video_analysis: videoAnalysis
       }, { withCredentials: true });
       setFeedback(res.data);
+      if (voiceEnabled && res.data?.what_you_did_well) {
+        const speakText = `${res.data.what_you_did_well} ${res.data.what_to_tighten}`;
+        playVoiceFeedback(speakText);
+      }
     } catch (error) {
       console.error("Feedback error:", error);
     } finally {
@@ -449,6 +466,21 @@ export default function TrainPage() {
               </button>
             </div>
 
+            <div className="victory-card p-4">
+              <button onClick={() => setVoiceEnabled(!voiceEnabled)} className="w-full flex items-center justify-between touch-target">
+                <div className="flex items-center gap-3">
+                  {voiceEnabled ? <Volume2 className="w-6 h-6 text-victory-lime" /> : <VolumeX className="w-6 h-6 text-victory-muted" />}
+                  <div className="text-left">
+                    <p className="text-victory-text font-medium">Voice Feedback</p>
+                    <p className="text-victory-muted text-sm">Your training partner speaks feedback aloud (ElevenLabs)</p>
+                  </div>
+                </div>
+                <div className={`w-12 h-6 rounded-full transition-colors ${voiceEnabled ? "bg-victory-lime" : "bg-victory-border"}`}>
+                  <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${voiceEnabled ? "translate-x-6" : "translate-x-0.5"}`} />
+                </div>
+              </button>
+            </div>
+
             <p className="text-center text-victory-muted">Total: <span className="text-victory-text">{getTotalWorkoutTime()}</span></p>
 
             <button onClick={startTraining} className="victory-btn-primary" data-testid="start-training-btn">Start Training</button>
@@ -506,9 +538,12 @@ export default function TrainPage() {
                         {trainingPartner?.name?.[0] || "C"}
                       </div>
                     )}
-                    <div>
+                    <div className="flex-1">
                       <p className="text-victory-lime font-semibold">{trainingPartner?.name || "Your Coach"} says...</p>
                     </div>
+                    <button onClick={() => setVoiceEnabled(v => !v)} className="w-8 h-8 flex items-center justify-center text-victory-muted hover:text-victory-text">
+                      {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                    </button>
                   </div>
 
                   {loadingFeedback || uploadingVideo || analyzingVideo ? (

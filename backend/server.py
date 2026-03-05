@@ -39,6 +39,10 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
 # Emergent LLM Key
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 
+# ElevenLabs TTS Settings
+ELEVENLABS_API_KEY = os.environ.get('ELEVENLABS_API_KEY', '')
+ELEVENLABS_VOICE_ID = os.environ.get('ELEVENLABS_VOICE_ID', 'EXAVITQu4vr4xnSDxMaL')
+
 # Cloudinary Settings
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", ""),
@@ -83,7 +87,8 @@ class OnboardingAnswers(BaseModel):
     training_frequency: str
     experience_level: str
     favorite_counter: str
-    training_partner_style: str
+    boxing_stance: Optional[str] = None
+    training_partner_style: Optional[str] = None
 
 class TrainingPartnerCreate(BaseModel):
     name: str
@@ -822,6 +827,159 @@ async def get_plans():
 @api_router.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+# ============== TTS ENDPOINTS ==============
+
+class TTSRequest(BaseModel):
+    text: str
+    voice_id: Optional[str] = None
+
+@api_router.post("/tts/generate")
+async def generate_tts(tts_req: TTSRequest, user: dict = Depends(get_current_user)):
+    if not ELEVENLABS_API_KEY:
+        raise HTTPException(status_code=503, detail="TTS not configured")
+
+    voice_id = tts_req.voice_id or ELEVENLABS_VOICE_ID
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
+            headers={"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"},
+            json={
+                "text": tts_req.text,
+                "model_id": "eleven_monolingual_v1",
+                "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}
+            },
+            timeout=30.0
+        )
+        if response.status_code != 200:
+            raise HTTPException(status_code=502, detail="TTS generation failed")
+
+    audio_data = base64.b64encode(response.content).decode('utf-8')
+    return {"audio_data": audio_data, "mime_type": "audio/mpeg"}
+
+# ============== LEADERBOARD ENDPOINTS ==============
+
+@api_router.get("/leaderboard")
+async def get_leaderboard(user: dict = Depends(get_current_user)):
+    pipeline = [
+        {"$group": {
+            "_id": "$user_id",
+            "avg_score": {"$avg": "$overall_score"},
+            "total_sessions": {"$sum": 1},
+            "best_score": {"$max": "$overall_score"}
+        }},
+        {"$sort": {"avg_score": -1}},
+        {"$limit": 50},
+        {"$lookup": {"from": "users", "localField": "_id", "foreignField": "user_id", "as": "user_info"}},
+        {"$unwind": {"path": "$user_info", "preserveNullAndEmptyArrays": True}}
+    ]
+    leaders = await db.sessions.aggregate(pipeline).to_list(50)
+    result = []
+    for i, leader in enumerate(leaders):
+        user_info = leader.get("user_info") or {}
+        name = user_info.get("name", "Fighter")
+        # Show first name + last initial only for privacy
+        parts = name.strip().split()
+        display_name = parts[0] if len(parts) == 1 else f"{parts[0]} {parts[-1][0]}."
+        result.append({
+            "rank": i + 1,
+            "display_name": display_name,
+            "avg_score": round(leader["avg_score"], 1),
+            "total_sessions": leader["total_sessions"],
+            "best_score": round(leader["best_score"], 1),
+            "is_current_user": leader["_id"] == user["user_id"]
+        })
+    # Find current user's rank if not in top 50
+    current_rank = next((r for r in result if r["is_current_user"]), None)
+    return {"leaderboard": result, "current_user_rank": current_rank}
+
+# ============== SESSION REPLAY ENDPOINTS ==============
+
+@api_router.get("/sessions/{session_id}/replay")
+async def get_session_replay(session_id: str, user: dict = Depends(get_current_user)):
+    session = await db.sessions.find_one({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    videos = await db.round_videos.find({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0}).sort("round_number", 1).to_list(20)
+    training_partner = user.get("training_partner", {})
+    partner_name = training_partner.get("name", "Coach")
+
+    rounds = []
+    for video in videos:
+        analysis = video.get("analysis_results") or {}
+        if isinstance(analysis, dict) and "dimension_scores" in analysis:
+            dimension_scores = analysis["dimension_scores"]
+        else:
+            dimension_scores = []
+
+        commentary = f"Round {video['round_number']}: "
+        if dimension_scores:
+            sorted_scores = sorted(dimension_scores, key=lambda x: x.get("score", 0))
+            best = sorted_scores[-1]
+            worst = sorted_scores[0]
+            commentary += f"Best: {best['dimension_name']} ({best['score']}/10). Needs work: {worst['dimension_name']} ({worst['score']}/10)."
+        else:
+            commentary += "Keep pushing — every round counts."
+
+        rounds.append({
+            "round_number": video["round_number"],
+            "video_url": video.get("video_url"),
+            "public_id": video.get("public_id"),
+            "dimension_scores": dimension_scores,
+            "what_did_well": analysis.get("what_did_well", ""),
+            "what_to_improve": analysis.get("what_to_improve", ""),
+            "drill_recommendation": analysis.get("drill_recommendation", {}),
+            "commentary": commentary,
+            "partner_name": partner_name
+        })
+
+    return {"session": session, "rounds": rounds, "partner_name": partner_name, "total_rounds": len(rounds)}
+
+# ============== TRIAL STATUS & PUSH NOTIFICATION ENDPOINTS ==============
+
+@api_router.get("/subscription/trial-status")
+async def get_trial_status(user: dict = Depends(get_current_user)):
+    subscription = await db.subscriptions.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if not subscription:
+        return {"has_subscription": False, "status": None, "days_remaining": None}
+
+    status = subscription.get("status")
+    if status == "trialing":
+        trial_end = subscription.get("trial_end")
+        if trial_end:
+            if isinstance(trial_end, str):
+                trial_end = datetime.fromisoformat(trial_end)
+            if trial_end.tzinfo is None:
+                trial_end = trial_end.replace(tzinfo=timezone.utc)
+            days_remaining = (trial_end - datetime.now(timezone.utc)).days
+            return {
+                "has_subscription": True,
+                "status": "trialing",
+                "trial_end": trial_end.isoformat(),
+                "days_remaining": max(0, days_remaining)
+            }
+
+    return {"has_subscription": True, "status": status, "days_remaining": None}
+
+class PushSubscription(BaseModel):
+    endpoint: str
+    keys: Dict[str, Any]
+
+@api_router.post("/notifications/subscribe")
+async def subscribe_push(sub: PushSubscription, user: dict = Depends(get_current_user)):
+    await db.push_subscriptions.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {
+            "user_id": user["user_id"],
+            "endpoint": sub.endpoint,
+            "keys": sub.keys,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    return {"message": "Push subscription registered"}
 
 app.include_router(api_router)
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','), allow_methods=["*"], allow_headers=["*"])

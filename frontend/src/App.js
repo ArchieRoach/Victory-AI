@@ -19,6 +19,7 @@ import SessionDetailPage from "@/pages/SessionDetailPage";
 import ProfilePage from "@/pages/ProfilePage";
 import LoginPage from "@/pages/LoginPage";
 import AuthCallback from "@/pages/AuthCallback";
+import LeaderboardPage from "@/pages/LeaderboardPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -129,12 +130,59 @@ const OnboardingRoute = ({ children }) => {
   return isAuthenticated ? children : null;
 };
 
+const TrialExpirationBanner = () => {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [trialInfo, setTrialInfo] = useState(null);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user?.has_subscription) return;
+    const check = async () => {
+      try {
+        const res = await axios.get(`${API}/subscription/trial-status`, { withCredentials: true });
+        if (res.data.status === "trialing" && res.data.days_remaining <= 3) {
+          setTrialInfo(res.data);
+          // Request push notification permission
+          if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission().then((perm) => {
+              if (perm === "granted") {
+                new Notification("Victory AI Trial Ending Soon", {
+                  body: `Your trial ends in ${res.data.days_remaining} day${res.data.days_remaining !== 1 ? "s" : ""}. Upgrade to keep training!`,
+                  icon: "/logo192.png"
+                });
+              }
+            });
+          }
+        }
+      } catch (e) {}
+    };
+    check();
+  }, [isAuthenticated, user]);
+
+  if (!trialInfo || dismissed) return null;
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-50 bg-victory-orange text-white px-4 py-2 flex items-center justify-between text-sm">
+      <span>
+        Trial ends in <strong>{trialInfo.days_remaining} day{trialInfo.days_remaining !== 1 ? "s" : ""}</strong> — keep your progress going.
+      </span>
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate("/paywall")} className="underline font-semibold whitespace-nowrap">Upgrade</button>
+        <button onClick={() => setDismissed(true)} className="text-white/70 hover:text-white text-lg leading-none">×</button>
+      </div>
+    </div>
+  );
+};
+
 const AppRouter = () => {
   const location = useLocation();
   if (location.hash?.includes("session_id=")) return <AuthCallback />;
 
   return (
-    <Routes>
+    <>
+      <TrialExpirationBanner />
+      <Routes>
       <Route path="/welcome" element={<WelcomePage />} />
       <Route path="/login" element={<LoginPage />} />
       
@@ -150,10 +198,12 @@ const AppRouter = () => {
       <Route path="/library" element={<ProtectedRoute requireSubscription={true}><LibraryPage /></ProtectedRoute>} />
       <Route path="/sessions/:sessionId" element={<ProtectedRoute requireSubscription={true}><SessionDetailPage /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute requireSubscription={true}><ProfilePage /></ProtectedRoute>} />
-      
+      <Route path="/leaderboard" element={<ProtectedRoute requireSubscription={true}><LeaderboardPage /></ProtectedRoute>} />
+
       <Route path="/" element={<Navigate to="/home" replace />} />
       <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
+    </>
   );
 };
 
