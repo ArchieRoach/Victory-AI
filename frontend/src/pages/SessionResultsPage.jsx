@@ -99,98 +99,166 @@ export default function SessionResultsPage() {
 
   const handleShare = async () => {
     try {
-      // Create canvas for sharing
       const canvas = document.createElement("canvas");
       canvas.width = 600;
-      canvas.height = 600;
+      canvas.height = 760;
       const ctx = canvas.getContext("2d");
 
-      // Background
-      ctx.fillStyle = "#0A0A0F";
-      ctx.fillRect(0, 0, 600, 600);
+      // Background gradient
+      const grad = ctx.createLinearGradient(0, 0, 0, 760);
+      grad.addColorStop(0, "#0D0D15");
+      grad.addColorStop(1, "#0A0A0F");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 600, 760);
 
-      // Draw radar chart (simplified)
-      const centerX = 300;
-      const centerY = 280;
-      const radius = 180;
+      // Top accent bar
+      ctx.fillStyle = "#E8FF47";
+      ctx.fillRect(0, 0, 600, 4);
 
-      // Grid
+      // Logo / brand
+      ctx.fillStyle = "#E8FF47";
+      ctx.font = "bold 20px Arial";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText("VICTORY AI", 32, 24);
+
+      // Date (top right)
+      ctx.fillStyle = "#8888A0";
+      ctx.font = "14px Arial";
+      ctx.textAlign = "right";
+      ctx.fillText(new Date(session.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), 568, 26);
+
+      // Title
+      ctx.fillStyle = "#F0F0F5";
+      ctx.font = "bold 28px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("My Boxing Scorecard", 300, 80);
+
+      // Overall score circle
+      const cx = 300, cy = 290, r = 170;
       ctx.strokeStyle = "#2A2A3A";
       ctx.lineWidth = 1;
       for (let scale = 0.33; scale <= 1; scale += 0.33) {
         ctx.beginPath();
-        const points = session.dimension_scores.map((_, i) => {
-          const angle = (i * (360 / 16) - 90) * (Math.PI / 180);
-          return {
-            x: centerX + radius * scale * Math.cos(angle),
-            y: centerY + radius * scale * Math.sin(angle),
-          };
+        const n = session.dimension_scores.length;
+        session.dimension_scores.forEach((_, i) => {
+          const angle = (i * (360 / n) - 90) * (Math.PI / 180);
+          const method = i === 0 ? "moveTo" : "lineTo";
+          ctx[method](cx + r * scale * Math.cos(angle), cy + r * scale * Math.sin(angle));
         });
-        ctx.moveTo(points[0].x, points[0].y);
-        points.forEach((p) => ctx.lineTo(p.x, p.y));
         ctx.closePath();
         ctx.stroke();
       }
 
-      // Data polygon
-      ctx.fillStyle = "rgba(232, 255, 71, 0.3)";
-      ctx.strokeStyle = "#E8FF47";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      const dataPoints = session.dimension_scores.map((d, i) => {
-        const angle = (i * (360 / 16) - 90) * (Math.PI / 180);
-        const r = ((d.score || 0) / 10) * radius;
-        return {
-          x: centerX + r * Math.cos(angle),
-          y: centerY + r * Math.sin(angle),
-        };
+      // Radar spokes
+      ctx.strokeStyle = "#1A1A2A";
+      ctx.lineWidth = 1;
+      session.dimension_scores.forEach((_, i) => {
+        const n = session.dimension_scores.length;
+        const angle = (i * (360 / n) - 90) * (Math.PI / 180);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+        ctx.stroke();
       });
-      ctx.moveTo(dataPoints[0].x, dataPoints[0].y);
-      dataPoints.forEach((p) => ctx.lineTo(p.x, p.y));
+
+      // Data polygon
+      ctx.fillStyle = "rgba(232, 255, 71, 0.25)";
+      ctx.strokeStyle = "#E8FF47";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      const n = session.dimension_scores.length;
+      session.dimension_scores.forEach((d, i) => {
+        const angle = (i * (360 / n) - 90) * (Math.PI / 180);
+        const pr = ((d.score || 0) / 10) * r;
+        const x = cx + pr * Math.cos(angle);
+        const y = cy + pr * Math.sin(angle);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
 
-      // Center score
+      // Center score badge
+      ctx.fillStyle = "#12121A";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 52, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#E8FF47";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
       ctx.fillStyle = "#E8FF47";
-      ctx.font = "bold 48px Space Grotesk";
+      ctx.font = "bold 38px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(session.overall_score.toFixed(1), centerX, centerY);
-
-      // Title
-      ctx.fillStyle = "#F0F0F5";
-      ctx.font = "bold 32px Space Grotesk";
-      ctx.fillText("My Boxing Scorecard", centerX, 50);
-
-      // Date
+      ctx.fillText(session.overall_score.toFixed(1), cx, cy - 4);
       ctx.fillStyle = "#8888A0";
-      ctx.font = "16px Inter";
-      ctx.fillText(new Date(session.date).toLocaleDateString(), centerX, 85);
+      ctx.font = "12px Arial";
+      ctx.fillText("/ 10", cx, cy + 20);
 
-      // Watermark
+      // Divider
+      ctx.strokeStyle = "#2A2A3A";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(32, 480);
+      ctx.lineTo(568, 480);
+      ctx.stroke();
+
+      // Top 3 strengths + bottom 3 to improve
+      const scored = session.dimension_scores.filter(d => d.score !== null).sort((a, b) => b.score - a.score);
+      const top3 = scored.slice(0, 3);
+      const bottom3 = scored.slice(-3).reverse();
+
+      ctx.font = "bold 13px Arial";
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#8888A0";
+      ctx.fillText("STRENGTHS", 32, 504);
+      ctx.fillStyle = "#8888A0";
+      ctx.textAlign = "right";
+      ctx.fillText("FOCUS AREAS", 568, 504);
+
+      top3.forEach((d, i) => {
+        const y = 528 + i * 26;
+        ctx.fillStyle = "#E8FF47";
+        ctx.textAlign = "left";
+        ctx.font = "11px Arial";
+        ctx.fillText(`${d.score}/10`, 32, y);
+        ctx.fillStyle = "#F0F0F5";
+        ctx.fillText(d.dimension_name, 72, y);
+      });
+
+      bottom3.forEach((d, i) => {
+        const y = 528 + i * 26;
+        ctx.fillStyle = "#F0F0F5";
+        ctx.textAlign = "right";
+        ctx.font = "11px Arial";
+        ctx.fillText(d.dimension_name, 528, y);
+        ctx.fillStyle = "#FF6B35";
+        ctx.fillText(`${d.score}/10`, 568, y);
+      });
+
+      // Bottom watermark
+      ctx.fillStyle = "#2A2A3A";
+      ctx.fillRect(0, 726, 600, 34);
       ctx.fillStyle = "#E8FF47";
-      ctx.font = "bold 18px Space Grotesk";
-      ctx.fillText("Victory AI", centerX, 560);
+      ctx.font = "bold 13px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("victoryai.app", 300, 743);
 
-      // Convert to blob and share
       canvas.toBlob(async (blob) => {
-        const file = new File([blob], "victory-scorecard.png", {
-          type: "image/png",
-        });
-
+        const file = new File([blob], "victory-scorecard.png", { type: "image/png" });
         if (navigator.share && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
               files: [file],
               title: "My Victory AI Scorecard",
-              text: `Check out my boxing scorecard! Overall score: ${session.overall_score.toFixed(1)}/10`,
+              text: `Check out my boxing scorecard! Overall score: ${session.overall_score.toFixed(1)}/10 — tracked with Victory AI`,
             });
           } catch (error) {
-            if (error.name !== "AbortError") {
-              // Fallback to download
-              downloadImage(canvas);
-            }
+            if (error.name !== "AbortError") downloadImage(canvas);
           }
         } else {
           downloadImage(canvas);

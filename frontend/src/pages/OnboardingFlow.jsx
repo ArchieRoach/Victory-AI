@@ -58,6 +58,25 @@ const AffirmationPhase = ({ stats, testimonials, onNext }) => (
 
 // PHASE 2: WHY HOOK - Motivation questions with simple options
 const WhyHookPhase = ({ onAnswer, currentQuestion, answers }) => {
+  const getCounterOptions = (stance) => {
+    if (stance === "southpaw") {
+      return [
+        { value: "jab", label: "Jab (lead right)", icon: "👊" },
+        { value: "cross", label: "Straight left (cross)", icon: "💥" },
+        { value: "right_hook", label: "Right hook", icon: "🪝" },
+        { value: "uppercut", label: "Uppercut", icon: "⬆️" },
+        { value: "body_shot", label: "Body shot", icon: "🎯" },
+      ];
+    }
+    return [
+      { value: "jab", label: "Jab (lead left)", icon: "👊" },
+      { value: "cross", label: "Straight right (cross)", icon: "💥" },
+      { value: "left_hook", label: "Left hook", icon: "🪝" },
+      { value: "uppercut", label: "Uppercut", icon: "⬆️" },
+      { value: "body_shot", label: "Body shot", icon: "🎯" },
+    ];
+  };
+
   const questions = [
     {
       id: "why_downloaded",
@@ -118,16 +137,21 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers }) => {
       ]
     },
     {
+      id: "boxing_stance",
+      question: "What's your boxing stance?",
+      subtitle: "This shapes which punches we focus on for you",
+      options: [
+        { value: "orthodox", label: "Orthodox (left foot forward)", icon: "🥊" },
+        { value: "southpaw", label: "Southpaw (right foot forward)", icon: "🔄" },
+        { value: "switch", label: "Switch hitter (both stances)", icon: "⚡" },
+        { value: "not_sure", label: "Not sure yet", icon: "🤔" },
+      ]
+    },
+    {
       id: "favorite_counter",
       question: "What's your favorite counter punch?",
       subtitle: "We'll help you land it more often",
-      options: [
-        { value: "jab", label: "Jab", icon: "👊" },
-        { value: "cross", label: "Straight right/cross", icon: "💥" },
-        { value: "left_hook", label: "Left hook", icon: "🪝" },
-        { value: "uppercut", label: "Uppercut", icon: "⬆️" },
-        { value: "body_shot", label: "Body shot", icon: "🎯" },
-      ]
+      options: getCounterOptions(answers.boxing_stance),
     },
   ];
 
@@ -178,6 +202,7 @@ const PersonalizedAffirmation = ({ answers, onNext }) => {
       jab: "Landing 2x more jabs in sparring",
       cross: "Making your cross a real weapon",
       left_hook: "Timing that left hook perfectly",
+      right_hook: "Timing that right hook perfectly",
       uppercut: "Finding those uppercut openings",
       body_shot: "Breaking opponents down to the body",
     };
@@ -516,7 +541,7 @@ export default function OnboardingFlow() {
     }
   };
 
-  const totalQuestions = 6;
+  const totalQuestions = 7;
   const totalPartnerSteps = 3;
   
   const getProgress = () => {

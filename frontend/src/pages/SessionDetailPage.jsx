@@ -5,7 +5,7 @@ import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { RadarChart } from "@/components/RadarChart";
 import { DrillCard } from "@/components/DrillCard";
-import { ArrowLeft, Edit, ExternalLink } from "lucide-react";
+import { ArrowLeft, Edit, ExternalLink, Play, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 
 export default function SessionDetailPage() {
   const navigate = useNavigate();
@@ -13,6 +13,10 @@ export default function SessionDetailPage() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [previousSession, setPreviousSession] = useState(null);
+  const [replay, setReplay] = useState(null);
+  const [replayLoading, setReplayLoading] = useState(false);
+  const [replayOpen, setReplayOpen] = useState(false);
+  const [expandedRound, setExpandedRound] = useState(null);
 
   useEffect(() => {
     fetchSession();
@@ -45,6 +49,20 @@ export default function SessionDetailPage() {
       }
     } catch (error) {
       console.error("Error fetching previous session:", error);
+    }
+  };
+
+  const fetchReplay = async () => {
+    if (replay) { setReplayOpen(true); return; }
+    setReplayLoading(true);
+    try {
+      const res = await axios.get(`${API}/sessions/${sessionId}/replay`, { withCredentials: true });
+      setReplay(res.data);
+      setReplayOpen(true);
+    } catch (error) {
+      console.error("Replay fetch error:", error);
+    } finally {
+      setReplayLoading(false);
     }
   };
 
@@ -175,6 +193,117 @@ export default function SessionDetailPage() {
               />
             ))}
           </div>
+        </section>
+
+        {/* Session Replay */}
+        <section>
+          <button
+            onClick={() => replayOpen ? setReplayOpen(false) : fetchReplay()}
+            className="victory-card w-full p-4 flex items-center justify-between text-left"
+            data-testid="replay-btn"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-victory-lime/20 flex items-center justify-center">
+                <Play className="w-5 h-5 text-victory-lime" />
+              </div>
+              <div>
+                <p className="text-victory-text font-semibold">Session Replay</p>
+                <p className="text-victory-muted text-sm">Round-by-round AI commentary</p>
+              </div>
+            </div>
+            {replayLoading ? (
+              <div className="w-5 h-5 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
+            ) : replayOpen ? (
+              <ChevronUp className="w-5 h-5 text-victory-muted" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-victory-muted" />
+            )}
+          </button>
+
+          {replayOpen && replay && (
+            <div className="mt-3 space-y-3">
+              {replay.rounds.length === 0 ? (
+                <div className="victory-card p-4 text-center">
+                  <MessageSquare className="w-8 h-8 text-victory-muted mx-auto mb-2" />
+                  <p className="text-victory-muted text-sm">No round data recorded for this session.</p>
+                </div>
+              ) : (
+                replay.rounds.map((round) => (
+                  <div key={round.round_number} className="victory-card overflow-hidden">
+                    <button
+                      onClick={() => setExpandedRound(expandedRound === round.round_number ? null : round.round_number)}
+                      className="w-full p-4 flex items-center justify-between text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-victory-lime/20 flex items-center justify-center">
+                          <span className="text-victory-lime font-bold text-sm">{round.round_number}</span>
+                        </div>
+                        <div>
+                          <p className="text-victory-text font-medium">Round {round.round_number}</p>
+                          <p className="text-victory-muted text-xs truncate max-w-[200px]">{round.commentary}</p>
+                        </div>
+                      </div>
+                      {expandedRound === round.round_number ? (
+                        <ChevronUp className="w-4 h-4 text-victory-muted flex-shrink-0" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-victory-muted flex-shrink-0" />
+                      )}
+                    </button>
+
+                    {expandedRound === round.round_number && (
+                      <div className="px-4 pb-4 border-t border-victory-border space-y-3 pt-3">
+                        {/* Video link */}
+                        {round.video_url && (
+                          <a
+                            href={round.video_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-victory-lime text-sm hover:underline"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            Watch round recording
+                          </a>
+                        )}
+
+                        {/* AI Commentary */}
+                        <div className="bg-victory-lime/5 rounded-lg p-3 border border-victory-lime/20">
+                          <p className="text-victory-muted text-xs mb-1">{round.partner_name || "Coach"} says</p>
+                          <p className="text-victory-text text-sm">{round.commentary}</p>
+                        </div>
+
+                        {/* What went well / improve */}
+                        {round.what_did_well && (
+                          <div className="flex items-start gap-2">
+                            <span className="text-victory-lime text-sm">✓</span>
+                            <p className="text-victory-text text-sm">{round.what_did_well}</p>
+                          </div>
+                        )}
+                        {round.what_to_improve && (
+                          <div className="flex items-start gap-2">
+                            <span className="text-victory-orange text-sm">→</span>
+                            <p className="text-victory-text text-sm">{round.what_to_improve}</p>
+                          </div>
+                        )}
+
+                        {/* Dimension scores for round */}
+                        {round.dimension_scores.length > 0 && (
+                          <div className="space-y-1">
+                            <p className="text-victory-muted text-xs font-medium">Round scores</p>
+                            {round.dimension_scores.map(d => (
+                              <div key={d.dimension_name} className="flex justify-between text-sm">
+                                <span className="text-victory-muted">{d.dimension_name}</span>
+                                <span className="font-mono text-victory-lime">{d.score}/10</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </section>
 
         {/* Re-score Button */}
