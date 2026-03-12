@@ -153,6 +153,22 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers }) => {
       subtitle: "We'll help you land it more often",
       options: getCounterOptions(answers.boxing_stance),
     },
+    {
+      id: "favorite_fighter",
+      question: "Who is your favourite boxer of all time?",
+      subtitle: "Your training partner's image will be inspired by them",
+      options: [
+        { value: "Muhammad Ali", label: "Muhammad Ali", icon: "👑" },
+        { value: "Mike Tyson", label: "Mike Tyson", icon: "🔥" },
+        { value: "Floyd Mayweather", label: "Floyd Mayweather", icon: "💰" },
+        { value: "Terence Crawford", label: "Terence Crawford", icon: "⚡" },
+        { value: "Usyk", label: "Usyk", icon: "🥊" },
+        { value: "Canelo Alvarez", label: "Canelo Alvarez", icon: "🌹" },
+        { value: "Manny Pacquiao", label: "Manny Pacquiao", icon: "🇵🇭" },
+        { value: "Artur Beterbiev", label: "Artur Beterbiev", icon: "💪" },
+        { value: "Roberto Duran", label: "Roberto Duran", icon: "✊" },
+      ],
+    },
   ];
 
   const q = questions[currentQuestion];
@@ -541,7 +557,7 @@ export default function OnboardingFlow() {
     }
   };
 
-  const totalQuestions = 7;
+  const totalQuestions = 8;
   const totalPartnerSteps = 3;
   
   const getProgress = () => {
@@ -599,7 +615,7 @@ export default function OnboardingFlow() {
 
       // Try to generate avatar
       try {
-        await axios.post(`${API}/onboarding/generate-avatar`, {}, { withCredentials: true });
+        await axios.post(`${API}/onboarding/generate-avatar`, { favorite_fighter: answers.favorite_fighter }, { withCredentials: true });
       } catch (e) {
         console.log("Avatar generation skipped");
       }

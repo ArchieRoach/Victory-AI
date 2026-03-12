@@ -89,6 +89,7 @@ class OnboardingAnswers(BaseModel):
     favorite_counter: str
     boxing_stance: Optional[str] = None
     training_partner_style: Optional[str] = None
+    favorite_fighter: Optional[str] = None
 
 class TrainingPartnerCreate(BaseModel):
     name: str
@@ -410,42 +411,27 @@ async def create_training_partner(partner_data: TrainingPartnerCreate, user: dic
     return training_partner
 
 @api_router.post("/onboarding/generate-avatar")
-async def generate_partner_avatar(user: dict = Depends(get_current_user)):
+async def generate_partner_avatar(request: Request, user: dict = Depends(get_current_user)):
     training_partner = user.get("training_partner")
     if not training_partner:
         raise HTTPException(status_code=400, detail="Create a training partner first")
-    
-    if not EMERGENT_LLM_KEY:
-        placeholder_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={training_partner['partner_id']}&backgroundColor=0A0A0F"
-        await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner.avatar_url": placeholder_url}})
-        return {"avatar_url": placeholder_url}
-    
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        
-        style_info = TRAINING_PARTNER_STYLES.get(training_partner["style"], {})
-        prompt = f"""Create a stylized digital avatar portrait of a boxing trainer character:
-- Name style: {training_partner['name']}
-- Personality: {style_info.get('personality', 'Confident trainer')}
-- Training style: {style_info.get('name', 'Coach')}
-Style: Modern digital art, athletic, confident pose, dark background with electric lime (#E8FF47) accents.
-NO real person likenesses. Create an original character. Professional boxing trainer aesthetic."""
 
-        chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"avatar_{training_partner['partner_id']}", system_message="You are an AI artist creating boxing trainer avatars.")
-        chat.with_model("gemini", "gemini-3-pro-image-preview").with_params(modalities=["image", "text"])
-        
-        text, images = await chat.send_message_multimodal_response(UserMessage(text=prompt))
-        
-        if images and len(images) > 0:
-            avatar_data = f"data:{images[0]['mime_type']};base64,{images[0]['data']}"
-            await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner.avatar_url": avatar_data}})
-            return {"avatar_url": avatar_data}
-    except Exception as e:
-        logger.error(f"Avatar generation error: {e}")
-    
-    placeholder_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={training_partner['partner_id']}&backgroundColor=0A0A0F"
-    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner.avatar_url": placeholder_url}})
-    return {"avatar_url": placeholder_url}
+    body = await request.json()
+    favorite_fighter = body.get("favorite_fighter", "")
+
+    style_info = TRAINING_PARTNER_STYLES.get(training_partner["style"], {})
+
+    if favorite_fighter:
+        prompt = f"A boxing trainer avatar inspired by {favorite_fighter} fighting style and presence, stylized digital art portrait, athletic confident pose, dark background with electric lime green accents, original character not real person, professional boxing coach aesthetic, high quality"
+    else:
+        prompt = f"A boxing trainer avatar, {style_info.get('name', 'coach')} personality, stylized digital art, dark background with electric lime accents, professional boxing aesthetic"
+
+    import urllib.parse
+    encoded_prompt = urllib.parse.quote(prompt)
+    avatar_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&nologo=true&seed={training_partner['partner_id']}"
+
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner.avatar_url": avatar_url}})
+    return {"avatar_url": avatar_url}
 
 # ============== CLOUDINARY VIDEO UPLOAD ==============
 
