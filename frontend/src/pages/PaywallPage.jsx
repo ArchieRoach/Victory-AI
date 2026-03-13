@@ -24,7 +24,6 @@ export default function PaywallPage() {
         { withCredentials: true }
       );
 
-      // Redirect to Stripe checkout
       window.location.href = response.data.checkout_url;
     } catch (error) {
       toast.error("Failed to start checkout");
@@ -47,9 +46,9 @@ export default function PaywallPage() {
       {/* Header */}
       <header className="p-6 text-center">
         <img
-          src="https://static.prod-images.emergentagent.com/jobs/72d6b0b0-059a-45b2-9c71-d2c91058e90f/images/52d94070750f09b557456eb2d4e4cc616812253fb620b3381c1956e7e15e7c98.png"
+          src="/victory-logo.png"
           alt="Victory AI"
-          className="w-20 h-20 mx-auto mb-4 rounded-2xl object-contain bg-victory-card"
+          className="w-24 h-24 mx-auto mb-4 object-contain"
         />
         <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-victory-text mb-2">
           Train like a pro for less than one coffee a month.
@@ -100,7 +99,7 @@ export default function PaywallPage() {
 
         {/* Plan Selection */}
         <div className="space-y-3 mb-6">
-          {/* Annual Plan - Recommended */}
+          {/* Annual Plan */}
           <button
             onClick={() => setSelectedPlan("annual")}
             className={`w-full p-4 rounded-lg border text-left relative transition-all ${
@@ -116,12 +115,10 @@ export default function PaywallPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-victory-text">Annual</h3>
-                <p className="text-victory-muted text-sm">Save over 40%</p>
+                <p className="text-victory-muted text-sm">Save 58% vs monthly</p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-heading font-bold text-victory-text">
-                  $19.99
-                </p>
+                <p className="text-2xl font-heading font-bold text-victory-text">$25</p>
                 <p className="text-victory-muted text-sm">/year</p>
               </div>
             </div>
@@ -148,9 +145,7 @@ export default function PaywallPage() {
                 <p className="text-victory-muted text-sm">Flexible option</p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-heading font-bold text-victory-text">
-                  $2.99
-                </p>
+                <p className="text-2xl font-heading font-bold text-victory-text">$5</p>
                 <p className="text-victory-muted text-sm">/month</p>
               </div>
             </div>
@@ -172,12 +167,12 @@ export default function PaywallPage() {
 
         {showDetails && (
           <div className="victory-card p-4 mb-6 text-sm">
-            <h4 className="font-semibold text-victory-text mb-2">Plan Comparison</h4>
+            <h4 className="font-semibold text-victory-text mb-2">Plan Details</h4>
             <ul className="space-y-2 text-victory-muted">
-              <li>• <strong>Monthly ($2.99/mo)</strong>: Full access, cancel anytime</li>
-              <li>• <strong>Annual ($19.99/yr)</strong>: Same features, 44% savings</li>
-              <li>• Both include 7-day free trial</li>
-              <li>• Billing starts after trial period</li>
+              <li>• <strong>Monthly ($5/mo)</strong>: Full access, cancel anytime</li>
+              <li>• <strong>Annual ($25/yr)</strong>: Same features, 58% savings</li>
+              <li>• 7-day free trial on both plans</li>
+              <li>• Card required upfront — billing starts automatically after trial</li>
             </ul>
           </div>
         )}
@@ -192,12 +187,12 @@ export default function PaywallPage() {
           {loading ? (
             <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
           ) : (
-            "Start My Free Trial"
+            "Start 7-Day Free Trial"
           )}
         </button>
 
         <p className="text-victory-muted text-xs text-center mt-4">
-          Free trial. Billing starts automatically after your trial. Cancel anytime.
+          Enter card details now. Free for 7 days — you won't be charged until after your trial. Cancel anytime.
         </p>
       </main>
     </div>

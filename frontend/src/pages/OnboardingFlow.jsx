@@ -11,9 +11,9 @@ const AffirmationPhase = ({ stats, testimonials, onNext }) => (
   <div className="animate-fade-in space-y-6">
     <div className="text-center mb-8">
       <img 
-        src="https://static.prod-images.emergentagent.com/jobs/72d6b0b0-059a-45b2-9c71-d2c91058e90f/images/52d94070750f09b557456eb2d4e4cc616812253fb620b3381c1956e7e15e7c98.png"
+        src="/victory-logo.png"
         alt="Victory AI"
-        className="w-20 h-20 mx-auto mb-4 rounded-xl object-contain bg-victory-card"
+        className="w-20 h-20 mx-auto mb-4 object-contain"
       />
       <h1 className="text-2xl font-heading font-extrabold text-victory-text mb-2">
         Smart move, champ.
@@ -585,7 +585,8 @@ export default function OnboardingFlow() {
       await axios.post(`${API}/onboarding/submit`, allAnswers, { withCredentials: true });
       setPhase("personalized");
     } catch (e) {
-      toast.error("Failed to save answers");
+      const detail = e.response?.data?.detail;
+      toast.error(typeof detail === "string" ? detail : "Failed to save answers — check your connection");
     }
   };
 
