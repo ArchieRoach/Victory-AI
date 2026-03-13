@@ -74,9 +74,9 @@ export default function WelcomePage() {
           {/* Logo */}
           <div className="mb-8">
             <img
-              src="https://static.prod-images.emergentagent.com/jobs/72d6b0b0-059a-45b2-9c71-d2c91058e90f/images/52d94070750f09b557456eb2d4e4cc616812253fb620b3381c1956e7e15e7c98.png"
+              src="/victory-logo.png"
               alt="Victory AI"
-              className="w-24 h-24 mx-auto rounded-2xl object-contain bg-victory-card"
+              className="w-24 h-24 mx-auto object-contain"
               data-testid="app-logo"
             />
           </div>

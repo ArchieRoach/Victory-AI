@@ -19,6 +19,7 @@ import time
 import cloudinary
 import cloudinary.uploader
 import cloudinary.utils
+import stripe as stripe_lib
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -34,7 +35,9 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_DAYS = 7
 
 # Stripe Settings
-STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+stripe_lib.api_key = STRIPE_API_KEY
 
 # Emergent LLM Key
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
@@ -53,8 +56,8 @@ cloudinary.config(
 
 # Subscription Plans
 SUBSCRIPTION_PLANS = {
-    "monthly": {"price": 2.99, "name": "Monthly", "interval": "month"},
-    "annual": {"price": 19.99, "name": "Annual", "interval": "year", "savings": "Save over 40%"}
+    "monthly": {"price": 5.00, "name": "Monthly", "interval": "month"},
+    "annual": {"price": 25.00, "name": "Annual", "interval": "year", "savings": "Save 58%"}
 }
 
 # Create the main app
@@ -687,56 +690,83 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
 
 @api_router.post("/payments/checkout")
 async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(get_current_user)):
-    from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
-    
+    import asyncio
     if checkout_req.plan_id not in SUBSCRIPTION_PLANS:
         raise HTTPException(status_code=400, detail="Invalid plan")
-    
+
     plan = SUBSCRIPTION_PLANS[checkout_req.plan_id]
     host_url = checkout_req.origin_url.rstrip('/')
-    
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=f"{host_url}/api/webhook/stripe")
-    checkout_request = CheckoutSessionRequest(
-        amount=float(plan["price"]), currency="usd",
-        success_url=f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{host_url}/paywall",
-        metadata={"user_id": user["user_id"], "plan_id": checkout_req.plan_id, "plan_name": plan["name"]}
-    )
-    
-    session = await stripe_checkout.create_checkout_session(checkout_request)
+
+    try:
+        session = await asyncio.to_thread(
+            stripe_lib.checkout.Session.create,
+            mode="subscription",
+            payment_method_types=["card"],
+            line_items=[{
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {"name": f"Victory AI {plan['name']}"},
+                    "unit_amount": int(plan["price"] * 100),
+                    "recurring": {"interval": plan["interval"]},
+                },
+                "quantity": 1,
+            }],
+            subscription_data={"trial_period_days": 7},
+            success_url=f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{host_url}/paywall",
+            customer_email=user.get("email"),
+            metadata={"user_id": user["user_id"], "plan_id": checkout_req.plan_id},
+        )
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
     await db.payment_transactions.insert_one({
         "transaction_id": f"txn_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"],
-        "session_id": session.session_id, "plan_id": checkout_req.plan_id,
+        "session_id": session.id, "plan_id": checkout_req.plan_id,
         "amount": float(plan["price"]), "currency": "usd", "payment_status": "pending",
         "created_at": datetime.now(timezone.utc).isoformat()
     })
-    
-    return {"checkout_url": session.url, "session_id": session.session_id}
+
+    return {"checkout_url": session.url, "session_id": session.id}
 
 @api_router.get("/payments/status/{session_id}")
 async def get_payment_status(session_id: str, user: dict = Depends(get_current_user)):
-    from emergentintegrations.payments.stripe.checkout import StripeCheckout
-    
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="")
-    status = await stripe_checkout.get_checkout_status(session_id)
-    
-    await db.payment_transactions.update_one({"session_id": session_id}, {"$set": {"payment_status": status.payment_status, "status": status.status}})
-    
-    if status.payment_status == "paid":
+    import asyncio
+    try:
+        session = await asyncio.to_thread(stripe_lib.checkout.Session.retrieve, session_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    is_complete = session.status == "complete"
+    # Subscriptions with a trial have payment_status="no_payment_required" — treat "complete" as success
+    effective_payment_status = "paid" if is_complete else session.payment_status
+
+    await db.payment_transactions.update_one(
+        {"session_id": session_id},
+        {"$set": {"payment_status": effective_payment_status, "status": session.status}}
+    )
+
+    if is_complete and not await db.subscriptions.find_one({"session_id": session_id}):
         transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
-        if transaction and not await db.subscriptions.find_one({"session_id": session_id}):
-            plan_id = transaction.get("plan_id", "monthly")
-            trial_end = datetime.now(timezone.utc) + timedelta(days=7)
-            subscription_end = trial_end + timedelta(days=365 if plan_id == "annual" else 30)
-            
-            await db.subscriptions.insert_one({
-                "subscription_id": f"sub_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"],
-                "session_id": session_id, "plan_id": plan_id, "status": "trialing",
-                "trial_end": trial_end.isoformat(), "current_period_end": subscription_end.isoformat(),
-                "created_at": datetime.now(timezone.utc).isoformat()
-            })
-    
-    return {"status": status.status, "payment_status": status.payment_status, "amount_total": status.amount_total, "currency": status.currency}
+        plan_id = (transaction or {}).get("plan_id", "monthly")
+        trial_end = datetime.now(timezone.utc) + timedelta(days=7)
+        subscription_end = trial_end + timedelta(days=365 if plan_id == "annual" else 30)
+
+        await db.subscriptions.insert_one({
+            "subscription_id": session.subscription or f"sub_{uuid.uuid4().hex[:12]}",
+            "user_id": user["user_id"], "session_id": session_id, "plan_id": plan_id,
+            "status": "trialing", "trial_end": trial_end.isoformat(),
+            "current_period_end": subscription_end.isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+
+    return {
+        "status": session.status,
+        "payment_status": effective_payment_status,
+        "amount_total": session.amount_total,
+        "currency": session.currency
+    }
 
 @api_router.get("/subscription/status")
 async def get_subscription_status(user: dict = Depends(get_current_user)):
@@ -747,20 +777,41 @@ async def get_subscription_status(user: dict = Depends(get_current_user)):
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    from emergentintegrations.payments.stripe.checkout import StripeCheckout
     body = await request.body()
-    signature = request.headers.get("Stripe-Signature")
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="")
+    signature = request.headers.get("stripe-signature", "")
     try:
-        webhook_response = await stripe_checkout.handle_webhook(body, signature)
-        if webhook_response.payment_status == "paid":
-            user_id = webhook_response.metadata.get("user_id")
-            if user_id:
-                await db.subscriptions.update_one({"user_id": user_id}, {"$set": {"status": "active"}})
-        return {"received": True}
+        if STRIPE_WEBHOOK_SECRET:
+            event = stripe_lib.Webhook.construct_event(body, signature, STRIPE_WEBHOOK_SECRET)
+        else:
+            import json
+            event = json.loads(body)
     except Exception as e:
-        logger.error(f"Webhook error: {e}")
+        logger.error(f"Webhook parse error: {e}")
         return {"received": True}
+
+    event_type = event.get("type", "") if isinstance(event, dict) else event.type
+    event_data = event.get("data", {}).get("object", {}) if isinstance(event, dict) else event.data.object
+
+    try:
+        if event_type == "customer.subscription.updated":
+            stripe_sub_id = event_data.get("id") if isinstance(event_data, dict) else event_data.id
+            sub_status = event_data.get("status") if isinstance(event_data, dict) else event_data.status
+            if stripe_sub_id:
+                await db.subscriptions.update_one(
+                    {"subscription_id": stripe_sub_id},
+                    {"$set": {"status": sub_status}}
+                )
+        elif event_type == "invoice.payment_succeeded":
+            stripe_sub_id = event_data.get("subscription") if isinstance(event_data, dict) else event_data.subscription
+            if stripe_sub_id:
+                await db.subscriptions.update_one(
+                    {"subscription_id": stripe_sub_id},
+                    {"$set": {"status": "active"}}
+                )
+    except Exception as e:
+        logger.error(f"Webhook handler error: {e}")
+
+    return {"received": True}
 
 # ============== SESSION & STATIC ENDPOINTS ==============
 
@@ -968,7 +1019,9 @@ async def subscribe_push(sub: PushSubscription, user: dict = Depends(get_current
     return {"message": "Push subscription registered"}
 
 app.include_router(api_router)
-app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','), allow_methods=["*"], allow_headers=["*"])
+_default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
+_cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]
+app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_methods=["*"], allow_headers=["*"])
 
 @app.on_event("shutdown")
 async def shutdown():

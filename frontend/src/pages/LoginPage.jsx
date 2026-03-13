@@ -82,9 +82,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-victory-lime text-victory-bg font-heading text-2xl font-extrabold mb-4">
-            VA
-          </div>
+          <img src="/victory-logo.png" alt="Victory AI" className="w-20 h-20 mx-auto mb-4 object-contain" />
           <h1 className="text-3xl font-heading font-extrabold text-victory-text">
             {isLogin ? "Welcome Back" : "Create Account"}
           </h1>
