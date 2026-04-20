@@ -82,7 +82,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/victory-logo.png" alt="Victory AI" className="w-40 h-40 mx-auto mb-4 object-contain" />
+          <img src="/victory-logo.png" alt="Victory AI" className="w-40 h-40 mx-auto mb-4 object-contain mix-blend-screen" />
           <h1 className="text-3xl font-heading font-extrabold text-victory-text">
             {isLogin ? "Welcome Back" : "Create Account"}
           </h1>

@@ -76,7 +76,7 @@ export default function WelcomePage() {
             <img
               src="/victory-logo.png"
               alt="Victory AI"
-              className="w-48 h-48 mx-auto object-contain"
+              className="w-48 h-48 mx-auto object-contain mix-blend-screen"
               data-testid="app-logo"
             />
           </div>
