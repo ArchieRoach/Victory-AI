@@ -3,6 +3,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Toaster } from "@/components/ui/sonner";
+import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
 
 // Pages
 import WelcomePage from "@/pages/WelcomePage";
@@ -18,11 +19,11 @@ import LibraryPage from "@/pages/LibraryPage";
 import SessionDetailPage from "@/pages/SessionDetailPage";
 import ProfilePage from "@/pages/ProfilePage";
 import LoginPage from "@/pages/LoginPage";
-import AuthCallback from "@/pages/AuthCallback";
 import LeaderboardPage from "@/pages/LeaderboardPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
+const PUBLISHABLE_KEY = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
 
 const AuthContext = createContext(null);
 
@@ -33,48 +34,68 @@ export const useAuth = () => {
 };
 
 const AuthProvider = ({ children }) => {
+  const { isSignedIn, isLoaded } = useUser();
+  const { getToken, signOut } = useClerkAuth();
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const checkAuth = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API}/auth/me`, { withCredentials: true });
-      setUser(response.data);
-      setIsAuthenticated(true);
-    } catch (error) {
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [mongoLoading, setMongoLoading] = useState(true);
+  const getTokenRef = useRef(getToken);
 
   useEffect(() => {
-    if (window.location.hash?.includes("session_id=")) {
-      setLoading(false);
+    getTokenRef.current = getToken;
+  }, [getToken]);
+
+  // Global axios interceptor — adds Clerk Bearer token to every request
+  useEffect(() => {
+    const id = axios.interceptors.request.use(async (config) => {
+      try {
+        const token = await getTokenRef.current();
+        if (token) config.headers.Authorization = `Bearer ${token}`;
+      } catch (e) {}
+      return config;
+    });
+    return () => axios.interceptors.request.eject(id);
+  }, []);
+
+  const checkAuth = useCallback(async () => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      setUser(null);
+      setMongoLoading(false);
       return;
     }
+    setMongoLoading(true);
+    try {
+      const token = await getToken();
+      const res = await axios.get(`${API}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(res.data);
+    } catch (e) {
+      setUser(null);
+    } finally {
+      setMongoLoading(false);
+    }
+  }, [isSignedIn, isLoaded, getToken]);
+
+  useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  const login = useCallback((userData, token) => {
-    setUser(userData);
-    setIsAuthenticated(true);
-    if (token) localStorage.setItem("token", token);
-  }, []);
-
   const logout = useCallback(async () => {
-    try {
-      await axios.post(`${API}/auth/logout`, {}, { withCredentials: true });
-    } catch (error) {}
+    await signOut();
     setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem("token");
-  }, []);
+  }, [signOut]);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, isAuthenticated, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{
+      user,
+      setUser,
+      loading: !isLoaded || mongoLoading,
+      isAuthenticated: isLoaded && isSignedIn && !!user,
+      login: () => {},
+      logout,
+      checkAuth,
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -86,8 +107,7 @@ const ProtectedRoute = ({ children, requireSubscription = false }) => {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      const hasOnboarded = localStorage.getItem("victory_onboarded");
-      navigate(hasOnboarded ? "/login" : "/welcome", { replace: true });
+      navigate("/login", { replace: true });
     } else if (!loading && isAuthenticated && requireSubscription) {
       if (!user?.has_subscription) {
         if (!user?.onboarding_completed) {
@@ -116,7 +136,7 @@ const OnboardingRoute = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) navigate("/welcome", { replace: true });
+    if (!loading && !isAuthenticated) navigate("/login", { replace: true });
   }, [loading, isAuthenticated, navigate]);
 
   if (loading) {
@@ -140,20 +160,9 @@ const TrialExpirationBanner = () => {
     if (!isAuthenticated || !user?.has_subscription) return;
     const check = async () => {
       try {
-        const res = await axios.get(`${API}/subscription/trial-status`, { withCredentials: true });
+        const res = await axios.get(`${API}/subscription/trial-status`);
         if (res.data.status === "trialing" && res.data.days_remaining <= 3) {
           setTrialInfo(res.data);
-          // Request push notification permission
-          if ("Notification" in window && Notification.permission === "default") {
-            Notification.requestPermission().then((perm) => {
-              if (perm === "granted") {
-                new Notification("Victory AI Trial Ending Soon", {
-                  body: `Your trial ends in ${res.data.days_remaining} day${res.data.days_remaining !== 1 ? "s" : ""}. Upgrade to keep training!`,
-                  icon: "/logo192.png"
-                });
-              }
-            });
-          }
         }
       } catch (e) {}
     };
@@ -176,47 +185,46 @@ const TrialExpirationBanner = () => {
 };
 
 const AppRouter = () => {
-  const location = useLocation();
-  if (location.hash?.includes("session_id=")) return <AuthCallback />;
-
   return (
     <>
       <TrialExpirationBanner />
       <Routes>
-      <Route path="/welcome" element={<WelcomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      
-      <Route path="/onboarding" element={<OnboardingRoute><OnboardingFlow /></OnboardingRoute>} />
-      <Route path="/paywall" element={<OnboardingRoute><PaywallPage /></OnboardingRoute>} />
-      <Route path="/payment/success" element={<OnboardingRoute><PaymentSuccess /></OnboardingRoute>} />
-      
-      <Route path="/home" element={<ProtectedRoute requireSubscription={true}><HomePage /></ProtectedRoute>} />
-      <Route path="/train" element={<ProtectedRoute requireSubscription={true}><TrainPage /></ProtectedRoute>} />
-      <Route path="/score" element={<ProtectedRoute requireSubscription={true}><ScorePage /></ProtectedRoute>} />
-      <Route path="/score/results" element={<ProtectedRoute requireSubscription={true}><SessionResultsPage /></ProtectedRoute>} />
-      <Route path="/timer" element={<ProtectedRoute requireSubscription={true}><TimerPage /></ProtectedRoute>} />
-      <Route path="/library" element={<ProtectedRoute requireSubscription={true}><LibraryPage /></ProtectedRoute>} />
-      <Route path="/sessions/:sessionId" element={<ProtectedRoute requireSubscription={true}><SessionDetailPage /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute requireSubscription={true}><ProfilePage /></ProtectedRoute>} />
-      <Route path="/leaderboard" element={<ProtectedRoute requireSubscription={true}><LeaderboardPage /></ProtectedRoute>} />
+        <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/login/*" element={<LoginPage />} />
 
-      <Route path="/" element={<Navigate to="/home" replace />} />
-      <Route path="*" element={<Navigate to="/home" replace />} />
-    </Routes>
+        <Route path="/onboarding" element={<OnboardingRoute><OnboardingFlow /></OnboardingRoute>} />
+        <Route path="/paywall" element={<OnboardingRoute><PaywallPage /></OnboardingRoute>} />
+        <Route path="/payment/success" element={<OnboardingRoute><PaymentSuccess /></OnboardingRoute>} />
+
+        <Route path="/home" element={<ProtectedRoute requireSubscription={true}><HomePage /></ProtectedRoute>} />
+        <Route path="/train" element={<ProtectedRoute requireSubscription={true}><TrainPage /></ProtectedRoute>} />
+        <Route path="/score" element={<ProtectedRoute requireSubscription={true}><ScorePage /></ProtectedRoute>} />
+        <Route path="/score/results" element={<ProtectedRoute requireSubscription={true}><SessionResultsPage /></ProtectedRoute>} />
+        <Route path="/timer" element={<ProtectedRoute requireSubscription={true}><TimerPage /></ProtectedRoute>} />
+        <Route path="/library" element={<ProtectedRoute requireSubscription={true}><LibraryPage /></ProtectedRoute>} />
+        <Route path="/sessions/:sessionId" element={<ProtectedRoute requireSubscription={true}><SessionDetailPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute requireSubscription={true}><ProfilePage /></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute requireSubscription={true}><LeaderboardPage /></ProtectedRoute>} />
+
+        <Route path="/" element={<Navigate to="/welcome" replace />} />
+        <Route path="*" element={<Navigate to="/welcome" replace />} />
+      </Routes>
     </>
   );
 };
 
 function App() {
   return (
-    <div className="App min-h-screen bg-victory-bg">
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRouter />
-          <Toaster position="top-center" toastOptions={{ style: { background: "#12121A", border: "1px solid #2A2A3A", color: "#F0F0F5" } }} />
-        </AuthProvider>
-      </BrowserRouter>
-    </div>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <div className="App min-h-screen bg-victory-bg">
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRouter />
+            <Toaster position="top-center" toastOptions={{ style: { background: "#12121A", border: "1px solid #2A2A3A", color: "#F0F0F5" } }} />
+          </AuthProvider>
+        </BrowserRouter>
+      </div>
+    </ClerkProvider>
   );
 }
 
