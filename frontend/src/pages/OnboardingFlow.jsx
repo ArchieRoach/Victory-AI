@@ -13,7 +13,7 @@ const AffirmationPhase = ({ stats, testimonials, onNext }) => (
       <img 
         src="/victory-logo.png"
         alt="Victory AI"
-        className="w-40 h-40 mx-auto mb-4 object-contain"
+        className="w-40 h-40 mx-auto mb-4 object-contain mix-blend-screen"
       />
       <h1 className="text-2xl font-heading font-extrabold text-victory-text mb-2">
         Smart move, champ.
