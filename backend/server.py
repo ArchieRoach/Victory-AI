@@ -39,6 +39,11 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 stripe_lib.api_key = STRIPE_API_KEY
 
+# Clerk Settings
+CLERK_SECRET_KEY = os.environ.get('CLERK_SECRET_KEY', '')
+CLERK_JWKS_URL = "https://allowing-dragon-5.clerk.accounts.dev/.well-known/jwks.json"
+_clerk_jwks_cache: dict = {"keys": [], "fetched_at": 0}
+
 # Emergent LLM Key
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 
@@ -248,35 +253,93 @@ def decode_jwt_token(token: str) -> Optional[dict]:
     except:
         return None
 
+async def verify_clerk_token(token: str) -> Optional[str]:
+    """Verify a Clerk JWT and return the Clerk user ID (sub claim)."""
+    global _clerk_jwks_cache
+    try:
+        from jose import jwt as jose_jwt
+        now = time.time()
+        if now - _clerk_jwks_cache.get("fetched_at", 0) > 3600:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(CLERK_JWKS_URL, timeout=5)
+                _clerk_jwks_cache = {**resp.json(), "fetched_at": now}
+        header = jose_jwt.get_unverified_header(token)
+        kid = header.get("kid")
+        key = next((k for k in _clerk_jwks_cache.get("keys", []) if k.get("kid") == kid), None)
+        if not key:
+            return None
+        payload = jose_jwt.decode(token, key, algorithms=["RS256"], options={"verify_aud": False})
+        return payload.get("sub")
+    except Exception as e:
+        logger.error(f"Clerk token verification error: {e}")
+        return None
+
+async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
+    """Look up MongoDB user by Clerk ID, creating one on first login."""
+    user = await db.users.find_one({"user_id": clerk_user_id}, {"_id": 0, "password": 0})
+    if user:
+        return user
+    email, name, picture = "", "", ""
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"https://api.clerk.com/v1/users/{clerk_user_id}",
+                headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"},
+                timeout=5
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                emails = data.get("email_addresses", [])
+                email = emails[0]["email_address"] if emails else ""
+                name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip() or email
+                picture = data.get("image_url", "")
+    except Exception as e:
+        logger.error(f"Failed to fetch Clerk user details: {e}")
+    user_doc = {
+        "user_id": clerk_user_id, "email": email, "name": name, "picture": picture,
+        "experience_level": "beginner", "primary_goal": "",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "onboarding_completed": False, "training_partner": None, "onboarding_answers": None
+    }
+    await db.users.insert_one(user_doc)
+    return user_doc
+
 async def get_current_user(request: Request) -> dict:
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        # Try Clerk verification first
+        clerk_user_id = await verify_clerk_token(token)
+        if clerk_user_id:
+            return await get_or_create_clerk_user(clerk_user_id)
+        # Fallback: legacy JWT
+        payload = decode_jwt_token(token)
+        if payload:
+            user = await db.users.find_one({"user_id": payload["user_id"]}, {"_id": 0, "password": 0})
+            if user:
+                return user
+
+    # Fallback: legacy session cookie
     session_token = request.cookies.get("session_token")
-    if not session_token:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            session_token = auth_header.split(" ")[1]
-    if not session_token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    session_doc = await db.user_sessions.find_one({"session_token": session_token}, {"_id": 0})
-    if session_doc:
-        expires_at = session_doc.get("expires_at")
-        if isinstance(expires_at, str):
-            expires_at = datetime.fromisoformat(expires_at)
-        if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
-        if expires_at < datetime.now(timezone.utc):
-            raise HTTPException(status_code=401, detail="Session expired")
-        user = await db.users.find_one({"user_id": session_doc["user_id"]}, {"_id": 0, "password": 0})
-        if user:
-            return user
-    
-    payload = decode_jwt_token(session_token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    user = await db.users.find_one({"user_id": payload["user_id"]}, {"_id": 0, "password": 0})
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-    return user
+    if session_token:
+        session_doc = await db.user_sessions.find_one({"session_token": session_token}, {"_id": 0})
+        if session_doc:
+            expires_at = session_doc.get("expires_at")
+            if isinstance(expires_at, str):
+                expires_at = datetime.fromisoformat(expires_at)
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if expires_at >= datetime.now(timezone.utc):
+                user = await db.users.find_one({"user_id": session_doc["user_id"]}, {"_id": 0, "password": 0})
+                if user:
+                    return user
+        payload = decode_jwt_token(session_token)
+        if payload:
+            user = await db.users.find_one({"user_id": payload["user_id"]}, {"_id": 0, "password": 0})
+            if user:
+                return user
+
+    raise HTTPException(status_code=401, detail="Not authenticated")
 
 async def get_current_user_with_subscription(request: Request) -> dict:
     user = await get_current_user(request)
