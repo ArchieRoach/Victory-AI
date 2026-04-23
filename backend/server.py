@@ -37,7 +37,12 @@ JWT_EXPIRATION_DAYS = 7
 # Stripe Settings
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+STRIPE_FOUNDERS_COUPON_ID = os.environ.get('STRIPE_FOUNDERS_COUPON_ID', '')
 stripe_lib.api_key = STRIPE_API_KEY
+
+# Resend (email)
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+RESEND_FROM = os.environ.get('RESEND_FROM', 'Victory AI <onboarding@resend.dev>')
 
 # Clerk Settings
 CLERK_SECRET_KEY = os.environ.get('CLERK_SECRET_KEY', '')
@@ -774,7 +779,7 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
                 },
                 "quantity": 1,
             }],
-            subscription_data={"trial_period_days": 7},
+            subscription_data={"trial_period_days": 14},
             success_url=f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{host_url}/paywall",
             customer_email=user.get("email"),
@@ -813,7 +818,7 @@ async def get_payment_status(session_id: str, user: dict = Depends(get_current_u
     if is_complete and not await db.subscriptions.find_one({"session_id": session_id}):
         transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
         plan_id = (transaction or {}).get("plan_id", "monthly")
-        trial_end = datetime.now(timezone.utc) + timedelta(days=7)
+        trial_end = datetime.now(timezone.utc) + timedelta(days=14)
         subscription_end = trial_end + timedelta(days=365 if plan_id == "annual" else 30)
 
         await db.subscriptions.insert_one({
@@ -875,6 +880,75 @@ async def stripe_webhook(request: Request):
         logger.error(f"Webhook handler error: {e}")
 
     return {"received": True}
+
+# ============== WAITLIST ENDPOINTS ==============
+
+class WaitlistSignup(BaseModel):
+    email: EmailStr
+    name: Optional[str] = None
+
+@api_router.post("/waitlist/signup")
+async def waitlist_signup(data: WaitlistSignup):
+    import asyncio
+
+    # Prevent duplicate signups
+    existing = await db.waitlist.find_one({"email": data.email})
+    if existing:
+        return {"message": "Already on the waitlist", "already_registered": True}
+
+    # Create a unique Stripe promotion code for this person
+    promo_code_str = f"FOUNDER{uuid.uuid4().hex[:8].upper()}"
+    try:
+        promo = await asyncio.to_thread(
+            stripe_lib.PromotionCode.create,
+            coupon=STRIPE_FOUNDERS_COUPON_ID,
+            code=promo_code_str,
+            max_redemptions=1,
+        )
+        promo_code_str = promo.code
+    except Exception as e:
+        logger.error(f"Stripe promo code creation failed: {e}")
+
+    # Store in waitlist collection
+    await db.waitlist.insert_one({
+        "email": data.email,
+        "name": data.name or "",
+        "promo_code": promo_code_str,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    # Send confirmation email via Resend
+    email_html = f"""
+    <div style="background:#0A0A0F;color:#F0F0F5;font-family:sans-serif;padding:40px;max-width:600px;margin:0 auto;border-radius:12px;">
+      <img src="https://victory-ai-alpha.vercel.app/victory-logo.png" alt="Victory AI" style="width:120px;display:block;margin:0 auto 24px;" />
+      <h1 style="color:#E8FF47;text-align:center;font-size:28px;margin-bottom:8px;">You're in, {data.name or 'Champ'}.</h1>
+      <p style="text-align:center;color:#8888A0;margin-bottom:32px;">You've secured your early founders spot for Victory AI.</p>
+      <div style="background:#12121A;border:1px solid #2A2A3A;border-radius:8px;padding:24px;text-align:center;margin-bottom:32px;">
+        <p style="color:#8888A0;margin:0 0 8px;">Your exclusive founders discount code:</p>
+        <p style="color:#E8FF47;font-size:28px;font-weight:bold;letter-spacing:4px;margin:0;">{promo_code_str}</p>
+        <p style="color:#8888A0;font-size:13px;margin:12px 0 0;">£2.99/month for life — 40% off forever</p>
+      </div>
+      <p style="color:#F0F0F5;">When Victory AI launches, enter this code at checkout to lock in your founders price. It's unique to you and can only be used once.</p>
+      <p style="color:#8888A0;font-size:13px;margin-top:32px;text-align:center;">Victory AI · Boxing & Training</p>
+    </div>
+    """
+
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+                json={
+                    "from": RESEND_FROM,
+                    "to": [data.email],
+                    "subject": "Your Victory AI founders spot is confirmed 🥊",
+                    "html": email_html,
+                },
+            )
+    except Exception as e:
+        logger.error(f"Resend email failed: {e}")
+
+    return {"message": "Signed up successfully", "promo_code": promo_code_str}
 
 # ============== SESSION & STATIC ENDPOINTS ==============
 
