@@ -782,7 +782,7 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
             subscription_data={"trial_period_days": 14},
             success_url=f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{host_url}/paywall",
-            customer_email=user.get("email"),
+            customer_email=user.get("email") or None,
             metadata={"user_id": user["user_id"], "plan_id": checkout_req.plan_id},
         )
     except Exception as e:
