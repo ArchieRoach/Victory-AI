@@ -884,6 +884,7 @@ async def stripe_webhook(request: Request):
 # ============== WAITLIST ENDPOINTS ==============
 
 class WaitlistSignup(BaseModel):
+    model_config = {"extra": "allow"}
     email: EmailStr
     name: Optional[str] = None
 
@@ -916,6 +917,19 @@ async def waitlist_signup(data: WaitlistSignup):
         "promo_code": promo_code_str,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
+
+    # Forward full payload to n8n
+    try:
+        payload = data.model_dump()
+        payload["promo_code"] = promo_code_str
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                "https://n8n.srv964449.hstgr.cloud/webhook/boxing-waitlist",
+                json=payload,
+                timeout=5,
+            )
+    except Exception as e:
+        logger.error(f"n8n forward failed: {e}")
 
     # Send confirmation email via Resend
     email_html = f"""
