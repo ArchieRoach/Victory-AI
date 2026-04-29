@@ -3,7 +3,104 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { Check, Zap, Trophy, Target, Shield } from "lucide-react";
+import { Check, Zap, Trophy, Target, Shield, Star } from "lucide-react";
+
+const MOCK_DIMENSIONS = [
+  { name: "Jab", value: 7.5 },
+  { name: "Cross", value: 6 },
+  { name: "Head Mvmt", value: 5 },
+  { name: "Footwork", value: 8 },
+  { name: "Guard", value: 6.5 },
+  { name: "Combos", value: 7 },
+];
+
+const PhoneMockup = ({ title, children }) => (
+  <div className="flex-shrink-0 w-36 snap-center">
+    <div
+      className="bg-victory-card border border-victory-border rounded-2xl overflow-hidden flex flex-col"
+      style={{ aspectRatio: "9/19.5" }}
+    >
+      <div className="bg-black/30 h-5 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-1 bg-victory-border rounded-full" />
+      </div>
+      <div className="flex-1 overflow-hidden p-2">{children}</div>
+    </div>
+    <p className="text-victory-muted text-xs text-center mt-2">{title}</p>
+  </div>
+);
+
+const RadarMockup = () => {
+  const cx = 60, cy = 60, r = 48;
+  return (
+    <div className="flex flex-col h-full">
+      <p className="text-victory-lime text-xs font-bold mb-1">Your Score</p>
+      <svg viewBox="0 0 120 130" className="w-full flex-1">
+        {[0.33, 0.66, 1].map((s, i) => (
+          <polygon
+            key={i}
+            points={MOCK_DIMENSIONS.map((_, idx) => {
+              const a = (idx * 60 - 90) * (Math.PI / 180);
+              return `${cx + r * s * Math.cos(a)},${cy + r * s * Math.sin(a)}`;
+            }).join(" ")}
+            fill="none" stroke="#2A2A3A" strokeWidth="0.8"
+          />
+        ))}
+        <polygon
+          points={MOCK_DIMENSIONS.map((d, idx) => {
+            const a = (idx * 60 - 90) * (Math.PI / 180);
+            const pr = (d.value / 10) * r;
+            return `${cx + pr * Math.cos(a)},${cy + pr * Math.sin(a)}`;
+          }).join(" ")}
+          fill="#E8FF47" fillOpacity="0.3" stroke="#E8FF47" strokeWidth="1.5"
+        />
+        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill="#E8FF47" fontSize="10" fontWeight="bold">7.0</text>
+        {MOCK_DIMENSIONS.map((d, idx) => {
+          const a = (idx * 60 - 90) * (Math.PI / 180);
+          return <text key={d.name} x={cx + (r + 8) * Math.cos(a)} y={cy + (r + 8) * Math.sin(a)} textAnchor="middle" dominantBaseline="middle" fill="#8888A0" fontSize="5">{d.name}</text>;
+        })}
+        <text x="60" y="118" textAnchor="middle" fill="#8888A0" fontSize="5">6 dimensions scored</text>
+      </svg>
+    </div>
+  );
+};
+
+const DrillsMockup = () => (
+  <div className="flex flex-col gap-1 h-full">
+    <p className="text-victory-lime text-xs font-bold mb-1">Today's Drills</p>
+    {[
+      { name: "Jab extension", level: "3 × 2 min" },
+      { name: "Head movement", level: "4 × 90 sec" },
+      { name: "Footwork ladder", level: "5 × 1 min" },
+    ].map((drill) => (
+      <div key={drill.name} className="bg-victory-bg/60 rounded p-1.5">
+        <p className="text-victory-text text-[7px] font-semibold leading-tight">{drill.name}</p>
+        <p className="text-victory-muted text-[6px]">{drill.level}</p>
+      </div>
+    ))}
+    <div className="mt-auto">
+      <div className="bg-victory-lime/20 rounded p-1 text-center">
+        <p className="text-victory-lime text-[6px] font-bold">🔥 3-day streak</p>
+      </div>
+    </div>
+  </div>
+);
+
+const PartnerMockup = () => (
+  <div className="flex flex-col items-center justify-center h-full gap-2">
+    <div className="w-10 h-10 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold text-sm">
+      R
+    </div>
+    <p className="text-victory-lime text-[8px] font-bold text-center">Rocky is ready</p>
+    <div className="bg-victory-bg/60 rounded p-1.5 w-full">
+      <p className="text-victory-muted text-[6px] italic text-center">"Your jab needs more snap. Let's fix that today."</p>
+    </div>
+    <div className="flex gap-1">
+      {[...Array(5)].map((_, i) => (
+        <Star key={i} className="w-2 h-2 fill-victory-lime text-victory-lime" />
+      ))}
+    </div>
+  </div>
+);
 
 export default function PaywallPage() {
   const navigate = useNavigate();
@@ -85,6 +182,22 @@ export default function PaywallPage() {
           </div>
         )}
 
+        {/* App Preview Mockups */}
+        <div className="mb-6">
+          <p className="text-victory-muted text-xs text-center mb-3 uppercase tracking-wide font-semibold">What's inside</p>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory px-1">
+            <PhoneMockup title="Technique scores">
+              <RadarMockup />
+            </PhoneMockup>
+            <PhoneMockup title="Daily drills">
+              <DrillsMockup />
+            </PhoneMockup>
+            <PhoneMockup title="AI training partner">
+              <PartnerMockup />
+            </PhoneMockup>
+          </div>
+        </div>
+
         {/* Features */}
         <div className="space-y-3 mb-6">
           {features.map(({ icon: Icon, text }) => (
@@ -120,6 +233,7 @@ export default function PaywallPage() {
               <div className="text-right">
                 <p className="text-2xl font-heading font-bold text-victory-text">$25</p>
                 <p className="text-victory-muted text-sm">/year</p>
+                <p className="text-victory-lime text-xs font-semibold">$0.48/week</p>
               </div>
             </div>
             {selectedPlan === "annual" && (
@@ -147,6 +261,7 @@ export default function PaywallPage() {
               <div className="text-right">
                 <p className="text-2xl font-heading font-bold text-victory-text">$5</p>
                 <p className="text-victory-muted text-sm">/month</p>
+                <p className="text-victory-muted text-xs">~$1.15/week</p>
               </div>
             </div>
             {selectedPlan === "monthly" && (
@@ -187,12 +302,12 @@ export default function PaywallPage() {
           {loading ? (
             <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
           ) : (
-            "Start 7-Day Free Trial"
+            "Start 14-Day Free Trial"
           )}
         </button>
 
         <p className="text-victory-muted text-xs text-center mt-4">
-          Enter card details now. Free for 7 days — you won't be charged until after your trial. Cancel anytime.
+          Enter card details now. Free for 14 days — you won't be charged until after your trial. Cancel anytime.
         </p>
       </main>
     </div>

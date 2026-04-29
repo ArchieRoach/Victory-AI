@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { RadarChart } from "@/components/RadarChart";
 import { DrillCard } from "@/components/DrillCard";
 import { Confetti } from "@/components/Confetti";
-import { ArrowUp, ArrowDown, Share2, Home, Target } from "lucide-react";
+import { ArrowUp, ArrowDown, Share2, Home, Target, Star, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
 const SCORE_COMMENTS = {
@@ -21,6 +21,31 @@ const getScoreComment = (score) => {
   if (score >= 6) return SCORE_COMMENTS.medium_high;
   if (score >= 4) return SCORE_COMMENTS.medium;
   return SCORE_COMMENTS.low;
+};
+
+const POSITIVE_HIGHLIGHTS = {
+  Jab: "Your jab is landing clean — opponents won't see it coming.",
+  Cross: "That cross has real power behind it. Keep rotating those hips.",
+  "Left Hook": "Tight hook with solid hip pivot. That's textbook.",
+  "Right Hook": "Short arc, fast return — that's a weapon.",
+  Uppercut: "Loading that uppercut properly. Finding those gaps.",
+  "Combination Flow": "Punches flowing together smoothly — hard to read.",
+  "Punch Balance": "Staying balanced through combinations. Hard to knock off.",
+  "Punch Accuracy": "Punches landing where you're aiming. Precision matters.",
+  "Guard Position": "Hands staying high between punches. Protecting the chin.",
+  "Head Movement": "Moving off the centreline — making yourself hard to hit.",
+  Slip: "Slipping outside the punch — not just ducking. Smart.",
+  Roll: "Full shoulder roll. That's professional-level defense.",
+  Parry: "Redirecting punches cleanly — not just blocking.",
+  "Body Movement": "Angling off after punching. Not giving a stationary target.",
+  Footwork: "Weight centred, pivoting well — solid foundation.",
+  "Ring Generalship": "Controlling distance and dictating the fight.",
+};
+
+const getPositiveHighlight = (dimensionName, score) => {
+  if (score >= 9) return `Outstanding — ${POSITIVE_HIGHLIGHTS[dimensionName] || "elite-level execution here."}`;
+  if (score >= 7) return POSITIVE_HIGHLIGHTS[dimensionName] || "Solid technique — keep building on this.";
+  return `Showing improvement — ${POSITIVE_HIGHLIGHTS[dimensionName] || "keep focused here."}`;
 };
 
 export default function SessionResultsPage() {
@@ -94,6 +119,14 @@ export default function SessionResultsPage() {
     return session.dimension_scores
       .filter((d) => d.score !== null)
       .sort((a, b) => (a.score || 0) - (b.score || 0))
+      .slice(0, 3);
+  };
+
+  const getTopDimensions = () => {
+    if (!session) return [];
+    return session.dimension_scores
+      .filter((d) => d.score !== null)
+      .sort((a, b) => (b.score || 0) - (a.score || 0))
       .slice(0, 3);
   };
 
@@ -281,6 +314,7 @@ export default function SessionResultsPage() {
 
   const scoreDiff = getScoreDifference();
   const lowestDimensions = getLowestDimensions();
+  const topDimensions = getTopDimensions();
   const isFirstSession = sessions.length <= 1;
 
   return (
@@ -334,6 +368,40 @@ export default function SessionResultsPage() {
             overallScore={session.overall_score}
           />
         </section>
+
+        {/* Top 3 Highlights */}
+        {topDimensions.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <Star className="w-5 h-5 text-victory-lime fill-victory-lime" />
+              <h2 className="text-lg font-heading font-bold text-victory-text">
+                Your Highlights
+              </h2>
+            </div>
+            <div className="space-y-2">
+              {topDimensions.map((dim, idx) => (
+                <div
+                  key={dim.dimension_name}
+                  className="victory-card p-4 flex items-start gap-3 border-l-2 border-victory-lime"
+                  data-testid={`highlight-${dim.dimension_name}`}
+                >
+                  <div className="w-7 h-7 rounded-full bg-victory-lime/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-victory-lime text-xs font-bold">{idx + 1}</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-victory-text font-semibold text-sm">{dim.dimension_name}</p>
+                      <span className="font-mono text-victory-lime font-bold text-sm">{dim.score}/10</span>
+                    </div>
+                    <p className="text-victory-muted text-xs leading-relaxed">
+                      {getPositiveHighlight(dim.dimension_name, dim.score)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Dimension Breakdown */}
         <section>
