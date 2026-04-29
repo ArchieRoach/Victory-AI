@@ -1,12 +1,53 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { DimensionSlider } from "@/components/DimensionSlider";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Link, FileText } from "lucide-react";
+import { ChevronDown, ChevronUp, Link, FileText, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+
+const ANALYSIS_STEPS = [
+  "Preparing your scorecard...",
+  "Analysing your technique...",
+  "Comparing to previous sessions...",
+  "Building drill recommendations...",
+  "Calculating your overall score...",
+  "Almost there...",
+];
+
+const AnalysisOverlay = ({ progress, stepIndex }) => (
+  <div className="fixed inset-0 z-50 bg-victory-bg flex flex-col items-center justify-center p-8">
+    <div className="w-24 h-24 rounded-full bg-victory-lime/10 flex items-center justify-center mb-8 relative">
+      <div className="w-20 h-20 rounded-full border-4 border-victory-lime border-t-transparent animate-spin absolute" />
+      <Zap className="w-10 h-10 text-victory-lime" />
+    </div>
+
+    <h2 className="text-2xl font-heading font-extrabold text-victory-text mb-2 text-center">
+      Analysing your session
+    </h2>
+    <p className="text-victory-muted text-sm mb-8 text-center h-5 transition-all animate-pulse">
+      {ANALYSIS_STEPS[Math.min(stepIndex, ANALYSIS_STEPS.length - 1)]}
+    </p>
+
+    <div className="w-full max-w-xs space-y-2">
+      <Progress value={progress} className="h-3" />
+      <p className="text-victory-muted text-xs text-center">{Math.round(progress)}%</p>
+    </div>
+
+    <div className="mt-8 space-y-2 w-full max-w-xs">
+      {ANALYSIS_STEPS.slice(0, stepIndex + 1).map((step, i) => (
+        <div key={i} className="flex items-center gap-2 text-xs">
+          <div className="w-4 h-4 rounded-full bg-victory-lime flex items-center justify-center flex-shrink-0">
+            <span className="text-victory-bg font-bold text-[8px]">✓</span>
+          </div>
+          <span className={i === stepIndex ? "text-victory-text" : "text-victory-muted"}>{step}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 import {
   Collapsible,
   CollapsibleContent,
@@ -68,6 +109,9 @@ const STORAGE_KEY = "victory_score_draft";
 export default function ScorePage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisStep, setAnalysisStep] = useState(0);
+  const analysisIntervalRef = useRef(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [sessionNotes, setSessionNotes] = useState("");
   const [sessionDate, setSessionDate] = useState(
@@ -136,6 +180,20 @@ export default function ScorePage() {
     }
 
     setLoading(true);
+    setAnalysisProgress(0);
+    setAnalysisStep(0);
+
+    // Start progress animation
+    const totalDuration = 3500;
+    const interval = 80;
+    let elapsed = 0;
+    analysisIntervalRef.current = setInterval(() => {
+      elapsed += interval;
+      const pct = Math.min((elapsed / totalDuration) * 90, 90);
+      setAnalysisProgress(pct);
+      setAnalysisStep(Math.floor((pct / 90) * (ANALYSIS_STEPS.length - 1)));
+    }, interval);
+
     try {
       // Build dimension scores array
       const dimensionScores = Object.values(DIMENSION_GROUPS)
@@ -156,6 +214,13 @@ export default function ScorePage() {
         { withCredentials: true }
       );
 
+      // Complete the animation
+      clearInterval(analysisIntervalRef.current);
+      setAnalysisProgress(100);
+      setAnalysisStep(ANALYSIS_STEPS.length - 1);
+
+      await new Promise((r) => setTimeout(r, 500));
+
       // Clear draft
       localStorage.removeItem(STORAGE_KEY);
 
@@ -164,10 +229,10 @@ export default function ScorePage() {
         state: { session: response.data, isFirstSession: false },
       });
     } catch (error) {
+      clearInterval(analysisIntervalRef.current);
+      setLoading(false);
       const message = error.response?.data?.detail || "Failed to save session";
       toast.error(message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -180,6 +245,9 @@ export default function ScorePage() {
 
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="score-page">
+      {loading && (
+        <AnalysisOverlay progress={analysisProgress} stepIndex={analysisStep} />
+      )}
       {/* Header with Progress */}
       <header className="sticky top-0 z-40 bg-victory-bg/95 backdrop-blur-sm border-b border-victory-border p-4">
         <h1 className="text-xl font-heading font-extrabold text-victory-text mb-1">
@@ -302,14 +370,7 @@ export default function ScorePage() {
           className="victory-btn-primary"
           data-testid="submit-scorecard-btn"
         >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
-              Saving...
-            </span>
-          ) : (
-            "See My Scorecard"
-          )}
+          See My Scorecard
         </button>
       </div>
 

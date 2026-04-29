@@ -521,16 +521,99 @@ const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
   );
 };
 
+// PHASE 7: PLAN BUILDING (Performative — locked behind paywall)
+const PlanBuildingScreen = ({ partnerName, answers, onComplete }) => {
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const planSteps = [
+    `Setting up ${partnerName || "your partner"}'s feedback system...`,
+    "Analysing your training frequency...",
+    `Building Week 1 based on your ${answers?.biggest_frustration?.replace(/_/g, " ") || "goals"}...`,
+    "Creating personalised drill schedule...",
+    "Calibrating difficulty to your level...",
+    "Your plan is ready.",
+  ];
+
+  const focus = answers?.focus_areas?.join(" & ") || "technique";
+  const level = answers?.experience_level?.replace(/_/g, " ") || "your level";
+
+  useEffect(() => {
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          setTimeout(onComplete, 800);
+          return 100;
+        }
+        return prev + 1.5;
+      });
+    }, 60);
+
+    const stepInterval = setInterval(() => {
+      setCurrentStep((prev) => Math.min(prev + 1, planSteps.length - 1));
+    }, 700);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(stepInterval);
+    };
+  }, [onComplete]);
+
+  return (
+    <div className="animate-fade-in flex flex-col items-center justify-center min-h-[70vh] px-4">
+      <div className="w-20 h-20 rounded-full bg-victory-lime/10 flex items-center justify-center mb-6 relative">
+        <div className="w-16 h-16 rounded-full border-4 border-victory-lime border-t-transparent animate-spin absolute" />
+        <Target className="w-8 h-8 text-victory-lime" />
+      </div>
+
+      <h2 className="text-2xl font-heading font-extrabold text-victory-text mb-1 text-center">
+        Building your plan
+      </h2>
+      <p className="text-victory-muted text-sm mb-6 text-center">
+        Personalised for {level}
+      </p>
+
+      <p className="text-victory-lime text-sm mb-8 text-center h-5 animate-pulse">
+        {planSteps[currentStep]}
+      </p>
+
+      <div className="w-full max-w-xs mb-6">
+        <Progress value={progress} className="h-3" />
+        <p className="text-victory-muted text-xs text-center mt-1">{Math.round(progress)}%</p>
+      </div>
+
+      <div className="w-full max-w-xs victory-card p-4 space-y-2">
+        <p className="text-victory-muted text-xs font-semibold uppercase tracking-wide mb-3">Your personalised plan includes</p>
+        {[
+          `${focus} focus drills`,
+          `${partnerName || "Your partner"}'s feedback system`,
+          "Week-by-week progression",
+          "Technique scoring & tracking",
+        ].map((item, i) => (
+          <div key={i} className={`flex items-center gap-2 text-sm transition-opacity duration-500 ${i <= currentStep ? "opacity-100" : "opacity-20"}`}>
+            <div className="w-4 h-4 rounded-full bg-victory-lime/20 flex items-center justify-center flex-shrink-0">
+              <Check className="w-2.5 h-2.5 text-victory-lime" />
+            </div>
+            <span className="text-victory-text">{item}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // MAIN COMPONENT
 export default function OnboardingFlow() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
   
-  const [phase, setPhase] = useState("affirmation"); // affirmation, why_hook, personalized, partner, generating, naming
+  const [phase, setPhase] = useState("affirmation"); // affirmation, why_hook, personalized, partner, generating, naming, plan_building
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [currentPartnerStep, setCurrentPartnerStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [partnerData, setPartnerData] = useState({});
+  const [createdPartnerName, setCreatedPartnerName] = useState("");
   const [socialProof, setSocialProof] = useState({ stats: {}, testimonials: [] });
   const [partnerStyles, setPartnerStyles] = useState({});
 
@@ -607,35 +690,36 @@ export default function OnboardingFlow() {
 
   const handlePartnerComplete = async (name) => {
     try {
-      const res = await axios.post(`${API}/onboarding/create-partner`, {
+      await axios.post(`${API}/onboarding/create-partner`, {
         name,
         style: partnerData.training_partner_style,
         focus_areas: partnerData.focus_areas || [],
         accountability_level: partnerData.accountability_level || "moderate"
       }, { withCredentials: true });
 
-      // Try to generate avatar
-      try {
-        await axios.post(`${API}/onboarding/generate-avatar`, { favorite_fighter: answers.favorite_fighter }, { withCredentials: true });
-      } catch (e) {
-        console.log("Avatar generation skipped");
-      }
+      // Try to generate avatar in background (non-blocking)
+      axios.post(`${API}/onboarding/generate-avatar`, { favorite_fighter: answers.favorite_fighter }, { withCredentials: true }).catch(() => {});
 
-      // Update user context
-      const userRes = await axios.get(`${API}/auth/me`, { withCredentials: true });
-      setUser(userRes.data);
-
-      toast.success(`${name} is ready to train with you!`);
-      navigate("/paywall", { replace: true });
+      setCreatedPartnerName(name);
+      setPhase("plan_building");
     } catch (e) {
       toast.error("Failed to create partner");
     }
   };
 
+  const handlePlanBuildingComplete = async () => {
+    try {
+      const userRes = await axios.get(`${API}/auth/me`, { withCredentials: true });
+      setUser(userRes.data);
+    } catch (e) {}
+    toast.success(`${createdPartnerName} is ready to train with you!`);
+    navigate("/paywall", { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col" data-testid="onboarding-flow">
       {/* Progress Bar */}
-      {phase !== "generating" && (
+      {phase !== "generating" && phase !== "plan_building" && (
         <header className="p-4 border-b border-victory-border">
           <Progress value={getProgress()} className="h-2" />
         </header>
@@ -687,6 +771,14 @@ export default function OnboardingFlow() {
             partnerData={partnerData}
             styles={partnerStyles}
             onComplete={handlePartnerComplete}
+          />
+        )}
+
+        {phase === "plan_building" && (
+          <PlanBuildingScreen
+            partnerName={createdPartnerName}
+            answers={answers}
+            onComplete={handlePlanBuildingComplete}
           />
         )}
       </main>
