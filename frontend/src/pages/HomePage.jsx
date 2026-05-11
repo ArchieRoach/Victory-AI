@@ -8,10 +8,12 @@ import { ProgressChart } from "@/components/ProgressChart";
 import { DrillCard } from "@/components/DrillCard";
 import { SessionCard } from "@/components/SessionCard";
 import { Target, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -41,9 +43,9 @@ export default function HomePage() {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
+    if (hour < 12) return t("home.greetingMorning");
+    if (hour < 17) return t("home.greetingAfternoon");
+    return t("home.greetingEvening");
   };
 
   const currentSession = sessions[0];
@@ -99,7 +101,7 @@ export default function HomePage() {
             className="text-2xl sm:text-3xl font-heading font-extrabold text-victory-text"
             data-testid="page-headline"
           >
-            Your Boxing Today
+            {t("home.title")}
           </h1>
         </div>
         <button
@@ -128,7 +130,7 @@ export default function HomePage() {
                 }}
               />
               <p className="text-victory-muted text-sm text-center mt-4">
-                Tap a dimension to see drill recommendations
+                {t("home.tapDimension")}
               </p>
             </div>
           ) : (
@@ -154,7 +156,7 @@ export default function HomePage() {
                 </svg>
               </div>
               <p className="text-victory-muted mb-4">
-                Score your first round to see your chart.
+                {t("home.noSession")}
               </p>
               <button
                 onClick={() => navigate("/score")}
@@ -162,7 +164,7 @@ export default function HomePage() {
                 data-testid="first-score-btn"
               >
                 <Target className="w-5 h-5" />
-                Score My First Round
+                {t("home.scoreFirstRound")}
               </button>
             </div>
           )}
@@ -171,7 +173,7 @@ export default function HomePage() {
         {/* Progress Trend Section */}
         <section data-testid="progress-section">
           <h2 className="text-lg font-heading font-bold text-victory-text mb-3">
-            Your Progress This Month
+            {t("home.progressThisMonth")}
           </h2>
 
           {sessions.length >= 2 ? (
@@ -183,8 +185,8 @@ export default function HomePage() {
               <div className="h-32 flex items-center justify-center">
                 <p className="text-victory-muted text-sm text-center">
                   {sessions.length === 1
-                    ? "Complete two sessions to unlock your trend chart."
-                    : "Your progress story starts with one session."}
+                    ? t("home.twoSessionsNeeded")
+                    : t("home.progressStarts")}
                 </p>
               </div>
             </div>
@@ -197,21 +199,21 @@ export default function HomePage() {
                 {monthSessions.length || "—"}
               </span>
               <span className="text-victory-muted text-xs mt-1">
-                Sessions This Month
+                {t("home.sessionsThisMonth")}
               </span>
             </div>
             <div className="stat-pill" data-testid="stat-best">
               <span className="font-mono text-xl font-semibold text-victory-lime">
                 {stats.best_score ? stats.best_score.toFixed(1) : "—"}
               </span>
-              <span className="text-victory-muted text-xs mt-1">Best Score</span>
+              <span className="text-victory-muted text-xs mt-1">{t("home.bestScore")}</span>
             </div>
             <div className="stat-pill" data-testid="stat-improved">
               <span className="font-mono text-sm font-semibold text-victory-lime truncate px-1">
                 {stats.most_improved_dimension || "—"}
               </span>
               <span className="text-victory-muted text-xs mt-1">
-                Most Improved
+                {t("home.mostImproved")}
               </span>
             </div>
           </div>
@@ -220,7 +222,7 @@ export default function HomePage() {
         {/* Drill Recommendations Section */}
         <section data-testid="drills-section">
           <h2 className="text-lg font-heading font-bold text-victory-text mb-3">
-            Your Focus This Week
+            {t("home.focusThisWeek")}
           </h2>
 
           {drillRecommendations.length > 0 ? (
@@ -237,7 +239,7 @@ export default function HomePage() {
           ) : (
             <div className="victory-card p-4">
               <p className="text-victory-muted text-sm text-center">
-                Drill recommendations appear here after your first session.
+                {t("home.drillsAppear")}
               </p>
             </div>
           )}
@@ -247,7 +249,7 @@ export default function HomePage() {
         <section data-testid="sessions-section" className="pb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-heading font-bold text-victory-text">
-              Recent Sessions
+              {t("home.recentSessions")}
             </h2>
           </div>
 
@@ -264,7 +266,7 @@ export default function HomePage() {
           ) : (
             <div className="victory-card p-4">
               <p className="text-victory-muted text-sm text-center">
-                Your session history will appear here. Start with one round.
+                {t("home.sessionHistoryAppear")}
               </p>
             </div>
           )}

@@ -3,6 +3,7 @@ import axios from "axios";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { Trophy, Medal, Star, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const RANK_STYLES = {
   1: { icon: "🥇", color: "text-yellow-400", bg: "bg-yellow-400/10 border-yellow-400/30" },
@@ -11,6 +12,7 @@ const RANK_STYLES = {
 };
 
 export default function LeaderboardPage() {
+  const { t } = useTranslation();
   const [leaderboard, setLeaderboard] = useState([]);
   const [currentUserRank, setCurrentUserRank] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,9 +48,9 @@ export default function LeaderboardPage() {
           <div>
             <h1 className="text-xl font-heading font-extrabold text-victory-text flex items-center gap-2">
               <Trophy className="w-5 h-5 text-victory-lime" />
-              Leaderboard
+              {t("leaderboard.title")}
             </h1>
-            <p className="text-victory-muted text-sm">Top fighters ranked by performance</p>
+            <p className="text-victory-muted text-sm">{t("leaderboard.subtitle")}</p>
           </div>
           <button onClick={fetchLeaderboard} className="w-9 h-9 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-muted hover:text-victory-text">
             <RefreshCw className="w-4 h-4" />
@@ -58,9 +60,9 @@ export default function LeaderboardPage() {
         {/* Filter tabs */}
         <div className="flex gap-2 mt-4">
           {[
-            { key: "avg_score", label: "Avg Score" },
-            { key: "best_score", label: "Best Score" },
-            { key: "total_sessions", label: "Sessions" },
+            { key: "avg_score", label: t("leaderboard.filterAvg") },
+            { key: "best_score", label: t("leaderboard.filterBest") },
+            { key: "total_sessions", label: t("leaderboard.filterSessions") },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -87,8 +89,8 @@ export default function LeaderboardPage() {
         ) : sorted.length === 0 ? (
           <div className="text-center py-16">
             <Star className="w-12 h-12 text-victory-muted mx-auto mb-4" />
-            <p className="text-victory-muted">No fighters ranked yet.</p>
-            <p className="text-victory-muted text-sm mt-1">Complete sessions to appear here!</p>
+            <p className="text-victory-muted">{t("leaderboard.noFighters")}</p>
+            <p className="text-victory-muted text-sm mt-1">{t("leaderboard.completeToAppear")}</p>
           </div>
         ) : (
           <>
@@ -103,7 +105,7 @@ export default function LeaderboardPage() {
                     <p className="text-gray-300 font-mono font-bold mt-1">
                       {filter === "total_sessions" ? sorted[1]?.total_sessions : sorted[1]?.[filter]?.toFixed(1)}
                     </p>
-                    {sorted[1]?.is_current_user && <p className="text-victory-lime text-xs mt-1">You</p>}
+                    {sorted[1]?.is_current_user && <p className="text-victory-lime text-xs mt-1">{t("leaderboard.you")}</p>}
                   </div>
                 </div>
 
@@ -157,10 +159,10 @@ export default function LeaderboardPage() {
                           {entry.display_name}
                         </p>
                         {entry.is_current_user && (
-                          <span className="text-xs bg-victory-lime/20 text-victory-lime px-2 py-0.5 rounded-full">You</span>
+                          <span className="text-xs bg-victory-lime/20 text-victory-lime px-2 py-0.5 rounded-full">{t("leaderboard.you")}</span>
                         )}
                       </div>
-                      <p className="text-victory-muted text-xs">{entry.total_sessions} session{entry.total_sessions !== 1 ? "s" : ""}</p>
+                      <p className="text-victory-muted text-xs">{entry.total_sessions} {entry.total_sessions !== 1 ? t("leaderboard.sessionsPlural") : t("leaderboard.sessions")}</p>
                     </div>
 
                     <div className="text-right">
@@ -168,7 +170,7 @@ export default function LeaderboardPage() {
                         {filter === "total_sessions" ? entry.total_sessions : entry[filter]?.toFixed(1)}
                       </p>
                       <p className="text-victory-muted text-xs">
-                        {filter === "avg_score" ? "avg" : filter === "best_score" ? "best" : "sessions"}
+                        {filter === "avg_score" ? t("leaderboard.avg") : filter === "best_score" ? t("leaderboard.best") : t("leaderboard.filterSessions")}
                       </p>
                     </div>
                   </div>
@@ -179,7 +181,7 @@ export default function LeaderboardPage() {
             {/* Show current user rank if outside top 50 */}
             {currentUserRank && !sorted.find(e => e.is_current_user) && (
               <div className="victory-card p-4 border border-victory-lime/30 bg-victory-lime/5">
-                <p className="text-victory-muted text-xs mb-1">Your ranking</p>
+                <p className="text-victory-muted text-xs mb-1">{t("leaderboard.yourRanking")}</p>
                 <div className="flex items-center justify-between">
                   <p className="text-victory-lime font-semibold">#{currentUserRank.rank} — {currentUserRank.display_name}</p>
                   <p className="font-mono font-bold text-victory-lime">{currentUserRank.avg_score?.toFixed(1)}</p>

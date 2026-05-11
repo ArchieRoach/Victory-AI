@@ -1,16 +1,18 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Dumbbell, Timer, Play, Trophy } from "lucide-react";
+import { Home, Newspaper, Dumbbell, Swords, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const NAV_ITEMS = [
-  { path: "/home", icon: Home, label: "Home" },
-  { path: "/train", icon: Dumbbell, label: "Train" },
-  { path: "/timer", icon: Timer, label: "Timer" },
-  { path: "/library", icon: Play, label: "Library" },
-  { path: "/leaderboard", icon: Trophy, label: "Ranks" },
+  { path: "/home",    icon: Home,      key: "home" },
+  { path: "/feed",    icon: Newspaper, key: "feed" },
+  { path: "/train",   icon: Dumbbell,  key: "train" },
+  { path: "/compete", icon: Swords,    key: "compete" },
+  { path: "/profile", icon: User,      key: "profile" },
 ];
 
 export const BottomNav = () => {
   const location = useLocation();
+  const { t } = useTranslation();
 
   return (
     <nav
@@ -18,10 +20,13 @@ export const BottomNav = () => {
       data-testid="bottom-nav"
     >
       <div className="flex justify-around items-center h-20 max-w-lg mx-auto">
-        {NAV_ITEMS.map(({ path, icon: Icon, label }) => {
-          const isActive = location.pathname === path || 
-            (path === "/train" && location.pathname.startsWith("/score"));
-          
+        {NAV_ITEMS.map(({ path, icon: Icon, key }) => {
+          const isActive =
+            location.pathname === path ||
+            (path === "/train" && (location.pathname.startsWith("/score") || location.pathname.startsWith("/timer"))) ||
+            (path === "/compete" && location.pathname.startsWith("/compete")) ||
+            (path === "/feed" && location.pathname.startsWith("/post"));
+
           return (
             <NavLink
               key={path}
@@ -31,10 +36,10 @@ export const BottomNav = () => {
                   ? "text-victory-lime"
                   : "text-victory-muted hover:text-victory-text"
               }`}
-              data-testid={`nav-${label.toLowerCase()}`}
+              data-testid={`nav-${key}`}
             >
               <Icon className="w-6 h-6" strokeWidth={2} />
-              <span className="text-xs font-medium">{label}</span>
+              <span className="text-xs font-medium">{t(`nav.${key}`)}</span>
             </NavLink>
           );
         })}

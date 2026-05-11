@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { Pause, Play, SkipForward, Square, RotateCcw, Target } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Bell sound URL (free royalty-free boxing bell)
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
 export default function TimerPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isConfiguring, setIsConfiguring] = useState(true);
   const [roundDuration, setRoundDuration] = useState(180); // 3 minutes in seconds
   const [restDuration, setRestDuration] = useState(60); // 1 minute in seconds
@@ -176,14 +178,14 @@ export default function TimerPage() {
         // Configuration View
         <div className="flex-1 flex flex-col justify-center p-6">
           <h1 className="text-2xl font-heading font-extrabold text-victory-text text-center mb-8">
-            Set Your Rounds
+            {t("timer.title")}
           </h1>
 
           <div className="space-y-8 max-w-md mx-auto w-full">
             {/* Round Duration */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-victory-muted">Round Duration</label>
+                <label className="text-victory-muted">{t("timer.roundDuration")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-lime">
                   {formatTime(roundDuration)}
                 </span>
@@ -203,7 +205,7 @@ export default function TimerPage() {
             {/* Rest Duration */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-victory-muted">Rest Duration</label>
+                <label className="text-victory-muted">{t("timer.restDuration")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-teal">
                   {formatTime(restDuration)}
                 </span>
@@ -223,7 +225,7 @@ export default function TimerPage() {
             {/* Number of Rounds */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-victory-muted">Number of Rounds</label>
+                <label className="text-victory-muted">{t("timer.numRounds")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-text">
                   {totalRounds}
                 </span>
@@ -251,7 +253,7 @@ export default function TimerPage() {
 
             {/* Total Time */}
             <p className="text-center text-victory-muted">
-              Total: <span className="text-victory-text">{getTotalWorkoutTime()}</span>
+              {t("timer.total")} <span className="text-victory-text">{getTotalWorkoutTime()}</span>
             </p>
 
             {/* Start Button */}
@@ -260,7 +262,7 @@ export default function TimerPage() {
               className="victory-btn-primary"
               data-testid="start-timer-btn"
             >
-              Begin Round 1
+              {t("timer.startBtn")}
             </button>
           </div>
         </div>
@@ -268,9 +270,9 @@ export default function TimerPage() {
         // Complete View
         <div className="flex-1 flex flex-col items-center justify-center p-6">
           <h1 className="text-3xl font-heading font-extrabold text-victory-lime mb-4 text-center">
-            Round {currentRound} Complete!
+            {t("timer.roundComplete", { current: currentRound })}
           </h1>
-          <p className="text-victory-muted text-lg mb-8">Great work, champ!</p>
+          <p className="text-victory-muted text-lg mb-8">{t("timer.greatWork")}</p>
 
           <div className="space-y-4 w-full max-w-xs">
             <button
@@ -279,7 +281,7 @@ export default function TimerPage() {
               data-testid="score-session-btn"
             >
               <Target className="w-5 h-5" />
-              Score This Session
+              {t("timer.scoreSession")}
             </button>
             <button
               onClick={resetTimer}
@@ -287,7 +289,7 @@ export default function TimerPage() {
               data-testid="reset-timer-btn"
             >
               <RotateCcw className="w-5 h-5" />
-              Reset Timer
+              {t("timer.resetTimer")}
             </button>
           </div>
         </div>
@@ -300,7 +302,7 @@ export default function TimerPage() {
               isResting ? "text-victory-teal" : "text-victory-lime"
             }`}
           >
-            {isResting ? "REST" : "ROUND"}
+            {isResting ? t("timer.restLabel") : t("timer.roundLabel")}
           </p>
 
           {/* Large Timer Display */}
@@ -313,7 +315,7 @@ export default function TimerPage() {
 
           {/* Round Info */}
           <p className="text-victory-muted text-lg mb-12">
-            Round {currentRound} of {totalRounds}
+            {t("timer.roundOf", { current: currentRound, total: totalRounds })}
           </p>
 
           {/* Controls */}

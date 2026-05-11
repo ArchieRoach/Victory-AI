@@ -8,12 +8,14 @@ import {
   Pause, Play, SkipForward, Square, RotateCcw,
   Video, VideoOff, SwitchCamera, Upload, CheckCircle, Volume2, VolumeX
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
 export default function TrainPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   
   // Configuration state
   const [isConfiguring, setIsConfiguring] = useState(true);
@@ -352,7 +354,7 @@ export default function TrainPage() {
         const res = await axios.post(`${API}/training/${sessionId}/complete`, {}, { withCredentials: true });
         navigate("/score/results", { state: { session: res.data, fromTraining: true } });
       } catch (error) {
-        toast.error("Failed to save session");
+        toast.error(t("train.failedSave"));
       }
     }
   };
@@ -419,13 +421,13 @@ export default function TrainPage() {
       {isConfiguring ? (
         <div className="flex-1 flex flex-col justify-center p-6">
           <h1 className="text-2xl font-heading font-extrabold text-victory-text text-center mb-8">
-            Set Your Training
+            {t("train.title")}
           </h1>
 
           <div className="space-y-6 max-w-md mx-auto w-full">
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-victory-muted">Round Duration</label>
+                <label className="text-victory-muted">{t("train.roundDuration")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-lime">{formatTime(roundDuration)}</span>
               </div>
               <input type="range" min={60} max={300} step={30} value={roundDuration} onChange={(e) => setRoundDuration(Number(e.target.value))} className="w-full h-3" />
@@ -433,7 +435,7 @@ export default function TrainPage() {
 
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-victory-muted">Rest Duration</label>
+                <label className="text-victory-muted">{t("train.restDuration")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-teal">{formatTime(restDuration)}</span>
               </div>
               <input type="range" min={30} max={180} step={15} value={restDuration} onChange={(e) => setRestDuration(Number(e.target.value))} className="w-full h-3" />
@@ -441,7 +443,7 @@ export default function TrainPage() {
 
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-victory-muted">Number of Rounds</label>
+                <label className="text-victory-muted">{t("train.numRounds")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-text">{totalRounds}</span>
               </div>
               <div className="flex items-center justify-center gap-6">
@@ -456,8 +458,8 @@ export default function TrainPage() {
                 <div className="flex items-center gap-3">
                   {recordVideo ? <Video className="w-6 h-6 text-victory-lime" /> : <VideoOff className="w-6 h-6 text-victory-muted" />}
                   <div className="text-left">
-                    <p className="text-victory-text font-medium">Record & Analyze</p>
-                    <p className="text-victory-muted text-sm">AI will analyze your technique with GPT-4 Vision</p>
+                    <p className="text-victory-text font-medium">{t("train.recordAnalyze")}</p>
+                    <p className="text-victory-muted text-sm">{t("train.recordDesc")}</p>
                   </div>
                 </div>
                 <div className={`w-12 h-6 rounded-full transition-colors ${recordVideo ? "bg-victory-lime" : "bg-victory-border"}`}>
@@ -471,8 +473,8 @@ export default function TrainPage() {
                 <div className="flex items-center gap-3">
                   {voiceEnabled ? <Volume2 className="w-6 h-6 text-victory-lime" /> : <VolumeX className="w-6 h-6 text-victory-muted" />}
                   <div className="text-left">
-                    <p className="text-victory-text font-medium">Voice Feedback</p>
-                    <p className="text-victory-muted text-sm">Your training partner speaks feedback aloud (ElevenLabs)</p>
+                    <p className="text-victory-text font-medium">{t("train.voiceFeedback")}</p>
+                    <p className="text-victory-muted text-sm">{t("train.voiceDesc")}</p>
                   </div>
                 </div>
                 <div className={`w-12 h-6 rounded-full transition-colors ${voiceEnabled ? "bg-victory-lime" : "bg-victory-border"}`}>
@@ -481,9 +483,9 @@ export default function TrainPage() {
               </button>
             </div>
 
-            <p className="text-center text-victory-muted">Total: <span className="text-victory-text">{getTotalWorkoutTime()}</span></p>
+            <p className="text-center text-victory-muted">{t("train.total")} <span className="text-victory-text">{getTotalWorkoutTime()}</span></p>
 
-            <button onClick={startTraining} className="victory-btn-primary" data-testid="start-training-btn">Start Training</button>
+            <button onClick={startTraining} className="victory-btn-primary" data-testid="start-training-btn">{t("train.startBtn")}</button>
           </div>
         </div>
       ) : (
@@ -503,16 +505,16 @@ export default function TrainPage() {
 
           <div className="flex-1 flex flex-col items-center justify-center p-6">
             <p className={`text-lg uppercase tracking-widest mb-4 ${isResting ? "text-victory-teal" : "text-victory-lime"}`}>
-              {isResting ? "REST" : "ROUND"}
+              {isResting ? t("train.restLabel") : t("train.roundLabel")}
             </p>
 
             <div className="timer-display text-victory-text mb-4" data-testid="timer-display">{formatTime(timeLeft)}</div>
 
-            <p className="text-victory-muted text-lg mb-4">Round {currentRound} of {totalRounds}</p>
+            <p className="text-victory-muted text-lg mb-4">{t("train.roundOf", { current: currentRound, total: totalRounds })}</p>
 
             {showTenSecWarning && (
               <div className="victory-card px-4 py-2 mb-4 animate-pulse">
-                <p className="text-victory-lime text-sm">{trainingPartner?.name || "Your partner"} is watching — finish strong!</p>
+                <p className="text-victory-lime text-sm">{t("train.finishStrong", { name: trainingPartner?.name || "…" })}</p>
               </div>
             )}
 
@@ -521,7 +523,7 @@ export default function TrainPage() {
               <div className="victory-card px-4 py-2 mb-4 flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
                 <p className="text-victory-muted text-sm">
-                  {uploadingVideo ? "Uploading video..." : "Analyzing technique with AI..."}
+                  {uploadingVideo ? t("train.uploading") : t("train.analyzing")}
                 </p>
               </div>
             )}
@@ -539,7 +541,7 @@ export default function TrainPage() {
                       </div>
                     )}
                     <div className="flex-1">
-                      <p className="text-victory-lime font-semibold">{trainingPartner?.name || "Your Coach"} says...</p>
+                      <p className="text-victory-lime font-semibold">{trainingPartner?.name || t("common.champ")} {t("train.says")}</p>
                     </div>
                     <button onClick={() => setVoiceEnabled(v => !v)} className="w-8 h-8 flex items-center justify-center text-victory-muted hover:text-victory-text">
                       {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -550,7 +552,7 @@ export default function TrainPage() {
                     <div className="flex items-center justify-center py-4 gap-2">
                       <div className="w-6 h-6 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
                       <span className="text-victory-muted text-sm">
-                        {analyzingVideo ? "Analyzing your form..." : "Generating feedback..."}
+                        {analyzingVideo ? t("train.analyzingForm") : t("train.generatingFeedback")}
                       </span>
                     </div>
                   ) : feedback ? (
@@ -574,7 +576,7 @@ export default function TrainPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-victory-muted text-sm text-center">Preparing feedback...</p>
+                    <p className="text-victory-muted text-sm text-center">{t("train.preparingFeedback")}</p>
                   )}
                 </div>
               </div>
