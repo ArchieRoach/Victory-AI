@@ -2,6 +2,16 @@ import { useState, useEffect, useCallback, createContext, useContext, useRef } f
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import i18n from "@/i18n";
+
+// Apply RTL direction based on stored language on first load
+const storedLang = localStorage.getItem("i18nextLng") || "";
+if (storedLang === "ar") {
+  document.documentElement.dir = "rtl";
+  document.documentElement.lang = "ar";
+} else if (storedLang) {
+  document.documentElement.lang = storedLang;
+}
 import { Toaster } from "@/components/ui/sonner";
 import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
 
@@ -20,6 +30,13 @@ import SessionDetailPage from "@/pages/SessionDetailPage";
 import ProfilePage from "@/pages/ProfilePage";
 import LoginPage from "@/pages/LoginPage";
 import LeaderboardPage from "@/pages/LeaderboardPage";
+import FeedPage from "@/pages/FeedPage";
+import CreatePostPage from "@/pages/CreatePostPage";
+import GymsPage from "@/pages/GymsPage";
+import GymDetailPage from "@/pages/GymDetailPage";
+import CompetitionsPage from "@/pages/CompetitionsPage";
+import CompetitionDetailPage from "@/pages/CompetitionDetailPage";
+import PublicProfilePage from "@/pages/PublicProfilePage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -205,6 +222,15 @@ const AppRouter = () => {
         <Route path="/sessions/:sessionId" element={<ProtectedRoute requireSubscription={true}><SessionDetailPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute requireSubscription={true}><ProfilePage /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute requireSubscription={true}><LeaderboardPage /></ProtectedRoute>} />
+
+        {/* Social / Network features — free tier */}
+        <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+        <Route path="/post/create" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
+        <Route path="/gyms" element={<ProtectedRoute><GymsPage /></ProtectedRoute>} />
+        <Route path="/gyms/:gymId" element={<ProtectedRoute><GymDetailPage /></ProtectedRoute>} />
+        <Route path="/compete" element={<ProtectedRoute><CompetitionsPage /></ProtectedRoute>} />
+        <Route path="/compete/:compId" element={<ProtectedRoute><CompetitionDetailPage /></ProtectedRoute>} />
+        <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
 
         <Route path="/" element={<Navigate to="/welcome" replace />} />
         <Route path="*" element={<Navigate to="/welcome" replace />} />

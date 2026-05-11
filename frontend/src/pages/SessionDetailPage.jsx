@@ -6,10 +6,12 @@ import { BottomNav } from "@/components/BottomNav";
 import { RadarChart } from "@/components/RadarChart";
 import { DrillCard } from "@/components/DrillCard";
 import { ArrowLeft, Edit, ExternalLink, Play, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function SessionDetailPage() {
   const navigate = useNavigate();
   const { sessionId } = useParams();
+  const { t, i18n } = useTranslation();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [previousSession, setPreviousSession] = useState(null);
@@ -107,10 +109,10 @@ export default function SessionDetailPage() {
         </button>
         <div className="flex-1">
           <h1 className="text-lg font-heading font-bold text-victory-text">
-            Session Details
+            {t("sessionDetail.title")}
           </h1>
           <p className="text-victory-muted text-sm">
-            {new Date(session.date).toLocaleDateString("en-US", {
+            {new Date(session.date).toLocaleDateString(i18n.language, {
               weekday: "long",
               year: "numeric",
               month: "long",
@@ -135,7 +137,7 @@ export default function SessionDetailPage() {
           <section className="victory-card p-4 space-y-4">
             {session.video_url && (
               <div>
-                <label className="text-victory-muted text-sm">Video Link</label>
+                <label className="text-victory-muted text-sm">{t("sessionDetail.videoLink")}</label>
                 <a
                   href={session.video_url}
                   target="_blank"
@@ -144,13 +146,13 @@ export default function SessionDetailPage() {
                   data-testid="video-link"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  View Recording
+                  {t("sessionDetail.viewRecording")}
                 </a>
               </div>
             )}
             {session.session_notes && (
               <div>
-                <label className="text-victory-muted text-sm">Notes</label>
+                <label className="text-victory-muted text-sm">{t("sessionDetail.notes")}</label>
                 <p className="text-victory-text mt-1">{session.session_notes}</p>
               </div>
             )}
@@ -160,7 +162,7 @@ export default function SessionDetailPage() {
         {/* Dimension Scores */}
         <section>
           <h2 className="text-lg font-heading font-bold text-victory-text mb-3">
-            All Scores
+            {t("sessionDetail.allScores")}
           </h2>
           <div className="victory-card divide-y divide-victory-border">
             {session.dimension_scores
@@ -182,7 +184,7 @@ export default function SessionDetailPage() {
         {/* Drill Recommendations */}
         <section>
           <h2 className="text-lg font-heading font-bold text-victory-text mb-3">
-            Drill Recommendations
+            {t("sessionDetail.drills")}
           </h2>
           <div className="space-y-3">
             {lowestDimensions.map((dim) => (
@@ -207,8 +209,8 @@ export default function SessionDetailPage() {
                 <Play className="w-5 h-5 text-victory-lime" />
               </div>
               <div>
-                <p className="text-victory-text font-semibold">Session Replay</p>
-                <p className="text-victory-muted text-sm">Round-by-round AI commentary</p>
+                <p className="text-victory-text font-semibold">{t("sessionDetail.replay")}</p>
+                <p className="text-victory-muted text-sm">{t("sessionDetail.replayDesc")}</p>
               </div>
             </div>
             {replayLoading ? (
@@ -225,7 +227,7 @@ export default function SessionDetailPage() {
               {replay.rounds.length === 0 ? (
                 <div className="victory-card p-4 text-center">
                   <MessageSquare className="w-8 h-8 text-victory-muted mx-auto mb-2" />
-                  <p className="text-victory-muted text-sm">No round data recorded for this session.</p>
+                  <p className="text-victory-muted text-sm">{t("sessionDetail.noRounds")}</p>
                 </div>
               ) : (
                 replay.rounds.map((round) => (
@@ -239,7 +241,7 @@ export default function SessionDetailPage() {
                           <span className="text-victory-lime font-bold text-sm">{round.round_number}</span>
                         </div>
                         <div>
-                          <p className="text-victory-text font-medium">Round {round.round_number}</p>
+                          <p className="text-victory-text font-medium">{t("sessionDetail.roundLabel", { num: round.round_number })}</p>
                           <p className="text-victory-muted text-xs truncate max-w-[200px]">{round.commentary}</p>
                         </div>
                       </div>
@@ -261,13 +263,13 @@ export default function SessionDetailPage() {
                             className="flex items-center gap-2 text-victory-lime text-sm hover:underline"
                           >
                             <ExternalLink className="w-4 h-4" />
-                            Watch round recording
+                            {t("sessionDetail.watchRound")}
                           </a>
                         )}
 
                         {/* AI Commentary */}
                         <div className="bg-victory-lime/5 rounded-lg p-3 border border-victory-lime/20">
-                          <p className="text-victory-muted text-xs mb-1">{round.partner_name || "Coach"} says</p>
+                          <p className="text-victory-muted text-xs mb-1">{round.partner_name || t("common.champ")} {t("sessionDetail.says")}</p>
                           <p className="text-victory-text text-sm">{round.commentary}</p>
                         </div>
 
@@ -288,7 +290,7 @@ export default function SessionDetailPage() {
                         {/* Dimension scores for round */}
                         {round.dimension_scores.length > 0 && (
                           <div className="space-y-1">
-                            <p className="text-victory-muted text-xs font-medium">Round scores</p>
+                            <p className="text-victory-muted text-xs font-medium">{t("sessionDetail.roundScores")}</p>
                             {round.dimension_scores.map(d => (
                               <div key={d.dimension_name} className="flex justify-between text-sm">
                                 <span className="text-victory-muted">{d.dimension_name}</span>
@@ -315,7 +317,7 @@ export default function SessionDetailPage() {
           data-testid="rescore-btn"
         >
           <Edit className="w-5 h-5" />
-          Re-score This Session
+          {t("sessionDetail.rescoreBtn")}
         </button>
       </main>
 

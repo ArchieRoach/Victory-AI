@@ -4,6 +4,7 @@ import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
 import { Check, Zap, Trophy, Target, Shield, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const MOCK_DIMENSIONS = [
   { name: "Jab", value: 7.5 },
@@ -30,10 +31,11 @@ const PhoneMockup = ({ title, children }) => (
 );
 
 const RadarMockup = () => {
+  const { t } = useTranslation();
   const cx = 60, cy = 60, r = 48;
   return (
     <div className="flex flex-col h-full">
-      <p className="text-victory-lime text-xs font-bold mb-1">Your Score</p>
+      <p className="text-victory-lime text-xs font-bold mb-1">{t("paywall.mockups.radarTitle")}</p>
       <svg viewBox="0 0 120 130" className="w-full flex-1">
         {[0.33, 0.66, 1].map((s, i) => (
           <polygon
@@ -56,7 +58,12 @@ const RadarMockup = () => {
         <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill="#E8FF47" fontSize="10" fontWeight="bold">7.0</text>
         {MOCK_DIMENSIONS.map((d, idx) => {
           const a = (idx * 60 - 90) * (Math.PI / 180);
-          return <text key={d.name} x={cx + (r + 8) * Math.cos(a)} y={cy + (r + 8) * Math.sin(a)} textAnchor="middle" dominantBaseline="middle" fill="#8888A0" fontSize="5">{d.name}</text>;
+          return (
+            <text key={d.name} x={cx + (r + 8) * Math.cos(a)} y={cy + (r + 8) * Math.sin(a)}
+              textAnchor="middle" dominantBaseline="middle" fill="#8888A0" fontSize="5">
+              {d.name}
+            </text>
+          );
         })}
         <text x="60" y="118" textAnchor="middle" fill="#8888A0" fontSize="5">6 dimensions scored</text>
       </svg>
@@ -64,47 +71,54 @@ const RadarMockup = () => {
   );
 };
 
-const DrillsMockup = () => (
-  <div className="flex flex-col gap-1 h-full">
-    <p className="text-victory-lime text-xs font-bold mb-1">Today's Drills</p>
-    {[
-      { name: "Jab extension", level: "3 × 2 min" },
-      { name: "Head movement", level: "4 × 90 sec" },
-      { name: "Footwork ladder", level: "5 × 1 min" },
-    ].map((drill) => (
-      <div key={drill.name} className="bg-victory-bg/60 rounded p-1.5">
-        <p className="text-victory-text text-[7px] font-semibold leading-tight">{drill.name}</p>
-        <p className="text-victory-muted text-[6px]">{drill.level}</p>
-      </div>
-    ))}
-    <div className="mt-auto">
-      <div className="bg-victory-lime/20 rounded p-1 text-center">
-        <p className="text-victory-lime text-[6px] font-bold">🔥 3-day streak</p>
-      </div>
-    </div>
-  </div>
-);
-
-const PartnerMockup = () => (
-  <div className="flex flex-col items-center justify-center h-full gap-2">
-    <div className="w-10 h-10 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold text-sm">
-      R
-    </div>
-    <p className="text-victory-lime text-[8px] font-bold text-center">Rocky is ready</p>
-    <div className="bg-victory-bg/60 rounded p-1.5 w-full">
-      <p className="text-victory-muted text-[6px] italic text-center">"Your jab needs more snap. Let's fix that today."</p>
-    </div>
-    <div className="flex gap-1">
-      {[...Array(5)].map((_, i) => (
-        <Star key={i} className="w-2 h-2 fill-victory-lime text-victory-lime" />
+const DrillsMockup = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col gap-1 h-full">
+      <p className="text-victory-lime text-xs font-bold mb-1">{t("paywall.mockups.drillsTitle")}</p>
+      {[
+        { name: "Jab extension", level: "3 × 2 min" },
+        { name: "Head movement", level: "4 × 90 sec" },
+        { name: "Footwork ladder", level: "5 × 1 min" },
+      ].map((drill) => (
+        <div key={drill.name} className="bg-victory-bg/60 rounded p-1.5">
+          <p className="text-victory-text text-[7px] font-semibold leading-tight">{drill.name}</p>
+          <p className="text-victory-muted text-[6px]">{drill.level}</p>
+        </div>
       ))}
+      <div className="mt-auto">
+        <div className="bg-victory-lime/20 rounded p-1 text-center">
+          <p className="text-victory-lime text-[6px] font-bold">🔥 {t("paywall.mockups.streak", { days: 3 })}</p>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
+const PartnerMockup = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center justify-center h-full gap-2">
+      <div className="w-10 h-10 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold text-sm">
+        R
+      </div>
+      <p className="text-victory-lime text-[8px] font-bold text-center">{t("paywall.mockups.partnerReady", { name: "Rocky" })}</p>
+      <div className="bg-victory-bg/60 rounded p-1.5 w-full">
+        <p className="text-victory-muted text-[6px] italic text-center">"Your jab needs more snap. Let's fix that today."</p>
+      </div>
+      <div className="flex gap-1">
+        {[...Array(5)].map((_, i) => (
+          <Star key={i} className="w-2 h-2 fill-victory-lime text-victory-lime" />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function PaywallPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [selectedPlan, setSelectedPlan] = useState("annual");
   const [loading, setLoading] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -114,46 +128,31 @@ export default function PaywallPage() {
     try {
       const response = await axios.post(
         `${API}/payments/checkout`,
-        {
-          plan_id: selectedPlan,
-          origin_url: window.location.origin,
-        },
+        { plan_id: selectedPlan, origin_url: window.location.origin },
         { withCredentials: true }
       );
-
       window.location.href = response.data.checkout_url;
     } catch (error) {
-      toast.error("Failed to start checkout");
+      toast.error(t("common.error"));
       setLoading(false);
     }
   };
 
   const features = [
-    { icon: Target, text: "Unlimited training sessions" },
-    { icon: Zap, text: "AI-powered instant feedback" },
-    { icon: Trophy, text: "Progress tracking & analytics" },
-    { icon: Shield, text: "Personalized drill recommendations" },
+    { icon: Target, text: t("paywall.features.unlimitedTraining") },
+    { icon: Zap, text: t("paywall.features.aiFeedback") },
+    { icon: Trophy, text: t("paywall.features.progressTracking") },
+    { icon: Shield, text: t("paywall.features.drillRecommendations") },
   ];
 
   return (
-    <div
-      className="min-h-screen bg-victory-bg flex flex-col"
-      data-testid="paywall-page"
-    >
-      {/* Header */}
+    <div className="min-h-screen bg-victory-bg flex flex-col" data-testid="paywall-page">
       <header className="p-6 text-center">
-        <img
-          src="/victory-logo.png"
-          alt="Victory AI"
-          className="w-48 h-48 mx-auto mb-4 object-contain"
-        />
+        <img src="/victory-logo.png" alt="Victory AI" className="w-48 h-48 mx-auto mb-4 object-contain" />
         <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-victory-text mb-2">
-          Train like a pro for less than one coffee a month.
+          {t("paywall.headline")}
         </h1>
-        <p className="text-victory-muted">
-          Your AI training partner runs your rounds, analyses your technique, and
-          tells you exactly what to work on.
-        </p>
+        <p className="text-victory-muted">{t("paywall.subheadline")}</p>
       </header>
 
       <main className="flex-1 p-6 flex flex-col">
@@ -173,10 +172,10 @@ export default function PaywallPage() {
             )}
             <div>
               <p className="text-victory-lime font-semibold">
-                {user.training_partner.name} is ready
+                {user.training_partner.name} {t("paywall.partnerReady")}
               </p>
               <p className="text-victory-muted text-sm">
-                Your {user.training_partner.style_name?.toLowerCase() || "training partner"} awaits
+                {t("paywall.partnerAwaits", { style: user.training_partner.style_name?.toLowerCase() || "training partner" })}
               </p>
             </div>
           </div>
@@ -184,15 +183,17 @@ export default function PaywallPage() {
 
         {/* App Preview Mockups */}
         <div className="mb-6">
-          <p className="text-victory-muted text-xs text-center mb-3 uppercase tracking-wide font-semibold">What's inside</p>
+          <p className="text-victory-muted text-xs text-center mb-3 uppercase tracking-wide font-semibold">
+            {t("paywall.whatsInside")}
+          </p>
           <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory px-1">
-            <PhoneMockup title="Technique scores">
+            <PhoneMockup title={t("paywall.mockups.radar")}>
               <RadarMockup />
             </PhoneMockup>
-            <PhoneMockup title="Daily drills">
+            <PhoneMockup title={t("paywall.mockups.drills")}>
               <DrillsMockup />
             </PhoneMockup>
-            <PhoneMockup title="AI training partner">
+            <PhoneMockup title={t("paywall.mockups.partner")}>
               <PartnerMockup />
             </PhoneMockup>
           </div>
@@ -223,17 +224,17 @@ export default function PaywallPage() {
             data-testid="plan-annual"
           >
             <div className="absolute -top-2 right-4 bg-victory-lime text-victory-bg text-xs font-semibold px-2 py-0.5 rounded">
-              BEST VALUE
+              {t("paywall.plans.bestValue")}
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-victory-text">Annual</h3>
-                <p className="text-victory-muted text-sm">Save 58% vs monthly</p>
+                <h3 className="font-semibold text-victory-text">{t("paywall.plans.annual")}</h3>
+                <p className="text-victory-muted text-sm">{t("paywall.plans.annualSavings")}</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-heading font-bold text-victory-text">$25</p>
-                <p className="text-victory-muted text-sm">/year</p>
-                <p className="text-victory-lime text-xs font-semibold">$0.48/week</p>
+                <p className="text-victory-muted text-sm">{t("paywall.plans.perYear")}</p>
+                <p className="text-victory-lime text-xs font-semibold">{t("paywall.plans.weeklyAnnual")}</p>
               </div>
             </div>
             {selectedPlan === "annual" && (
@@ -255,13 +256,13 @@ export default function PaywallPage() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-victory-text">Monthly</h3>
-                <p className="text-victory-muted text-sm">Flexible option</p>
+                <h3 className="font-semibold text-victory-text">{t("paywall.plans.monthly")}</h3>
+                <p className="text-victory-muted text-sm">{t("paywall.plans.monthlyFlexible")}</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-heading font-bold text-victory-text">$5</p>
-                <p className="text-victory-muted text-sm">/month</p>
-                <p className="text-victory-muted text-xs">~$1.15/week</p>
+                <p className="text-victory-muted text-sm">{t("paywall.plans.perMonth")}</p>
+                <p className="text-victory-muted text-xs">{t("paywall.plans.weeklyMonthly")}</p>
               </div>
             </div>
             {selectedPlan === "monthly" && (
@@ -277,17 +278,17 @@ export default function PaywallPage() {
           onClick={() => setShowDetails(!showDetails)}
           className="text-victory-muted text-sm mb-4 underline"
         >
-          {showDetails ? "Hide" : "View"} plan details
+          {showDetails ? t("paywall.hideDetails") : t("paywall.viewDetails")}
         </button>
 
         {showDetails && (
           <div className="victory-card p-4 mb-6 text-sm">
-            <h4 className="font-semibold text-victory-text mb-2">Plan Details</h4>
+            <h4 className="font-semibold text-victory-text mb-2">{t("paywall.planDetails.title")}</h4>
             <ul className="space-y-2 text-victory-muted">
-              <li>• <strong>Monthly ($5/mo)</strong>: Full access, cancel anytime</li>
-              <li>• <strong>Annual ($25/yr)</strong>: Same features, 58% savings</li>
-              <li>• 7-day free trial on both plans</li>
-              <li>• Card required upfront — billing starts automatically after trial</li>
+              <li>• <strong>{t("paywall.planDetails.monthlyLine")}</strong></li>
+              <li>• <strong>{t("paywall.planDetails.annualLine")}</strong></li>
+              <li>• {t("paywall.planDetails.trial")}</li>
+              <li>• {t("paywall.planDetails.billing")}</li>
             </ul>
           </div>
         )}
@@ -302,13 +303,11 @@ export default function PaywallPage() {
           {loading ? (
             <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
           ) : (
-            "Start 14-Day Free Trial"
+            t("paywall.cta")
           )}
         </button>
 
-        <p className="text-victory-muted text-xs text-center mt-4">
-          Enter card details now. Free for 14 days — you won't be charged until after your trial. Cancel anytime.
-        </p>
+        <p className="text-victory-muted text-xs text-center mt-4">{t("paywall.disclaimer")}</p>
       </main>
     </div>
   );

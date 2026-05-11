@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const PLACEHOLDER_DIMENSIONS = [
   { name: "Jab", value: 7 },
@@ -12,6 +13,7 @@ const PLACEHOLDER_DIMENSIONS = [
 
 export default function WelcomePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6" data-testid="welcome-page">
@@ -28,10 +30,10 @@ export default function WelcomePage() {
 
         {/* Headlines */}
         <h1 className="text-4xl sm:text-5xl font-heading font-extrabold text-victory-text mb-4" data-testid="welcome-headline">
-          Your AI training partner is waiting.
+          {t("welcome.headline")}
         </h1>
         <p className="text-lg text-victory-muted mb-8">
-          Train with instant feedback. Track your progress. Get better every round.
+          {t("welcome.subheadline")}
         </p>
 
         {/* Placeholder Radar Preview */}
@@ -71,15 +73,15 @@ export default function WelcomePage() {
         <ul className="text-left space-y-3 mb-10">
           <li className="flex items-start gap-3 text-victory-text">
             <span className="text-victory-lime text-lg">🥊</span>
-            <span>AI training partner gives you instant technique feedback</span>
+            <span>{t("welcome.feature1")}</span>
           </li>
           <li className="flex items-start gap-3 text-victory-text">
             <span className="text-victory-teal text-lg">📹</span>
-            <span>Auto-record your rounds and track progress</span>
+            <span>{t("welcome.feature2")}</span>
           </li>
           <li className="flex items-start gap-3 text-victory-text">
             <span className="text-victory-orange text-lg">📈</span>
-            <span>Get personalized drills for your weakest areas</span>
+            <span>{t("welcome.feature3")}</span>
           </li>
         </ul>
 
@@ -89,14 +91,14 @@ export default function WelcomePage() {
           className="victory-btn-primary flex items-center justify-center gap-2"
           data-testid="setup-profile-btn"
         >
-          Get Started
+          {t("common.getStarted")}
           <ChevronRight className="w-5 h-5" />
         </button>
 
         <p className="mt-6 text-victory-muted text-sm">
-          Already have an account?{" "}
+          {t("welcome.alreadyAccount")}{" "}
           <button onClick={() => navigate("/login")} className="text-victory-lime hover:underline" data-testid="login-link">
-            Log in
+            {t("common.login")}
           </button>
         </p>
       </div>

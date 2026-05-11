@@ -1169,6 +1169,564 @@ async def subscribe_push(sub: PushSubscription, user: dict = Depends(get_current
     )
     return {"message": "Push subscription registered"}
 
+# ============== SOCIAL MODELS ==============
+
+class UserProfileExtend(BaseModel):
+    bio: Optional[str] = None
+    weight_class: Optional[str] = None
+    stance: Optional[str] = None
+    amateur_wins: Optional[int] = None
+    amateur_losses: Optional[int] = None
+    amateur_draws: Optional[int] = None
+    is_public: Optional[bool] = None
+    display_name: Optional[str] = None
+
+class GymCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    style: Optional[str] = "mixed"
+    is_public: bool = True
+
+class PostCreate(BaseModel):
+    video_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    caption: str = ""
+    post_type: str = "clip"
+    tags: List[str] = []
+
+class CommentCreate(BaseModel):
+    text: str
+
+class CompetitionCreate(BaseModel):
+    title: str
+    description: str = ""
+    video_url: str
+    thumbnail_url: Optional[str] = None
+    competition_type: str = "poll"
+    duration_hours: int = 24
+
+class VoteCreate(BaseModel):
+    scores: Dict[str, int]
+    comment: Optional[str] = ""
+
+# ============== SOCIAL HELPERS ==============
+
+async def check_subscription(user: dict) -> bool:
+    sub = await db.subscriptions.find_one(
+        {"user_id": user["user_id"], "status": {"$in": ["active", "trialing"]}}, {"_id": 0}
+    )
+    return sub is not None
+
+def safe_user(user: dict) -> dict:
+    return {
+        "user_id": user.get("user_id"),
+        "display_name": user.get("display_name") or user.get("name", "Fighter"),
+        "name": user.get("name", "Fighter"),
+        "picture": user.get("picture"),
+        "avatar_url": user.get("avatar_url"),
+        "weight_class": user.get("weight_class"),
+        "stance": user.get("stance"),
+        "gym_id": user.get("gym_id"),
+        "bio": user.get("bio", ""),
+        "amateur_wins": user.get("amateur_wins", 0),
+        "amateur_losses": user.get("amateur_losses", 0),
+        "amateur_draws": user.get("amateur_draws", 0),
+        "competition_wins": user.get("competition_wins", 0),
+        "competition_losses": user.get("competition_losses", 0),
+        "badges": user.get("badges", []),
+        "is_public": user.get("is_public", True),
+    }
+
+async def _recalculate_gym_stats(gym_id: str):
+    gym = await db.gyms.find_one({"gym_id": gym_id})
+    if not gym:
+        return
+    total_score, total_sessions = 0.0, 0
+    for uid in gym.get("members", []):
+        sessions = await db.sessions.find({"user_id": uid}).to_list(10000)
+        total_sessions += len(sessions)
+        total_score += sum(s.get("overall_score", 0) for s in sessions)
+    avg = round(total_score / total_sessions, 1) if total_sessions else 0.0
+    await db.gyms.update_one(
+        {"gym_id": gym_id},
+        {"$set": {"avg_score": avg, "total_sessions": total_sessions}}
+    )
+
+# ============== PROFILE EXTENDED ENDPOINTS ==============
+
+@api_router.put("/users/profile")
+async def update_extended_profile(data: UserProfileExtend, user: dict = Depends(get_current_user)):
+    update = {k: v for k, v in data.model_dump().items() if v is not None}
+    if update:
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0})
+    return safe_user(updated)
+
+@api_router.get("/users/{user_id}/profile")
+async def get_public_profile(user_id: str, current_user: dict = Depends(get_current_user)):
+    target = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not target.get("is_public", True) and target["user_id"] != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Profile is private")
+    profile = safe_user(target)
+    sessions = await db.sessions.find({"user_id": user_id}).to_list(10000)
+    profile["total_sessions"] = len(sessions)
+    profile["avg_score"] = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
+    profile["best_score"] = max((s.get("overall_score", 0) for s in sessions), default=0)
+    follower_count = await db.follows.count_documents({"following_id": user_id})
+    following_count = await db.follows.count_documents({"follower_id": user_id})
+    is_following = await db.follows.find_one({"follower_id": current_user["user_id"], "following_id": user_id}) is not None
+    profile["follower_count"] = follower_count
+    profile["following_count"] = following_count
+    profile["is_following"] = is_following
+    if target.get("gym_id"):
+        gym = await db.gyms.find_one({"gym_id": target["gym_id"]}, {"_id": 0, "name": 1, "gym_id": 1})
+        profile["gym"] = gym
+    posts = await db.posts.find({"user_id": user_id}, {"_id": 0}).sort("created_at", -1).to_list(6)
+    profile["recent_posts"] = posts
+    return profile
+
+# ============== GYM ENDPOINTS ==============
+
+@api_router.post("/gyms")
+async def create_gym(gym_data: GymCreate, user: dict = Depends(get_current_user)):
+    if not await check_subscription(user):
+        raise HTTPException(status_code=403, detail="Pro subscription required to create a gym")
+    if user.get("gym_id"):
+        raise HTTPException(status_code=400, detail="Leave your current gym before creating a new one")
+    gym_id = f"gym_{uuid.uuid4().hex[:12]}"
+    invite_code = uuid.uuid4().hex[:8].upper()
+    gym_doc = {
+        "gym_id": gym_id,
+        "name": gym_data.name,
+        "description": gym_data.description,
+        "style": gym_data.style,
+        "owner_id": user["user_id"],
+        "members": [user["user_id"]],
+        "is_public": gym_data.is_public,
+        "invite_code": invite_code,
+        "avg_score": 0.0,
+        "total_sessions": 0,
+        "member_count": 1,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.gyms.insert_one(gym_doc)
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
+    gym_doc.pop("_id", None)
+    return gym_doc
+
+@api_router.get("/gyms/my")
+async def get_my_gym(user: dict = Depends(get_current_user)):
+    if not user.get("gym_id"):
+        return None
+    gym = await db.gyms.find_one({"gym_id": user["gym_id"]}, {"_id": 0})
+    if not gym:
+        return None
+    members = []
+    for uid in gym.get("members", []):
+        u = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0})
+        if u:
+            sessions = await db.sessions.find({"user_id": uid}).to_list(10000)
+            avg = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
+            members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions)})
+    gym["members_detail"] = sorted(members, key=lambda m: m.get("avg_score", 0), reverse=True)
+    return gym
+
+@api_router.get("/gyms/leaderboard")
+async def get_gym_leaderboard(user: dict = Depends(get_current_user)):
+    gyms = await db.gyms.find({"is_public": True}, {"_id": 0}).sort("avg_score", -1).to_list(50)
+    return [
+        {
+            "gym_id": g["gym_id"],
+            "name": g["name"],
+            "style": g.get("style"),
+            "avg_score": g.get("avg_score", 0),
+            "member_count": g.get("member_count", 0),
+            "total_sessions": g.get("total_sessions", 0),
+            "is_my_gym": g["gym_id"] == user.get("gym_id"),
+        }
+        for g in gyms
+    ]
+
+@api_router.get("/gyms/{gym_id}")
+async def get_gym(gym_id: str, user: dict = Depends(get_current_user)):
+    gym = await db.gyms.find_one({"gym_id": gym_id}, {"_id": 0})
+    if not gym:
+        raise HTTPException(status_code=404, detail="Gym not found")
+    if not gym.get("is_public") and user["user_id"] not in gym.get("members", []):
+        raise HTTPException(status_code=403, detail="Private gym")
+    members = []
+    for uid in gym.get("members", []):
+        u = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0})
+        if u:
+            sessions = await db.sessions.find({"user_id": uid}).to_list(10000)
+            avg = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
+            members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions)})
+    gym["members_detail"] = sorted(members, key=lambda m: m.get("avg_score", 0), reverse=True)
+    gym["is_member"] = user["user_id"] in gym.get("members", [])
+    gym["is_owner"] = gym["owner_id"] == user["user_id"]
+    posts = await db.posts.find({"gym_id": gym_id}, {"_id": 0}).sort("created_at", -1).to_list(10)
+    for p in posts:
+        poster = await db.users.find_one({"user_id": p["user_id"]}, {"_id": 0, "password": 0})
+        p["author"] = safe_user(poster) if poster else {"display_name": "Unknown"}
+    gym["recent_posts"] = posts
+    return gym
+
+@api_router.get("/gyms")
+async def browse_gyms(user: dict = Depends(get_current_user)):
+    gyms = await db.gyms.find({"is_public": True}, {"_id": 0}).sort("avg_score", -1).to_list(50)
+    return [{**g, "is_member": user["user_id"] in g.get("members", [])} for g in gyms]
+
+@api_router.post("/gyms/{gym_id}/join")
+async def join_gym(gym_id: str, user: dict = Depends(get_current_user)):
+    gym = await db.gyms.find_one({"gym_id": gym_id})
+    if not gym:
+        raise HTTPException(status_code=404, detail="Gym not found")
+    if user["user_id"] in gym.get("members", []):
+        raise HTTPException(status_code=400, detail="Already a member")
+    if user.get("gym_id"):
+        raise HTTPException(status_code=400, detail="Leave your current gym first")
+    await db.gyms.update_one(
+        {"gym_id": gym_id},
+        {"$addToSet": {"members": user["user_id"]}, "$inc": {"member_count": 1}}
+    )
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
+    await _recalculate_gym_stats(gym_id)
+    return {"message": "Joined gym", "gym_id": gym_id}
+
+@api_router.post("/gyms/{gym_id}/leave")
+async def leave_gym(gym_id: str, user: dict = Depends(get_current_user)):
+    gym = await db.gyms.find_one({"gym_id": gym_id})
+    if not gym:
+        raise HTTPException(status_code=404, detail="Gym not found")
+    if gym["owner_id"] == user["user_id"]:
+        raise HTTPException(status_code=400, detail="Gym owner cannot leave — delete the gym instead")
+    await db.gyms.update_one(
+        {"gym_id": gym_id},
+        {"$pull": {"members": user["user_id"]}, "$inc": {"member_count": -1}}
+    )
+    await db.users.update_one({"user_id": user["user_id"]}, {"$unset": {"gym_id": ""}})
+    return {"message": "Left gym"}
+
+@api_router.delete("/gyms/{gym_id}")
+async def delete_gym(gym_id: str, user: dict = Depends(get_current_user)):
+    gym = await db.gyms.find_one({"gym_id": gym_id})
+    if not gym:
+        raise HTTPException(status_code=404, detail="Gym not found")
+    if gym["owner_id"] != user["user_id"]:
+        raise HTTPException(status_code=403, detail="Only the gym owner can delete this gym")
+    for uid in gym.get("members", []):
+        await db.users.update_one({"user_id": uid}, {"$unset": {"gym_id": ""}})
+    await db.gyms.delete_one({"gym_id": gym_id})
+    return {"message": "Gym deleted"}
+
+@api_router.post("/gyms/join-by-code")
+async def join_gym_by_code(request: Request, user: dict = Depends(get_current_user)):
+    body = await request.json()
+    invite_code = body.get("invite_code", "").upper().strip()
+    if not invite_code:
+        raise HTTPException(status_code=400, detail="invite_code required")
+    gym = await db.gyms.find_one({"invite_code": invite_code})
+    if not gym:
+        raise HTTPException(status_code=404, detail="Invalid invite code")
+    if user["user_id"] in gym.get("members", []):
+        raise HTTPException(status_code=400, detail="Already a member")
+    if user.get("gym_id"):
+        raise HTTPException(status_code=400, detail="Leave your current gym first")
+    gym_id = gym["gym_id"]
+    await db.gyms.update_one(
+        {"gym_id": gym_id},
+        {"$addToSet": {"members": user["user_id"]}, "$inc": {"member_count": 1}}
+    )
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
+    await _recalculate_gym_stats(gym_id)
+    return {"message": "Joined gym", "gym_id": gym_id, "gym_name": gym["name"]}
+
+# ============== FEED / POSTS ENDPOINTS ==============
+
+@api_router.post("/posts")
+async def create_post(post_data: PostCreate, user: dict = Depends(get_current_user)):
+    post_id = f"post_{uuid.uuid4().hex[:12]}"
+    post_doc = {
+        "post_id": post_id,
+        "user_id": user["user_id"],
+        "gym_id": user.get("gym_id"),
+        "video_url": post_data.video_url,
+        "thumbnail_url": post_data.thumbnail_url,
+        "caption": post_data.caption,
+        "post_type": post_data.post_type,
+        "tags": post_data.tags,
+        "likes": [],
+        "like_count": 0,
+        "comment_count": 0,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.posts.insert_one(post_doc)
+    post_doc.pop("_id", None)
+    post_doc["author"] = safe_user(user)
+    post_doc["liked_by_me"] = False
+    return post_doc
+
+@api_router.get("/feed")
+async def get_feed(
+    feed_type: str = Query("global", enum=["global", "following", "gym"]),
+    page: int = Query(1, ge=1),
+    user: dict = Depends(get_current_user),
+):
+    limit = 20
+    skip = (page - 1) * limit
+    query: dict = {}
+    if feed_type == "following":
+        follows = await db.follows.find({"follower_id": user["user_id"]}, {"following_id": 1}).to_list(10000)
+        following_ids = [f["following_id"] for f in follows] + [user["user_id"]]
+        query = {"user_id": {"$in": following_ids}}
+    elif feed_type == "gym" and user.get("gym_id"):
+        query = {"gym_id": user["gym_id"]}
+    posts = await db.posts.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    enriched = []
+    for post in posts:
+        author = await db.users.find_one({"user_id": post["user_id"]}, {"_id": 0, "password": 0})
+        post["author"] = safe_user(author) if author else {"display_name": "Unknown", "name": "Unknown"}
+        post["liked_by_me"] = user["user_id"] in post.get("likes", [])
+        post.pop("likes", None)
+        enriched.append(post)
+    return {"posts": enriched, "page": page, "has_more": len(posts) == limit}
+
+@api_router.post("/posts/{post_id}/like")
+async def toggle_like(post_id: str, user: dict = Depends(get_current_user)):
+    post = await db.posts.find_one({"post_id": post_id})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    user_id = user["user_id"]
+    if user_id in post.get("likes", []):
+        await db.posts.update_one({"post_id": post_id}, {"$pull": {"likes": user_id}, "$inc": {"like_count": -1}})
+        return {"liked": False}
+    await db.posts.update_one({"post_id": post_id}, {"$addToSet": {"likes": user_id}, "$inc": {"like_count": 1}})
+    return {"liked": True}
+
+@api_router.delete("/posts/{post_id}")
+async def delete_post(post_id: str, user: dict = Depends(get_current_user)):
+    post = await db.posts.find_one({"post_id": post_id})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if post["user_id"] != user["user_id"]:
+        raise HTTPException(status_code=403, detail="Not your post")
+    await db.posts.delete_one({"post_id": post_id})
+    await db.comments.delete_many({"post_id": post_id})
+    return {"message": "Post deleted"}
+
+@api_router.post("/posts/{post_id}/comments")
+async def add_comment(post_id: str, comment_data: CommentCreate, user: dict = Depends(get_current_user)):
+    if not await db.posts.find_one({"post_id": post_id}):
+        raise HTTPException(status_code=404, detail="Post not found")
+    comment_doc = {
+        "comment_id": f"cmt_{uuid.uuid4().hex[:12]}",
+        "post_id": post_id,
+        "user_id": user["user_id"],
+        "text": comment_data.text,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.comments.insert_one(comment_doc)
+    await db.posts.update_one({"post_id": post_id}, {"$inc": {"comment_count": 1}})
+    comment_doc.pop("_id", None)
+    comment_doc["author"] = safe_user(user)
+    return comment_doc
+
+@api_router.get("/posts/{post_id}/comments")
+async def get_comments(post_id: str, user: dict = Depends(get_current_user)):
+    comments = await db.comments.find({"post_id": post_id}, {"_id": 0}).sort("created_at", 1).to_list(100)
+    for c in comments:
+        author = await db.users.find_one({"user_id": c["user_id"]}, {"_id": 0, "password": 0})
+        c["author"] = safe_user(author) if author else {"display_name": "Unknown", "name": "Unknown"}
+    return comments
+
+# ============== COMPETITION ENDPOINTS ==============
+
+@api_router.post("/competitions")
+async def create_competition(data: CompetitionCreate, user: dict = Depends(get_current_user)):
+    if data.competition_type == "ai_judge" and not await check_subscription(user):
+        raise HTTPException(status_code=403, detail="Pro subscription required for AI judging")
+    comp_id = f"comp_{uuid.uuid4().hex[:12]}"
+    closes_at = (datetime.now(timezone.utc) + timedelta(hours=data.duration_hours)).isoformat()
+    comp_doc = {
+        "comp_id": comp_id,
+        "challenger_id": user["user_id"],
+        "title": data.title,
+        "description": data.description,
+        "video_url": data.video_url,
+        "thumbnail_url": data.thumbnail_url,
+        "competition_type": data.competition_type,
+        "status": "open",
+        "vote_count": 0,
+        "avg_score": None,
+        "dimension_averages": {},
+        "ai_result": None,
+        "voting_closes_at": closes_at,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "gym_id": user.get("gym_id"),
+    }
+    if data.competition_type == "ai_judge":
+        try:
+            import json as _json
+            headers = {"Authorization": f"Bearer {EMERGENT_LLM_KEY}", "Content-Type": "application/json"}
+            prompt = (
+                f"You are a professional boxing judge. Score this boxing video on: "
+                f"Jab, Cross, Left Hook, Right Hook, Guard Position, Head Movement, Footwork, Combination Flow, Punch Accuracy. "
+                f"Video URL: {data.video_url}. "
+                f'Respond in JSON: {{"scores":{{"Jab":7,...}},"overall":7.5,"feedback":"...","highlight":"...","improve":"..."}}'
+            )
+            async with httpx.AsyncClient() as http_client:
+                res = await http_client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers=headers,
+                    json={"model": "gpt-4o", "messages": [{"role": "user", "content": prompt}], "response_format": {"type": "json_object"}},
+                    timeout=30,
+                )
+                if res.status_code == 200:
+                    ai_result = _json.loads(res.json()["choices"][0]["message"]["content"])
+                    comp_doc["ai_result"] = ai_result
+                    comp_doc["avg_score"] = ai_result.get("overall")
+                    comp_doc["dimension_averages"] = ai_result.get("scores", {})
+                    comp_doc["status"] = "closed"
+        except Exception as e:
+            logger.error(f"AI judging error: {e}")
+    await db.competitions.insert_one(comp_doc)
+    comp_doc.pop("_id", None)
+    comp_doc["challenger"] = safe_user(user)
+    return comp_doc
+
+@api_router.get("/competitions/mine")
+async def get_my_competitions(user: dict = Depends(get_current_user)):
+    comps = await db.competitions.find({"challenger_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    for comp in comps:
+        comp["challenger"] = safe_user(user)
+        comp["has_voted"] = False
+    return comps
+
+@api_router.get("/competitions")
+async def browse_competitions(
+    status: str = Query("open", enum=["open", "closed", "all"]),
+    user: dict = Depends(get_current_user),
+):
+    query: dict = {} if status == "all" else {"status": status}
+    comps = await db.competitions.find(query, {"_id": 0}).sort("created_at", -1).to_list(50)
+    enriched = []
+    for comp in comps:
+        challenger = await db.users.find_one({"user_id": comp["challenger_id"]}, {"_id": 0, "password": 0})
+        comp["challenger"] = safe_user(challenger) if challenger else {"display_name": "Unknown"}
+        my_vote = await db.competition_votes.find_one({"comp_id": comp["comp_id"], "voter_id": user["user_id"]})
+        comp["has_voted"] = my_vote is not None
+        enriched.append(comp)
+    return enriched
+
+@api_router.get("/competitions/{comp_id}")
+async def get_competition(comp_id: str, user: dict = Depends(get_current_user)):
+    comp = await db.competitions.find_one({"comp_id": comp_id}, {"_id": 0})
+    if not comp:
+        raise HTTPException(status_code=404, detail="Competition not found")
+    challenger = await db.users.find_one({"user_id": comp["challenger_id"]}, {"_id": 0, "password": 0})
+    comp["challenger"] = safe_user(challenger) if challenger else {"display_name": "Unknown"}
+    my_vote = await db.competition_votes.find_one({"comp_id": comp_id, "voter_id": user["user_id"]}, {"_id": 0})
+    comp["has_voted"] = my_vote is not None
+    comp["my_vote"] = my_vote
+    recent_comments = await db.competition_votes.find(
+        {"comp_id": comp_id, "comment": {"$nin": ["", None]}},
+        {"_id": 0, "scores": 0},
+    ).sort("created_at", -1).to_list(10)
+    for v in recent_comments:
+        voter = await db.users.find_one({"user_id": v["voter_id"]}, {"_id": 0, "password": 0})
+        v["voter"] = safe_user(voter) if voter else {"display_name": "Unknown"}
+    comp["recent_comments"] = recent_comments
+    return comp
+
+@api_router.post("/competitions/{comp_id}/vote")
+async def vote_on_competition(comp_id: str, vote_data: VoteCreate, user: dict = Depends(get_current_user)):
+    comp = await db.competitions.find_one({"comp_id": comp_id})
+    if not comp:
+        raise HTTPException(status_code=404, detail="Competition not found")
+    if comp["status"] != "open":
+        raise HTTPException(status_code=400, detail="Voting is closed")
+    if comp["challenger_id"] == user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot vote on your own competition")
+    if await db.competition_votes.find_one({"comp_id": comp_id, "voter_id": user["user_id"]}):
+        raise HTTPException(status_code=400, detail="Already voted")
+    closes_at = comp.get("voting_closes_at")
+    if closes_at:
+        close_dt = datetime.fromisoformat(closes_at)
+        if close_dt.tzinfo is None:
+            close_dt = close_dt.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > close_dt:
+            await db.competitions.update_one({"comp_id": comp_id}, {"$set": {"status": "closed"}})
+            raise HTTPException(status_code=400, detail="Voting period has ended")
+    vote_doc = {
+        "vote_id": f"vote_{uuid.uuid4().hex[:12]}",
+        "comp_id": comp_id,
+        "voter_id": user["user_id"],
+        "scores": vote_data.scores,
+        "comment": vote_data.comment or "",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.competition_votes.insert_one(vote_doc)
+    all_votes = await db.competition_votes.find({"comp_id": comp_id}, {"_id": 0, "scores": 1}).to_list(100000)
+    if all_votes:
+        dim_totals: Dict[str, List[float]] = {}
+        for v in all_votes:
+            for dim, score in v.get("scores", {}).items():
+                dim_totals.setdefault(dim, []).append(score)
+        dim_avgs = {dim: round(sum(s) / len(s), 1) for dim, s in dim_totals.items()}
+        overall = round(sum(dim_avgs.values()) / len(dim_avgs), 1) if dim_avgs else 0
+        await db.competitions.update_one(
+            {"comp_id": comp_id},
+            {"$set": {"dimension_averages": dim_avgs, "avg_score": overall}, "$inc": {"vote_count": 1}},
+        )
+    return {"message": "Vote cast", "vote_id": vote_doc["vote_id"]}
+
+# ============== FOLLOW ENDPOINTS ==============
+
+@api_router.post("/follows/{target_id}")
+async def follow_user(target_id: str, user: dict = Depends(get_current_user)):
+    if target_id == user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot follow yourself")
+    if not await db.users.find_one({"user_id": target_id}):
+        raise HTTPException(status_code=404, detail="User not found")
+    if await db.follows.find_one({"follower_id": user["user_id"], "following_id": target_id}):
+        raise HTTPException(status_code=400, detail="Already following")
+    await db.follows.insert_one({
+        "follow_id": f"follow_{uuid.uuid4().hex[:12]}",
+        "follower_id": user["user_id"],
+        "following_id": target_id,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    return {"following": True}
+
+@api_router.delete("/follows/{target_id}")
+async def unfollow_user(target_id: str, user: dict = Depends(get_current_user)):
+    result = await db.follows.delete_one({"follower_id": user["user_id"], "following_id": target_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not following this user")
+    return {"following": False}
+
+@api_router.get("/users/me/following")
+async def get_following(user: dict = Depends(get_current_user)):
+    follows = await db.follows.find({"follower_id": user["user_id"]}, {"_id": 0}).to_list(10000)
+    users = []
+    for f in follows:
+        u = await db.users.find_one({"user_id": f["following_id"]}, {"_id": 0, "password": 0})
+        if u:
+            users.append(safe_user(u))
+    return users
+
+@api_router.get("/users/me/followers")
+async def get_followers(user: dict = Depends(get_current_user)):
+    follows = await db.follows.find({"following_id": user["user_id"]}, {"_id": 0}).to_list(10000)
+    users = []
+    for f in follows:
+        u = await db.users.find_one({"user_id": f["follower_id"]}, {"_id": 0, "password": 0})
+        if u:
+            users.append(safe_user(u))
+    return users
+
 app.include_router(api_router)
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
 _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]

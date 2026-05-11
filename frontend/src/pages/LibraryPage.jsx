@@ -3,14 +3,21 @@ import axios from "axios";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { LegendCard } from "@/components/LegendCard";
-import { Play } from "lucide-react";
-
-const FILTERS = ["All", "Offensive", "Defensive", "Footwork & Movement", "Combinations"];
+import { useTranslation } from "react-i18next";
 
 export default function LibraryPage() {
+  const { t } = useTranslation();
   const [legends, setLegends] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("All");
+
+  const FILTERS = [
+    { value: "All", label: t("library.filterAll") },
+    { value: "Offensive", label: t("library.filterOffensive") },
+    { value: "Defensive", label: t("library.filterDefensive") },
+    { value: "Footwork & Movement", label: t("library.filterFootwork") },
+    { value: "Combinations", label: t("library.filterCombinations") },
+  ];
 
   useEffect(() => {
     fetchLegends();
@@ -19,7 +26,7 @@ export default function LibraryPage() {
   const fetchLegends = async () => {
     setLoading(true);
     try {
-      const params = activeFilter !== "All" ? { filter: activeFilter } : {};
+      const params = activeFilter !== "All" ? { filter: activeFilter } : {}; // activeFilter holds the English value for the API
       const response = await axios.get(`${API}/legends`, {
         params,
         withCredentials: true,
@@ -37,10 +44,10 @@ export default function LibraryPage() {
       {/* Header */}
       <header className="p-4">
         <h1 className="text-2xl font-heading font-extrabold text-victory-text">
-          Learn From the Greats
+          {t("library.title")}
         </h1>
         <p className="text-victory-muted text-sm mt-1">
-          Technique breakdowns mapped to your scoring dimensions
+          {t("library.subtitle")}
         </p>
       </header>
 
@@ -49,16 +56,16 @@ export default function LibraryPage() {
         <div className="flex gap-2 overflow-x-auto no-scrollbar filter-scroll">
           {FILTERS.map((filter) => (
             <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
+              key={filter.value}
+              onClick={() => setActiveFilter(filter.value)}
               className={`filter-pill ${
-                activeFilter === filter
+                activeFilter === filter.value
                   ? "filter-pill-active"
                   : "filter-pill-inactive"
               }`}
-              data-testid={`filter-${filter}`}
+              data-testid={`filter-${filter.value}`}
             >
-              {filter}
+              {filter.label}
             </button>
           ))}
         </div>
@@ -80,7 +87,7 @@ export default function LibraryPage() {
         ) : (
           <div className="victory-card p-6 text-center">
             <p className="text-victory-muted">
-              No legends mapped to this dimension yet — more coming soon.
+              {t("library.noTechniques")}
             </p>
           </div>
         )}

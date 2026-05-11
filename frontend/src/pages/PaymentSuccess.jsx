@@ -4,10 +4,12 @@ import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
 import { CheckCircle, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState("checking");
 
@@ -25,7 +27,7 @@ export default function PaymentSuccess() {
 
     if (attempts >= maxAttempts) {
       setStatus("timeout");
-      toast.error("Payment status check timed out. Please check your email for confirmation.");
+      toast.error(t("payment.timeoutToast"));
       return;
     }
 
@@ -37,7 +39,7 @@ export default function PaymentSuccess() {
       if (response.data.payment_status === "paid") {
         setStatus("success");
         await checkAuth(); // Refresh user data
-        toast.success("Welcome to Victory AI Pro!");
+        toast.success(t("payment.successToast"));
         setTimeout(() => navigate("/home", { replace: true }), 2000);
         return;
       } else if (response.data.status === "expired") {
@@ -60,9 +62,9 @@ export default function PaymentSuccess() {
           <>
             <Loader2 className="w-16 h-16 text-victory-lime animate-spin mx-auto mb-4" />
             <h1 className="text-2xl font-heading font-bold text-victory-text mb-2">
-              Processing your payment...
+              {t("payment.processing")}
             </h1>
-            <p className="text-victory-muted">Please wait while we confirm your subscription.</p>
+            <p className="text-victory-muted">{t("payment.pleaseWait")}</p>
           </>
         )}
 
@@ -70,26 +72,26 @@ export default function PaymentSuccess() {
           <>
             <CheckCircle className="w-16 h-16 text-victory-lime mx-auto mb-4" />
             <h1 className="text-2xl font-heading font-bold text-victory-text mb-2">
-              Welcome to Victory AI Pro!
+              {t("payment.successTitle")}
             </h1>
             <p className="text-victory-muted mb-4">
-              Your free trial has started. Get ready to train with your AI training partner!
+              {t("payment.trialStarted")}
             </p>
-            <p className="text-victory-muted text-sm">Redirecting you to the app...</p>
+            <p className="text-victory-muted text-sm">{t("payment.redirecting")}</p>
           </>
         )}
 
         {status === "expired" && (
           <>
             <h1 className="text-2xl font-heading font-bold text-victory-text mb-2">
-              Payment session expired
+              {t("payment.expiredTitle")}
             </h1>
-            <p className="text-victory-muted mb-4">Please try again.</p>
+            <p className="text-victory-muted mb-4">{t("payment.expiredDesc")}</p>
             <button
               onClick={() => navigate("/paywall")}
               className="victory-btn-primary"
             >
-              Try Again
+              {t("payment.tryAgainBtn")}
             </button>
           </>
         )}
@@ -97,16 +99,16 @@ export default function PaymentSuccess() {
         {status === "timeout" && (
           <>
             <h1 className="text-2xl font-heading font-bold text-victory-text mb-2">
-              Couldn't confirm payment
+              {t("payment.timeoutTitle")}
             </h1>
             <p className="text-victory-muted mb-4">
-              Please check your email for confirmation or contact support.
+              {t("payment.timeoutDesc")}
             </p>
             <button
               onClick={() => navigate("/home")}
               className="victory-btn-primary"
             >
-              Go to App
+              {t("payment.goToApp")}
             </button>
           </>
         )}
