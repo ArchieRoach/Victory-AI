@@ -37,6 +37,7 @@ import GymDetailPage from "@/pages/GymDetailPage";
 import CompetitionsPage from "@/pages/CompetitionsPage";
 import CompetitionDetailPage from "@/pages/CompetitionDetailPage";
 import PublicProfilePage from "@/pages/PublicProfilePage";
+import FeedbackWidget from "@/components/FeedbackWidget";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -246,6 +247,7 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <AppRouter />
+            <FeedbackWidget />
             <Toaster position="top-center" toastOptions={{ style: { background: "#12121A", border: "1px solid #2A2A3A", color: "#F0F0F5" } }} />
           </AuthProvider>
         </BrowserRouter>
