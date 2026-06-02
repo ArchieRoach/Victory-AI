@@ -1727,6 +1727,67 @@ async def get_followers(user: dict = Depends(get_current_user)):
             users.append(safe_user(u))
     return users
 
+# ============== FEEDBACK ENDPOINTS ==============
+
+class FeedbackCreate(BaseModel):
+    type: str  # "bug" | "feature" | "general"
+    message: str
+    rating: Optional[int] = None  # 1-5
+    page: Optional[str] = None
+
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'archieroach2013@gmail.com')
+
+@api_router.post("/feedback")
+async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current_user)):
+    doc = {
+        "feedback_id": f"fb_{uuid.uuid4().hex[:12]}",
+        "user_id": user["user_id"],
+        "user_name": user.get("name") or user.get("email", "Unknown"),
+        "user_email": user.get("email", ""),
+        "type": data.type,
+        "message": data.message,
+        "rating": data.rating,
+        "page": data.page,
+        "created_at": datetime.now(timezone.utc),
+    }
+    await db.feedback.insert_one(doc)
+
+    if RESEND_API_KEY:
+        type_label = {"bug": "🐛 Bug Report", "feature": "💡 Feature Request", "general": "💬 General Feedback"}.get(data.type, data.type)
+        rating_str = f"{'⭐' * data.rating} ({data.rating}/5)" if data.rating else "Not rated"
+        email_html = f"""
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#12121A;color:#F0F0F5;padding:32px;border-radius:12px;">
+          <h2 style="color:#E8FF47;margin-top:0;">New Beta Feedback</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="color:#8888A0;padding:6px 0;width:120px;">Type</td><td>{type_label}</td></tr>
+            <tr><td style="color:#8888A0;padding:6px 0;">From</td><td>{doc['user_name']} &lt;{doc['user_email']}&gt;</td></tr>
+            <tr><td style="color:#8888A0;padding:6px 0;">Rating</td><td>{rating_str}</td></tr>
+            <tr><td style="color:#8888A0;padding:6px 0;">Page</td><td>{data.page or 'Unknown'}</td></tr>
+          </table>
+          <div style="margin-top:20px;padding:16px;background:#1A1A2E;border-radius:8px;border-left:3px solid #E8FF47;">
+            <p style="margin:0;line-height:1.6;">{data.message}</p>
+          </div>
+        </div>"""
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    "https://api.resend.com/emails",
+                    headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+                    json={"from": RESEND_FROM, "to": [ADMIN_EMAIL], "subject": f"[Victory AI] {type_label} from {doc['user_name']}", "html": email_html},
+                    timeout=5,
+                )
+        except Exception:
+            pass
+
+    return {"feedback_id": doc["feedback_id"]}
+
+@api_router.get("/feedback")
+async def get_feedback(user: dict = Depends(get_current_user)):
+    if user.get("email") != ADMIN_EMAIL:
+        raise HTTPException(status_code=403, detail="Admin only")
+    items = await db.feedback.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return items
+
 app.include_router(api_router)
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
 _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]

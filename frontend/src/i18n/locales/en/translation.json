@@ -539,6 +539,20 @@
     "recentPosts": "Recent Clips",
     "unknownFighter": "Fighter"
   },
+  "feedback": {
+    "title": "Send Feedback",
+    "typeBug": "Bug",
+    "typeFeature": "Idea",
+    "typeGeneral": "General",
+    "ratingLabel": "Rate your experience (optional)",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Tell us what's on your mind...",
+    "messageRequired": "Please add a message",
+    "sending": "Sending...",
+    "send": "Send Feedback",
+    "thanks": "Thanks for the feedback!",
+    "thanksDesc": "Your message helps us make Victory AI better for every fighter."
+  },
   "payment": {
     "processing": "Processing your payment...",
     "pleaseWait": "Please wait while we confirm your subscription.",
