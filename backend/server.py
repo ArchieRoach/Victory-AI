@@ -1787,7 +1787,6 @@ async def get_feedback(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin only")
     items = await db.feedback.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
     return items
-h
 app.include_router(api_router)
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
 _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]
