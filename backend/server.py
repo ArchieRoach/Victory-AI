@@ -1787,11 +1787,11 @@ async def get_feedback(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin only")
     items = await db.feedback.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
     return items
-
+h
 app.include_router(api_router)
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
 _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]
-app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_origin_regex=r'https://.*\.lovable\.app', allow_methods=["*"], allow_headers=["*"])
 
 @app.on_event("shutdown")
 async def shutdown():
