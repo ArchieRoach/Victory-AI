@@ -1844,6 +1844,15 @@ _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_orig
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_origin_regex=r'https://.*\.lovable\.app', allow_methods=["*"], allow_headers=["*"])
 app.include_router(api_router)
 
+@app.on_event("startup")
+async def startup():
+    result = await db.users.update_many(
+        {"access_granted": {"$exists": False}},
+        {"$set": {"access_granted": True}}
+    )
+    if result.modified_count:
+        logger.info(f"Migration: backfilled access_granted=True on {result.modified_count} users")
+
 @app.on_event("shutdown")
 async def shutdown():
     client.close()
