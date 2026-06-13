@@ -1,21 +1,29 @@
 import SwiftUI
 import ClerkSDK
 
-/// Drop-in sign-in screen.
-/// On success it calls AuthService to validate subscription before routing.
+/// Sign-in screen. Routing after successful sign-in is handled by AppRouter,
+/// not this view — so no NavigationStack or navigationDestination here.
 struct SignInView: View {
-    @StateObject private var viewModel = SignInViewModel()
+    let router: AppRouter
+
+    @StateObject private var viewModel: SignInViewModel
     @State private var emailAddress = ""
     @State private var password = ""
     @State private var errorMessage: String?
 
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                Color(hex: "#12121A").ignoresSafeArea()
+    init(router: AppRouter) {
+        self.router = router
+        _viewModel = StateObject(wrappedValue: SignInViewModel(router: router))
+    }
 
+    var body: some View {
+        ZStack {
+            Color(hex: "#12121A").ignoresSafeArea()
+
+            ScrollView {
                 VStack(spacing: 24) {
-                    // Logo / heading
+                    Spacer().frame(height: 60)
+
                     Image("victory-logo")
                         .resizable()
                         .scaledToFit()
@@ -29,14 +37,15 @@ struct SignInView: View {
                         .font(.subheadline)
                         .foregroundColor(Color(hex: "#8888A0"))
 
-                    // Email / password fields
                     VStack(spacing: 12) {
                         TextField("Email", text: $emailAddress)
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
+                            .textContentType(.emailAddress)
                             .textFieldStyle(VictoryFieldStyle())
 
                         SecureField("Password", text: $password)
+                            .textContentType(.password)
                             .textFieldStyle(VictoryFieldStyle())
                     }
 
@@ -47,7 +56,6 @@ struct SignInView: View {
                             .multilineTextAlignment(.center)
                     }
 
-                    // Sign-in button
                     Button {
                         Task { await signIn() }
                     } label: {
@@ -61,13 +69,12 @@ struct SignInView: View {
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .frame(height: 50)
+                        .frame(height: 52)
                         .background(Color(hex: "#E8FF47"))
-                        .cornerRadius(12)
+                        .cornerRadius(14)
                     }
                     .disabled(viewModel.isLoading)
 
-                    // Social sign-in
                     HStack(spacing: 12) {
                         SocialSignInButton(provider: .google) {
                             Task { await signInWith(.google) }
@@ -76,21 +83,10 @@ struct SignInView: View {
                             Task { await signInWith(.facebook) }
                         }
                     }
+
+                    Spacer().frame(height: 40)
                 }
-                .padding(24)
-            }
-            // Route based on validation result
-            .navigationDestination(item: $viewModel.destination) { dest in
-                switch dest {
-                case .app:
-                    MainAppView()
-                case .paywall(let reason):
-                    PaywallView(reason: reason)
-                case .error(let message):
-                    AuthErrorView(message: message) {
-                        viewModel.destination = nil
-                    }
-                }
+                .padding(.horizontal, 24)
             }
         }
     }
@@ -99,9 +95,6 @@ struct SignInView: View {
 
     private func signIn() async {
         errorMessage = nil
-        viewModel.isLoading = true
-        defer { viewModel.isLoading = false }
-
         do {
             let result = try await SignIn.create(strategy: .identifier(emailAddress, password: password))
             if result.status == .complete {
@@ -159,7 +152,6 @@ struct VictoryFieldStyle: TextFieldStyle {
     }
 }
 
-// Convenience hex colour init
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
