@@ -874,7 +874,21 @@ async def stripe_webhook(request: Request):
             if stripe_sub_id:
                 await db.subscriptions.update_one(
                     {"subscription_id": stripe_sub_id},
-                    {"$set": {"status": "active"}}
+                    {"$set": {"status": "active", "subscription_active": True}}
+                )
+        elif event_type == "customer.subscription.deleted":
+            stripe_sub_id = event_data.get("id") if isinstance(event_data, dict) else event_data.id
+            if stripe_sub_id:
+                await db.subscriptions.update_one(
+                    {"subscription_id": stripe_sub_id},
+                    {"$set": {"status": "canceled", "subscription_active": False}}
+                )
+        elif event_type == "invoice.payment_failed":
+            stripe_sub_id = event_data.get("subscription") if isinstance(event_data, dict) else event_data.subscription
+            if stripe_sub_id:
+                await db.subscriptions.update_one(
+                    {"subscription_id": stripe_sub_id},
+                    {"$set": {"status": "past_due", "subscription_active": False}}
                 )
     except Exception as e:
         logger.error(f"Webhook handler error: {e}")
@@ -1787,6 +1801,43 @@ async def get_feedback(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin only")
     items = await db.feedback.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
     return items
+
+@api_router.post("/auth/validate")
+async def validate_access(user: dict = Depends(get_current_user)):
+    """iOS: verify Stripe subscription live and check access_granted flag."""
+    import asyncio as _asyncio
+
+    subscription = await db.subscriptions.find_one(
+        {"user_id": user["user_id"]},
+        {"_id": 0},
+    )
+    if not subscription:
+        return {"access_granted": False, "reason": "no_subscription"}
+
+    stripe_sub_id = subscription.get("subscription_id", "")
+
+    if stripe_sub_id.startswith("sub_"):
+        try:
+            stripe_sub = await _asyncio.to_thread(stripe_lib.Subscription.retrieve, stripe_sub_id)
+            live_status = stripe_sub.status
+            await db.subscriptions.update_one(
+                {"subscription_id": stripe_sub_id},
+                {"$set": {"status": live_status, "subscription_active": live_status in ("active", "trialing")}}
+            )
+            if live_status not in ("active", "trialing"):
+                return {"access_granted": False, "reason": "subscription_inactive"}
+        except stripe_lib.error.StripeError as e:
+            logger.error(f"Stripe error in /auth/validate: {e}")
+            if subscription.get("status") not in ("active", "trialing"):
+                return {"access_granted": False, "reason": "subscription_inactive"}
+    else:
+        if subscription.get("status") not in ("active", "trialing"):
+            return {"access_granted": False, "reason": "subscription_inactive"}
+
+    if not user.get("access_granted", True):
+        return {"access_granted": False, "reason": "access_revoked"}
+
+    return {"access_granted": True, "subscription_active": True}
 
 app.include_router(api_router)
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
