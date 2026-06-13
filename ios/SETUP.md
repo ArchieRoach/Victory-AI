@@ -19,6 +19,14 @@ Add these in Xcode → File → Add Package Dependencies:
 <key>CLERK_PUBLISHABLE_KEY</key>
 <string>pk_live_XXXX</string>
 
+<!-- Web subscription page (Lovable site) — opened in SFSafariViewController -->
+<key>SUBSCRIBE_URL</key>
+<string>https://YOUR_LOVABLE_SUBSCRIBE_URL</string>
+
+<!-- Stripe customer portal — for reactivation on LapsedSubscriptionView -->
+<key>STRIPE_PORTAL_URL</key>
+<string>https://billing.stripe.com/p/login/YOUR_PORTAL_ID</string>
+
 <!-- Clerk OAuth callback scheme (must match your app's bundle ID) -->
 <key>CFBundleURLTypes</key>
 <array>
@@ -33,6 +41,8 @@ Add these in Xcode → File → Add Package Dependencies:
 
 ## App entry point
 
+Replace your default `ContentView` with `AppRootView`:
+
 ```swift
 import SwiftUI
 import ClerkSDK
@@ -41,13 +51,24 @@ import ClerkSDK
 struct VictoryAIApp: App {
     var body: some Scene {
         WindowGroup {
-            // Clerk session is checked inside SignInView / SignInViewModel
-            SignInView()
+            AppRootView()
                 .clerkEnvironment(publishableKey: Bundle.main.object(
                     forInfoDictionaryKey: "CLERK_PUBLISHABLE_KEY") as! String)
         }
     }
 }
+```
+
+## Navigation flow
+
+```
+App launch (existing session) → SplashView → validate → .app / .paywall / .lapsed / .networkError
+App launch (no session)       → SignInView
+Sign in complete              → validate  → .app / .paywall / .lapsed / .networkError
+Network unreachable           → NetworkErrorView (retry button, never locks user out)
+.paywall → Subscribe Now      → SFSafariViewController (Lovable web) → auto re-validate on return
+.lapsed  → Reactivate         → SFSafariViewController (Stripe portal) → auto re-validate on return
+Any screen → Sign Out         → Clerk.shared.signOut() → SignInView
 ```
 
 ## Image assets needed
@@ -57,19 +78,13 @@ Add these to `Assets.xcassets`:
 - `ic_google` — Google logo (20×20)
 - `ic_facebook` — Facebook logo (20×20)
 
-## Stub views to create
+## Stub view to create
 
-`MainAppView.swift` and `PaywallView.swift` are referenced by `SignInViewModel`
-but not included here — create them to match your app's screens.
+Only `MainAppView` is still a stub — create it to match your app's tab bar / home screen:
 
 ```swift
 struct MainAppView: View {
     var body: some View { Text("Main App") }
-}
-
-struct PaywallView: View {
-    let reason: String
-    var body: some View { Text("Subscribe to continue (\(reason))") }
 }
 ```
 
