@@ -19,13 +19,13 @@ Add these in Xcode → File → Add Package Dependencies:
 <key>CLERK_PUBLISHABLE_KEY</key>
 <string>pk_live_XXXX</string>
 
-<!-- Web subscription page (Lovable site) — opened in SFSafariViewController -->
+<!-- Web subscription page — opened in SFSafariViewController -->
 <key>SUBSCRIBE_URL</key>
-<string>https://YOUR_LOVABLE_SUBSCRIBE_URL</string>
+<string>https://buy.stripe.com/7sY8wP8ED7qp6CP8qCaR200</string>
 
 <!-- Stripe customer portal — for reactivation on LapsedSubscriptionView -->
 <key>STRIPE_PORTAL_URL</key>
-<string>https://billing.stripe.com/p/login/YOUR_PORTAL_ID</string>
+<string>https://billing.stripe.com/p/login/7sY8wP8ED7qp6CP8qCaR200</string>
 
 <!-- Clerk OAuth callback scheme (must match your app's bundle ID) -->
 <key>CFBundleURLTypes</key>

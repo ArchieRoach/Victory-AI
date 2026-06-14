@@ -11,7 +11,7 @@ struct LapsedSubscriptionView: View {
 
     private let portalURL: URL = {
         let raw = Bundle.main.object(forInfoDictionaryKey: "STRIPE_PORTAL_URL") as? String
-            ?? "https://billing.stripe.com/p/login/YOUR_PORTAL_ID"
+            ?? "https://billing.stripe.com/p/login/7sY8wP8ED7qp6CP8qCaR200"
         return URL(string: raw)!
     }()
 

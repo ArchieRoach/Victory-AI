@@ -12,7 +12,7 @@ struct PaywallView: View {
 
     private let subscribeURL: URL = {
         let raw = Bundle.main.object(forInfoDictionaryKey: "SUBSCRIBE_URL") as? String
-            ?? "https://YOUR_SUBSCRIBE_URL"
+            ?? "https://buy.stripe.com/7sY8wP8ED7qp6CP8qCaR200"
         return URL(string: raw)!
     }()
 
