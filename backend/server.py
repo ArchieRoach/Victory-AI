@@ -945,37 +945,6 @@ async def waitlist_signup(data: WaitlistSignup):
     except Exception as e:
         logger.error(f"n8n forward failed: {e}")
 
-    # Send confirmation email via Resend
-    email_html = f"""
-    <div style="background:#0A0A0F;color:#F0F0F5;font-family:sans-serif;padding:40px;max-width:600px;margin:0 auto;border-radius:12px;">
-      <img src="https://victory-ai-alpha.vercel.app/victory-logo.png" alt="Victory AI" style="width:120px;display:block;margin:0 auto 24px;" />
-      <h1 style="color:#E8FF47;text-align:center;font-size:28px;margin-bottom:8px;">You're in, {data.name or 'Champ'}.</h1>
-      <p style="text-align:center;color:#8888A0;margin-bottom:32px;">You've secured your early founders spot for Victory AI.</p>
-      <div style="background:#12121A;border:1px solid #2A2A3A;border-radius:8px;padding:24px;text-align:center;margin-bottom:32px;">
-        <p style="color:#8888A0;margin:0 0 8px;">Your exclusive founders discount code:</p>
-        <p style="color:#E8FF47;font-size:28px;font-weight:bold;letter-spacing:4px;margin:0;">{promo_code_str}</p>
-        <p style="color:#8888A0;font-size:13px;margin:12px 0 0;">£2.99/month for life — 40% off forever</p>
-      </div>
-      <p style="color:#F0F0F5;">When Victory AI launches, enter this code at checkout to lock in your founders price. It's unique to you and can only be used once.</p>
-      <p style="color:#8888A0;font-size:13px;margin-top:32px;text-align:center;">Victory AI · Boxing & Training</p>
-    </div>
-    """
-
-    try:
-        async with httpx.AsyncClient() as client:
-            await client.post(
-                "https://api.resend.com/emails",
-                headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
-                json={
-                    "from": RESEND_FROM,
-                    "to": [data.email],
-                    "subject": "Your Victory AI founders spot is confirmed 🥊",
-                    "html": email_html,
-                },
-            )
-    except Exception as e:
-        logger.error(f"Resend email failed: {e}")
-
     return {"message": "Signed up successfully", "promo_code": promo_code_str}
 
 # ============== SESSION & STATIC ENDPOINTS ==============
