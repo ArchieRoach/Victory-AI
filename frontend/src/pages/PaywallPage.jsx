@@ -122,6 +122,7 @@ export default function PaywallPage() {
   const [selectedPlan, setSelectedPlan] = useState("annual");
   const [loading, setLoading] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   const handleStartTrial = async () => {
     setLoading(true);
@@ -159,11 +160,12 @@ export default function PaywallPage() {
         {/* Training Partner Preview */}
         {user?.training_partner && (
           <div className="victory-card p-4 mb-6 flex items-center gap-4">
-            {user.training_partner.avatar_url ? (
+            {user.training_partner.avatar_url && !avatarError ? (
               <img
                 src={user.training_partner.avatar_url}
                 alt={user.training_partner.name}
                 className="w-12 h-12 rounded-full object-cover border-2 border-victory-lime"
+                onError={() => setAvatarError(true)}
               />
             ) : (
               <div className="w-12 h-12 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold">

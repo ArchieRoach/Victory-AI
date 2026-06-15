@@ -4,8 +4,25 @@ import { BottomNav } from "@/components/BottomNav";
 import { Pause, Play, SkipForward, Square, RotateCcw, Target } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-// Bell sound URL (free royalty-free boxing bell)
-const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
+// Synthesised bell tone via Web Audio API — no external dependency
+function playBellTone() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 1.5);
+  } catch {
+    // Silently fail if Web Audio API is unavailable
+  }
+}
 
 export default function TimerPage() {
   const navigate = useNavigate();
@@ -22,26 +39,16 @@ export default function TimerPage() {
   const [isComplete, setIsComplete] = useState(false);
   const [flashClass, setFlashClass] = useState("");
 
-  const audioRef = useRef(null);
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    // Preload audio
-    audioRef.current = new Audio(BELL_SOUND_URL);
-    audioRef.current.load();
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
 
   const playBell = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {
-        // Ignore autoplay errors
-      });
-    }
+    playBellTone();
   }, []);
 
   const flashScreen = useCallback((type) => {

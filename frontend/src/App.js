@@ -38,6 +38,7 @@ import CompetitionsPage from "@/pages/CompetitionsPage";
 import CompetitionDetailPage from "@/pages/CompetitionDetailPage";
 import PublicProfilePage from "@/pages/PublicProfilePage";
 import FeedbackWidget from "@/components/FeedbackWidget";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -234,7 +235,7 @@ const AppRouter = () => {
         <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
 
         <Route path="/" element={<Navigate to="/welcome" replace />} />
-        <Route path="*" element={<Navigate to="/welcome" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>
   );

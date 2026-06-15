@@ -316,7 +316,23 @@
       "Sharpen my offence": "Sharpen my offence",
       "Prepare for sparring": "Prepare for sparring",
       "Just having fun": "Just having fun"
-    }
+    },
+    "fighterProfile": "Fighter Profile",
+    "viewPublic": "View Public Profile",
+    "displayName": "Display Name",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
+    "weightClass": "Weight Class",
+    "stance": "Stance",
+    "orthodox": "Orthodox",
+    "southpaw": "Southpaw",
+    "amateurRecord": "Amateur Record",
+    "amateur_wins": "Wins",
+    "amateur_losses": "Losses",
+    "amateur_draws": "Draws",
+    "virtualRecord": "Virtual Record",
+    "competition_wins": "Competition Wins",
+    "competition_losses": "Competition Losses"
   },
   "train": {
     "title": "Set Your Training",

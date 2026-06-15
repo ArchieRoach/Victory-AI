@@ -780,6 +780,7 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
                 "quantity": 1,
             }],
             subscription_data={"trial_period_days": 14},
+            allow_promotion_codes=True,
             success_url=f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{host_url}/paywall",
             customer_email=user.get("email") or None,
