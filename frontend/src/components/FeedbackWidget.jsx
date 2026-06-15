@@ -26,6 +26,7 @@ export default function FeedbackWidget() {
   const [hoverRating, setHoverRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [messageError, setMessageError] = useState(false);
 
   const hidden = HIDDEN_PATHS.some((p) => location.pathname.startsWith(p));
   if (!isAuthenticated || hidden) return null;
@@ -36,6 +37,7 @@ export default function FeedbackWidget() {
     setRating(0);
     setHoverRating(0);
     setDone(false);
+    setMessageError(false);
   };
 
   const handleClose = () => {
@@ -44,7 +46,11 @@ export default function FeedbackWidget() {
   };
 
   const handleSubmit = async () => {
-    if (!message.trim()) return toast.error(t("feedback.messageRequired"));
+    if (!message.trim()) {
+      setMessageError(true);
+      return;
+    }
+    setMessageError(false);
     setSubmitting(true);
     try {
       await axios.post(`${API}/feedback`, {
@@ -145,17 +151,20 @@ export default function FeedbackWidget() {
               <label className="victory-label">{t("feedback.messageLabel")}</label>
               <textarea
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="victory-input resize-none"
+                onChange={(e) => { setMessage(e.target.value); if (e.target.value.trim()) setMessageError(false); }}
+                className={`victory-input resize-none ${messageError ? "border-red-500" : ""}`}
                 rows={3}
                 placeholder={t("feedback.messagePlaceholder")}
                 maxLength={1000}
               />
+              {messageError && (
+                <p className="text-red-400 text-xs mt-1">{t("feedback.messageRequired")}</p>
+              )}
             </div>
 
             <button
               onClick={handleSubmit}
-              disabled={submitting || !message.trim()}
+              disabled={submitting}
               className="victory-btn-primary w-full disabled:opacity-40"
             >
               {submitting ? t("feedback.sending") : t("feedback.send")}
