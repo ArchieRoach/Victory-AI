@@ -1,343 +1,278 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth as useClerkHook } from "@clerk/clerk-react";
 import { API, useAuth } from "@/App";
-import { toast } from "sonner";
-import { Radio, Copy, Check, Eye, EyeOff, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { Radio, Users, AlertCircle, VideoOff } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 
-const TYPE_OPTIONS = [
-  { value: "training", label: "Training" },
-  { value: "sparring", label: "Sparring" },
-  { value: "smoker", label: "Smoker" },
-  { value: "bout", label: "Bout" },
-];
-
-const STATUS_COLORS = {
-  live: "bg-red-500 text-white",
-  idle: "bg-victory-lime/20 text-victory-lime",
-  ended: "bg-victory-border text-victory-muted",
-};
-
-const STATUS_LABELS = {
-  live: "LIVE",
-  idle: "Ready",
-  ended: "Ended",
-};
-
-function CopyButton({ text, label }) {
-  const [copied, setCopied] = useState(false);
-  const copy = async () => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  return (
-    <button
-      onClick={copy}
-      className="flex items-center gap-1 text-xs text-victory-lime border border-victory-lime/30 rounded px-2 py-1 hover:bg-victory-lime/10 transition-colors"
-    >
-      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-      {copied ? "Copied!" : label}
-    </button>
-  );
-}
-
-function StreamCard({ stream, onStatusChange, onDelete }) {
-  const navigate = useNavigate();
-  const [showKey, setShowKey] = useState(false);
-  const [showCreds, setShowCreds] = useState(stream.status === "idle");
-  const [loading, setLoading] = useState(false);
-
-  const setStatus = async (status) => {
-    setLoading(true);
-    try {
-      await axios.patch(`${API}/streams/${stream.stream_id}`, { status });
-      onStatusChange(stream.stream_id, status);
-      toast.success(status === "live" ? "You're live!" : "Stream ended.");
-    } catch {
-      toast.error("Failed to update stream status.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="victory-card p-4 space-y-3">
-      {/* Title row */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLORS[stream.status] || "bg-victory-border text-victory-muted"}`}>
-              {STATUS_LABELS[stream.status] || stream.status}
-            </span>
-            <span className="text-xs text-victory-muted capitalize">{stream.type}</span>
-          </div>
-          <h3 className="font-semibold text-victory-text mt-1 truncate">{stream.title}</h3>
-          {stream.description && (
-            <p className="text-victory-muted text-xs mt-0.5 line-clamp-2">{stream.description}</p>
-          )}
-        </div>
-        <button
-          onClick={() => onDelete(stream.stream_id)}
-          className="text-victory-muted hover:text-red-400 transition-colors flex-shrink-0"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* RTMP Credentials toggle */}
-      {stream.status !== "ended" && (
-        <button
-          onClick={() => setShowCreds(!showCreds)}
-          className="flex items-center gap-1.5 text-xs text-victory-muted hover:text-victory-text transition-colors"
-        >
-          {showCreds ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          OBS Credentials
-        </button>
-      )}
-
-      {showCreds && stream.status !== "ended" && (
-        <div className="bg-victory-bg rounded-lg p-3 space-y-2 text-xs">
-          <p className="text-victory-muted">Paste into OBS → Settings → Stream → Custom…</p>
-          <div className="space-y-2">
-            <div>
-              <p className="text-victory-muted mb-1">RTMP Server</p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 bg-black/30 rounded px-2 py-1 text-victory-text font-mono truncate text-[11px]">
-                  {stream.rtmp_url}
-                </code>
-                <CopyButton text={stream.rtmp_url} label="Copy" />
-              </div>
-            </div>
-            <div>
-              <p className="text-victory-muted mb-1">Stream Key</p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 bg-black/30 rounded px-2 py-1 text-victory-text font-mono truncate text-[11px]">
-                  {showKey ? stream.stream_key : "•".repeat(Math.min(stream.stream_key?.length || 20, 24))}
-                </code>
-                <button
-                  onClick={() => setShowKey(!showKey)}
-                  className="text-victory-muted hover:text-victory-text transition-colors"
-                >
-                  {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </button>
-                <CopyButton text={stream.stream_key} label="Copy" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Action buttons */}
-      <div className="flex gap-2 flex-wrap">
-        {stream.status === "idle" && (
-          <button
-            onClick={() => setStatus("live")}
-            disabled={loading}
-            className="flex items-center gap-1.5 bg-red-500 text-white text-sm font-semibold rounded-lg px-4 py-2 disabled:opacity-50 transition-opacity"
-          >
-            <Radio className="w-4 h-4" />
-            I'm Live
-          </button>
-        )}
-        {stream.status === "live" && (
-          <>
-            <button
-              onClick={() => setStatus("ended")}
-              disabled={loading}
-              className="flex items-center gap-1.5 bg-victory-card border border-red-500/60 text-red-400 text-sm font-semibold rounded-lg px-4 py-2 disabled:opacity-50 transition-opacity"
-            >
-              End Stream
-            </button>
-            <button
-              onClick={() => navigate(`/stream/${stream.stream_id}`)}
-              className="flex items-center gap-1.5 border border-victory-border text-victory-text text-sm rounded-lg px-4 py-2 hover:border-victory-lime transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Watch
-            </button>
-          </>
-        )}
-        {stream.status === "ended" && (
-          <button
-            onClick={() => navigate(`/stream/${stream.stream_id}`)}
-            className="flex items-center gap-1.5 border border-victory-border text-victory-muted text-sm rounded-lg px-4 py-2"
-          >
-            <ExternalLink className="w-4 h-4" />
-            View Recording
-          </button>
-        )}
-      </div>
-    </div>
-  );
+async function waitForIce(pc, timeout = 4000) {
+  return new Promise((resolve) => {
+    if (pc.iceGatheringState === "complete") return resolve();
+    const check = () => {
+      if (pc.iceGatheringState === "complete") {
+        pc.removeEventListener("icegatheringstatechange", check);
+        resolve();
+      }
+    };
+    pc.addEventListener("icegatheringstatechange", check);
+    setTimeout(resolve, timeout);
+  });
 }
 
 export default function GoLivePage() {
   const { user } = useAuth();
-  const [streams, setStreams] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", type: "training", is_private: false });
+  const { getToken } = useClerkHook();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchMyStreams();
+  const [phase, setPhase] = useState("idle"); // idle | starting | live | error
+  const [errorMsg, setErrorMsg] = useState("");
+  const [streamInfo, setStreamInfo] = useState(null);
+  const [viewerCount, setViewerCount] = useState(0);
+
+  const videoRef = useRef(null);
+  const mediaRef = useRef(null);
+  const pcRef = useRef(null);
+  const pollRef = useRef(null);
+
+  const cleanup = useCallback(() => {
+    clearInterval(pollRef.current);
+    if (mediaRef.current) {
+      mediaRef.current.getTracks().forEach((t) => t.stop());
+      mediaRef.current = null;
+    }
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
   }, []);
 
-  const fetchMyStreams = async () => {
-    try {
-      const res = await axios.get(`${API}/streams/my`);
-      setStreams(res.data);
-    } catch {
-      toast.error("Failed to load your streams.");
-    } finally {
-      setLoading(false);
+  // Assign stream to video element once we're live
+  useEffect(() => {
+    if (phase === "live" && videoRef.current && mediaRef.current) {
+      videoRef.current.srcObject = mediaRef.current;
     }
-  };
+  }, [phase]);
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!form.title.trim()) return;
-    setCreating(true);
+  // Cleanup on unmount (navigating away while live)
+  useEffect(() => () => cleanup(), [cleanup]);
+
+  const handleGoLive = async () => {
+    setPhase("starting");
+    setErrorMsg("");
+
+    // Step 1: Request camera + mic
+    let localStream;
     try {
-      const res = await axios.post(`${API}/streams`, form);
-      setStreams((prev) => [res.data, ...prev]);
-      setShowForm(false);
-      setForm({ title: "", description: "", type: "training", is_private: false });
-      toast.success("Stream created! Paste the OBS credentials and go live.");
+      localStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: true,
+      });
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Failed to create stream.");
-    } finally {
-      setCreating(false);
+      const denied = err.name === "NotAllowedError" || err.name === "PermissionDeniedError";
+      const notFound = err.name === "NotFoundError" || err.name === "DevicesNotFoundError";
+      setErrorMsg(
+        denied
+          ? "Camera and microphone access is required. Tap the camera icon in your browser's address bar to allow access, then try again."
+          : notFound
+          ? "No camera found on this device."
+          : `Camera error: ${err.message}`
+      );
+      setPhase("error");
+      return;
     }
-  };
 
-  const handleStatusChange = (streamId, newStatus) => {
-    setStreams((prev) =>
-      prev.map((s) => (s.stream_id === streamId ? { ...s, status: newStatus } : s))
-    );
-  };
+    mediaRef.current = localStream;
 
-  const handleDelete = async (streamId) => {
-    if (!window.confirm("Delete this stream?")) return;
+    // Step 2: Create / reuse stream on backend
+    let streamData;
     try {
-      await axios.delete(`${API}/streams/${streamId}`);
-      setStreams((prev) => prev.filter((s) => s.stream_id !== streamId));
-      toast.success("Stream deleted.");
+      const res = await axios.post(`${API}/streams/go-live`);
+      streamData = res.data;
     } catch {
-      toast.error("Failed to delete stream.");
+      cleanup();
+      setErrorMsg("Failed to set up the stream. Check your connection and try again.");
+      setPhase("error");
+      return;
+    }
+
+    // Step 3: WebRTC peer connection (send-only)
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      bundlePolicy: "max-bundle",
+    });
+    pcRef.current = pc;
+
+    for (const track of localStream.getTracks()) {
+      pc.addTransceiver(track, { direction: "sendonly" });
+    }
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await waitForIce(pc);
+
+    // Step 4: Proxy SDP through backend — stream key never touches the browser
+    let answerSdp;
+    try {
+      const token = await getToken();
+      const resp = await fetch(`${API}/streams/${streamData.stream_id}/whip`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/sdp",
+          Authorization: `Bearer ${token}`,
+        },
+        body: pc.localDescription.sdp,
+      });
+      if (!resp.ok) {
+        const detail = await resp.text().catch(() => resp.statusText);
+        throw new Error(detail || `${resp.status}`);
+      }
+      answerSdp = await resp.text();
+    } catch (err) {
+      cleanup();
+      setErrorMsg(`Could not connect to stream server. ${err.message}`);
+      setPhase("error");
+      return;
+    }
+
+    try {
+      await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
+    } catch {
+      cleanup();
+      setErrorMsg("Stream negotiation failed — please try again.");
+      setPhase("error");
+      return;
+    }
+
+    setStreamInfo({
+      stream_id: streamData.stream_id,
+      playback_id: streamData.playback_id,
+      title: streamData.title,
+    });
+    setViewerCount(0);
+    setPhase("live");
+
+    // Poll viewer count every 15 s
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await axios.get(`${API}/streams/${streamData.stream_id}`);
+        setViewerCount(res.data.viewer_count ?? 0);
+      } catch {}
+    }, 15000);
+  };
+
+  const handleEndStream = async () => {
+    const sid = streamInfo?.stream_id;
+    cleanup();
+    navigate("/live");
+    if (sid) {
+      try {
+        await axios.patch(`${API}/streams/${sid}`, { status: "ended" });
+      } catch {}
     }
   };
 
-  return (
-    <div className="min-h-screen bg-victory-bg pb-nav">
-      {/* Header */}
-      <div className="px-4 pt-6 pb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Radio className="w-6 h-6 text-victory-lime" />
-          <h1 className="text-xl font-heading font-extrabold text-victory-text">Go Live</h1>
-        </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 bg-victory-lime text-victory-bg text-sm font-semibold rounded-lg px-3 py-2"
-        >
-          <Plus className="w-4 h-4" />
-          New Stream
-        </button>
-      </div>
+  // ── Live screen ──────────────────────────────────────────────────────────
+  if (phase === "live") {
+    return (
+      <div className="min-h-screen bg-black flex flex-col">
+        {/* Camera preview */}
+        <div className="relative flex-1 overflow-hidden bg-black">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+          />
 
-      <div className="px-4 space-y-4">
-        {/* Create form */}
-        {showForm && (
-          <form onSubmit={handleCreate} className="victory-card p-4 space-y-4">
-            <h2 className="font-semibold text-victory-text">Create Stream</h2>
-
-            <div>
-              <label className="victory-label">Title</label>
-              <input
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="victory-input"
-                placeholder="Training Camp Day 1..."
-                maxLength={100}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="victory-label">Description (optional)</label>
-              <input
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="victory-input"
-                placeholder="What are you working on today?"
-                maxLength={300}
-              />
-            </div>
-
-            <div>
-              <label className="victory-label">Type</label>
-              <select
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
-                className="victory-input"
-              >
-                {TYPE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.is_private}
-                onChange={(e) => setForm({ ...form, is_private: e.target.checked })}
-                className="w-4 h-4 accent-[#E8FF47]"
-              />
-              <span className="text-victory-text text-sm">Private stream (only you can see it)</span>
-            </label>
-
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={creating || !form.title.trim()}
-                className="flex-1 victory-btn-primary disabled:opacity-50"
-              >
-                {creating ? "Creating..." : "Create Stream"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="victory-btn-ghost px-4"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Streams list */}
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
+          {/* Overlays */}
+          <div className="absolute top-safe-top top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+            <span className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
+              <Radio className="w-3 h-3" />
+              LIVE
+            </span>
+            <span className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full">
+              <Users className="w-3 h-3" />
+              {viewerCount}
+            </span>
           </div>
-        ) : streams.length === 0 ? (
-          <div className="text-center py-16 space-y-3">
-            <Radio className="w-12 h-12 text-victory-muted mx-auto" />
-            <p className="text-victory-muted">No streams yet.</p>
-            <p className="text-victory-muted text-sm">Tap "New Stream" to get started.</p>
+        </div>
+
+        {/* Controls bar */}
+        <div className="bg-black/90 px-6 py-5 flex flex-col gap-3">
+          <p className="text-white/80 text-sm text-center font-medium">
+            {streamInfo?.title || "You're Live"}
+          </p>
+          <button
+            onClick={handleEndStream}
+            className="w-full py-4 rounded-2xl bg-red-500/20 border border-red-500/50 text-red-400 font-bold text-base transition-colors active:bg-red-500/30"
+          >
+            End Stream
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Idle / starting / error screen ───────────────────────────────────────
+  return (
+    <div className="min-h-screen bg-victory-bg pb-nav flex flex-col">
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
+        {phase === "starting" ? (
+          <div className="flex flex-col items-center gap-5">
+            <div className="w-16 h-16 border-4 border-victory-lime border-t-transparent rounded-full animate-spin" />
+            <p className="text-victory-muted text-base">Setting up your stream…</p>
+          </div>
+        ) : phase === "error" ? (
+          <div className="flex flex-col items-center gap-5 text-center max-w-xs">
+            <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+              {errorMsg.toLowerCase().includes("camera") ? (
+                <VideoOff className="w-7 h-7 text-red-400" />
+              ) : (
+                <AlertCircle className="w-7 h-7 text-red-400" />
+              )}
+            </div>
+            <p className="text-victory-muted text-sm leading-relaxed">{errorMsg}</p>
+            <button
+              onClick={() => { setPhase("idle"); setErrorMsg(""); }}
+              className="victory-btn-primary px-10"
+            >
+              Try Again
+            </button>
           </div>
         ) : (
-          streams.map((s) => (
-            <StreamCard
-              key={s.stream_id}
-              stream={s}
-              onStatusChange={handleStatusChange}
-              onDelete={handleDelete}
-            />
-          ))
+          <div className="flex flex-col items-center gap-10 w-full max-w-xs">
+            {/* Avatar */}
+            <div className="flex flex-col items-center gap-3">
+              {user?.avatar_url ? (
+                <img
+                  src={user.avatar_url}
+                  alt={user?.name}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-victory-lime"
+                  onError={(e) => { e.target.style.display = "none"; }}
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-victory-lime/20 flex items-center justify-center text-victory-lime text-3xl font-bold">
+                  {(user?.name || "F")[0].toUpperCase()}
+                </div>
+              )}
+              <p className="text-victory-muted text-sm">Ready to go live?</p>
+            </div>
+
+            {/* Big Go Live button */}
+            <button
+              onClick={handleGoLive}
+              className="w-full flex items-center justify-center gap-3 bg-red-500 hover:bg-red-600 text-white font-bold text-xl rounded-2xl py-5 transition-colors active:scale-95 transition-transform shadow-lg shadow-red-500/30"
+            >
+              <Radio className="w-6 h-6" />
+              Go Live
+            </button>
+
+            <p className="text-victory-muted text-xs text-center leading-relaxed">
+              Your camera and microphone will be used to broadcast live.
+            </p>
+          </div>
         )}
       </div>
 
