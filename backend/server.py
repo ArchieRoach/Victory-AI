@@ -1917,6 +1917,99 @@ async def create_stream(data: StreamCreate, user: dict = Depends(get_current_use
     return doc
 
 
+@api_router.post("/streams/go-live")
+async def go_live(user: dict = Depends(get_current_user)):
+    if not LIVEPEER_API_KEY:
+        raise HTTPException(500, "Streaming not configured")
+    # Reuse an idle stream created by this user in the last 24 hours
+    existing = await db.streams.find_one(
+        {
+            "user_id": user["user_id"],
+            "status": "idle",
+            "created_at": {"$gt": (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()},
+        },
+        {"_id": 0},
+    )
+    if existing:
+        now = datetime.now(timezone.utc).isoformat()
+        await db.streams.update_one(
+            {"stream_id": existing["stream_id"]},
+            {"$set": {"status": "live", "started_at": now}},
+        )
+        return {
+            "stream_id": existing["stream_id"],
+            "playback_id": existing["playback_id"],
+            "stream_key": existing["stream_key"],
+            "title": existing["title"],
+        }
+    # Create a fresh Livepeer stream
+    title = f"{user.get('name', 'Fighter')} — Live"
+    try:
+        lp = await _livepeer("POST", "/stream", {
+            "name": title,
+            "profiles": [
+                {"name": "720p", "bitrate": 2000000, "fps": 30, "width": 1280, "height": 720},
+                {"name": "480p", "bitrate": 1000000, "fps": 30, "width": 854, "height": 480},
+            ],
+            "record": True,
+        })
+    except Exception as e:
+        logger.error(f"Livepeer go-live: {e}")
+        raise HTTPException(502, "Failed to create stream")
+    stream_id = f"str_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc).isoformat()
+    doc = {
+        "stream_id": stream_id,
+        "user_id": user["user_id"],
+        "user_name": user.get("name") or "Fighter",
+        "user_avatar": user.get("avatar_url") or "",
+        "livepeer_id": lp["id"],
+        "playback_id": lp["playbackId"],
+        "stream_key": lp["streamKey"],
+        "rtmp_url": "rtmp://rtmp.livepeer.studio/live",
+        "title": title,
+        "description": "",
+        "type": "training",
+        "is_private": False,
+        "status": "live",
+        "viewer_count": 0,
+        "created_at": now,
+        "started_at": now,
+        "ended_at": None,
+    }
+    await db.streams.insert_one(doc)
+    return {
+        "stream_id": doc["stream_id"],
+        "playback_id": doc["playback_id"],
+        "stream_key": doc["stream_key"],
+        "title": doc["title"],
+    }
+
+
+@api_router.post("/streams/{stream_id}/whip")
+async def whip_proxy(stream_id: str, request: Request, user: dict = Depends(get_current_user)):
+    stream = await db.streams.find_one({"stream_id": stream_id})
+    if not stream:
+        raise HTTPException(404, "Stream not found")
+    if stream["user_id"] != user["user_id"]:
+        raise HTTPException(403, "Not your stream")
+    sdp_offer = await request.body()
+    try:
+        async with httpx.AsyncClient(timeout=15) as c:
+            resp = await c.post(
+                f"https://rtmp.livepeer.studio/webrtc/{stream['stream_key']}",
+                content=sdp_offer,
+                headers={"Content-Type": "application/sdp"},
+            )
+    except Exception as e:
+        logger.error(f"WHIP proxy: {e}")
+        raise HTTPException(502, "WHIP negotiation failed")
+    if resp.status_code not in (200, 201):
+        logger.error(f"WHIP Livepeer: {resp.status_code} {resp.text[:200]}")
+        raise HTTPException(502, f"Livepeer rejected WHIP offer: {resp.status_code}")
+    return Response(content=resp.content, media_type="application/sdp")
+
+
 @api_router.get("/streams/my")
 async def my_streams(user: dict = Depends(get_current_user), limit: int = Query(10, le=20)):
     cursor = db.streams.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).limit(limit)
