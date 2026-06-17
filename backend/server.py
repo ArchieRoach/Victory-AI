@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Response, Request, Query, File, UploadFile
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Response, Request, Query, File, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -16,6 +16,7 @@ import jwt
 import base64
 import random
 import time
+import json
 import cloudinary
 import cloudinary.uploader
 import cloudinary.utils
@@ -51,6 +52,10 @@ _clerk_jwks_cache: dict = {"keys": [], "fetched_at": 0}
 
 # Emergent LLM Key
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+
+# Livepeer
+LIVEPEER_API_KEY = os.environ.get('LIVEPEER_API_KEY', '')
+LIVEPEER_BASE_URL = "https://livepeer.studio/api"
 
 # ElevenLabs TTS Settings
 ELEVENLABS_API_KEY = os.environ.get('ELEVENLABS_API_KEY', '')
@@ -1808,6 +1813,283 @@ async def validate_access(user: dict = Depends(get_current_user)):
         return {"access_granted": False, "reason": "access_revoked"}
 
     return {"access_granted": True, "subscription_active": True}
+
+# ─── Livepeer Streaming ───────────────────────────────────────────────────────
+
+async def _livepeer(method: str, path: str, payload: dict = None) -> dict:
+    headers = {"Authorization": f"Bearer {LIVEPEER_API_KEY}", "Content-Type": "application/json"}
+    async with httpx.AsyncClient(timeout=15) as c:
+        if method == "GET":
+            r = await c.get(f"{LIVEPEER_BASE_URL}{path}", headers=headers)
+        elif method == "POST":
+            r = await c.post(f"{LIVEPEER_BASE_URL}{path}", headers=headers, json=payload or {})
+        elif method == "DELETE":
+            r = await c.delete(f"{LIVEPEER_BASE_URL}{path}", headers=headers)
+        else:
+            raise ValueError(method)
+        r.raise_for_status()
+        return r.json() if r.content else {}
+
+
+class ConnectionManager:
+    def __init__(self):
+        self._conns: Dict[str, List[WebSocket]] = {}
+
+    async def connect(self, ws: WebSocket, stream_id: str):
+        await ws.accept()
+        self._conns.setdefault(stream_id, []).append(ws)
+
+    def disconnect(self, ws: WebSocket, stream_id: str):
+        conns = self._conns.get(stream_id, [])
+        if ws in conns:
+            conns.remove(ws)
+
+    async def broadcast(self, stream_id: str, data: dict):
+        msg = json.dumps(data)
+        dead = []
+        for ws in list(self._conns.get(stream_id, [])):
+            try:
+                await ws.send_text(msg)
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            self.disconnect(ws, stream_id)
+
+    def viewer_count(self, stream_id: str) -> int:
+        return len(self._conns.get(stream_id, []))
+
+
+ws_manager = ConnectionManager()
+
+
+class StreamCreate(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    type: str = "training"
+    is_private: bool = False
+
+
+class StreamUpdate(BaseModel):
+    status: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+
+
+@api_router.post("/streams")
+async def create_stream(data: StreamCreate, user: dict = Depends(get_current_user)):
+    if not LIVEPEER_API_KEY:
+        raise HTTPException(500, "Streaming not configured")
+    try:
+        lp = await _livepeer("POST", "/stream", {
+            "name": f"{user.get('name', 'Fighter')} - {data.title}",
+            "profiles": [
+                {"name": "720p", "bitrate": 2000000, "fps": 30, "width": 1280, "height": 720},
+                {"name": "480p", "bitrate": 1000000, "fps": 30, "width": 854, "height": 480},
+                {"name": "360p", "bitrate": 500000, "fps": 30, "width": 640, "height": 360},
+            ],
+            "record": True,
+        })
+    except Exception as e:
+        logger.error(f"Livepeer create stream: {e}")
+        raise HTTPException(502, "Failed to create stream")
+    stream_id = f"str_{uuid.uuid4().hex[:12]}"
+    doc = {
+        "stream_id": stream_id,
+        "user_id": user["user_id"],
+        "user_name": user.get("name") or "Fighter",
+        "user_avatar": user.get("avatar_url") or "",
+        "livepeer_id": lp["id"],
+        "playback_id": lp["playbackId"],
+        "stream_key": lp["streamKey"],
+        "rtmp_url": "rtmp://rtmp.livepeer.studio/live",
+        "title": data.title,
+        "description": data.description or "",
+        "type": data.type,
+        "is_private": data.is_private,
+        "status": "idle",
+        "viewer_count": 0,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "started_at": None,
+        "ended_at": None,
+    }
+    await db.streams.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.get("/streams/my")
+async def my_streams(user: dict = Depends(get_current_user), limit: int = Query(10, le=20)):
+    cursor = db.streams.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).limit(limit)
+    return await cursor.to_list(length=limit)
+
+
+@api_router.get("/streams")
+async def list_streams(
+    status: Optional[str] = Query(None),
+    type: Optional[str] = Query(None),
+    limit: int = Query(20, le=50),
+    _: dict = Depends(get_current_user),
+):
+    q: Dict[str, Any] = {"is_private": False}
+    if status:
+        q["status"] = status
+    if type:
+        q["type"] = type
+    cursor = (
+        db.streams.find(q, {"_id": 0, "stream_key": 0})
+        .sort([("status", -1), ("viewer_count", -1)])
+        .limit(limit)
+    )
+    return await cursor.to_list(length=limit)
+
+
+@api_router.get("/streams/{stream_id}")
+async def get_stream(stream_id: str, user: dict = Depends(get_current_user)):
+    stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
+    if not stream:
+        raise HTTPException(404, "Stream not found")
+    if stream.get("is_private") and stream["user_id"] != user["user_id"]:
+        raise HTTPException(403, "Private stream")
+    if stream["user_id"] != user["user_id"]:
+        stream.pop("stream_key", None)
+    stream["viewer_count"] = ws_manager.viewer_count(stream_id)
+    return stream
+
+
+@api_router.patch("/streams/{stream_id}")
+async def update_stream(stream_id: str, data: StreamUpdate, user: dict = Depends(get_current_user)):
+    stream = await db.streams.find_one({"stream_id": stream_id})
+    if not stream:
+        raise HTTPException(404, "Stream not found")
+    if stream["user_id"] != user["user_id"]:
+        raise HTTPException(403, "Not your stream")
+    updates: Dict[str, Any] = {}
+    if data.status is not None:
+        updates["status"] = data.status
+        if data.status == "live":
+            updates["started_at"] = datetime.now(timezone.utc).isoformat()
+        elif data.status == "ended":
+            updates["ended_at"] = datetime.now(timezone.utc).isoformat()
+    if data.title is not None:
+        updates["title"] = data.title
+    if data.description is not None:
+        updates["description"] = data.description
+    if updates:
+        await db.streams.update_one({"stream_id": stream_id}, {"$set": updates})
+    updated = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
+    return updated
+
+
+@api_router.delete("/streams/{stream_id}")
+async def delete_stream(stream_id: str, user: dict = Depends(get_current_user)):
+    stream = await db.streams.find_one({"stream_id": stream_id})
+    if not stream:
+        raise HTTPException(404, "Stream not found")
+    if stream["user_id"] != user["user_id"]:
+        raise HTTPException(403, "Not your stream")
+    if stream.get("livepeer_id"):
+        try:
+            await _livepeer("DELETE", f"/stream/{stream['livepeer_id']}")
+        except Exception as e:
+            logger.warning(f"Livepeer delete: {e}")
+    await db.streams.delete_one({"stream_id": stream_id})
+    await db.chat_messages.delete_many({"stream_id": stream_id})
+    return {"ok": True}
+
+
+@api_router.post("/streams/{stream_id}/clip")
+async def create_clip(
+    stream_id: str,
+    start_time: int = Query(...),
+    end_time: int = Query(...),
+    user: dict = Depends(get_current_user),
+):
+    stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
+    if not stream:
+        raise HTTPException(404, "Stream not found")
+    if not stream.get("playback_id"):
+        raise HTTPException(400, "No playback ID")
+    try:
+        clip = await _livepeer("POST", "/clip", {
+            "playbackId": stream["playback_id"],
+            "startTime": start_time,
+            "endTime": end_time,
+            "name": f"Clip – {stream['title']}",
+        })
+    except Exception as e:
+        logger.error(f"Livepeer clip: {e}")
+        raise HTTPException(502, "Clip failed")
+    return {
+        "playback_id": (clip.get("asset") or {}).get("playbackId"),
+        "asset_id": (clip.get("asset") or {}).get("id"),
+    }
+
+
+@app.post("/api/livepeer/webhook")
+async def livepeer_webhook(request: Request):
+    body = await request.json()
+    event = body.get("event", "")
+    lp_id = body.get("streamId") or body.get("id", "")
+    if event in ("stream.started", "stream.idle"):
+        stream = await db.streams.find_one({"livepeer_id": lp_id})
+        if stream:
+            new_status = "live" if event == "stream.started" else "idle"
+            upd: Dict[str, Any] = {"status": new_status}
+            if new_status == "live":
+                upd["started_at"] = datetime.now(timezone.utc).isoformat()
+            await db.streams.update_one({"livepeer_id": lp_id}, {"$set": upd})
+    return {"ok": True}
+
+
+@app.websocket("/api/ws/chat/{stream_id}")
+async def ws_chat(websocket: WebSocket, stream_id: str):
+    stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0, "stream_key": 0})
+    if not stream:
+        await websocket.close(code=4004)
+        return
+    await ws_manager.connect(websocket, stream_id)
+    count = ws_manager.viewer_count(stream_id)
+    await db.streams.update_one({"stream_id": stream_id}, {"$set": {"viewer_count": count}})
+    history = await db.chat_messages.find(
+        {"stream_id": stream_id}, {"_id": 0}
+    ).sort("created_at", 1).limit(50).to_list(length=50)
+    await websocket.send_text(json.dumps({"type": "history", "messages": history}))
+    await ws_manager.broadcast(stream_id, {"type": "viewer_count", "count": count})
+    try:
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                payload = json.loads(raw)
+            except Exception:
+                continue
+            if payload.get("type") == "ping":
+                await websocket.send_text(json.dumps({"type": "pong"}))
+                continue
+            text = (payload.get("message") or "").strip()
+            if not text or len(text) > 500:
+                continue
+            msg = {
+                "message_id": f"msg_{uuid.uuid4().hex[:10]}",
+                "stream_id": stream_id,
+                "user_name": (payload.get("user_name") or "Fighter")[:50],
+                "user_avatar": (payload.get("user_avatar") or "")[:200],
+                "message": text,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await db.chat_messages.insert_one(msg)
+            msg.pop("_id", None)
+            await ws_manager.broadcast(stream_id, {"type": "message", **msg})
+    except WebSocketDisconnect:
+        pass
+    except Exception:
+        pass
+    finally:
+        ws_manager.disconnect(websocket, stream_id)
+        count = ws_manager.viewer_count(stream_id)
+        await db.streams.update_one({"stream_id": stream_id}, {"$set": {"viewer_count": count}})
+        await ws_manager.broadcast(stream_id, {"type": "viewer_count", "count": count})
+
+# ─────────────────────────────────────────────────────────────────────────────
 
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
 _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]

@@ -39,6 +39,9 @@ import CompetitionDetailPage from "@/pages/CompetitionDetailPage";
 import PublicProfilePage from "@/pages/PublicProfilePage";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import NotFoundPage from "@/pages/NotFoundPage";
+import LiveFeedPage from "@/pages/LiveFeedPage";
+import StreamViewPage from "@/pages/StreamViewPage";
+import GoLivePage from "@/pages/GoLivePage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -233,6 +236,11 @@ const AppRouter = () => {
         <Route path="/compete" element={<ProtectedRoute><CompetitionsPage /></ProtectedRoute>} />
         <Route path="/compete/:compId" element={<ProtectedRoute><CompetitionDetailPage /></ProtectedRoute>} />
         <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
+
+        {/* Live Streaming */}
+        <Route path="/live" element={<ProtectedRoute><LiveFeedPage /></ProtectedRoute>} />
+        <Route path="/stream/:streamId" element={<ProtectedRoute><StreamViewPage /></ProtectedRoute>} />
+        <Route path="/go-live" element={<ProtectedRoute><GoLivePage /></ProtectedRoute>} />
 
         <Route path="/" element={<Navigate to="/welcome" replace />} />
         <Route path="*" element={<NotFoundPage />} />

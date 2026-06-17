@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Newspaper, Dumbbell, Swords, User } from "lucide-react";
+import { Home, Newspaper, Dumbbell, Swords, User, Tv } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const NAV_ITEMS = [
   { path: "/home",    icon: Home,      key: "home" },
   { path: "/feed",    icon: Newspaper, key: "feed" },
+  { path: "/live",    icon: Tv,        key: "live" },
   { path: "/train",   icon: Dumbbell,  key: "train" },
-  { path: "/compete", icon: Swords,    key: "compete" },
   { path: "/profile", icon: User,      key: "profile" },
 ];
 
@@ -25,7 +25,8 @@ export const BottomNav = () => {
             location.pathname === path ||
             (path === "/train" && (location.pathname.startsWith("/score") || location.pathname.startsWith("/timer"))) ||
             (path === "/compete" && location.pathname.startsWith("/compete")) ||
-            (path === "/feed" && location.pathname.startsWith("/post"));
+            (path === "/feed" && location.pathname.startsWith("/post")) ||
+            (path === "/live" && (location.pathname.startsWith("/stream") || location.pathname === "/go-live"));
 
           return (
             <NavLink
