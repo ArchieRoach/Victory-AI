@@ -208,6 +208,26 @@ const TrialExpirationBanner = () => {
 };
 
 const AppRouter = () => {
+  const navigate = useNavigate();
+
+  // Global 402 handler — fires when free-tier AI quota is exceeded mid-session
+  useEffect(() => {
+    const id = axios.interceptors.response.use(
+      (r) => r,
+      (err) => {
+        if (err?.response?.status === 402 && err?.response?.data?.detail === "ai_quota_exceeded") {
+          toast("Monthly AI limit reached", {
+            description: "You've used your 10,000 free AI credits. Upgrade to Pro for unlimited access.",
+            action: { label: "Upgrade", onClick: () => navigate("/paywall") },
+            duration: 6000,
+          });
+        }
+        return Promise.reject(err);
+      }
+    );
+    return () => axios.interceptors.response.eject(id);
+  }, [navigate]);
+
   return (
     <>
       <TrialExpirationBanner />
