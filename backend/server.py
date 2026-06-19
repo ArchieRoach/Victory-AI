@@ -826,26 +826,50 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
     plan = SUBSCRIPTION_PLANS[checkout_req.plan_id]
     host_url = checkout_req.origin_url.rstrip('/')
 
+    checkout_params = {
+        "mode": "subscription",
+        "payment_method_types": ["card"],
+        "line_items": [{
+            "price_data": {
+                "currency": "usd",
+                "product_data": {"name": f"Victory AI {plan['name']}"},
+                "unit_amount": int(plan["price"] * 100),
+                "recurring": {"interval": plan["interval"]},
+            },
+            "quantity": 1,
+        }],
+        "subscription_data": {"trial_period_days": 14},
+        "success_url": f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+        "cancel_url": f"{host_url}/paywall",
+        "customer_email": user.get("email") or None,
+        "metadata": {"user_id": user["user_id"], "plan_id": checkout_req.plan_id},
+    }
+
+    # Auto-apply founders discount for waitlist users — Stripe forbids mixing
+    # allow_promotion_codes=True with discounts[], so only one path runs.
+    founders_applied = False
+    if STRIPE_FOUNDERS_COUPON_ID and user.get("email"):
+        waitlist_entry = await db.waitlist.find_one({"email": user["email"]})
+        if waitlist_entry and waitlist_entry.get("promo_code"):
+            try:
+                codes = await asyncio.to_thread(
+                    stripe_lib.PromotionCode.list,
+                    code=waitlist_entry["promo_code"],
+                    limit=1,
+                )
+                if codes.data and codes.data[0].active:
+                    checkout_params["discounts"] = [{"promotion_code": codes.data[0].id}]
+                    founders_applied = True
+            except Exception as e:
+                logger.warning(f"Founders discount lookup failed: {e}")
+
+    if not founders_applied:
+        checkout_params["allow_promotion_codes"] = True
+
     try:
         session = await asyncio.to_thread(
             stripe_lib.checkout.Session.create,
-            mode="subscription",
-            payment_method_types=["card"],
-            line_items=[{
-                "price_data": {
-                    "currency": "usd",
-                    "product_data": {"name": f"Victory AI {plan['name']}"},
-                    "unit_amount": int(plan["price"] * 100),
-                    "recurring": {"interval": plan["interval"]},
-                },
-                "quantity": 1,
-            }],
-            subscription_data={"trial_period_days": 14},
-            allow_promotion_codes=True,
-            success_url=f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{host_url}/paywall",
-            customer_email=user.get("email") or None,
-            metadata={"user_id": user["user_id"], "plan_id": checkout_req.plan_id},
+            **checkout_params,
         )
     except Exception as e:
         logger.error(f"Stripe checkout error: {e}")
