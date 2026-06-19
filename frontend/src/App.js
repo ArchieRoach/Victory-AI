@@ -39,6 +39,7 @@ import CompetitionDetailPage from "@/pages/CompetitionDetailPage";
 import PublicProfilePage from "@/pages/PublicProfilePage";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import NotFoundPage from "@/pages/NotFoundPage";
+import SubscriptionGate from "@/components/SubscriptionGate";
 import LiveFeedPage from "@/pages/LiveFeedPage";
 import StreamViewPage from "@/pages/StreamViewPage";
 import GoLivePage from "@/pages/GoLivePage";
@@ -218,15 +219,18 @@ const AppRouter = () => {
         <Route path="/paywall" element={<OnboardingRoute><PaywallPage /></OnboardingRoute>} />
         <Route path="/payment/success" element={<OnboardingRoute><PaymentSuccess /></OnboardingRoute>} />
 
-        <Route path="/home" element={<ProtectedRoute requireSubscription={true}><HomePage /></ProtectedRoute>} />
-        <Route path="/train" element={<ProtectedRoute requireSubscription={true}><TrainPage /></ProtectedRoute>} />
-        <Route path="/score" element={<ProtectedRoute requireSubscription={true}><ScorePage /></ProtectedRoute>} />
-        <Route path="/score/results" element={<ProtectedRoute requireSubscription={true}><SessionResultsPage /></ProtectedRoute>} />
-        <Route path="/timer" element={<ProtectedRoute requireSubscription={true}><TimerPage /></ProtectedRoute>} />
-        <Route path="/library" element={<ProtectedRoute requireSubscription={true}><LibraryPage /></ProtectedRoute>} />
-        <Route path="/sessions/:sessionId" element={<ProtectedRoute requireSubscription={true}><SessionDetailPage /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute requireSubscription={true}><ProfilePage /></ProtectedRoute>} />
-        <Route path="/leaderboard" element={<ProtectedRoute requireSubscription={true}><LeaderboardPage /></ProtectedRoute>} />
+        {/* Free for all authenticated users */}
+        <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+        <Route path="/timer" element={<ProtectedRoute><TimerPage /></ProtectedRoute>} />
+        <Route path="/library" element={<ProtectedRoute><LibraryPage /></ProtectedRoute>} />
+        <Route path="/sessions/:sessionId" element={<ProtectedRoute><SessionDetailPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
+
+        {/* AI-heavy features — subscription required at point of use */}
+        <Route path="/train" element={<ProtectedRoute><SubscriptionGate feature="AI training analysis"><TrainPage /></SubscriptionGate></ProtectedRoute>} />
+        <Route path="/score" element={<ProtectedRoute><SubscriptionGate feature="AI session scoring"><ScorePage /></SubscriptionGate></ProtectedRoute>} />
+        <Route path="/score/results" element={<ProtectedRoute><SubscriptionGate feature="AI session results"><SessionResultsPage /></SubscriptionGate></ProtectedRoute>} />
 
         {/* Social / Network features — free tier */}
         <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
