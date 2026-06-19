@@ -41,6 +41,17 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 STRIPE_FOUNDERS_COUPON_ID = os.environ.get('STRIPE_FOUNDERS_COUPON_ID', '')
 stripe_lib.api_key = STRIPE_API_KEY
 
+# ── Freemium AI token budget ──────────────────────────────────────────────────
+# Based on real API costs: GPT-4o ~$0.005/call, ElevenLabs ~$0.02/call.
+# 10,000 free tokens/month ≈ 5 video analyses OR 6 TTS sessions OR any mix.
+FREE_MONTHLY_AI_TOKENS = 10_000
+AI_TOKEN_COSTS = {
+    "analyze_video":  2_000,   # GPT-4o vision: ~600 input + 400 output tokens
+    "tts_generate":   1_500,   # ElevenLabs TTS: ~100 chars, cost-normalised
+    "ai_competition": 2_000,   # GPT-4o judge: ~600 input + 400 output tokens
+}
+# ─────────────────────────────────────────────────────────────────────────────
+
 # Resend (email)
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 RESEND_FROM = os.environ.get('RESEND_FROM', 'Victory AI <onboarding@resend.dev>')
@@ -549,6 +560,47 @@ async def register_uploaded_video(video_data: RoundVideoUpload, user: dict = Dep
     await db.round_videos.insert_one(video_doc)
     return {"video_id": video_doc["video_id"], "message": "Video registered"}
 
+async def check_and_consume_ai_tokens(user: dict, feature: str) -> dict:
+    """Deduct tokens for a free-tier user. Subscribed users are always allowed."""
+    if user.get("has_subscription"):
+        return {"allowed": True, "tokens_remaining": -1}
+    cost = AI_TOKEN_COSTS.get(feature, 1_000)
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    user_id = user["user_id"]
+    if user.get("ai_tokens_month") != current_month:
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$set": {"ai_tokens_used": 0, "ai_tokens_month": current_month}},
+        )
+        tokens_used = 0
+    else:
+        tokens_used = user.get("ai_tokens_used", 0)
+    remaining = FREE_MONTHLY_AI_TOKENS - tokens_used
+    if remaining < cost:
+        return {"allowed": False, "tokens_remaining": max(0, remaining)}
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {"ai_tokens_used": tokens_used + cost, "ai_tokens_month": current_month}},
+    )
+    return {"allowed": True, "tokens_remaining": remaining - cost}
+
+
+@api_router.get("/usage")
+async def get_ai_usage(user: dict = Depends(get_current_user)):
+    if user.get("has_subscription"):
+        return {"plan": "pro", "unlimited": True, "tokens_used": 0, "tokens_remaining": None, "monthly_limit": None}
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    tokens_used = user.get("ai_tokens_used", 0) if user.get("ai_tokens_month") == current_month else 0
+    return {
+        "plan": "free",
+        "unlimited": False,
+        "tokens_used": tokens_used,
+        "tokens_remaining": max(0, FREE_MONTHLY_AI_TOKENS - tokens_used),
+        "monthly_limit": FREE_MONTHLY_AI_TOKENS,
+        "costs": AI_TOKEN_COSTS,
+    }
+
+
 # ============== GPT-4 VISION VIDEO ANALYSIS ==============
 
 @api_router.post("/ai/analyze-video")
@@ -559,7 +611,11 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
     
     if not video_url:
         raise HTTPException(status_code=400, detail="video_url required")
-    
+
+    quota = await check_and_consume_ai_tokens(user, "analyze_video")
+    if not quota["allowed"]:
+        raise HTTPException(status_code=402, detail="ai_quota_exceeded")
+
     training_partner = user.get("training_partner", {})
     partner_name = training_partner.get("name", "Coach")
     feedback_tone = training_partner.get("feedback_tone", "encouraging")
@@ -1015,6 +1071,10 @@ class TTSRequest(BaseModel):
 async def generate_tts(tts_req: TTSRequest, user: dict = Depends(get_current_user)):
     if not ELEVENLABS_API_KEY:
         raise HTTPException(status_code=503, detail="TTS not configured")
+
+    quota = await check_and_consume_ai_tokens(user, "tts_generate")
+    if not quota["allowed"]:
+        raise HTTPException(status_code=402, detail="ai_quota_exceeded")
 
     voice_id = tts_req.voice_id or ELEVENLABS_VOICE_ID
 
@@ -1556,6 +1616,9 @@ async def create_competition(data: CompetitionCreate, user: dict = Depends(get_c
         "gym_id": user.get("gym_id"),
     }
     if data.competition_type == "ai_judge":
+        ai_quota = await check_and_consume_ai_tokens(user, "ai_competition")
+        if not ai_quota["allowed"]:
+            raise HTTPException(status_code=402, detail="ai_quota_exceeded")
         try:
             import json as _json
             headers = {"Authorization": f"Bearer {EMERGENT_LLM_KEY}", "Content-Type": "application/json"}
