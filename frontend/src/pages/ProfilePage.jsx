@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Select,
@@ -93,8 +93,16 @@ export default function ProfilePage() {
     amateur_wins: user?.amateur_wins ?? 0,
     amateur_losses: user?.amateur_losses ?? 0,
     amateur_draws: user?.amateur_draws ?? 0,
+    pro_wins: user?.pro_wins ?? 0,
+    pro_losses: user?.pro_losses ?? 0,
+    pro_draws: user?.pro_draws ?? 0,
+    titles: user?.titles ?? [],
+    avatar_url: user?.avatar_url || "",
   });
   const [savingExtended, setSavingExtended] = useState(false);
+  const [titleInput, setTitleInput] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef(null);
 
   useEffect(() => {
     fetchStats();
@@ -141,10 +149,55 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    if (file.size > 10 * 1024 * 1024) return toast.error("Image must be under 10 MB");
+    setUploadingAvatar(true);
+    try {
+      const sigRes = await axios.get(`${API}/cloudinary/signature?resource_type=image`);
+      const { signature, timestamp, cloud_name, api_key, folder } = sigRes.data;
+      if (!cloud_name || !api_key) throw new Error("Upload service not configured");
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("api_key", api_key);
+      fd.append("timestamp", timestamp);
+      fd.append("signature", signature);
+      fd.append("folder", folder);
+      const up = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+        fd,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      setExtendedForm((prev) => ({ ...prev, avatar_url: up.data.secure_url }));
+      toast.success("Photo updated — tap Save to keep it");
+    } catch (err) {
+      toast.error(`Photo upload failed: ${err?.response?.data?.error?.message || err.message}`);
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
+
+  const addTitle = () => {
+    const val = titleInput.trim();
+    if (!val || extendedForm.titles.includes(val)) return;
+    setExtendedForm((prev) => ({ ...prev, titles: [...prev.titles, val] }));
+    setTitleInput("");
+  };
+
+  const removeTitle = (i) =>
+    setExtendedForm((prev) => ({ ...prev, titles: prev.titles.filter((_, idx) => idx !== i) }));
+
   const handleLogout = async () => {
     await logout();
     navigate("/login", { replace: true });
   };
+
+  const levelIndex = EXPERIENCE_LEVELS.indexOf(formData.experience_level);
+  const showProRecord = levelIndex >= 4 || extendedForm.pro_wins > 0 || extendedForm.pro_losses > 0;
+  const showTitles = levelIndex >= 3 || extendedForm.titles.length > 0 || extendedForm.amateur_wins > 0;
+  const avatarSrc = extendedForm.avatar_url || user?.picture || null;
 
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="profile-page">
@@ -281,15 +334,37 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          <div>
-            <label className="victory-label">{t("profile.displayName")}</label>
-            <input
-              value={extendedForm.display_name}
-              onChange={(e) => setExtendedForm({ ...extendedForm, display_name: e.target.value })}
-              className="victory-input"
-              placeholder={user?.name || ""}
-              maxLength={30}
-            />
+          {/* Photo + display name row */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-shrink-0">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-victory-lime/10 border-2 border-victory-border flex items-center justify-center">
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-8 h-8 text-victory-lime" />
+                )}
+              </div>
+              <button
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-victory-lime flex items-center justify-center shadow-lg border-2 border-victory-bg"
+              >
+                {uploadingAvatar
+                  ? <div className="w-3 h-3 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
+                  : <Camera className="w-3.5 h-3.5 text-victory-bg" />}
+              </button>
+              <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="victory-label">{t("profile.displayName")}</label>
+              <input
+                value={extendedForm.display_name}
+                onChange={(e) => setExtendedForm({ ...extendedForm, display_name: e.target.value })}
+                className="victory-input"
+                placeholder={user?.name || ""}
+                maxLength={30}
+              />
+            </div>
           </div>
 
           <div>
@@ -339,9 +414,7 @@ export default function ProfilePage() {
               {["amateur_wins", "amateur_losses", "amateur_draws"].map((field) => (
                 <div key={field} className="text-center">
                   <input
-                    type="number"
-                    min={0}
-                    max={999}
+                    type="number" min={0} max={999}
                     value={extendedForm[field]}
                     onChange={(e) => setExtendedForm({ ...extendedForm, [field]: Math.max(0, Number(e.target.value)) })}
                     className="victory-input text-center font-mono text-lg"
@@ -351,6 +424,67 @@ export default function ProfilePage() {
               ))}
             </div>
           </div>
+
+          {/* Pro record — unlocks at 3–5 years+ */}
+          {showProRecord && (
+            <div>
+              <p className="victory-label mb-2">Pro Record</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { field: "pro_wins",   label: "Wins" },
+                  { field: "pro_losses", label: "Losses" },
+                  { field: "pro_draws",  label: "Draws" },
+                ].map(({ field, label }) => (
+                  <div key={field} className="text-center">
+                    <input
+                      type="number" min={0} max={999}
+                      value={extendedForm[field]}
+                      onChange={(e) => setExtendedForm({ ...extendedForm, [field]: Math.max(0, Number(e.target.value)) })}
+                      className="victory-input text-center font-mono text-lg"
+                    />
+                    <p className="text-victory-muted text-xs mt-1">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Titles & Achievements — unlocks at 1–3 years+ or if they already have titles */}
+          {showTitles && (
+            <div>
+              <p className="victory-label mb-1">Titles & Achievements</p>
+              <p className="text-xs text-victory-muted mb-2">e.g. WBC Youth, WBO #3, 3× National Amateur Champion</p>
+              {extendedForm.titles.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {extendedForm.titles.map((title, i) => (
+                    <span key={i} className="flex items-center gap-1.5 bg-victory-lime/15 border border-victory-lime/30 text-victory-lime text-xs font-medium px-3 py-1 rounded-full">
+                      {title}
+                      <button onClick={() => removeTitle(i)} className="hover:text-red-400 transition-colors">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input
+                  value={titleInput}
+                  onChange={(e) => setTitleInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addTitle()}
+                  className="victory-input flex-1 text-sm"
+                  placeholder="Add a title or achievement..."
+                  maxLength={60}
+                />
+                <button
+                  onClick={addTitle}
+                  disabled={!titleInput.trim()}
+                  className="px-4 py-2 rounded-xl border border-victory-lime text-victory-lime text-sm font-semibold disabled:opacity-40 whitespace-nowrap"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Virtual competition record */}
           <div>
