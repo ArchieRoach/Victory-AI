@@ -33,7 +33,10 @@ export default function ProfilePage() {
     "Training under 6 months",
     "6–18 months",
     "1–3 years",
-    "3+ years",
+    "3–5 years",
+    "5–10 years",
+    "10+ years",
+    "Professional boxer",
   ];
 
   const goalOptions = useMemo(() => {
@@ -73,9 +76,12 @@ export default function ProfilePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.experience_level, extendedForm.amateur_wins, extendedForm.amateur_losses, extendedForm.amateur_draws]);
 
+  // Map legacy "3+ years" to the new granular level on first load
+  const LEGACY_LEVEL_MAP = { "3+ years": "3–5 years" };
+
   const [formData, setFormData] = useState({
     name: user?.name || "",
-    experience_level: user?.experience_level || "Training under 6 months",
+    experience_level: LEGACY_LEVEL_MAP[user?.experience_level] ?? user?.experience_level ?? "Training under 6 months",
     primary_goal: user?.primary_goal || "Get better overall",
   });
 
