@@ -1252,6 +1252,11 @@ class UserProfileExtend(BaseModel):
     amateur_wins: Optional[int] = None
     amateur_losses: Optional[int] = None
     amateur_draws: Optional[int] = None
+    pro_wins: Optional[int] = None
+    pro_losses: Optional[int] = None
+    pro_draws: Optional[int] = None
+    titles: Optional[List[str]] = None
+    avatar_url: Optional[str] = None
     is_public: Optional[bool] = None
     display_name: Optional[str] = None
 
