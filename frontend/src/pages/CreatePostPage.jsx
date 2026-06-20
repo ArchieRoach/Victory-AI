@@ -52,10 +52,15 @@ export default function CreatePostPage() {
 
   const uploadVideo = async () => {
     if (!videoFile) return null;
+
+    let cloud_name, api_key;
     try {
       const sigRes = await axios.get(`${API}/cloudinary/signature?resource_type=video`);
-      const { signature, timestamp, cloud_name, api_key, folder } = sigRes.data;
-      if (!cloud_name || !api_key) return null;
+      ({ cloud_name, api_key } = sigRes.data);
+      if (!cloud_name || !api_key) {
+        throw new Error("Cloudinary is not configured on the server. Contact support.");
+      }
+      const { signature, timestamp, folder } = sigRes.data;
 
       const formData = new FormData();
       formData.append("file", videoFile);
@@ -63,7 +68,6 @@ export default function CreatePostPage() {
       formData.append("timestamp", timestamp);
       formData.append("signature", signature);
       formData.append("folder", folder);
-      formData.append("resource_type", "video");
 
       const uploadRes = await axios.post(
         `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`,
@@ -75,8 +79,12 @@ export default function CreatePostPage() {
       );
       return uploadRes.data.secure_url;
     } catch (err) {
-      console.error("Upload error:", err);
-      return null;
+      const detail =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.detail ||
+        err?.message ||
+        "Unknown error";
+      throw new Error(detail);
     }
   };
 
@@ -88,9 +96,10 @@ export default function CreatePostPage() {
     try {
       let videoUrl = null;
       if (videoFile) {
-        videoUrl = await uploadVideo();
-        if (!videoUrl && videoFile) {
-          toast.error(t("createPost.uploadFailed"));
+        try {
+          videoUrl = await uploadVideo();
+        } catch (uploadErr) {
+          toast.error(`Upload failed: ${uploadErr.message}`);
           setUploading(false);
           return;
         }

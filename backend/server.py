@@ -532,7 +532,8 @@ async def generate_cloudinary_signature(
         raise HTTPException(status_code=500, detail="Cloudinary not configured")
     
     timestamp = int(time.time())
-    params = {"timestamp": timestamp, "folder": f"{folder}/{user['user_id']}", "resource_type": resource_type}
+    # resource_type must NOT be included in the signature per Cloudinary docs
+    params = {"timestamp": timestamp, "folder": f"{folder}/{user['user_id']}"}
     signature = cloudinary.utils.api_sign_request(params, os.environ.get("CLOUDINARY_API_SECRET"))
     
     return {
