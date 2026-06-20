@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
@@ -36,13 +36,42 @@ export default function ProfilePage() {
     "3+ years",
   ];
 
-  const PRIMARY_GOALS = [
-    "Get better overall",
-    "Improve defence",
-    "Sharpen my offence",
-    "Prepare for sparring",
-    "Just having fun",
-  ];
+  const goalOptions = useMemo(() => {
+    const idx = EXPERIENCE_LEVELS.indexOf(formData.experience_level);
+    const isIntermediate = idx >= 3; // 1–3 years+
+    const isAdvanced = idx >= 4;     // 3+ years
+    const hasRecord = extendedForm.amateur_wins > 0 || extendedForm.amateur_losses > 0 || extendedForm.amateur_draws > 0;
+
+    return [
+      // Available to everyone
+      "Get better overall",
+      "Improve defence",
+      "Sharpen my offence",
+      "Prepare for sparring",
+      "Build my following online",
+      "Grow my fanbase as a streamer",
+      "Just having fun",
+      // 1–3 years+
+      ...(isIntermediate ? [
+        "Compete in amateurs",
+        "Build my gym reputation",
+      ] : []),
+      // 3+ years
+      ...(isAdvanced ? [
+        "Go professional",
+        "Build my fighter brand",
+        "Win a regional / national title",
+      ] : []),
+      // Has competitive record
+      ...(hasRecord || isAdvanced ? [
+        "Fund my fight camp",
+        "Climb the world rankings",
+        "Earn a title shot",
+        "Win a world title",
+      ] : []),
+    ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.experience_level, extendedForm.amateur_wins, extendedForm.amateur_losses, extendedForm.amateur_draws]);
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -64,6 +93,13 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchStats();
   }, []);
+
+  // Reset goal if it's no longer in the current tier's options
+  useEffect(() => {
+    if (!goalOptions.includes(formData.primary_goal)) {
+      setFormData((prev) => ({ ...prev, primary_goal: "Get better overall" }));
+    }
+  }, [goalOptions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchStats = async () => {
     try {
@@ -177,9 +213,9 @@ export default function ProfilePage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-victory-card border-victory-border">
-                  {PRIMARY_GOALS.map((goal) => (
+                  {goalOptions.map((goal) => (
                     <SelectItem key={goal} value={goal} className="text-victory-text hover:bg-victory-card-highlight">
-                      {t(`profile.goals.${goal}`, goal)}
+                      {goal}
                     </SelectItem>
                   ))}
                 </SelectContent>
