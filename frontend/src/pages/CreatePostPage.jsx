@@ -128,21 +128,14 @@ export default function CreatePostPage() {
   const canSubmit = isCompete ? compTitle.trim().length > 0 : caption.trim().length > 0 || videoFile;
 
   return (
-    <div className="min-h-screen bg-victory-bg pb-nav" data-testid="create-post-page">
+    <div className="min-h-screen bg-victory-bg pb-40" data-testid="create-post-page">
       <header className="p-4 flex items-center gap-3 border-b border-victory-border">
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
-        <h1 className="text-lg font-heading font-bold text-victory-text flex-1">
+        <h1 className="text-lg font-heading font-bold text-victory-text">
           {isCompete ? t("createPost.titleCompete") : t("createPost.title")}
         </h1>
-        <button
-          onClick={handleSubmit}
-          disabled={uploading || !canSubmit}
-          className="victory-btn-primary px-4 py-2 text-sm disabled:opacity-40"
-        >
-          {uploading ? t("createPost.posting") : t("createPost.post")}
-        </button>
       </header>
 
       <main className="px-4 py-4 space-y-5">
@@ -192,19 +185,6 @@ export default function CreatePostPage() {
           )}
           <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileSelect} className="hidden" />
         </div>
-
-        {/* Upload progress */}
-        {uploading && uploadProgress > 0 && (
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs text-victory-muted">
-              <span>{t("createPost.uploading")}</span>
-              <span>{uploadProgress}%</span>
-            </div>
-            <div className="h-1.5 bg-victory-border rounded-full overflow-hidden">
-              <div className="h-full bg-victory-lime rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
-            </div>
-          </div>
-        )}
 
         {/* Competition fields */}
         {isCompete && (
@@ -304,6 +284,32 @@ export default function CreatePostPage() {
           </div>
         )}
       </main>
+
+      {/* Sticky Post button — always visible above BottomNav */}
+      <div className="fixed bottom-20 left-0 right-0 px-4 py-3 bg-victory-bg/95 backdrop-blur-sm border-t border-victory-border z-40">
+        {uploading && uploadProgress > 0 && (
+          <div className="mb-2 space-y-1">
+            <div className="flex justify-between text-xs text-victory-muted">
+              <span>{t("createPost.uploading")}</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="h-1.5 bg-victory-border rounded-full overflow-hidden">
+              <div className="h-full bg-victory-lime rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
+            </div>
+          </div>
+        )}
+        <button
+          onClick={handleSubmit}
+          disabled={uploading || !canSubmit}
+          className="w-full victory-btn-primary py-4 text-base font-bold disabled:opacity-40"
+        >
+          {uploading
+            ? `${t("createPost.uploading")} ${uploadProgress}%`
+            : isCompete
+            ? t("createPost.post")
+            : t("createPost.post")}
+        </button>
+      </div>
 
       <BottomNav />
     </div>
