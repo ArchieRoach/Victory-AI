@@ -66,6 +66,22 @@ EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 
 # Livepeer
 LIVEPEER_API_KEY = os.environ.get('LIVEPEER_API_KEY', '')
+
+# ── Token economy ─────────────────────────────────────────────────────────────
+TOKEN_PACKAGES = {
+    "starter":  {"tokens": 200,  "price": 1.99,  "label": "Starter Pack"},
+    "fighter":  {"tokens": 500,  "price": 4.99,  "label": "Fighter Pack"},
+    "champion": {"tokens": 1200, "price": 9.99,  "label": "Champion Pack"},
+    "legend":   {"tokens": 3000, "price": 19.99, "label": "Legend Pack"},
+}
+PUNCH_MENU = [
+    {"tokens": 50,   "action": "Shoutout",           "emoji": "📣", "tier": "bronze"},
+    {"tokens": 100,  "action": "Cheer",               "emoji": "💪", "tier": "silver"},
+    {"tokens": 250,  "action": "Victory Roar",        "emoji": "🔥", "tier": "gold"},
+    {"tokens": 500,  "action": "Shadowbox on Camera", "emoji": "🥊", "tier": "platinum"},
+    {"tokens": 1000, "action": "Title Shot",          "emoji": "🏆", "tier": "diamond"},
+]
+GIFT_SUB_TIERS = {1: 4.99, 5: 19.99, 10: 34.99, 50: 149.99}
 LIVEPEER_BASE_URL = "https://livepeer.studio/api"
 
 # ElevenLabs TTS Settings
@@ -129,6 +145,15 @@ class TrainingPartnerCreate(BaseModel):
 class CheckoutRequest(BaseModel):
     plan_id: str
     origin_url: str
+
+class TipRequest(BaseModel):
+    amount: int
+    message: str = ""
+
+class GiftSubRequest(BaseModel):
+    count: int = 1
+    recipient_user_id: Optional[str] = None
+    origin_url: str = ""
 
 class DimensionScoreInput(BaseModel):
     dimension_name: str
@@ -977,10 +1002,161 @@ async def stripe_webhook(request: Request):
                     {"subscription_id": stripe_sub_id},
                     {"$set": {"status": "past_due", "subscription_active": False}}
                 )
+        elif event_type == "checkout.session.completed":
+            meta = (event_data.get("metadata") or {}) if isinstance(event_data, dict) else (event_data.metadata or {})
+            purchase_type = meta.get("purchase_type")
+            gift_type = meta.get("gift_type")
+            if purchase_type == "tokens":
+                uid = meta.get("user_id")
+                tokens = int(meta.get("tokens", 0))
+                if uid and tokens:
+                    await db.users.update_one({"user_id": uid}, {"$inc": {"token_balance": tokens}})
+                    logger.info(f"Fulfilled {tokens} tokens for {uid}")
+            elif gift_type == "gift_sub":
+                uid = meta.get("user_id")
+                count = int(meta.get("gift_count", 0))
+                stream_id = meta.get("stream_id", "")
+                if uid and count:
+                    await db.users.update_one({"user_id": uid}, {"$inc": {"lifetime_gifts": count}})
+                    if stream_id:
+                        gifter = await db.users.find_one({"user_id": uid}, {"name": 1, "display_name": 1, "avatar_url": 1})
+                        gname = (gifter or {}).get("display_name") or (gifter or {}).get("name", "Someone")
+                        await ws_manager.broadcast(stream_id, json.dumps({
+                            "type": "gift_sub",
+                            "user_name": gname,
+                            "count": count,
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                        }))
     except Exception as e:
         logger.error(f"Webhook handler error: {e}")
 
     return {"received": True}
+
+# ============== TOKEN / TIPPING ENDPOINTS ==============
+
+@api_router.get("/tokens/balance")
+async def get_token_balance(user: dict = Depends(get_current_user)):
+    return {
+        "balance": user.get("token_balance", 0),
+        "packages": TOKEN_PACKAGES,
+        "punch_menu": PUNCH_MENU,
+    }
+
+@api_router.post("/tokens/purchase")
+async def purchase_tokens(pkg_id: str = Query(...), origin_url: str = Query(""), user: dict = Depends(get_current_user)):
+    import asyncio
+    if pkg_id not in TOKEN_PACKAGES:
+        raise HTTPException(400, "Invalid package")
+    pkg = TOKEN_PACKAGES[pkg_id]
+    host = origin_url.rstrip("/") or "https://victory-ai-alpha.vercel.app"
+    try:
+        session = await asyncio.to_thread(
+            stripe_lib.checkout.Session.create,
+            mode="payment",
+            payment_method_types=["card"],
+            line_items=[{"price_data": {"currency": "usd", "product_data": {"name": f"Victory Tokens — {pkg['tokens']:,} ({pkg['label']})"}, "unit_amount": int(pkg["price"] * 100)}, "quantity": 1}],
+            success_url=f"{host}/tokens/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{host}/live",
+            customer_email=user.get("email") or None,
+            metadata={"user_id": user["user_id"], "purchase_type": "tokens", "token_package": pkg_id, "tokens": str(pkg["tokens"])},
+        )
+    except Exception as e:
+        raise HTTPException(500, str(e))
+    return {"checkout_url": session.url, "tokens": pkg["tokens"], "price": pkg["price"]}
+
+@api_router.post("/streams/{stream_id}/tip")
+async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_current_user)):
+    if req.amount < 50:
+        raise HTTPException(400, "Minimum tip is 50 tokens")
+    balance = user.get("token_balance", 0)
+    if balance < req.amount:
+        raise HTTPException(402, detail="insufficient_tokens")
+    stream = await db.streams.find_one({"stream_id": stream_id})
+    if not stream:
+        raise HTTPException(404, "Stream not found")
+
+    # Determine punch action for this amount
+    punch = next((p for p in reversed(PUNCH_MENU) if req.amount >= p["tokens"]), None)
+
+    # Atomically deduct sender, credit streamer (70% cut)
+    await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {"token_balance": -req.amount}})
+    await db.users.update_one({"user_id": stream["user_id"]}, {"$inc": {"token_balance": int(req.amount * 0.7)}})
+
+    now = datetime.now(timezone.utc).isoformat()
+    tip_doc = {
+        "tip_id": f"tip_{uuid.uuid4().hex[:12]}",
+        "stream_id": stream_id,
+        "streamer_id": stream["user_id"],
+        "sender_id": user["user_id"],
+        "sender_name": user.get("display_name") or user.get("name", "Fighter"),
+        "sender_avatar": user.get("avatar_url", ""),
+        "amount": req.amount,
+        "message": req.message[:200],
+        "punch_action": punch["action"] if punch else None,
+        "punch_emoji": punch["emoji"] if punch else None,
+        "punch_tier": punch["tier"] if punch else None,
+        "created_at": now,
+    }
+    await db.tips.insert_one(tip_doc)
+
+    # Broadcast tip event to all chat viewers
+    await ws_manager.broadcast(stream_id, json.dumps({
+        "type": "tip",
+        "tip_id": tip_doc["tip_id"],
+        "user_name": tip_doc["sender_name"],
+        "user_avatar": tip_doc["sender_avatar"],
+        "amount": req.amount,
+        "message": req.message,
+        "punch_action": tip_doc["punch_action"],
+        "punch_emoji": tip_doc["punch_emoji"],
+        "punch_tier": tip_doc["punch_tier"],
+        "timestamp": now,
+    }))
+
+    return {"success": True, "tokens_remaining": balance - req.amount, "punch_action": tip_doc["punch_action"]}
+
+@api_router.get("/streams/{stream_id}/leaderboard")
+async def get_stream_leaderboard(stream_id: str, scope: str = Query("session", enum=["session", "lifetime"]), _: dict = Depends(get_current_user)):
+    if scope == "session":
+        match = {"stream_id": stream_id}
+    else:
+        s = await db.streams.find_one({"stream_id": stream_id}, {"user_id": 1})
+        if not s:
+            return []
+        sibling_ids = await db.streams.distinct("stream_id", {"user_id": s["user_id"]})
+        match = {"stream_id": {"$in": sibling_ids}}
+    pipeline = [
+        {"$match": match},
+        {"$group": {"_id": "$sender_id", "user_name": {"$last": "$sender_name"}, "user_avatar": {"$last": "$sender_avatar"}, "total": {"$sum": "$amount"}}},
+        {"$sort": {"total": -1}},
+        {"$limit": 10},
+    ]
+    rows = await db.tips.aggregate(pipeline).to_list(10)
+    return [{"rank": i + 1, "user_id": r["_id"], "user_name": r["user_name"], "user_avatar": r.get("user_avatar", ""), "total": r["total"]} for i, r in enumerate(rows)]
+
+@api_router.post("/streams/{stream_id}/gift-sub")
+async def gift_subscription(stream_id: str, req: GiftSubRequest, user: dict = Depends(get_current_user)):
+    import asyncio
+    if req.count not in GIFT_SUB_TIERS:
+        raise HTTPException(400, f"Gift count must be one of: {list(GIFT_SUB_TIERS.keys())}")
+    price = GIFT_SUB_TIERS[req.count]
+    host = req.origin_url.rstrip("/") or "https://victory-ai-alpha.vercel.app"
+    label = f"{req.count} Gift Sub{'s' if req.count > 1 else ''}"
+    try:
+        session = await asyncio.to_thread(
+            stripe_lib.checkout.Session.create,
+            mode="payment",
+            payment_method_types=["card"],
+            line_items=[{"price_data": {"currency": "usd", "product_data": {"name": f"Victory AI — {label}"}, "unit_amount": int(price * 100)}, "quantity": 1}],
+            allow_promotion_codes=True,
+            success_url=f"{host}/stream/{stream_id}?gift=success",
+            cancel_url=f"{host}/stream/{stream_id}",
+            customer_email=user.get("email") or None,
+            metadata={"user_id": user["user_id"], "gift_type": "gift_sub", "stream_id": stream_id, "gift_count": str(req.count), "recipient_user_id": req.recipient_user_id or "community"},
+        )
+    except Exception as e:
+        raise HTTPException(500, str(e))
+    return {"checkout_url": session.url}
 
 # ============== WAITLIST ENDPOINTS ==============
 
