@@ -39,44 +39,7 @@ export default function ProfilePage() {
     "Professional boxer",
   ];
 
-  const goalOptions = useMemo(() => {
-    const idx = EXPERIENCE_LEVELS.indexOf(formData.experience_level);
-    const isIntermediate = idx >= 3; // 1–3 years+
-    const isAdvanced = idx >= 4;     // 3+ years
-    const hasRecord = extendedForm.amateur_wins > 0 || extendedForm.amateur_losses > 0 || extendedForm.amateur_draws > 0;
-
-    return [
-      // Available to everyone
-      "Get better overall",
-      "Improve defence",
-      "Sharpen my offence",
-      "Prepare for sparring",
-      "Build my following online",
-      "Grow my fanbase as a streamer",
-      "Just having fun",
-      // 1–3 years+
-      ...(isIntermediate ? [
-        "Compete in amateurs",
-        "Build my gym reputation",
-      ] : []),
-      // 3+ years
-      ...(isAdvanced ? [
-        "Go professional",
-        "Build my fighter brand",
-        "Win a regional / national title",
-      ] : []),
-      // Has competitive record
-      ...(hasRecord || isAdvanced ? [
-        "Fund my fight camp",
-        "Climb the world rankings",
-        "Earn a title shot",
-        "Win a world title",
-      ] : []),
-    ];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.experience_level, extendedForm.amateur_wins, extendedForm.amateur_losses, extendedForm.amateur_draws]);
-
-  // Map legacy "3+ years" to the new granular level on first load
+  // Must be declared before goalOptions useMemo (temporal dead zone fix)
   const LEGACY_LEVEL_MAP = { "3+ years": "3–5 years" };
 
   const [formData, setFormData] = useState({
@@ -103,6 +66,25 @@ export default function ProfilePage() {
   const [titleInput, setTitleInput] = useState("");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef(null);
+
+  const goalOptions = useMemo(() => {
+    const idx = EXPERIENCE_LEVELS.indexOf(formData.experience_level);
+    const isIntermediate = idx >= 3;
+    const isAdvanced = idx >= 4;
+    const hasRecord = extendedForm.amateur_wins > 0 || extendedForm.amateur_losses > 0 || extendedForm.amateur_draws > 0;
+    return [
+      "Get better overall",
+      "Improve defence",
+      "Sharpen my offence",
+      "Prepare for sparring",
+      "Build my following online",
+      "Grow my fanbase as a streamer",
+      "Just having fun",
+      ...(isIntermediate ? ["Compete in amateurs", "Build my gym reputation"] : []),
+      ...(isAdvanced ? ["Go professional", "Build my fighter brand", "Win a regional / national title"] : []),
+      ...(hasRecord || isAdvanced ? ["Fund my fight camp", "Climb the world rankings", "Earn a title shot", "Win a world title"] : []),
+    ];
+  }, [formData.experience_level, extendedForm.amateur_wins, extendedForm.amateur_losses, extendedForm.amateur_draws]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchStats();
