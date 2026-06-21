@@ -2282,7 +2282,7 @@ async def whip_proxy(stream_id: str, request: Request, user: dict = Depends(get_
     try:
         async with httpx.AsyncClient(timeout=15) as c:
             resp = await c.post(
-                f"https://rtmp.livepeer.studio/webrtc/{stream['stream_key']}",
+                f"https://livepeer.studio/webrtc/{stream['stream_key']}",
                 content=sdp_offer,
                 headers={"Content-Type": "application/sdp"},
             )
