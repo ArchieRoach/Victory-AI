@@ -9,8 +9,9 @@ import LiveChat from "@/components/LiveChat";
 import { TipModal }       from "@/components/streaming/TipModal";
 import { PunchAlert }     from "@/components/streaming/PunchAlert";
 import { TopKnockouts }   from "@/components/streaming/TopKnockouts";
-import { GiftSubModal }   from "@/components/streaming/GiftSubModal";
-import { SponsorBanner }  from "@/components/streaming/SponsorBanner";
+import { GiftSubModal }         from "@/components/streaming/GiftSubModal";
+import { SponsorBanner }        from "@/components/streaming/SponsorBanner";
+import { TokenPurchaseModal }   from "@/components/streaming/TokenPurchaseModal";
 
 const TYPE_COLORS = {
   training: "bg-blue-500/20 text-blue-400",
@@ -30,8 +31,9 @@ export default function StreamViewPage() {
   const [tokenBalance, setTokenBalance] = useState(0);
 
   // Modal visibility
-  const [showTip,  setShowTip]  = useState(false);
-  const [showGift, setShowGift] = useState(false);
+  const [showTip,     setShowTip]     = useState(false);
+  const [showGift,    setShowGift]    = useState(false);
+  const [showTopUp,   setShowTopUp]   = useState(false);
 
   // PunchAlert queue: array of tip/gift events awaiting display
   const [alertQueue, setAlertQueue] = useState([]);
@@ -185,11 +187,14 @@ export default function StreamViewPage() {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Token balance chip */}
-            <div className="flex items-center gap-1 bg-victory-lime/10 border border-victory-lime/30 text-victory-lime text-xs font-mono font-bold px-2.5 py-1 rounded-full">
+            {/* Token balance chip — tap to top up */}
+            <button
+              onClick={() => setShowTopUp(true)}
+              className="flex items-center gap-1 bg-victory-lime/10 border border-victory-lime/30 text-victory-lime text-xs font-mono font-bold px-2.5 py-1 rounded-full hover:bg-victory-lime/20 transition-colors"
+            >
               <Zap className="w-3 h-3" />
               {tokenBalance.toLocaleString()}
-            </div>
+            </button>
 
             {isLive && user?.has_subscription && (
               <button
@@ -224,7 +229,7 @@ export default function StreamViewPage() {
         {/* Token top-up prompt if balance is low */}
         {tokenBalance < 50 && (
           <button
-            onClick={() => toast.info("Token purchase coming soon — stay tuned!")}
+            onClick={() => setShowTopUp(true)}
             className="w-full py-2.5 rounded-xl border border-victory-lime/30 text-victory-lime text-xs font-semibold flex items-center justify-center gap-2 hover:bg-victory-lime/10 transition-colors"
           >
             <Zap className="w-3.5 h-3.5" />
@@ -246,6 +251,11 @@ export default function StreamViewPage() {
         <GiftSubModal
           streamId={streamId}
           onClose={() => setShowGift(false)}
+        />
+      )}
+      {showTopUp && (
+        <TokenPurchaseModal
+          onClose={() => setShowTopUp(false)}
         />
       )}
     </div>
