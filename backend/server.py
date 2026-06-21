@@ -75,11 +75,27 @@ TOKEN_PACKAGES = {
     "legend":   {"tokens": 3000, "price": 19.99, "label": "Legend Pack"},
 }
 PUNCH_MENU = [
-    {"tokens": 50,   "action": "Shoutout",           "emoji": "📣", "tier": "bronze"},
-    {"tokens": 100,  "action": "Cheer",               "emoji": "💪", "tier": "silver"},
-    {"tokens": 250,  "action": "Victory Roar",        "emoji": "🔥", "tier": "gold"},
-    {"tokens": 500,  "action": "Shadowbox on Camera", "emoji": "🥊", "tier": "platinum"},
-    {"tokens": 1000, "action": "Title Shot",          "emoji": "🏆", "tier": "diamond"},
+    # Reactions
+    {"key": "ooh",       "tokens": 25,  "action": "Ooh",             "emoji": "😮",  "tier": "bronze",   "category": "reaction"},
+    {"key": "heart",     "tokens": 25,  "action": "Heart",           "emoji": "❤️",  "tier": "bronze",   "category": "reaction"},
+    {"key": "glass_jaw", "tokens": 50,  "action": "Glass Jaw",       "emoji": "😵",  "tier": "bronze",   "category": "reaction"},
+    {"key": "gassed",    "tokens": 50,  "action": "They're Gassed",  "emoji": "💨",  "tier": "bronze",   "category": "reaction"},
+    {"key": "got_heart", "tokens": 75,  "action": "They Got Heart",  "emoji": "🫀",  "tier": "silver",   "category": "reaction"},
+    # Commands
+    {"key": "pop_jab",   "tokens": 100, "action": "Pop the Jab",    "emoji": "👊",  "tier": "silver",   "category": "command"},
+    {"key": "hands_up",  "tokens": 100, "action": "Hands Up",        "emoji": "🙌",  "tier": "silver",   "category": "command"},
+    {"key": "body",      "tokens": 150, "action": "Work the Body",   "emoji": "🥊",  "tier": "silver",   "category": "command"},
+    {"key": "towel",     "tokens": 200, "action": "Throw the Towel", "emoji": "🏳️", "tier": "gold",     "category": "command"},
+    # Status
+    {"key": "champ",     "tokens": 300, "action": "Champ",           "emoji": "🏆",  "tier": "gold",     "category": "status"},
+    {"key": "goat",      "tokens": 500, "action": "GOAT Status",     "emoji": "🐐",  "tier": "platinum", "category": "status"},
+    # Combos
+    {"key": "combo_11",  "tokens": 75,  "action": "1-1 Combo",       "emoji": "👊",  "tier": "silver",   "category": "combo",
+     "combo_sequence": ["👊", "👊"], "combo_label": "1-1"},
+    {"key": "combo_12",  "tokens": 100, "action": "1-2 Combo",       "emoji": "👊",  "tier": "silver",   "category": "combo",
+     "combo_sequence": ["👊", "🤜"], "combo_label": "1-2"},
+    {"key": "combo_123", "tokens": 150, "action": "1-2-3 Combo",     "emoji": "👊",  "tier": "gold",     "category": "combo",
+     "combo_sequence": ["👊", "🤜", "👊"], "combo_label": "1-2-3"},
 ]
 GIFT_SUB_TIERS = {1: 4.99, 5: 19.99, 10: 34.99, 50: 149.99}
 LIVEPEER_BASE_URL = "https://livepeer.studio/api"
@@ -149,6 +165,7 @@ class CheckoutRequest(BaseModel):
 class TipRequest(BaseModel):
     amount: int
     message: str = ""
+    action_key: str = ""  # frontend sends the selected punch key for exact lookup
 
 class GiftSubRequest(BaseModel):
     count: int = 1
@@ -1066,8 +1083,8 @@ async def purchase_tokens(pkg_id: str = Query(...), origin_url: str = Query(""),
 
 @api_router.post("/streams/{stream_id}/tip")
 async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_current_user)):
-    if req.amount < 50:
-        raise HTTPException(400, "Minimum tip is 50 tokens")
+    if req.amount < 25:
+        raise HTTPException(400, "Minimum tip is 25 tokens")
     balance = user.get("token_balance", 0)
     if balance < req.amount:
         raise HTTPException(402, detail="insufficient_tokens")
@@ -1075,8 +1092,12 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
     if not stream:
         raise HTTPException(404, "Stream not found")
 
-    # Determine punch action for this amount
-    punch = next((p for p in reversed(PUNCH_MENU) if req.amount >= p["tokens"]), None)
+    # Determine punch action: prefer exact key match, fall back to amount threshold
+    punch = None
+    if req.action_key:
+        punch = next((p for p in PUNCH_MENU if p.get("key") == req.action_key), None)
+    if not punch:
+        punch = next((p for p in reversed(PUNCH_MENU) if req.amount >= p["tokens"]), PUNCH_MENU[0])
 
     # Atomically deduct sender, credit streamer (70% cut)
     await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {"token_balance": -req.amount}})
@@ -1100,6 +1121,7 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
     await db.tips.insert_one(tip_doc)
 
     # Broadcast tip event to all chat viewers
+    is_combo = punch.get("category") == "combo" if punch else False
     await ws_manager.broadcast(stream_id, json.dumps({
         "type": "tip",
         "tip_id": tip_doc["tip_id"],
@@ -1110,6 +1132,10 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
         "punch_action": tip_doc["punch_action"],
         "punch_emoji": tip_doc["punch_emoji"],
         "punch_tier": tip_doc["punch_tier"],
+        "punch_category": punch.get("category") if punch else None,
+        "is_combo": is_combo,
+        "combo_sequence": punch.get("combo_sequence", []) if punch else [],
+        "combo_label": punch.get("combo_label", "") if punch else "",
         "timestamp": now,
     }))
 
