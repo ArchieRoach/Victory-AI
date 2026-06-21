@@ -2023,11 +2023,28 @@ async def go_live(user: dict = Depends(get_current_user)):
         },
         {"_id": 0},
     )
+    # Derive stream metadata from user profile
+    PRO_LEVELS = {"5–10 years", "10+ years", "Professional boxer"}
+    exp = user.get("experience_level", "")
+    stream_meta = {
+        "user_name": user.get("name") or "Fighter",
+        "display_name": user.get("display_name") or user.get("name") or "Fighter",
+        "user_avatar": user.get("avatar_url") or "",
+        "weight_class": user.get("weight_class") or "",
+        "category": "Professional" if exp in PRO_LEVELS else "Amateur",
+        "role": user.get("role", "Boxer"),
+        "pro_wins": user.get("pro_wins", 0),
+        "pro_losses": user.get("pro_losses", 0),
+        "pro_draws": user.get("pro_draws", 0),
+        "amateur_wins": user.get("amateur_wins", 0),
+        "amateur_losses": user.get("amateur_losses", 0),
+    }
+
     if existing:
         now = datetime.now(timezone.utc).isoformat()
         await db.streams.update_one(
             {"stream_id": existing["stream_id"]},
-            {"$set": {"status": "live", "started_at": now}},
+            {"$set": {"status": "live", "started_at": now, **stream_meta}},
         )
         return {
             "stream_id": existing["stream_id"],
@@ -2036,7 +2053,7 @@ async def go_live(user: dict = Depends(get_current_user)):
             "title": existing["title"],
         }
     # Create a fresh Livepeer stream
-    title = f"{user.get('name', 'Fighter')} — Live"
+    title = f"{stream_meta['display_name']} — Live"
     try:
         lp = await _livepeer("POST", "/stream", {
             "name": title,
@@ -2054,8 +2071,7 @@ async def go_live(user: dict = Depends(get_current_user)):
     doc = {
         "stream_id": stream_id,
         "user_id": user["user_id"],
-        "user_name": user.get("name") or "Fighter",
-        "user_avatar": user.get("avatar_url") or "",
+        **stream_meta,
         "livepeer_id": lp["id"],
         "playback_id": lp["playbackId"],
         "stream_key": lp["streamKey"],
