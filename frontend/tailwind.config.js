@@ -100,6 +100,18 @@ module.exports = {
           "0%": { transform: "translateY(0) rotate(0deg)", opacity: "1" },
           "100%": { transform: "translateY(100vh) rotate(720deg)", opacity: "0" },
         },
+        "slide-down": {
+          from: { transform: "translate(-50%, -20px)", opacity: "0" },
+          to:   { transform: "translate(-50%, 0)",     opacity: "1" },
+        },
+        "scale-in": {
+          from: { transform: "scale(0.85)", opacity: "0" },
+          to:   { transform: "scale(1)",    opacity: "1" },
+        },
+        "bounce-slow": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%":      { transform: "translateY(-12px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -108,6 +120,9 @@ module.exports = {
         "slide-up": "slide-up 0.3s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "confetti": "confetti 3s ease-out forwards",
+        "slide-down": "slide-down 0.35s cubic-bezier(0.34,1.56,0.64,1) both",
+        "scale-in": "scale-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both",
+        "bounce-slow": "bounce-slow 1.4s ease-in-out infinite",
       },
     },
   },
