@@ -43,6 +43,7 @@ import SubscriptionGate from "@/components/SubscriptionGate";
 import LiveFeedPage from "@/pages/LiveFeedPage";
 import StreamViewPage from "@/pages/StreamViewPage";
 import GoLivePage from "@/pages/GoLivePage";
+import AdvertisePage from "@/pages/AdvertisePage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -265,6 +266,10 @@ const AppRouter = () => {
         <Route path="/live" element={<ProtectedRoute><LiveFeedPage /></ProtectedRoute>} />
         <Route path="/stream/:streamId" element={<ProtectedRoute><StreamViewPage /></ProtectedRoute>} />
         <Route path="/go-live" element={<ProtectedRoute><GoLivePage /></ProtectedRoute>} />
+
+        {/* Advertiser onboarding — public, no auth required */}
+        <Route path="/advertise" element={<AdvertisePage />} />
+        <Route path="/advertise/success" element={<AdvertisePage success />} />
 
         <Route path="/" element={<Navigate to="/welcome" replace />} />
         <Route path="*" element={<NotFoundPage />} />

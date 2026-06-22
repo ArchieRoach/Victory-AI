@@ -98,6 +98,11 @@ PUNCH_MENU = [
      "combo_sequence": ["👊", "🤜", "👊"], "combo_label": "1-2-3"},
 ]
 GIFT_SUB_TIERS = {1: 4.99, 5: 19.99, 10: 34.99, 50: 149.99}
+AD_PACKAGES = {
+    "starter":  {"days": 7,  "price": 49.00,  "label": "Starter",  "description": "7-day run · reach up to 2,000 live viewers"},
+    "pro":      {"days": 30, "price": 149.00, "label": "Pro",      "description": "30-day run · reach up to 10,000 live viewers"},
+    "champion": {"days": 90, "price": 349.00, "label": "Champion", "description": "90-day run · maximum exposure · best value"},
+}
 LIVEPEER_BASE_URL = "https://livepeer.studio/api"
 
 # ElevenLabs TTS Settings
@@ -166,6 +171,14 @@ class TipRequest(BaseModel):
     amount: int
     message: str = ""
     action_key: str = ""  # frontend sends the selected punch key for exact lookup
+
+class AdCampaignRequest(BaseModel):
+    brand_name: str
+    tagline: str
+    website_url: str
+    advertiser_email: str
+    package_id: str  # starter | pro | champion
+    origin_url: str
 
 class GiftSubRequest(BaseModel):
     count: int = 1
@@ -1044,6 +1057,21 @@ async def stripe_webhook(request: Request):
                             "count": count,
                             "timestamp": datetime.now(timezone.utc).isoformat(),
                         }))
+            elif purchase_type == "ad_campaign":
+                campaign_id = meta.get("campaign_id")
+                days = int(meta.get("days", 7))
+                if campaign_id:
+                    now_dt = datetime.now(timezone.utc)
+                    end_dt = now_dt + timedelta(days=days)
+                    await db.ad_campaigns.update_one(
+                        {"campaign_id": campaign_id},
+                        {"$set": {
+                            "status": "active",
+                            "start_date": now_dt.isoformat(),
+                            "end_date": end_dt.isoformat(),
+                        }},
+                    )
+                    logger.info(f"Ad campaign {campaign_id} activated for {days} days")
     except Exception as e:
         logger.error(f"Webhook handler error: {e}")
 
@@ -1183,6 +1211,77 @@ async def gift_subscription(stream_id: str, req: GiftSubRequest, user: dict = De
     except Exception as e:
         raise HTTPException(500, str(e))
     return {"checkout_url": session.url}
+
+# ============== ADVERTISER ENDPOINTS ==============
+
+@api_router.get("/ads/packages")
+async def get_ad_packages():
+    return AD_PACKAGES
+
+@api_router.get("/ads/active")
+async def get_active_ad():
+    now = datetime.now(timezone.utc).isoformat()
+    campaign = await db.ad_campaigns.find_one(
+        {"status": "active", "end_date": {"$gt": now}},
+        {"_id": 0},
+        sort=[("start_date", -1)],
+    )
+    if not campaign:
+        return None
+    return {
+        "brand_name": campaign["brand_name"],
+        "tagline": campaign["tagline"],
+        "website_url": campaign["website_url"],
+        "package": campaign["package"],
+    }
+
+@api_router.post("/ads/checkout")
+async def create_ad_checkout(req: AdCampaignRequest):
+    pkg = AD_PACKAGES.get(req.package_id)
+    if not pkg:
+        raise HTTPException(400, "Invalid ad package")
+    if not STRIPE_SECRET_KEY:
+        raise HTTPException(500, "Payments not configured")
+    campaign_id = f"ad_{uuid.uuid4().hex[:12]}"
+    # Pre-create pending campaign so we have the ID for metadata
+    await db.ad_campaigns.insert_one({
+        "campaign_id": campaign_id,
+        "brand_name": req.brand_name[:80],
+        "tagline": req.tagline[:120],
+        "website_url": req.website_url[:500],
+        "advertiser_email": req.advertiser_email,
+        "package": req.package_id,
+        "days": pkg["days"],
+        "status": "pending_payment",
+        "start_date": None,
+        "end_date": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    try:
+        session = await asyncio.to_thread(
+            stripe_lib.checkout.Session.create,
+            mode="payment",
+            payment_method_types=["card"],
+            line_items=[{
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {"name": f"Victory AI Sponsor Banner — {pkg['label']} ({pkg['days']} days)"},
+                    "unit_amount": int(pkg["price"] * 100),
+                },
+                "quantity": 1,
+            }],
+            customer_email=req.advertiser_email or None,
+            success_url=f"{req.origin_url}/advertise/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{req.origin_url}/advertise",
+            metadata={
+                "purchase_type": "ad_campaign",
+                "campaign_id": campaign_id,
+                "days": str(pkg["days"]),
+            },
+        )
+    except Exception as e:
+        raise HTTPException(500, str(e))
+    return {"checkout_url": session.url, "campaign_id": campaign_id}
 
 # ============== WAITLIST ENDPOINTS ==============
 
