@@ -18,7 +18,7 @@ export default function PaymentSuccess() {
     if (sessionId) {
       pollPaymentStatus(sessionId);
     } else {
-      navigate("/home", { replace: true });
+      navigate("/live", { replace: true });
     }
   }, [searchParams, navigate]);
 
@@ -105,7 +105,7 @@ export default function PaymentSuccess() {
               {t("payment.timeoutDesc")}
             </p>
             <button
-              onClick={() => navigate("/home")}
+              onClick={() => navigate("/live")}
               className="victory-btn-primary"
             >
               {t("payment.goToApp")}

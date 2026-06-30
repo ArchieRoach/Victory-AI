@@ -208,6 +208,18 @@ const TrialExpirationBanner = () => {
   );
 };
 
+const RootRedirect = () => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-victory-bg flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-victory-lime border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+  return <Navigate to={isAuthenticated ? "/live" : "/welcome"} replace />;
+};
+
 const AppRouter = () => {
   const navigate = useNavigate();
 
@@ -271,7 +283,7 @@ const AppRouter = () => {
         <Route path="/advertise" element={<AdvertisePage />} />
         <Route path="/advertise/success" element={<AdvertisePage success />} />
 
-        <Route path="/" element={<Navigate to="/welcome" replace />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>
