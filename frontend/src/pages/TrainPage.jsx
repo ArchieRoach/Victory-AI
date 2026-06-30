@@ -5,74 +5,102 @@ import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
-  Pause, Play, SkipForward, Square, RotateCcw,
-  Video, VideoOff, SwitchCamera, Upload, CheckCircle, Volume2, VolumeX
+  Pause, Play, SkipForward, Square, CheckCircle,
+  Volume2, VolumeX, Lock, Radio, Zap,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
+// Mid-round hype lines cycled during the Private AI Room session
+const HYPE_LINES = [
+  { type: "motivate", text: "Hands UP — you're dropping the right again!" },
+  { type: "joke",     text: "You're sweating like you've seen my jab. Good." },
+  { type: "tip",      text: "Breathe out on each punch — keeps your core tight." },
+  { type: "validate", text: "That footwork right there? That's the move. Keep it." },
+  { type: "motivate", text: "Stay in your stance, don't lean forward." },
+  { type: "joke",     text: "I've seen slower footwork… on my nan. You're improving though." },
+  { type: "tip",      text: "Double up that jab — don't just poke, commit." },
+  { type: "validate", text: "Your timing is way better than last session. Trust it." },
+  { type: "motivate", text: "Champions don't stop when it hurts — they stop when it's done." },
+  { type: "tip",      text: "Turn your hip on the cross — get the full power transfer." },
+  { type: "joke",     text: "You look tired. Good. That means you're working." },
+  { type: "validate", text: "That head movement was clean. Keep slipping left." },
+  { type: "motivate", text: "10 seconds — leave EVERYTHING in this round." },
+  { type: "tip",      text: "Return your hands to guard after every combination." },
+  { type: "validate", text: "Balance is looking solid. You've been working on that." },
+  { type: "joke",     text: "My circuits are overheating just watching you. Push harder." },
+];
+
+const HYPE_COLORS = {
+  motivate: "text-victory-lime",
+  joke:     "text-amber-400",
+  tip:      "text-sky-400",
+  validate: "text-violet-400",
+};
+
+const HYPE_EMOJI = {
+  motivate: "🔥",
+  joke:     "😅",
+  tip:      "📋",
+  validate: "✅",
+};
+
 export default function TrainPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
-  
-  // Configuration state
+
+  // ── Config state ────────────────────────────────────────────────────────────
   const [isConfiguring, setIsConfiguring] = useState(true);
   const [roundDuration, setRoundDuration] = useState(180);
-  const [restDuration, setRestDuration] = useState(60);
-  const [totalRounds, setTotalRounds] = useState(3);
-  const [recordVideo, setRecordVideo] = useState(true);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [facingMode, setFacingMode] = useState("environment");
+  const [restDuration,  setRestDuration]  = useState(60);
+  const [totalRounds,   setTotalRounds]   = useState(3);
+  const [sessionMode,   setSessionMode]   = useState("private"); // "private" | "public"
+  const [voiceEnabled,  setVoiceEnabled]  = useState(true);
 
-  // Training state
-  const [sessionId, setSessionId] = useState(null);
-  const [currentRound, setCurrentRound] = useState(1);
-  const [timeLeft, setTimeLeft] = useState(180);
-  const [isResting, setIsResting] = useState(false);
-  const [isPaused, setIsPaused] = useState(true);
-  const [isComplete, setIsComplete] = useState(false);
-  const [flashClass, setFlashClass] = useState("");
-  const [showTenSecWarning, setShowTenSecWarning] = useState(false);
+  // ── Training state ───────────────────────────────────────────────────────────
+  const [sessionId,         setSessionId]         = useState(null);
+  const [currentRound,      setCurrentRound]      = useState(1);
+  const [timeLeft,          setTimeLeft]           = useState(180);
+  const [isResting,         setIsResting]          = useState(false);
+  const [isPaused,          setIsPaused]           = useState(true);
+  const [isComplete,        setIsComplete]         = useState(false);
+  const [flashClass,        setFlashClass]         = useState("");
+  const [showTenSecWarning, setShowTenSecWarning]  = useState(false);
+  const [currentHype,       setCurrentHype]        = useState(null);
+  const [hypeQueue,         setHypeQueue]          = useState([]);
 
-  // AI Feedback state
-  const [feedback, setFeedback] = useState(null);
+  // ── AI Feedback state ────────────────────────────────────────────────────────
+  const [feedback,        setFeedback]        = useState(null);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
-  const [uploadingVideo, setUploadingVideo] = useState(false);
-  const [analyzingVideo, setAnalyzingVideo] = useState(false);
 
-  // Camera/Recording state
-  const [stream, setStream] = useState(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const videoRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const chunksRef = useRef([]);
-  const audioRef = useRef(null);
+  const audioRef    = useRef(null);
   const intervalRef = useRef(null);
+  const hypeTimerRef = useRef(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("victory_train_config");
     if (saved) {
-      const config = JSON.parse(saved);
-      setRoundDuration(config.roundDuration || 180);
-      setRestDuration(config.restDuration || 60);
-      setTotalRounds(config.totalRounds || 3);
-      setRecordVideo(config.recordVideo !== false);
+      const c = JSON.parse(saved);
+      setRoundDuration(c.roundDuration || 180);
+      setRestDuration(c.restDuration   || 60);
+      setTotalRounds(c.totalRounds     || 3);
+      setSessionMode(c.sessionMode     || "private");
     }
-    
     audioRef.current = new Audio(BELL_SOUND_URL);
     audioRef.current.load();
-
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      stopCamera();
+      if (intervalRef.current)  clearInterval(intervalRef.current);
+      if (hypeTimerRef.current) clearInterval(hypeTimerRef.current);
     };
   }, []);
 
   const saveConfig = useCallback(() => {
-    localStorage.setItem("victory_train_config", JSON.stringify({ roundDuration, restDuration, totalRounds, recordVideo }));
-  }, [roundDuration, restDuration, totalRounds, recordVideo]);
+    localStorage.setItem("victory_train_config", JSON.stringify({
+      roundDuration, restDuration, totalRounds, sessionMode,
+    }));
+  }, [roundDuration, restDuration, totalRounds, sessionMode]);
 
   const playBell = useCallback(() => {
     if (audioRef.current) {
@@ -86,178 +114,69 @@ export default function TrainPage() {
     setTimeout(() => setFlashClass(""), 300);
   }, []);
 
-  // Camera functions
-  const startCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false
-      });
-      setStream(mediaStream);
-      if (videoRef.current) videoRef.current.srcObject = mediaStream;
-    } catch (error) {
-      toast.error("Could not access camera");
-      setRecordVideo(false);
-    }
-  };
-
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-  };
-
-  const switchCamera = async () => {
-    stopCamera();
-    setFacingMode(prev => prev === "environment" ? "user" : "environment");
-    setTimeout(startCamera, 100);
-  };
-
-  const startRecording = () => {
-    if (!stream) return;
-    chunksRef.current = [];
-    try {
-      mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
-    } catch {
-      mediaRecorderRef.current = new MediaRecorder(stream);
-    }
-    mediaRecorderRef.current.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
-    };
-    mediaRecorderRef.current.start(1000);
-    setIsRecording(true);
-  };
-
-  const stopRecording = async () => {
-    return new Promise((resolve) => {
-      if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") {
-        resolve(null);
-        return;
-      }
-      mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-        setIsRecording(false);
-        resolve(blob);
-      };
-      mediaRecorderRef.current.stop();
-    });
-  };
-
-  // Upload video to Cloudinary
-  const uploadVideoToCloudinary = async (videoBlob, roundNum) => {
-    try {
-      setUploadingVideo(true);
-      
-      // Get signature from backend
-      const sigRes = await axios.get(`${API}/cloudinary/signature?resource_type=video`, { withCredentials: true });
-      const { signature, timestamp, cloud_name, api_key, folder } = sigRes.data;
-
-      if (!cloud_name || !api_key) {
-        console.log("Cloudinary not configured, skipping upload");
-        return null;
-      }
-
-      // Upload to Cloudinary
-      const formData = new FormData();
-      formData.append("file", videoBlob);
-      formData.append("api_key", api_key);
-      formData.append("timestamp", timestamp);
-      formData.append("signature", signature);
-      formData.append("folder", folder);
-      formData.append("resource_type", "video");
-
-      const uploadRes = await axios.post(
-        `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-
-      const videoUrl = uploadRes.data.secure_url;
-      const publicId = uploadRes.data.public_id;
-
-      // Register video in backend
-      await axios.post(`${API}/videos/register`, {
-        session_id: sessionId,
-        round_number: roundNum,
-        video_url: videoUrl,
-        public_id: publicId
-      }, { withCredentials: true });
-
-      return videoUrl;
-    } catch (error) {
-      console.error("Video upload error:", error);
-      return null;
-    } finally {
-      setUploadingVideo(false);
-    }
-  };
-
-  // Analyze video with GPT-4 Vision
-  const analyzeVideoWithAI = async (videoUrl, roundNum) => {
-    try {
-      setAnalyzingVideo(true);
-      const res = await axios.post(`${API}/ai/analyze-video`, {
-        video_url: videoUrl,
-        round_number: roundNum
-      }, { withCredentials: true });
-      return res.data.analysis;
-    } catch (error) {
-      console.error("Video analysis error:", error);
-      return null;
-    } finally {
-      setAnalyzingVideo(false);
-    }
-  };
-
-  // TTS voice playback
+  // ── TTS voice ────────────────────────────────────────────────────────────────
   const playVoiceFeedback = async (text) => {
     try {
       const res = await axios.post(`${API}/tts/generate`, { text }, { withCredentials: true });
       const { audio_data, mime_type } = res.data;
       const audio = new Audio(`data:${mime_type};base64,${audio_data}`);
       audio.play().catch(() => {});
-    } catch (error) {
-      // TTS not configured or unavailable — silently skip
-    }
+    } catch {}
   };
 
-  // Generate feedback
-  const generateFeedback = async (roundNum, videoAnalysis = null) => {
+  // ── AI Feedback ──────────────────────────────────────────────────────────────
+  const generateFeedback = async (roundNum) => {
     setLoadingFeedback(true);
     try {
       const res = await axios.post(`${API}/ai/generate-feedback`, {
-        round_number: roundNum,
-        total_rounds: totalRounds,
-        video_analysis: videoAnalysis
+        round_number:  roundNum,
+        total_rounds:  totalRounds,
+        session_mode:  "conversational",
       }, { withCredentials: true });
       setFeedback(res.data);
       if (voiceEnabled && res.data?.what_you_did_well) {
-        const speakText = `${res.data.what_you_did_well} ${res.data.what_to_tighten}`;
-        playVoiceFeedback(speakText);
+        playVoiceFeedback(`${res.data.what_you_did_well} ${res.data.what_to_tighten}`);
       }
-    } catch (error) {
-      console.error("Feedback error:", error);
-    } finally {
-      setLoadingFeedback(false);
-    }
+    } catch {}
+    finally { setLoadingFeedback(false); }
   };
 
-  // Training functions
+  // ── Hype message cycling (during rounds) ─────────────────────────────────────
+  const startHypeCycle = useCallback(() => {
+    // Shuffle HYPE_LINES
+    const shuffled = [...HYPE_LINES].sort(() => Math.random() - 0.5);
+    setHypeQueue(shuffled);
+    let idx = 0;
+    setCurrentHype(shuffled[0]);
+    hypeTimerRef.current = setInterval(() => {
+      idx = (idx + 1) % shuffled.length;
+      setCurrentHype(shuffled[idx]);
+    }, 18_000); // new quip every 18s
+  }, []);
+
+  const stopHypeCycle = useCallback(() => {
+    if (hypeTimerRef.current) { clearInterval(hypeTimerRef.current); hypeTimerRef.current = null; }
+    setCurrentHype(null);
+  }, []);
+
+  // ── Start training ───────────────────────────────────────────────────────────
   const startTraining = async () => {
     saveConfig();
-    
+
+    if (sessionMode === "public") {
+      navigate("/go-live");
+      return;
+    }
+
     try {
       const res = await axios.post(`${API}/training/start`, {
         round_duration: roundDuration,
-        rest_duration: restDuration,
-        total_rounds: totalRounds,
-        record_video: recordVideo
+        rest_duration:  restDuration,
+        total_rounds:   totalRounds,
+        record_video:   false,
       }, { withCredentials: true });
       setSessionId(res.data.session_id);
-    } catch (error) {
-      console.error("Failed to start session:", error);
-    }
+    } catch {}
 
     setIsConfiguring(false);
     setTimeLeft(roundDuration);
@@ -266,40 +185,32 @@ export default function TrainPage() {
     setIsPaused(false);
     setIsComplete(false);
     setFeedback(null);
-    
-    if (recordVideo) {
-      await startCamera();
-      setTimeout(startRecording, 500);
-    }
-    
     playBell();
     flashScreen("round");
+    startHypeCycle();
   };
 
-  // Timer effect
+  // ── Timer ────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (isPaused || isComplete || isConfiguring) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       return;
     }
-
     intervalRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (!isResting && prev === 11) {
           setShowTenSecWarning(true);
-          setTimeout(() => setShowTenSecWarning(false), 3000);
+          setTimeout(() => setShowTenSecWarning(false), 3500);
         }
-        
         if (prev <= 1) {
           playBell();
-
           if (isResting) {
             if (currentRound < totalRounds) {
               flashScreen("round");
               setCurrentRound((r) => r + 1);
               setIsResting(false);
               setFeedback(null);
-              if (recordVideo) startRecording();
+              startHypeCycle();
               return roundDuration;
             } else {
               handleComplete();
@@ -307,6 +218,7 @@ export default function TrainPage() {
             }
           } else {
             flashScreen("rest");
+            stopHypeCycle();
             handleRoundEnd();
             if (currentRound < totalRounds) {
               setIsResting(true);
@@ -320,46 +232,30 @@ export default function TrainPage() {
         return prev - 1;
       });
     }, 1000);
-
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isPaused, isComplete, isConfiguring, isResting, currentRound, totalRounds, roundDuration, restDuration]);
 
-  const handleRoundEnd = async () => {
-    let videoAnalysis = null;
-    
-    if (recordVideo && isRecording) {
-      const videoBlob = await stopRecording();
-      
-      if (videoBlob && videoBlob.size > 0) {
-        // Upload to Cloudinary
-        const videoUrl = await uploadVideoToCloudinary(videoBlob, currentRound);
-        
-        // Analyze with GPT-4 Vision
-        if (videoUrl) {
-          videoAnalysis = await analyzeVideoWithAI(videoUrl, currentRound);
-        }
-      }
-    }
-    
-    // Generate feedback (with or without video analysis)
-    generateFeedback(currentRound, videoAnalysis);
-  };
+  const handleRoundEnd = () => generateFeedback(currentRound);
 
   const handleComplete = async () => {
     setIsComplete(true);
-    stopCamera();
-    
+    stopHypeCycle();
     if (sessionId) {
       try {
         const res = await axios.post(`${API}/training/${sessionId}/complete`, {}, { withCredentials: true });
         navigate("/score/results", { state: { session: res.data, fromTraining: true } });
-      } catch (error) {
+      } catch {
         toast.error(t("train.failedSave"));
       }
     }
   };
 
-  const togglePause = () => setIsPaused((prev) => !prev);
+  const togglePause = () => {
+    setIsPaused((p) => {
+      if (p) startHypeCycle(); else stopHypeCycle();
+      return !p;
+    });
+  };
 
   const skipToNext = () => {
     playBell();
@@ -370,29 +266,22 @@ export default function TrainPage() {
         setIsResting(false);
         setFeedback(null);
         setTimeLeft(roundDuration);
-        if (recordVideo) startRecording();
-      } else {
-        handleComplete();
-      }
+        startHypeCycle();
+      } else { handleComplete(); }
     } else {
       flashScreen("rest");
+      stopHypeCycle();
       handleRoundEnd();
       if (currentRound < totalRounds) {
         setIsResting(true);
         setTimeLeft(restDuration);
-      } else {
-        handleComplete();
-      }
+      } else { handleComplete(); }
     }
   };
 
-  const endTimer = () => {
-    setIsPaused(true);
-    handleComplete();
-  };
-
+  const endTimer  = () => { setIsPaused(true); handleComplete(); };
   const resetTimer = () => {
-    stopCamera();
+    stopHypeCycle();
     setIsConfiguring(true);
     setIsPaused(true);
     setIsComplete(false);
@@ -403,175 +292,267 @@ export default function TrainPage() {
     setSessionId(null);
   };
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
+  const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   const getTotalWorkoutTime = () => {
-    const total = totalRounds * roundDuration + (totalRounds - 1) * restDuration;
-    return `${Math.floor(total / 60)} min`;
+    const s = totalRounds * roundDuration + (totalRounds - 1) * restDuration;
+    return `${Math.floor(s / 60)} min`;
   };
 
-  const trainingPartner = user?.training_partner;
+  const partner = user?.training_partner;
 
+  // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className={`min-h-screen bg-victory-bg pb-nav flex flex-col ${flashClass}`} data-testid="train-page">
+
       {isConfiguring ? (
+        /* ── Config screen ──────────────────────────────────────────────────── */
         <div className="flex-1 flex flex-col justify-center p-6">
           <h1 className="text-2xl font-heading font-extrabold text-victory-text text-center mb-8">
             {t("train.title")}
           </h1>
 
           <div className="space-y-6 max-w-md mx-auto w-full">
+
+            {/* Round duration */}
             <div>
               <div className="flex justify-between items-center mb-3">
                 <label className="text-victory-muted">{t("train.roundDuration")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-lime">{formatTime(roundDuration)}</span>
               </div>
-              <input type="range" min={60} max={300} step={30} value={roundDuration} onChange={(e) => setRoundDuration(Number(e.target.value))} className="w-full h-3" />
+              <input type="range" min={60} max={300} step={30} value={roundDuration}
+                onChange={(e) => setRoundDuration(Number(e.target.value))} className="w-full h-3" />
             </div>
 
+            {/* Rest duration */}
             <div>
               <div className="flex justify-between items-center mb-3">
                 <label className="text-victory-muted">{t("train.restDuration")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-teal">{formatTime(restDuration)}</span>
               </div>
-              <input type="range" min={30} max={180} step={15} value={restDuration} onChange={(e) => setRestDuration(Number(e.target.value))} className="w-full h-3" />
+              <input type="range" min={30} max={180} step={15} value={restDuration}
+                onChange={(e) => setRestDuration(Number(e.target.value))} className="w-full h-3" />
             </div>
 
+            {/* Rounds */}
             <div>
               <div className="flex justify-between items-center mb-3">
                 <label className="text-victory-muted">{t("train.numRounds")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-text">{totalRounds}</span>
               </div>
               <div className="flex items-center justify-center gap-6">
-                <button onClick={() => setTotalRounds((r) => Math.max(1, r - 1))} className="w-12 h-12 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-2xl text-victory-text touch-target">−</button>
+                <button onClick={() => setTotalRounds((r) => Math.max(1, r - 1))}
+                  className="w-12 h-12 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-2xl text-victory-text touch-target">−</button>
                 <span className="font-mono text-4xl font-semibold text-victory-text w-16 text-center">{totalRounds}</span>
-                <button onClick={() => setTotalRounds((r) => Math.min(12, r + 1))} className="w-12 h-12 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-2xl text-victory-text touch-target">+</button>
+                <button onClick={() => setTotalRounds((r) => Math.min(12, r + 1))}
+                  className="w-12 h-12 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-2xl text-victory-text touch-target">+</button>
               </div>
             </div>
 
-            <div className="victory-card p-4">
-              <button onClick={() => setRecordVideo(!recordVideo)} className="w-full flex items-center justify-between touch-target">
-                <div className="flex items-center gap-3">
-                  {recordVideo ? <Video className="w-6 h-6 text-victory-lime" /> : <VideoOff className="w-6 h-6 text-victory-muted" />}
-                  <div className="text-left">
-                    <p className="text-victory-text font-medium">{t("train.recordAnalyze")}</p>
-                    <p className="text-victory-muted text-sm">{t("train.recordDesc")}</p>
+            {/* ── Mode toggle — replaces Record & Analyse ────────────────────── */}
+            <div>
+              <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">Session Mode</p>
+              <div className="grid grid-cols-2 gap-3">
+
+                {/* Private AI Room */}
+                <button
+                  onClick={() => setSessionMode("private")}
+                  className={`relative flex flex-col items-start gap-2 p-4 rounded-2xl border-2 text-left transition-all ${
+                    sessionMode === "private"
+                      ? "border-victory-lime bg-victory-lime/10 ring-1 ring-victory-lime/30"
+                      : "border-victory-border bg-victory-card hover:border-victory-lime/30"
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    sessionMode === "private" ? "bg-victory-lime" : "bg-victory-border/50"
+                  }`}>
+                    <Lock className={`w-5 h-5 ${sessionMode === "private" ? "text-black" : "text-victory-muted"}`} />
                   </div>
-                </div>
-                <div className={`w-12 h-6 rounded-full transition-colors ${recordVideo ? "bg-victory-lime" : "bg-victory-border"}`}>
-                  <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${recordVideo ? "translate-x-6" : "translate-x-0.5"}`} />
-                </div>
-              </button>
-            </div>
-
-            <div className="victory-card p-4">
-              <button onClick={() => setVoiceEnabled(!voiceEnabled)} className="w-full flex items-center justify-between touch-target">
-                <div className="flex items-center gap-3">
-                  {voiceEnabled ? <Volume2 className="w-6 h-6 text-victory-lime" /> : <VolumeX className="w-6 h-6 text-victory-muted" />}
-                  <div className="text-left">
-                    <p className="text-victory-text font-medium">{t("train.voiceFeedback")}</p>
-                    <p className="text-victory-muted text-sm">{t("train.voiceDesc")}</p>
+                  <div>
+                    <p className={`font-bold text-sm leading-tight ${sessionMode === "private" ? "text-victory-text" : "text-victory-text/70"}`}>
+                      Private AI Room
+                    </p>
+                    <p className="text-victory-muted text-[11px] mt-0.5 leading-snug">
+                      Train with your AI partner — focused &amp; private
+                    </p>
                   </div>
-                </div>
-                <div className={`w-12 h-6 rounded-full transition-colors ${voiceEnabled ? "bg-victory-lime" : "bg-victory-border"}`}>
-                  <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${voiceEnabled ? "translate-x-6" : "translate-x-0.5"}`} />
-                </div>
-              </button>
-            </div>
+                  {sessionMode === "private" && (
+                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-victory-lime" />
+                  )}
+                </button>
 
-            <p className="text-center text-victory-muted">{t("train.total")} <span className="text-victory-text">{getTotalWorkoutTime()}</span></p>
-
-            <button onClick={startTraining} className="victory-btn-primary" data-testid="start-training-btn">{t("train.startBtn")}</button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex-1 flex flex-col">
-          {/* Camera Preview */}
-          {recordVideo && stream && !isResting && (
-            <div className="absolute top-4 right-4 z-10">
-              <div className="relative">
-                <video ref={videoRef} autoPlay playsInline muted className="w-24 h-32 rounded-lg object-cover border-2 border-victory-lime" />
-                {isRecording && <div className="absolute top-1 left-1 w-3 h-3 rounded-full bg-red-500 animate-pulse" />}
-                <button onClick={switchCamera} className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-victory-bg/80 flex items-center justify-center">
-                  <SwitchCamera className="w-4 h-4 text-victory-text" />
+                {/* Public Livestream */}
+                <button
+                  onClick={() => setSessionMode("public")}
+                  className={`relative flex flex-col items-start gap-2 p-4 rounded-2xl border-2 text-left transition-all ${
+                    sessionMode === "public"
+                      ? "border-red-500 bg-red-500/10 ring-1 ring-red-500/30"
+                      : "border-victory-border bg-victory-card hover:border-red-500/30"
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    sessionMode === "public" ? "bg-red-500" : "bg-victory-border/50"
+                  }`}>
+                    <Radio className={`w-5 h-5 ${sessionMode === "public" ? "text-white" : "text-victory-muted"}`} />
+                  </div>
+                  <div>
+                    <p className={`font-bold text-sm leading-tight ${sessionMode === "public" ? "text-victory-text" : "text-victory-text/70"}`}>
+                      Public Livestream
+                    </p>
+                    <p className="text-victory-muted text-[11px] mt-0.5 leading-snug">
+                      Go live — let the community watch
+                    </p>
+                  </div>
+                  {sessionMode === "public" && (
+                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  )}
                 </button>
               </div>
+
+              {/* Mode description */}
+              {sessionMode === "public" && (
+                <p className="mt-3 text-sm text-red-400/80 text-center">
+                  Tapping Start will open the Go Live screen.
+                </p>
+              )}
+              {sessionMode === "private" && (
+                <p className="mt-3 text-sm text-victory-lime/70 text-center">
+                  Your AI partner will motivate, coach, and banter with you between rounds.
+                </p>
+              )}
             </div>
-          )}
 
-          <div className="flex-1 flex flex-col items-center justify-center p-6">
-            <p className={`text-lg uppercase tracking-widest mb-4 ${isResting ? "text-victory-teal" : "text-victory-lime"}`}>
-              {isResting ? t("train.restLabel") : t("train.roundLabel")}
-            </p>
-
-            <div className="timer-display text-victory-text mb-4" data-testid="timer-display">{formatTime(timeLeft)}</div>
-
-            <p className="text-victory-muted text-lg mb-4">{t("train.roundOf", { current: currentRound, total: totalRounds })}</p>
-
-            {showTenSecWarning && (
-              <div className="victory-card px-4 py-2 mb-4 animate-pulse">
-                <p className="text-victory-lime text-sm">{t("train.finishStrong", { name: trainingPartner?.name || "…" })}</p>
+            {/* Voice toggle (private mode only) */}
+            {sessionMode === "private" && (
+              <div className="victory-card p-4">
+                <button onClick={() => setVoiceEnabled(!voiceEnabled)} className="w-full flex items-center justify-between touch-target">
+                  <div className="flex items-center gap-3">
+                    {voiceEnabled ? <Volume2 className="w-6 h-6 text-victory-lime" /> : <VolumeX className="w-6 h-6 text-victory-muted" />}
+                    <div className="text-left">
+                      <p className="text-victory-text font-medium">{t("train.voiceFeedback")}</p>
+                      <p className="text-victory-muted text-sm">{t("train.voiceDesc")}</p>
+                    </div>
+                  </div>
+                  <div className={`w-12 h-6 rounded-full transition-colors ${voiceEnabled ? "bg-victory-lime" : "bg-victory-border"}`}>
+                    <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${voiceEnabled ? "translate-x-6" : "translate-x-0.5"}`} />
+                  </div>
+                </button>
               </div>
             )}
 
-            {/* Upload/Analysis Status */}
-            {(uploadingVideo || analyzingVideo) && (
-              <div className="victory-card px-4 py-2 mb-4 flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
-                <p className="text-victory-muted text-sm">
-                  {uploadingVideo ? t("train.uploading") : t("train.analyzing")}
+            <p className="text-center text-victory-muted">
+              {t("train.total")} <span className="text-victory-text">{getTotalWorkoutTime()}</span>
+            </p>
+
+            <button onClick={startTraining} className="victory-btn-primary" data-testid="start-training-btn">
+              {sessionMode === "public" ? "Go Live" : t("train.startBtn")}
+            </button>
+          </div>
+        </div>
+
+      ) : (
+        /* ── Active session screen ────────────────────────────────────────────── */
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+
+            {/* Phase label */}
+            <p className={`text-lg uppercase tracking-widest mb-4 font-semibold ${isResting ? "text-victory-teal" : "text-victory-lime"}`}>
+              {isResting ? t("train.restLabel") : t("train.roundLabel")}
+            </p>
+
+            {/* Timer */}
+            <div className="timer-display text-victory-text mb-4" data-testid="timer-display">
+              {formatTime(timeLeft)}
+            </div>
+
+            <p className="text-victory-muted text-lg mb-6">
+              {t("train.roundOf", { current: currentRound, total: totalRounds })}
+            </p>
+
+            {/* ── Mid-round hype bubble (private mode, not resting) ──────────── */}
+            {!isResting && currentHype && !isPaused && (
+              <div className="w-full max-w-sm mb-4">
+                <div className="bg-victory-card border border-victory-border rounded-2xl p-4 flex items-start gap-3">
+                  {/* Partner avatar */}
+                  {partner?.avatar_url ? (
+                    <img src={partner.avatar_url} alt={partner.name}
+                      className="w-9 h-9 rounded-full object-cover border border-victory-lime flex-shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold text-sm flex-shrink-0">
+                      {partner?.name?.[0] || "C"}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-victory-muted text-[11px] font-semibold mb-1">
+                      {partner?.name || "Coach"} · <span className={`${HYPE_COLORS[currentHype.type] || "text-victory-lime"}`}>
+                        {currentHype.type}
+                      </span>
+                    </p>
+                    <p className="text-victory-text text-sm leading-snug">
+                      <span className="mr-1">{HYPE_EMOJI[currentHype.type]}</span>
+                      {currentHype.text}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 10-second warning */}
+            {showTenSecWarning && (
+              <div className="victory-card px-4 py-2 mb-4 animate-pulse">
+                <p className="text-victory-lime text-sm font-semibold">
+                  💥 {partner?.name || "Coach"}: Last 10 — finish strong!
                 </p>
               </div>
             )}
 
-            {/* AI Feedback Card */}
+            {/* ── Rest period: AI feedback card ──────────────────────────────── */}
             {isResting && (
-              <div className="w-full max-w-md mt-4">
+              <div className="w-full max-w-md">
                 <div className="victory-card p-4">
+                  {/* Partner header */}
                   <div className="flex items-center gap-3 mb-4">
-                    {trainingPartner?.avatar_url ? (
-                      <img src={trainingPartner.avatar_url} alt={trainingPartner.name} className="w-10 h-10 rounded-full object-cover border border-victory-lime" />
+                    {partner?.avatar_url ? (
+                      <img src={partner.avatar_url} alt={partner.name}
+                        className="w-10 h-10 rounded-full object-cover border border-victory-lime" />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold">
-                        {trainingPartner?.name?.[0] || "C"}
+                        {partner?.name?.[0] || "C"}
                       </div>
                     )}
                     <div className="flex-1">
-                      <p className="text-victory-lime font-semibold">{trainingPartner?.name || t("common.champ")} {t("train.says")}</p>
+                      <p className="text-victory-lime font-semibold text-sm">
+                        {partner?.name || t("common.champ")} {t("train.says")}
+                      </p>
+                      <p className="text-victory-muted text-xs">Round {currentRound} debrief</p>
                     </div>
-                    <button onClick={() => setVoiceEnabled(v => !v)} className="w-8 h-8 flex items-center justify-center text-victory-muted hover:text-victory-text">
+                    <button onClick={() => setVoiceEnabled((v) => !v)}
+                      className="w-8 h-8 flex items-center justify-center text-victory-muted hover:text-victory-text">
                       {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                     </button>
                   </div>
 
-                  {loadingFeedback || uploadingVideo || analyzingVideo ? (
+                  {loadingFeedback ? (
                     <div className="flex items-center justify-center py-4 gap-2">
                       <div className="w-6 h-6 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
-                      <span className="text-victory-muted text-sm">
-                        {analyzingVideo ? t("train.analyzingForm") : t("train.generatingFeedback")}
-                      </span>
+                      <span className="text-victory-muted text-sm">{t("train.generatingFeedback")}</span>
                     </div>
                   ) : feedback ? (
                     <div className="space-y-3">
                       <div className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-victory-lime mt-0.5" />
+                        <CheckCircle className="w-4 h-4 text-victory-lime mt-0.5 flex-shrink-0" />
                         <p className="text-victory-text text-sm">{feedback.what_you_did_well}</p>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="text-victory-orange">→</span>
+                        <Zap className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                         <p className="text-victory-text text-sm">{feedback.what_to_tighten}</p>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="text-victory-teal">📋</span>
+                        <span className="text-sky-400 mt-0.5 flex-shrink-0 text-sm">📋</span>
                         <p className="text-victory-text text-sm">{feedback.drill_focus}</p>
                       </div>
                       {feedback.accountability_check && (
                         <div className="mt-3 pt-3 border-t border-victory-border">
-                          <p className="text-victory-muted text-xs">{feedback.accountability_check}</p>
+                          <p className="text-victory-muted text-xs italic">"{feedback.accountability_check}"</p>
                         </div>
                       )}
                     </div>
@@ -582,17 +563,26 @@ export default function TrainPage() {
               </div>
             )}
 
+            {/* Controls */}
             <div className="flex items-center gap-4 mt-8">
-              <button onClick={togglePause} className="w-16 h-16 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target transition-transform active:scale-95">
+              <button onClick={togglePause}
+                className="w-16 h-16 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target transition-transform active:scale-95">
                 {isPaused ? <Play className="w-8 h-8" /> : <Pause className="w-8 h-8" />}
               </button>
-              <button onClick={skipToNext} className="w-16 h-16 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target transition-transform active:scale-95">
+              <button onClick={skipToNext}
+                className="w-16 h-16 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target transition-transform active:scale-95">
                 <SkipForward className="w-8 h-8" />
               </button>
-              <button onClick={endTimer} className="w-16 h-16 rounded-full bg-victory-card border border-victory-danger flex items-center justify-center text-victory-danger touch-target transition-transform active:scale-95">
+              <button onClick={endTimer}
+                className="w-16 h-16 rounded-full bg-victory-card border border-victory-danger flex items-center justify-center text-victory-danger touch-target transition-transform active:scale-95">
                 <Square className="w-8 h-8" />
               </button>
             </div>
+
+            {/* Reset */}
+            <button onClick={resetTimer} className="mt-6 text-victory-muted text-sm hover:text-victory-text transition-colors">
+              ← Back to setup
+            </button>
           </div>
         </div>
       )}
