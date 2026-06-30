@@ -3,9 +3,9 @@ import { Home, Newspaper, Dumbbell, Swords, User, Tv } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const NAV_ITEMS = [
-  { path: "/home",    icon: Home,      key: "home" },
-  { path: "/feed",    icon: Newspaper, key: "feed" },
   { path: "/live",    icon: Tv,        key: "live" },
+  { path: "/feed",    icon: Newspaper, key: "feed" },
+  { path: "/home",    icon: Home,      key: "home" },
   { path: "/train",   icon: Dumbbell,  key: "train" },
   { path: "/profile", icon: User,      key: "profile" },
 ];
