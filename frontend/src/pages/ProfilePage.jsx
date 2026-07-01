@@ -434,6 +434,7 @@ export default function ProfilePage() {
                 <option value="">—</option>
                 <option value="orthodox">{t("profile.orthodox")}</option>
                 <option value="southpaw">{t("profile.southpaw")}</option>
+                <option value="switch">{t("onboarding.boxing_stance.switch")}</option>
               </select>
             </div>
           </div>
