@@ -3285,7 +3285,7 @@ async def whip_proxy(stream_id: str, request: Request, user: dict = Depends(get_
         raise HTTPException(403, "Not your stream")
     sdp_offer = await request.body()
     try:
-        async with httpx.AsyncClient(timeout=15) as c:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as c:
             resp = await c.post(
                 f"https://livepeer.studio/webrtc/{stream['stream_key']}",
                 content=sdp_offer,
