@@ -27,6 +27,27 @@ const PRICES = [
   { value: 200, label: "200 tokens" },
 ];
 
+function EmoteImage({ src, emoji, alt, className }) {
+  const [failed, setFailed] = useState(false);
+  if (failed || !src) {
+    return (
+      <div className={`${className} flex items-center justify-center bg-victory-border/20 rounded-lg text-4xl`}>
+        {emoji}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={`${className} object-contain`}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      style={{ background: "transparent" }}
+    />
+  );
+}
+
 function EmoteCard({ emote, onDelete }) {
   const [deleting, setDeleting] = useState(false);
   const handleDelete = async () => {
@@ -43,11 +64,11 @@ function EmoteCard({ emote, onDelete }) {
   };
   return (
     <div className="bg-victory-card border border-victory-border rounded-xl p-3 flex flex-col items-center gap-2">
-      <img
+      <EmoteImage
         src={emote.image_url}
+        emoji={emote.emoji}
         alt={emote.name}
-        className="w-16 h-16 rounded-lg object-cover bg-white/5"
-        loading="lazy"
+        className="w-16 h-16"
       />
       <span className="text-victory-text text-xs font-bold text-center leading-tight">{emote.name}</span>
       <span className="text-victory-muted text-[10px]">{emote.emoji} {emote.label}</span>
@@ -276,7 +297,7 @@ export default function EmoteStudioPage() {
           {/* Preview */}
           {preview && (
             <div className="flex items-center gap-4 p-3 bg-victory-bg rounded-xl border border-victory-lime/30">
-              <img src={preview.image_url} alt={preview.name} className="w-16 h-16 rounded-lg object-cover bg-white/5" />
+              <EmoteImage src={preview.image_url} emoji={preview.emoji} alt={preview.name} className="w-16 h-16 flex-shrink-0" />
               <div>
                 <p className="text-victory-text font-bold text-sm">{preview.name}</p>
                 <p className="text-victory-muted text-xs">{preview.emoji} {preview.label}</p>

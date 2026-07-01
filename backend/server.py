@@ -3548,14 +3548,15 @@ async def generate_emote(data: EmoteCreate, user: dict = Depends(get_current_use
     prompt = (
         f"Twitch emote sticker of {partner_name}, a {partner_style} boxing character, "
         f"{reaction['desc']}, "
-        f"clean white background, chibi cartoon sticker art, bold black outlines, "
-        f"vivid colours, expressive eyes, boxing gloves, highly detailed emote"
+        f"transparent background, no background, isolated character, "
+        f"chibi cartoon sticker art, bold black outlines, "
+        f"vivid colours, expressive eyes, boxing gloves, highly detailed emote, cutout sticker"
     )
     seed = abs(hash(f"{user['user_id']}{data.reaction_type}")) % 999999
     encoded = _url_parse.quote(prompt)
     image_url = (
         f"https://image.pollinations.ai/prompt/{encoded}"
-        f"?width=256&height=256&nologo=true&seed={seed}"
+        f"?width=256&height=256&nologo=true&seed={seed}&model=flux&transparent=true"
     )
 
     emote_id = f"emote_{uuid.uuid4().hex[:12]}"
