@@ -5,7 +5,7 @@ import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
@@ -67,6 +67,7 @@ export default function ProfilePage() {
   });
   const [savingExtended, setSavingExtended] = useState(false);
   const [tab, setTab] = useState("settings"); // "settings" | "clips" | "schedule"
+  const [beltCatalogue, setBeltCatalogue] = useState([]);
   const [titleInput, setTitleInput] = useState("");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef(null);
@@ -92,6 +93,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchStats();
+    axios.get(`${API}/belts/catalogue`).then(r => setBeltCatalogue(r.data)).catch(() => {});
   }, []);
 
   // Reset goal if it's no longer in the current tier's options
@@ -537,6 +539,56 @@ export default function ProfilePage() {
             {savingExtended ? t("common.saving") : t("common.save")}
           </button>
         </section>
+
+        {/* Belts & Titles */}
+        {beltCatalogue.length > 0 && (
+          <section className="victory-card p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Trophy className="w-5 h-5 text-victory-lime" />
+              <h2 className="font-heading font-bold text-victory-text">Belts &amp; Titles</h2>
+              <span className="ml-auto text-victory-muted text-xs">
+                {beltCatalogue.filter(b => b.earned).length}/{beltCatalogue.length} earned
+              </span>
+            </div>
+            {/* Earned belts */}
+            {beltCatalogue.some(b => b.earned) && (
+              <div className="mb-4">
+                <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">Earned</p>
+                <div className="flex flex-wrap gap-2">
+                  {beltCatalogue.filter(b => b.earned).map(belt => (
+                    <div key={belt.belt_id} title={belt.desc} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                      belt.tier === "legend"  ? "bg-yellow-500/15 border-yellow-400/40 text-yellow-300" :
+                      belt.tier === "diamond" ? "bg-blue-400/15  border-blue-400/40  text-blue-300"   :
+                      belt.tier === "gold"    ? "bg-amber-500/15 border-amber-400/40 text-amber-300"  :
+                      belt.tier === "silver"  ? "bg-slate-400/15 border-slate-400/40 text-slate-200"  :
+                                               "bg-orange-700/15 border-orange-600/30 text-orange-300"
+                    }`}>
+                      <span>{belt.emoji}</span>
+                      {belt.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* In-progress belts */}
+            <div>
+              <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">In Progress</p>
+              <div className="space-y-2">
+                {beltCatalogue.filter(b => !b.earned && b.progress).slice(0, 4).map(belt => (
+                  <div key={belt.belt_id} className="flex items-center gap-3 p-2 rounded-xl bg-victory-bg/60 border border-victory-border/40">
+                    <span className="text-xl opacity-40">{belt.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-victory-muted text-xs font-medium flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> {belt.name}
+                      </p>
+                      <p className="text-victory-muted/60 text-[10px] truncate">{belt.progress}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Language */}
         <section className="victory-card p-4">
