@@ -3097,7 +3097,9 @@ async def _livepeer(method: str, path: str, payload: dict = None) -> dict:
             r = await c.delete(f"{LIVEPEER_BASE_URL}{path}", headers=headers)
         else:
             raise ValueError(method)
-        r.raise_for_status()
+        if not r.is_success:
+            body = r.text[:300]
+            raise HTTPException(502, f"Livepeer {r.status_code}: {body}")
         return r.json() if r.content else {}
 
 
@@ -3240,9 +3242,11 @@ async def go_live(user: dict = Depends(get_current_user)):
             ],
             "record": True,
         })
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Livepeer go-live: {e}")
-        raise HTTPException(502, "Failed to create stream")
+        raise HTTPException(502, f"Failed to create stream: {e}")
     stream_id = f"str_{uuid.uuid4().hex[:12]}"
     now = datetime.now(timezone.utc).isoformat()
     doc = {

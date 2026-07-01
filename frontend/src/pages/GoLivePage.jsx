@@ -89,9 +89,16 @@ export default function GoLivePage() {
     try {
       const res = await axios.post(`${API}/streams/go-live`);
       streamData = res.data;
-    } catch {
+    } catch (err) {
       cleanup();
-      setErrorMsg("Failed to set up the stream. Check your connection and try again.");
+      const detail = err?.response?.data?.detail;
+      if (detail && detail.toLowerCase().includes("not configured")) {
+        setErrorMsg("Streaming is not configured on the server. Please contact support.");
+      } else if (detail) {
+        setErrorMsg(`Stream setup failed: ${detail}`);
+      } else {
+        setErrorMsg("Failed to set up the stream. Check your connection and try again.");
+      }
       setPhase("error");
       return;
     }
@@ -124,7 +131,8 @@ export default function GoLivePage() {
         body: pc.localDescription.sdp,
       });
       if (!resp.ok) {
-        const detail = await resp.text().catch(() => resp.statusText);
+        let detail = resp.statusText;
+        try { const body = await resp.json(); detail = body.detail || detail; } catch {}
         throw new Error(detail || `${resp.status}`);
       }
       answerSdp = await resp.text();
