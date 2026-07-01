@@ -316,35 +316,76 @@ export default function TrainPage() {
             {/* Round duration */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-victory-muted">{t("train.roundDuration")}</label>
+                <label className="text-victory-muted text-sm font-medium">{t("train.roundDuration")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-lime">{formatTime(roundDuration)}</span>
               </div>
-              <input type="range" min={60} max={300} step={30} value={roundDuration}
-                onChange={(e) => setRoundDuration(Number(e.target.value))} className="w-full h-3" />
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
+                {[60, 90, 120, 150, 180, 210, 240, 270, 300].map((val) => (
+                  <button
+                    key={val}
+                    onClick={() => setRoundDuration(val)}
+                    className={`snap-center flex-shrink-0 px-4 py-2.5 rounded-full text-sm font-semibold border transition-all ${
+                      roundDuration === val
+                        ? "bg-victory-lime text-victory-bg border-victory-lime shadow-lg"
+                        : "bg-victory-card text-victory-muted border-victory-border"
+                    }`}
+                  >
+                    {formatTime(val)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Rest duration */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-victory-muted">{t("train.restDuration")}</label>
+                <label className="text-victory-muted text-sm font-medium">{t("train.restDuration")}</label>
                 <span className="font-mono text-xl font-semibold text-victory-teal">{formatTime(restDuration)}</span>
               </div>
-              <input type="range" min={30} max={180} step={15} value={restDuration}
-                onChange={(e) => setRestDuration(Number(e.target.value))} className="w-full h-3" />
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
+                {[30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180].map((val) => (
+                  <button
+                    key={val}
+                    onClick={() => setRestDuration(val)}
+                    className={`snap-center flex-shrink-0 px-4 py-2.5 rounded-full text-sm font-semibold border transition-all ${
+                      restDuration === val
+                        ? "bg-victory-teal text-victory-bg border-victory-teal shadow-lg"
+                        : "bg-victory-card text-victory-muted border-victory-border"
+                    }`}
+                  >
+                    {formatTime(val)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Rounds */}
             <div>
-              <div className="flex justify-between items-center mb-3">
-                <label className="text-victory-muted">{t("train.numRounds")}</label>
-                <span className="font-mono text-xl font-semibold text-victory-text">{totalRounds}</span>
-              </div>
-              <div className="flex items-center justify-center gap-6">
-                <button onClick={() => setTotalRounds((r) => Math.max(1, r - 1))}
-                  className="w-12 h-12 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-2xl text-victory-text touch-target">−</button>
-                <span className="font-mono text-4xl font-semibold text-victory-text w-16 text-center">{totalRounds}</span>
-                <button onClick={() => setTotalRounds((r) => Math.min(12, r + 1))}
-                  className="w-12 h-12 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-2xl text-victory-text touch-target">+</button>
+              <label className="text-victory-muted text-sm font-medium block mb-4">{t("train.numRounds")}</label>
+              <div className="flex items-center justify-between gap-4">
+                <button
+                  onClick={() => setTotalRounds((r) => Math.max(1, r - 1))}
+                  disabled={totalRounds <= 1}
+                  className="w-14 h-14 rounded-2xl bg-victory-card border border-victory-border flex items-center justify-center text-2xl text-victory-text touch-target disabled:opacity-30 transition-all active:scale-95"
+                >−</button>
+                <div className="flex-1 flex flex-col items-center gap-3">
+                  <span className="font-mono text-5xl font-extrabold text-victory-text leading-none">{totalRounds}</span>
+                  <div className="flex gap-1.5">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`h-1.5 rounded-full transition-all duration-150 ${
+                          i < totalRounds ? "bg-victory-lime w-3" : "bg-victory-border w-1.5"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setTotalRounds((r) => Math.min(12, r + 1))}
+                  disabled={totalRounds >= 12}
+                  className="w-14 h-14 rounded-2xl bg-victory-card border border-victory-border flex items-center justify-center text-2xl text-victory-text touch-target disabled:opacity-30 transition-all active:scale-95"
+                >+</button>
               </div>
             </div>
 
