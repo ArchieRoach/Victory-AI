@@ -13,7 +13,7 @@ const TYPES = [
   { key: "general", icon: MessageCircle, labelKey: "feedback.typeGeneral" },
 ];
 
-const HIDDEN_PATHS = ["/welcome", "/login", "/onboarding", "/paywall", "/payment"];
+const HIDDEN_PATHS = ["/welcome", "/login", "/onboarding", "/paywall", "/payment", "/stream/", "/go-live"];
 
 export default function FeedbackWidget() {
   const { isAuthenticated } = useAuth();
