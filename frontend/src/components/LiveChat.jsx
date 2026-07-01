@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Send, Zap, Gift } from "lucide-react";
+import { Send, Zap, Gift, Smile } from "lucide-react";
+import axios from "axios";
+import { API } from "@/App";
 
 const WS_BASE = (process.env.REACT_APP_BACKEND_URL || "http://localhost:8000")
   .replace(/^https/, "wss")
@@ -41,13 +43,34 @@ function GiftSubMessage({ msg }) {
   );
 }
 
-export default function LiveChat({ streamId, user, className = "", onTipEvent, onGiftEvent, onTipClick, onGiftClick }) {
+// Renders :EMOTEID: tokens as inline emote images
+function ChatText({ text, emoteMap }) {
+  if (!emoteMap || Object.keys(emoteMap).length === 0) return <span className="text-victory-text text-xs break-words">{text}</span>;
+  const parts = text.split(/(:\w+:)/g);
+  return (
+    <span className="text-victory-text text-xs break-words">
+      {parts.map((part, i) => {
+        const match = part.match(/^:(\w+):$/);
+        if (match && emoteMap[match[1]]) {
+          return <img key={i} src={emoteMap[match[1]]} alt={part} title={part} className="inline-block w-5 h-5 rounded align-middle mx-0.5 object-cover" loading="lazy" />;
+        }
+        return part;
+      })}
+    </span>
+  );
+}
+
+export default function LiveChat({ streamId, streamOwnerId, user, className = "", onTipEvent, onGiftEvent, onTipClick, onGiftClick }) {
   const [messages,    setMessages]    = useState([]);
   const [input,       setInput]       = useState("");
   const [connected,   setConnected]   = useState(false);
   const [viewerCount, setViewerCount] = useState(0);
-  // Local gifter map: userId → lifetimeGifts count (updated from gift_sub events)
   const [gifterMap,   setGifterMap]   = useState({});
+  // Emote picker
+  const [showEmotes,  setShowEmotes]  = useState(false);
+  const [unlockedEmotes, setUnlockedEmotes] = useState([]);
+  // emoteMap: emote_id → image_url for rendering in chat
+  const [emoteMap,    setEmoteMap]    = useState({});
 
   const wsRef        = useRef(null);
   const pingRef      = useRef(null);
@@ -119,10 +142,26 @@ export default function LiveChat({ streamId, user, className = "", onTipEvent, o
     };
   }, [connect]);
 
+  // Load unlocked emotes for the current viewer
+  useEffect(() => {
+    if (!streamOwnerId) return;
+    const load = async () => {
+      try {
+        const res = await axios.get(`${API}/emotes/unlocked`, { params: { stream_owner_id: streamOwnerId } });
+        const emotes = res.data || [];
+        setUnlockedEmotes(emotes);
+        const map = {};
+        emotes.forEach((e) => { map[e.emote_id] = e.image_url; });
+        setEmoteMap(map);
+      } catch {}
+    };
+    load();
+  }, [streamOwnerId]);
+
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
-  const send = () => {
-    const text = input.trim();
+  const send = (overrideText) => {
+    const text = (overrideText ?? input).trim();
     if (!text || !connected || !wsRef.current) return;
     wsRef.current.send(JSON.stringify({
       type:        "message",
@@ -131,7 +170,12 @@ export default function LiveChat({ streamId, user, className = "", onTipEvent, o
       user_avatar: user?.avatar_url || "",
       user_id:     user?.user_id || "",
     }));
-    setInput("");
+    if (!overrideText) setInput("");
+  };
+
+  const sendEmote = (emote) => {
+    setShowEmotes(false);
+    send(`:${emote.emote_id}:`);
   };
 
   const handleKey = (e) => {
@@ -173,13 +217,35 @@ export default function LiveChat({ streamId, user, className = "", onTipEvent, o
               <div className="min-w-0">
                 <span className="text-victory-lime text-xs font-semibold mr-1">{msg.user_name}</span>
                 {badge && <span className="text-xs mr-1">{badge}</span>}
-                <span className="text-victory-text text-xs break-words">{msg.message}</span>
+                <ChatText text={msg.message} emoteMap={emoteMap} />
               </div>
             </div>
           );
         })}
         <div ref={bottomRef} />
       </div>
+
+      {/* Emote picker popover */}
+      {showEmotes && (
+        <div className="border-t border-victory-border bg-victory-bg p-2">
+          {unlockedEmotes.length === 0 ? (
+            <p className="text-victory-muted text-xs text-center py-2">No emotes unlocked yet</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {unlockedEmotes.map((e) => (
+                <button
+                  key={e.emote_id}
+                  onClick={() => sendEmote(e)}
+                  title={`:${e.name}:`}
+                  className="w-9 h-9 rounded-lg hover:bg-victory-lime/10 transition-colors p-0.5"
+                >
+                  <img src={e.image_url} alt={e.name} className="w-full h-full rounded object-cover" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Input row */}
       <div className="flex gap-1.5 p-2 border-t border-victory-border">
@@ -201,6 +267,19 @@ export default function LiveChat({ streamId, user, className = "", onTipEvent, o
           <Gift className="w-4 h-4" />
         </button>
 
+        {/* Emote picker toggle */}
+        {streamOwnerId && (
+          <button
+            onClick={() => setShowEmotes((v) => !v)}
+            title="Emotes"
+            className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-colors flex-shrink-0 ${
+              showEmotes ? "border-victory-lime text-victory-lime bg-victory-lime/10" : "border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-lime"
+            }`}
+          >
+            <Smile className="w-4 h-4" />
+          </button>
+        )}
+
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -211,7 +290,7 @@ export default function LiveChat({ streamId, user, className = "", onTipEvent, o
           className="flex-1 bg-victory-bg border border-victory-border rounded-lg px-3 py-2 text-victory-text text-sm placeholder:text-victory-muted focus:outline-none focus:border-victory-lime disabled:opacity-40"
         />
         <button
-          onClick={send}
+          onClick={() => send()}
           disabled={!connected || !input.trim()}
           className="w-9 h-9 flex items-center justify-center rounded-lg bg-victory-lime text-victory-bg disabled:opacity-40 transition-opacity flex-shrink-0"
         >

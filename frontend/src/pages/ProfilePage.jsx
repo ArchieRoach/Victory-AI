@@ -5,7 +5,8 @@ import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff } from "lucide-react";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
 import {
@@ -28,6 +29,7 @@ export default function ProfilePage() {
     most_improved_dimension: null,
   });
   const [weeklyReminder, setWeeklyReminder] = useState(true);
+  const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const EXPERIENCE_LEVELS = [
     "Total beginner",
@@ -541,6 +543,42 @@ export default function ProfilePage() {
               data-testid="reminder-toggle"
             />
           </div>
+
+          {/* Push notifications */}
+          {pushSupported && pushPermission !== 'denied' && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-victory-border">
+              <div className="flex items-center gap-3">
+                {pushSubscribed
+                  ? <Bell className="w-4 h-4 text-victory-lime flex-shrink-0" />
+                  : <BellOff className="w-4 h-4 text-victory-muted flex-shrink-0" />}
+                <div>
+                  <p className="text-victory-text text-sm">Push notifications</p>
+                  <p className="text-victory-muted text-xs">
+                    {pushSubscribed ? 'Tips, likes, streams & more' : 'Get notified on this device'}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={pushSubscribed}
+                disabled={pushLoading}
+                onCheckedChange={async (on) => {
+                  if (on) {
+                    const ok = await pushSubscribe();
+                    if (!ok && Notification.permission === 'denied') {
+                      toast.error('Notifications are blocked — enable them in browser settings.');
+                    }
+                  } else {
+                    await pushUnsubscribe();
+                  }
+                }}
+              />
+            </div>
+          )}
+          {pushPermission === 'denied' && (
+            <p className="text-victory-muted text-xs mt-3 pt-3 border-t border-victory-border">
+              Push notifications are blocked in your browser settings.
+            </p>
+          )}
         </section>
 
         {/* About */}
@@ -548,6 +586,31 @@ export default function ProfilePage() {
           <h2 className="font-heading font-bold text-victory-text mb-3">{t("profile.about")}</h2>
           <p className="text-victory-muted text-sm leading-relaxed">{t("profile.aboutText")}</p>
         </section>
+
+        {/* Tokens */}
+        <button
+          onClick={() => navigate("/tokens", { state: { returnPath: "/profile" } })}
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2 border-victory-lime/30 text-victory-lime hover:bg-victory-lime/10"
+        >
+          <Zap className="w-5 h-5" />
+          Buy Tokens
+        </button>
+
+        {/* Streamer tools */}
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+        >
+          <TrendingUp className="w-5 h-5" />
+          Streamer Dashboard
+        </button>
+        <button
+          onClick={() => navigate("/emotes")}
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+        >
+          <Swords className="w-5 h-5" />
+          Emote Studio
+        </button>
 
         {/* Sign Out */}
         <button

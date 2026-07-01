@@ -1,13 +1,13 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Newspaper, Dumbbell, Swords, User, Tv } from "lucide-react";
+import { Home, Search, Dumbbell, User, Tv } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const NAV_ITEMS = [
-  { path: "/live",    icon: Tv,        key: "live" },
-  { path: "/feed",    icon: Newspaper, key: "feed" },
-  { path: "/home",    icon: Home,      key: "home" },
-  { path: "/train",   icon: Dumbbell,  key: "train" },
-  { path: "/profile", icon: User,      key: "profile" },
+  { path: "/live",     icon: Tv,       key: "live"     },
+  { path: "/discover", icon: Search,   key: "discover" },
+  { path: "/home",     icon: Home,     key: "home"     },
+  { path: "/train",    icon: Dumbbell, key: "train"    },
+  { path: "/profile",  icon: User,     key: "profile"  },
 ];
 
 export const BottomNav = () => {
@@ -23,10 +23,9 @@ export const BottomNav = () => {
         {NAV_ITEMS.map(({ path, icon: Icon, key }) => {
           const isActive =
             location.pathname === path ||
-            (path === "/train" && (location.pathname.startsWith("/score") || location.pathname.startsWith("/timer"))) ||
-            (path === "/compete" && location.pathname.startsWith("/compete")) ||
-            (path === "/feed" && location.pathname.startsWith("/post")) ||
-            (path === "/live" && (location.pathname.startsWith("/stream") || location.pathname === "/go-live"));
+            (path === "/train"    && (location.pathname.startsWith("/score") || location.pathname.startsWith("/timer"))) ||
+            (path === "/discover" && location.pathname.startsWith("/profile/")) ||
+            (path === "/live"     && (location.pathname.startsWith("/stream") || location.pathname === "/go-live"));
 
           return (
             <NavLink

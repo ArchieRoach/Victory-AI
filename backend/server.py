@@ -41,6 +41,16 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 STRIPE_FOUNDERS_COUPON_ID = os.environ.get('STRIPE_FOUNDERS_COUPON_ID', '')
 stripe_lib.api_key = STRIPE_API_KEY
 
+# ── Web Push (VAPID) ─────────────────────────────────────────────────────────
+# Generate keys once with:
+#   python -c "from py_vapid import Vapid; v=Vapid(); v.generate_keys(); \
+#     print('Private:', v.private_pem().decode()); \
+#     print('Public:', v.public_key.public_bytes(__import__('cryptography').hazmat.primitives.serialization.Encoding.X962, __import__('cryptography').hazmat.primitives.serialization.PublicFormat.UncompressedPoint).__import__('base64').urlsafe_b64encode(v.public_key.public_bytes(...)).decode())"
+# Easier: run `vapid --gen` from the pywebpush package and paste the outputs below.
+VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')  # PEM string
+VAPID_PUBLIC_KEY  = os.environ.get('VAPID_PUBLIC_KEY',  '')  # URL-safe base64
+VAPID_SUBJECT     = os.environ.get('VAPID_SUBJECT', 'mailto:push@victory.ai')
+
 # ── Freemium AI token budget ──────────────────────────────────────────────────
 # Based on real API costs: GPT-4o ~$0.005/call, ElevenLabs ~$0.02/call.
 # 10,000 free tokens/month ≈ 5 video analyses OR 6 TTS sessions OR any mix.
@@ -69,10 +79,38 @@ LIVEPEER_API_KEY = os.environ.get('LIVEPEER_API_KEY', '')
 
 # ── Token economy ─────────────────────────────────────────────────────────────
 TOKEN_PACKAGES = {
-    "starter":  {"tokens": 200,  "price": 1.99,  "label": "Starter Pack"},
-    "fighter":  {"tokens": 500,  "price": 4.99,  "label": "Fighter Pack"},
-    "champion": {"tokens": 1200, "price": 9.99,  "label": "Champion Pack"},
-    "legend":   {"tokens": 3000, "price": 19.99, "label": "Legend Pack"},
+    "starter": {
+        "tokens": 200,  "price": 1.99,  "label": "Starter",
+        "badge": None,        "highlight": False,
+        "tagline": "Get in the ring",
+        "perks": ["2–3 tips", "4 emote unlocks", "Try punch alerts"],
+        "cents_per_token": round(1.99 / 200 * 100, 2),   # 1.00¢
+        "savings_pct": 0,
+    },
+    "fighter": {
+        "tokens": 500,  "price": 4.99,  "label": "Fighter",
+        "badge": "Most Popular", "highlight": True,
+        "tagline": "Stay in the fight",
+        "perks": ["8–10 tips", "10 emote unlocks", "Full punch menu"],
+        "cents_per_token": round(4.99 / 500 * 100, 2),   # 1.00¢
+        "savings_pct": 0,
+    },
+    "champion": {
+        "tokens": 1200, "price": 9.99,  "label": "Champion",
+        "badge": "Best Value", "highlight": False,
+        "tagline": "Go hard",
+        "perks": ["20+ tips", "24 emote unlocks", "Title Shot alerts"],
+        "cents_per_token": round(9.99 / 1200 * 100, 2),  # 0.83¢
+        "savings_pct": 17,
+    },
+    "legend": {
+        "tokens": 3000, "price": 19.99, "label": "Legend",
+        "badge": "Go All Out", "highlight": False,
+        "tagline": "Dominate the feed",
+        "perks": ["60+ tips", "60 emote unlocks", "All punch tiers"],
+        "cents_per_token": round(19.99 / 3000 * 100, 2), # 0.67¢
+        "savings_pct": 33,
+    },
 }
 PUNCH_MENU = [
     # Reactions
@@ -1079,6 +1117,10 @@ async def stripe_webhook(request: Request):
 
 # ============== TOKEN / TIPPING ENDPOINTS ==============
 
+@api_router.get("/tokens/packages")
+async def list_token_packages(_: dict = Depends(get_current_user)):
+    return list({"id": k, **v} for k, v in TOKEN_PACKAGES.items())
+
 @api_router.get("/tokens/balance")
 async def get_token_balance(user: dict = Depends(get_current_user)):
     return {
@@ -1088,22 +1130,45 @@ async def get_token_balance(user: dict = Depends(get_current_user)):
     }
 
 @api_router.post("/tokens/purchase")
-async def purchase_tokens(pkg_id: str = Query(...), origin_url: str = Query(""), user: dict = Depends(get_current_user)):
+async def purchase_tokens(
+    pkg_id: str = Query(...),
+    origin_url: str = Query(""),
+    return_path: str = Query("/tokens"),   # where to go on cancel
+    user: dict = Depends(get_current_user),
+):
     import asyncio
     if pkg_id not in TOKEN_PACKAGES:
         raise HTTPException(400, "Invalid package")
     pkg = TOKEN_PACKAGES[pkg_id]
     host = origin_url.rstrip("/") or "https://victory-ai-alpha.vercel.app"
+    safe_return = return_path.lstrip("/")
     try:
         session = await asyncio.to_thread(
             stripe_lib.checkout.Session.create,
             mode="payment",
             payment_method_types=["card"],
-            line_items=[{"price_data": {"currency": "usd", "product_data": {"name": f"Victory Tokens — {pkg['tokens']:,} ({pkg['label']})"}, "unit_amount": int(pkg["price"] * 100)}, "quantity": 1}],
-            success_url=f"{host}/tokens/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{host}/live",
+            line_items=[{
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": f"Victory — {pkg['tokens']:,} Tokens ({pkg['label']})",
+                        "description": pkg["tagline"],
+                        "images": [],
+                    },
+                    "unit_amount": int(pkg["price"] * 100),
+                },
+                "quantity": 1,
+            }],
+            success_url=f"{host}/tokens/success?session_id={{CHECKOUT_SESSION_ID}}&pkg={pkg_id}",
+            cancel_url=f"{host}/{safe_return}",
             customer_email=user.get("email") or None,
-            metadata={"user_id": user["user_id"], "purchase_type": "tokens", "token_package": pkg_id, "tokens": str(pkg["tokens"])},
+            payment_intent_data={"description": f"Victory tokens — {pkg['tokens']:,} ({pkg['label']})"},
+            metadata={
+                "user_id":        user["user_id"],
+                "purchase_type":  "tokens",
+                "token_package":  pkg_id,
+                "tokens":         str(pkg["tokens"]),
+            },
         )
     except Exception as e:
         raise HTTPException(500, str(e))
@@ -1166,6 +1231,16 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
         "combo_label": punch.get("combo_label", "") if punch else "",
         "timestamp": now,
     }))
+
+    # Push notification to streamer (non-blocking)
+    sender_name = user.get("display_name") or user.get("name", "Someone")
+    await _send_push(
+        stream["user_id"],
+        title=f"{sender_name} tipped {req.amount:,} tokens!",
+        body=req.message[:80] if req.message else f"{punch['action'] if punch else '⚡'} — you're on fire",
+        url=f"/stream/{stream_id}",
+        tag=f"tip-{stream_id}",
+    )
 
     return {"success": True, "tokens_remaining": balance - req.amount, "punch_action": tip_doc["punch_action"]}
 
@@ -1642,6 +1717,107 @@ async def update_extended_profile(data: UserProfileExtend, user: dict = Depends(
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0})
     return safe_user(updated)
 
+
+# ============== FIGHTER SEARCH / DISCOVER ==============
+
+WEIGHT_CLASSES_ORDERED = [
+    "Strawweight", "Light Flyweight", "Flyweight", "Super Flyweight",
+    "Bantamweight", "Super Bantamweight", "Featherweight", "Super Featherweight",
+    "Lightweight", "Super Lightweight", "Welterweight", "Super Welterweight",
+    "Middleweight", "Super Middleweight", "Light Heavyweight",
+    "Cruiserweight", "Heavyweight", "Super Heavyweight",
+]
+
+@api_router.get("/search/fighters")
+async def search_fighters(
+    q:            str   = Query(""),
+    weight_class: str   = Query(""),
+    stance:       str   = Query(""),
+    sort:         str   = Query("active", enum=["active", "record", "new", "followers"]),
+    page:         int   = Query(1, ge=1),
+    limit:        int   = Query(20, ge=1, le=50),
+    current_user: dict  = Depends(get_current_user),
+):
+    query: dict = {"is_public": {"$ne": False}}
+
+    if q.strip():
+        pattern = {"$regex": q.strip(), "$options": "i"}
+        query["$or"] = [{"display_name": pattern}, {"name": pattern}]
+
+    if weight_class and weight_class != "All":
+        query["weight_class"] = weight_class
+
+    if stance and stance != "All":
+        query["stance"] = stance
+
+    skip = (page - 1) * limit
+
+    # Sort mapping
+    mongo_sort = {
+        "new":  [("created_at", -1)],
+        "active": [("last_session_at", -1), ("created_at", -1)],
+    }.get(sort, [("created_at", -1)])
+
+    raw_users = await db.users.find(
+        query,
+        {"_id": 0, "password": 0, "stream_key": 0},
+    ).sort(mongo_sort).skip(skip).limit(limit).to_list(limit)
+
+    # Filter out the caller themselves
+    raw_users = [u for u in raw_users if u.get("user_id") != current_user["user_id"]]
+
+    # Fetch caller's following set for is_following flag
+    following_docs = await db.follows.find(
+        {"follower_id": current_user["user_id"]},
+        {"following_id": 1},
+    ).to_list(None)
+    following_ids = {f["following_id"] for f in following_docs}
+
+    # Find who is currently live
+    live_user_ids = set()
+    live_streams = await db.streams.find(
+        {"status": "live"},
+        {"user_id": 1},
+    ).to_list(None)
+    for s in live_streams:
+        live_user_ids.add(s["user_id"])
+
+    results = []
+    for u in raw_users:
+        uid = u["user_id"]
+        base = safe_user(u)
+
+        # Session count
+        base["total_sessions"] = await db.sessions.count_documents({"user_id": uid})
+
+        # Follower count
+        base["follower_count"] = await db.follows.count_documents({"following_id": uid})
+
+        base["is_following"] = uid in following_ids
+        base["is_live"]      = uid in live_user_ids
+        base["experience_level"] = u.get("experience_level", "")
+
+        results.append(base)
+
+    # Secondary sort for "record" (most wins) and "followers" (done in Python after enrichment)
+    if sort == "record":
+        results.sort(
+            key=lambda u: (u.get("amateur_wins", 0) + u.get("competition_wins", 0)),
+            reverse=True,
+        )
+    elif sort == "followers":
+        results.sort(key=lambda u: u.get("follower_count", 0), reverse=True)
+
+    total = await db.users.count_documents(query)
+
+    return {
+        "fighters": results,
+        "total":    total,
+        "page":     page,
+        "pages":    max(1, -(-total // limit)),   # ceil division
+    }
+
+
 @api_router.get("/users/{user_id}/profile")
 async def get_public_profile(user_id: str, current_user: dict = Depends(get_current_user)):
     target = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
@@ -1736,6 +1912,233 @@ async def delete_scheduled_stream(schedule_id: str, user: dict = Depends(get_cur
         raise HTTPException(403, "Not your scheduled stream")
     await db.scheduled_streams.delete_one({"schedule_id": schedule_id})
     return {"ok": True}
+
+
+# ============== STREAMER ANALYTICS ==============
+
+@api_router.get("/analytics/dashboard")
+async def get_analytics_dashboard(
+    period: str = Query("30d", enum=["7d", "30d", "all"]),
+    user: dict = Depends(get_current_user),
+):
+    uid = user["user_id"]
+    now = datetime.now(timezone.utc)
+
+    if period == "7d":
+        cutoff = (now - timedelta(days=7)).isoformat()
+        days   = 7
+    elif period == "30d":
+        cutoff = (now - timedelta(days=30)).isoformat()
+        days   = 30
+    else:
+        cutoff = "2000-01-01T00:00:00+00:00"
+        days   = 365
+
+    # ── 1. Tips totals & daily breakdown ─────────────────────────────────────
+    tips_cursor = db.tips.find(
+        {"streamer_id": uid, "created_at": {"$gte": cutoff}},
+        {"_id": 0, "amount": 1, "created_at": 1, "stream_id": 1},
+    )
+    tips_list = await tips_cursor.to_list(None)
+    total_tips_tokens = sum(t["amount"] for t in tips_list)
+
+    # ── 2. Emote unlock totals & daily breakdown ──────────────────────────────
+    unlocks_cursor = db.emote_unlocks.find(
+        {"owner_id": uid, "unlocked_at": {"$gte": cutoff}},
+        {"_id": 0, "emote_id": 1, "unlocked_at": 1},
+    )
+    unlocks_list = await unlocks_cursor.to_list(None)
+
+    # Fetch token prices for the user's emotes
+    emotes_raw = await db.emotes.find({"owner_id": uid}, {"_id": 0}).to_list(None)
+    price_map = {e["emote_id"]: e.get("token_price", 0) for e in emotes_raw}
+    total_emote_tokens = sum(int(price_map.get(u["emote_id"], 0) * 0.7) for u in unlocks_list)
+
+    # ── 3. Daily chart: merge tips + emote revenue by date ───────────────────
+    from collections import defaultdict
+    daily: dict = defaultdict(lambda: {"tips": 0, "emotes": 0})
+
+    for t in tips_list:
+        day = t["created_at"][:10]
+        daily[day]["tips"] += t["amount"]
+
+    for u in unlocks_list:
+        day = u["unlocked_at"][:10]
+        daily[day]["emotes"] += int(price_map.get(u["emote_id"], 0) * 0.7)
+
+    # Fill all days in range (so chart has no gaps)
+    chart_days = []
+    for i in range(days - 1, -1, -1):
+        d = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+        chart_days.append({
+            "date":   d,
+            "label":  (now - timedelta(days=i)).strftime("%d %b"),
+            "tips":   daily[d]["tips"],
+            "emotes": daily[d]["emotes"],
+            "total":  daily[d]["tips"] + daily[d]["emotes"],
+        })
+
+    # ── 4. Past streams (ended, most recent first) ───────────────────────────
+    past_streams_raw = await db.streams.find(
+        {"user_id": uid, "status": {"$in": ["ended", "idle"]}, "created_at": {"$gte": cutoff}},
+        {"_id": 0, "stream_key": 0},
+    ).sort("created_at", -1).limit(20).to_list(20)
+
+    # For each stream, attach total tips earned
+    tips_by_stream: dict = defaultdict(int)
+    for t in tips_list:
+        tips_by_stream[t["stream_id"]] += t["amount"]
+
+    past_streams = []
+    for s in past_streams_raw:
+        started  = s.get("started_at") or s["created_at"]
+        ended    = s.get("ended_at")
+        duration_mins = None
+        if ended and started:
+            try:
+                start_dt = datetime.fromisoformat(started.replace("Z", "+00:00"))
+                end_dt   = datetime.fromisoformat(ended.replace("Z", "+00:00"))
+                duration_mins = max(0, int((end_dt - start_dt).total_seconds() / 60))
+            except Exception:
+                pass
+        past_streams.append({
+            "stream_id":      s["stream_id"],
+            "title":          s.get("title", "Untitled"),
+            "type":           s.get("type", "training"),
+            "status":         s["status"],
+            "viewer_count":   s.get("viewer_count", 0),
+            "created_at":     s["created_at"],
+            "duration_mins":  duration_mins,
+            "tips_earned":    tips_by_stream[s["stream_id"]],
+        })
+
+    # ── 5. Emote performance ─────────────────────────────────────────────────
+    unlocks_by_emote: dict = defaultdict(int)
+    for u in unlocks_list:
+        unlocks_by_emote[u["emote_id"]] += 1
+
+    emote_performance = []
+    for e in emotes_raw:
+        eid = e["emote_id"]
+        unlocks_period = unlocks_by_emote[eid]
+        revenue_period = int(unlocks_period * e.get("token_price", 0) * 0.7)
+        emote_performance.append({
+            "emote_id":       eid,
+            "name":           e["name"],
+            "emoji":          e.get("emoji", ""),
+            "image_url":      e["image_url"],
+            "token_price":    e.get("token_price", 0),
+            "unlock_count":   e.get("unlock_count", 0),   # all-time
+            "unlocks_period": unlocks_period,
+            "revenue_period": revenue_period,
+        })
+    emote_performance.sort(key=lambda x: x["revenue_period"], reverse=True)
+
+    # ── 6. Overview totals ────────────────────────────────────────────────────
+    total_streams       = await db.streams.count_documents({"user_id": uid})
+    total_viewers_all   = await db.streams.aggregate([
+        {"$match": {"user_id": uid}},
+        {"$group": {"_id": None, "total": {"$sum": "$viewer_count"}}},
+    ]).to_list(1)
+    all_tips_ever = await db.tips.aggregate([
+        {"$match": {"streamer_id": uid}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}},
+    ]).to_list(1)
+    all_emote_unlocks_ever = await db.emote_unlocks.find({"owner_id": uid}, {"_id": 0, "emote_id": 1}).to_list(None)
+    all_emote_revenue = sum(int(price_map.get(u["emote_id"], 0) * 0.7) for u in all_emote_unlocks_ever)
+
+    return {
+        "period": period,
+        "overview": {
+            "total_earned_alltime": (all_tips_ever[0]["total"] if all_tips_ever else 0) + all_emote_revenue,
+            "tips_earned_period":   total_tips_tokens,
+            "emotes_earned_period": total_emote_tokens,
+            "total_earned_period":  total_tips_tokens + total_emote_tokens,
+            "total_streams":        total_streams,
+            "total_viewers":        total_viewers_all[0]["total"] if total_viewers_all else 0,
+            "emote_count":          len(emotes_raw),
+            "total_unlocks":        sum(e.get("unlock_count", 0) for e in emotes_raw),
+        },
+        "chart":            chart_days,
+        "streams":          past_streams,
+        "emote_performance": emote_performance,
+    }
+
+
+# ============== WEB PUSH NOTIFICATIONS ==============
+
+class PushSubscribeRequest(BaseModel):
+    endpoint: str
+    keys: dict         # {p256dh: str, auth: str}
+    expirationTime: Optional[float] = None
+
+class PushUnsubscribeRequest(BaseModel):
+    endpoint: str
+
+@api_router.get("/push/vapid-key")
+async def get_vapid_key(_: dict = Depends(get_current_user)):
+    if not VAPID_PUBLIC_KEY:
+        raise HTTPException(503, "Push notifications not configured")
+    return {"public_key": VAPID_PUBLIC_KEY}
+
+@api_router.post("/push/subscribe")
+async def push_subscribe(req: PushSubscribeRequest, user: dict = Depends(get_current_user)):
+    if not VAPID_PUBLIC_KEY:
+        raise HTTPException(503, "Push notifications not configured")
+    await db.push_subscriptions.update_one(
+        {"endpoint": req.endpoint},
+        {"$set": {
+            "user_id":    user["user_id"],
+            "endpoint":   req.endpoint,
+            "keys":       req.keys,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+    return {"ok": True}
+
+@api_router.delete("/push/subscribe")
+async def push_unsubscribe(req: PushUnsubscribeRequest, user: dict = Depends(get_current_user)):
+    await db.push_subscriptions.delete_one({
+        "endpoint": req.endpoint,
+        "user_id":  user["user_id"],
+    })
+    return {"ok": True}
+
+async def _send_push(user_id: str, title: str, body: str, url: str = "/live", tag: str | None = None):
+    """Fire-and-forget push to all subscriptions for a user. Cleans up expired subs."""
+    if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
+        return
+    subs = await db.push_subscriptions.find({"user_id": user_id}, {"_id": 0}).to_list(10)
+    if not subs:
+        return
+
+    try:
+        from pywebpush import webpush, WebPushException
+    except ImportError:
+        logger.warning("pywebpush not installed — push skipped")
+        return
+
+    import asyncio as _aio
+    payload = json.dumps({"title": title, "body": body, "url": url, "tag": tag or f"v-{uuid.uuid4().hex[:6]}"})
+
+    for sub in subs:
+        sub_info = {"endpoint": sub["endpoint"], "keys": sub["keys"]}
+        try:
+            await _aio.to_thread(
+                webpush,
+                subscription_info=sub_info,
+                data=payload,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={"sub": VAPID_SUBJECT},
+                ttl=86400,
+            )
+        except Exception as exc:
+            err_str = str(exc)
+            logger.warning(f"Push failed for {user_id}: {err_str}")
+            if "410" in err_str or "404" in err_str:
+                # Subscription expired — remove it
+                await db.push_subscriptions.delete_one({"endpoint": sub["endpoint"]})
 
 
 # ============== GYM ENDPOINTS ==============
@@ -1911,6 +2314,7 @@ async def create_post(post_data: PostCreate, user: dict = Depends(get_current_us
         "likes": [],
         "like_count": 0,
         "comment_count": 0,
+        "share_count": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.posts.insert_one(post_doc)
@@ -1967,6 +2371,14 @@ async def toggle_like(post_id: str, user: dict = Depends(get_current_user)):
                 "read": False,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             })
+            actor_name = user.get("display_name") or user.get("name", "Someone")
+            await _send_push(
+                post["user_id"],
+                title=f"{actor_name} liked your post",
+                body="Tap to see it",
+                url=f"/profile/{post['user_id']}",
+                tag=f"like-{post_id}",
+            )
         except Exception: pass
     return {"liked": True}
 
@@ -1981,9 +2393,86 @@ async def delete_post(post_id: str, user: dict = Depends(get_current_user)):
     await db.comments.delete_many({"post_id": post_id})
     return {"message": "Post deleted"}
 
+@api_router.get("/posts/{post_id}")
+async def get_post(post_id: str, user: dict = Depends(get_current_user)):
+    post = await db.posts.find_one({"post_id": post_id}, {"_id": 0})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    author = await db.users.find_one({"user_id": post["user_id"]}, {"_id": 0, "password": 0})
+    post["author"] = safe_user(author) if author else {"display_name": "Unknown"}
+    post["liked_by_me"] = user["user_id"] in post.get("likes", [])
+    post.pop("likes", None)
+    return post
+
+@api_router.post("/posts/{post_id}/share")
+async def share_post(post_id: str, user: dict = Depends(get_current_user)):
+    post = await db.posts.find_one({"post_id": post_id})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    await db.posts.update_one({"post_id": post_id}, {"$inc": {"share_count": 1}})
+    new_count = (post.get("share_count") or 0) + 1
+    # Push notify the post owner
+    if post["user_id"] != user["user_id"]:
+        sharer_name = user.get("display_name") or user.get("name", "Someone")
+        asyncio.create_task(_send_push(
+            post["user_id"],
+            title=f"{sharer_name} shared your clip",
+            body="Your clip is spreading — keep going!",
+            url=f"/clip/{post_id}",
+            tag=f"share-{post_id}",
+        ))
+    return {"share_count": new_count}
+
+# ============== TRENDING CLIPS ==============
+
+VIRAL_THRESHOLD = 50   # share_count to earn the flame badge
+
+@api_router.get("/clips/trending")
+async def trending_clips(
+    period: str = Query("24h", enum=["24h", "7d", "all"]),
+    page: int = Query(1, ge=1),
+    user: dict = Depends(get_current_user),
+):
+    limit = 20
+    skip  = (page - 1) * limit
+
+    query: dict = {"video_url": {"$exists": True, "$ne": ""}}
+    if period == "24h":
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+        query["created_at"] = {"$gte": cutoff}
+    elif period == "7d":
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        query["created_at"] = {"$gte": cutoff}
+
+    posts = await db.posts.find(query, {"_id": 0}).to_list(500)
+
+    # Viral score: shares weighted heaviest
+    def viral_score(p):
+        return (p.get("share_count") or 0) * 5 + (p.get("like_count") or 0) * 3 + (p.get("comment_count") or 0) * 2
+
+    posts.sort(key=viral_score, reverse=True)
+    page_posts = posts[skip: skip + limit]
+
+    result = []
+    for p in page_posts:
+        author = await db.users.find_one({"user_id": p["user_id"]}, {"_id": 0, "password": 0})
+        p["author"] = safe_user(author) if author else {"display_name": "Unknown"}
+        p["liked_by_me"] = user["user_id"] in p.get("likes", [])
+        p["is_viral"] = (p.get("share_count") or 0) >= VIRAL_THRESHOLD
+        p.pop("likes", None)
+        result.append(p)
+
+    return {
+        "clips": result,
+        "page": page,
+        "has_more": (skip + limit) < len(posts),
+        "viral_threshold": VIRAL_THRESHOLD,
+    }
+
 @api_router.post("/posts/{post_id}/comments")
 async def add_comment(post_id: str, comment_data: CommentCreate, user: dict = Depends(get_current_user)):
-    if not await db.posts.find_one({"post_id": post_id}):
+    post = await db.posts.find_one({"post_id": post_id})
+    if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     comment_doc = {
         "comment_id": f"cmt_{uuid.uuid4().hex[:12]}",
@@ -2009,6 +2498,15 @@ async def add_comment(post_id: str, comment_data: CommentCreate, user: dict = De
                 "read": False,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             })
+            actor_name = user.get("display_name") or user.get("name", "Someone")
+            preview = comment_data.text[:60] + ("…" if len(comment_data.text) > 60 else "")
+            await _send_push(
+                post["user_id"],
+                title=f"{actor_name} commented on your post",
+                body=f'"{preview}"',
+                url=f"/profile/{post['user_id']}",
+                tag=f"comment-{post_id}",
+            )
         except Exception: pass
     return comment_doc
 
@@ -2061,6 +2559,7 @@ async def home_for_you_feed(user: dict = Depends(get_current_user)):
         if p.get("user_id") in following_ids: sc += 50
         sc += min((p.get("like_count")    or 0) * 3, 30)
         sc += min((p.get("comment_count") or 0) * 2, 20)
+        sc += min((p.get("share_count")   or 0) * 5, 40)  # viral boost
         try:
             age_h = (now_ts - datetime.fromisoformat(p["created_at"]).timestamp()) / 3600
             sc += max(0.0, 40 - age_h * 1.5)
@@ -2110,6 +2609,50 @@ async def home_for_you_feed(user: dict = Depends(get_current_user)):
         final.append({"type": item["type"], "data": d})
 
     return final
+
+
+@api_router.get("/home/following")
+async def home_following_feed(user: dict = Depends(get_current_user)):
+    """Feed of posts and live streams from users the caller follows, sorted by recency."""
+    user_id = user["user_id"]
+    follows = await db.follows.find({"follower_id": user_id}, {"following_id": 1}).to_list(5000)
+    following_ids = [f["following_id"] for f in follows]
+    if not following_ids:
+        return []
+
+    items = []
+
+    # Streams from followed users (live first, then recent)
+    streams = await db.streams.find(
+        {"user_id": {"$in": following_ids}, "status": {"$in": ["live", "ended", "idle"]}},
+        {"_id": 0, "stream_key": 0},
+    ).sort([("status", -1), ("started_at", -1)]).limit(20).to_list(20)
+
+    for s in streams:
+        streamer = await db.users.find_one({"user_id": s["user_id"]}, {"_id": 0, "password": 0})
+        if streamer:
+            s["display_name"] = streamer.get("display_name") or streamer.get("name")
+            s["user_name"]    = streamer.get("name")
+            s["user_avatar"]  = streamer.get("avatar_url")
+        items.append({"type": "stream", "data": s, "ts": s.get("started_at", "")})
+
+    # Posts from followed users (last 30 days)
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    posts = await db.posts.find(
+        {"user_id": {"$in": following_ids}, "created_at": {"$gte": cutoff}},
+        {"_id": 0},
+    ).sort("created_at", -1).limit(40).to_list(40)
+
+    for p in posts:
+        author = await db.users.find_one({"user_id": p["user_id"]}, {"_id": 0, "password": 0})
+        p["author"]      = safe_user(author) if author else {"display_name": "Unknown"}
+        p["liked_by_me"] = user_id in p.get("likes", [])
+        p.pop("likes", None)
+        items.append({"type": "post", "data": p, "ts": p.get("created_at", "")})
+
+    # Sort by timestamp descending
+    items.sort(key=lambda x: x.get("ts") or "", reverse=True)
+    return [{"type": i["type"], "data": i["data"]} for i in items[:40]]
 
 
 @api_router.get("/notifications")
@@ -2330,6 +2873,14 @@ async def follow_user(target_id: str, user: dict = Depends(get_current_user)):
         "following_id": target_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
+    follower_name = user.get("display_name") or user.get("name", "Someone")
+    await _send_push(
+        target_id,
+        title=f"{follower_name} started following you",
+        body="Check out their profile",
+        url=f"/profile/{user['user_id']}",
+        tag=f"follow-{user['user_id']}",
+    )
     return {"following": True}
 
 @api_router.delete("/follows/{target_id}")
@@ -2357,6 +2908,34 @@ async def get_followers(user: dict = Depends(get_current_user)):
         u = await db.users.find_one({"user_id": f["follower_id"]}, {"_id": 0, "password": 0})
         if u:
             users.append(safe_user(u))
+    return users
+
+@api_router.get("/users/{user_id}/followers")
+async def get_user_followers(user_id: str, current_user: dict = Depends(get_current_user)):
+    follows = await db.follows.find({"following_id": user_id}, {"_id": 0}).to_list(10000)
+    my_following_docs = await db.follows.find({"follower_id": current_user["user_id"]}, {"following_id": 1}).to_list(10000)
+    my_following_ids = {f["following_id"] for f in my_following_docs}
+    users = []
+    for f in follows:
+        u = await db.users.find_one({"user_id": f["follower_id"]}, {"_id": 0, "password": 0})
+        if u:
+            safe = safe_user(u)
+            safe["is_following"] = u["user_id"] in my_following_ids
+            users.append(safe)
+    return users
+
+@api_router.get("/users/{user_id}/following")
+async def get_user_following(user_id: str, current_user: dict = Depends(get_current_user)):
+    follows = await db.follows.find({"follower_id": user_id}, {"_id": 0}).to_list(10000)
+    my_following_docs = await db.follows.find({"follower_id": current_user["user_id"]}, {"following_id": 1}).to_list(10000)
+    my_following_ids = {f["following_id"] for f in my_following_docs}
+    users = []
+    for f in follows:
+        u = await db.users.find_one({"user_id": f["following_id"]}, {"_id": 0, "password": 0})
+        if u:
+            safe = safe_user(u)
+            safe["is_following"] = u["user_id"] in my_following_ids
+            users.append(safe)
     return users
 
 # ============== FEEDBACK ENDPOINTS ==============
@@ -2749,11 +3328,15 @@ async def delete_stream(stream_id: str, user: dict = Depends(get_current_user)):
     return {"ok": True}
 
 
+class ClipCreate(BaseModel):
+    caption: str = ""
+
 @api_router.post("/streams/{stream_id}/clip")
 async def create_clip(
     stream_id: str,
     start_time: int = Query(...),
     end_time: int = Query(...),
+    caption: str = Query(""),
     user: dict = Depends(get_current_user),
 ):
     stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
@@ -2762,7 +3345,7 @@ async def create_clip(
     if not stream.get("playback_id"):
         raise HTTPException(400, "No playback ID")
     try:
-        clip = await _livepeer("POST", "/clip", {
+        clip_resp = await _livepeer("POST", "/clip", {
             "playbackId": stream["playback_id"],
             "startTime": start_time,
             "endTime": end_time,
@@ -2771,10 +3354,38 @@ async def create_clip(
     except Exception as e:
         logger.error(f"Livepeer clip: {e}")
         raise HTTPException(502, "Clip failed")
-    return {
-        "playback_id": (clip.get("asset") or {}).get("playbackId"),
-        "asset_id": (clip.get("asset") or {}).get("id"),
+
+    asset      = clip_resp.get("asset") or {}
+    playback_id = asset.get("playbackId") or ""
+    asset_id    = asset.get("id") or ""
+    video_url   = f"https://livepeercdn.studio/hls/{playback_id}/index.m3u8" if playback_id else ""
+
+    # Save clip as a shareable post in the DB
+    post_id = f"clip_{uuid.uuid4().hex[:12]}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+    post_doc = {
+        "post_id":            post_id,
+        "user_id":            user["user_id"],
+        "post_type":          "clip",
+        "video_url":          video_url,
+        "livepeer_asset_id":  asset_id,
+        "livepeer_playback_id": playback_id,
+        "caption":            caption or f"Clip from: {stream.get('title', 'stream')}",
+        "tags":               ["clip", stream.get("type", "training")],
+        "stream_id_ref":      stream_id,
+        "stream_title":       stream.get("title", ""),
+        "likes":              [],
+        "like_count":         0,
+        "comment_count":      0,
+        "share_count":        0,
+        "created_at":         now_iso,
     }
+    await db.posts.insert_one(post_doc)
+    post_doc.pop("_id", None)
+    post_doc["author"] = safe_user(user)
+    post_doc["liked_by_me"] = False
+
+    return post_doc
 
 
 @app.post("/api/livepeer/webhook")
@@ -2841,6 +3452,173 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
         await db.streams.update_one({"stream_id": stream_id}, {"$set": {"viewer_count": count}})
         await ws_manager.broadcast(stream_id, {"type": "viewer_count", "count": count})
 
+# ============== EMOTE SYSTEM ==============
+
+EMOTE_REACTIONS = {
+    "hype":     {"label": "Hype",     "emoji": "🔥", "desc": "pumping fists in the air, celebrating, fired up explosive energy"},
+    "ko":       {"label": "KO'd",     "emoji": "😵", "desc": "knocked out cold on the canvas, cartoon stars and birds swirling around head"},
+    "dodge":    {"label": "Slip",     "emoji": "😏", "desc": "slipping a punch with a smirk, Matrix-style dodge, cool and composed"},
+    "uppercut": {"label": "Uppercut", "emoji": "💥", "desc": "throwing a massive explosive uppercut, bursting with power"},
+    "combo":    {"label": "Combo",    "emoji": "👊", "desc": "throwing a rapid jab-cross-hook combination, hands a blur"},
+    "gassed":   {"label": "Gassed",   "emoji": "😮‍💨", "desc": "completely exhausted, hands on knees, out of breath"},
+    "love":     {"label": "Love",     "emoji": "❤️",  "desc": "heart eyes, glowing with love and admiration"},
+    "dead":     {"label": "Dead",     "emoji": "💀", "desc": "collapsed on the floor, dying of laughter"},
+    "respect":  {"label": "Respect",  "emoji": "🫡", "desc": "bowing deeply in total respect, saluting with honour"},
+    "goat":     {"label": "GOAT",     "emoji": "🐐", "desc": "wearing a golden crown with goat horns, greatest of all time stance"},
+    "shocked":  {"label": "No Way",   "emoji": "😱", "desc": "jaw completely dropped, eyes wide in total disbelief"},
+    "clinch":   {"label": "Clinch",   "emoji": "🤝", "desc": "grabbing in a bear-hug clinch, arms locked tight"},
+}
+
+EMOTE_TOKEN_PRICES = [0, 50, 100, 200]  # 0 = free with any subscription
+
+import urllib.parse as _url_parse
+
+class EmoteCreate(BaseModel):
+    reaction_type: str
+    name: str             # display name, e.g. "GOGOEGO"
+    token_price: int = 0  # 0 | 50 | 100 | 200
+
+@api_router.post("/emotes/generate")
+async def generate_emote(data: EmoteCreate, user: dict = Depends(get_current_user)):
+    """Generate an emote image via Pollinations.ai and persist it."""
+    if data.reaction_type not in EMOTE_REACTIONS:
+        raise HTTPException(400, "Unknown reaction type")
+    if data.token_price not in EMOTE_TOKEN_PRICES:
+        raise HTTPException(400, "Invalid token price")
+    if not data.name.strip():
+        raise HTTPException(400, "Emote name is required")
+
+    reaction = EMOTE_REACTIONS[data.reaction_type]
+    partner  = user.get("training_partner") or {}
+    partner_name  = partner.get("name", "boxer")
+    partner_style = partner.get("style_name") or partner.get("style") or "professional boxer"
+
+    prompt = (
+        f"Twitch emote sticker of {partner_name}, a {partner_style} boxing character, "
+        f"{reaction['desc']}, "
+        f"clean white background, chibi cartoon sticker art, bold black outlines, "
+        f"vivid colours, expressive eyes, boxing gloves, highly detailed emote"
+    )
+    seed = abs(hash(f"{user['user_id']}{data.reaction_type}")) % 999999
+    encoded = _url_parse.quote(prompt)
+    image_url = (
+        f"https://image.pollinations.ai/prompt/{encoded}"
+        f"?width=256&height=256&nologo=true&seed={seed}"
+    )
+
+    emote_id = f"emote_{uuid.uuid4().hex[:12]}"
+    doc = {
+        "emote_id":      emote_id,
+        "owner_id":      user["user_id"],
+        "name":          data.name.strip().upper()[:20],
+        "reaction_type": data.reaction_type,
+        "emoji":         reaction["emoji"],
+        "label":         reaction["label"],
+        "image_url":     image_url,
+        "token_price":   data.token_price,
+        "unlock_count":  0,
+        "is_active":     True,
+        "created_at":    datetime.now(timezone.utc).isoformat(),
+    }
+    await db.emotes.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.get("/emotes/my-emotes")
+async def get_my_emotes(user: dict = Depends(get_current_user)):
+    emotes = await db.emotes.find(
+        {"owner_id": user["user_id"]}, {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    return emotes
+
+
+@api_router.get("/emotes/{owner_id}/collection")
+async def get_emote_collection(owner_id: str, current_user: dict = Depends(get_current_user)):
+    """Returns a streamer's active emotes, each flagged with whether the viewer owns it."""
+    emotes = await db.emotes.find(
+        {"owner_id": owner_id, "is_active": True}, {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+
+    unlocked_ids = set()
+    for e in emotes:
+        rec = await db.emote_unlocks.find_one({
+            "user_id": current_user["user_id"],
+            "emote_id": e["emote_id"],
+        })
+        if rec or e["token_price"] == 0 or owner_id == current_user["user_id"]:
+            unlocked_ids.add(e["emote_id"])
+
+    for e in emotes:
+        e["owned"] = e["emote_id"] in unlocked_ids
+    return emotes
+
+
+@api_router.get("/emotes/unlocked")
+async def get_unlocked_emotes(stream_owner_id: str = Query(...), current_user: dict = Depends(get_current_user)):
+    """All emotes from stream_owner_id that the current user has access to."""
+    all_emotes = await db.emotes.find(
+        {"owner_id": stream_owner_id, "is_active": True}, {"_id": 0}
+    ).to_list(50)
+    result = []
+    for e in all_emotes:
+        if (e["token_price"] == 0
+                or stream_owner_id == current_user["user_id"]
+                or await db.emote_unlocks.find_one({"user_id": current_user["user_id"], "emote_id": e["emote_id"]})):
+            result.append(e)
+    return result
+
+
+@api_router.post("/emotes/{emote_id}/purchase")
+async def purchase_emote(emote_id: str, user: dict = Depends(get_current_user)):
+    emote = await db.emotes.find_one({"emote_id": emote_id}, {"_id": 0})
+    if not emote:
+        raise HTTPException(404, "Emote not found")
+    if emote["owner_id"] == user["user_id"]:
+        raise HTTPException(400, "You already own your own emotes")
+    if await db.emote_unlocks.find_one({"user_id": user["user_id"], "emote_id": emote_id}):
+        raise HTTPException(400, "Already unlocked")
+
+    price = emote.get("token_price", 0)
+    if price > 0:
+        balance = user.get("token_balance", 0)
+        if balance < price:
+            raise HTTPException(402, detail="insufficient_tokens")
+        # Deduct from buyer, 70% to emote owner
+        await db.users.update_one({"user_id": user["user_id"]},           {"$inc": {"token_balance": -price}})
+        await db.users.update_one({"user_id": emote["owner_id"]},          {"$inc": {"token_balance": int(price * 0.7)}})
+
+    await db.emote_unlocks.insert_one({
+        "unlock_id":   f"unlock_{uuid.uuid4().hex[:12]}",
+        "user_id":     user["user_id"],
+        "emote_id":    emote_id,
+        "owner_id":    emote["owner_id"],
+        "unlocked_at": datetime.now(timezone.utc).isoformat(),
+    })
+    await db.emotes.update_one({"emote_id": emote_id}, {"$inc": {"unlock_count": 1}})
+
+    # Notify emote owner
+    buyer_name = user.get("display_name") or user.get("name", "Someone")
+    await _send_push(
+        emote["owner_id"],
+        title=f"{buyer_name} bought your {emote['name']} emote!",
+        body=f"+{int(price * 0.7):,} tokens earned" if price > 0 else "Your free emote is spreading 🔥",
+        url="/dashboard",
+        tag=f"emote-sale-{emote_id}",
+    )
+
+    return {"ok": True, "emote_id": emote_id}
+
+
+@api_router.delete("/emotes/{emote_id}")
+async def delete_emote(emote_id: str, user: dict = Depends(get_current_user)):
+    emote = await db.emotes.find_one({"emote_id": emote_id})
+    if not emote or emote["owner_id"] != user["user_id"]:
+        raise HTTPException(403, "Not your emote")
+    await db.emotes.delete_one({"emote_id": emote_id})
+    return {"ok": True}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
@@ -2848,14 +3626,61 @@ _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_orig
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_origin_regex=r'https://.*\.lovable\.app', allow_methods=["*"], allow_headers=["*"])
 app.include_router(api_router)
 
+async def _scheduled_stream_reminder_loop():
+    """Every 5 minutes: push 30-min-ahead reminders for scheduled streams."""
+    import asyncio as _aio
+    while True:
+        await _aio.sleep(300)
+        try:
+            now  = datetime.now(timezone.utc)
+            w_lo = (now + timedelta(minutes=25)).isoformat()
+            w_hi = (now + timedelta(minutes=35)).isoformat()
+            streams = await db.scheduled_streams.find(
+                {
+                    "scheduled_at":  {"$gte": w_lo, "$lte": w_hi},
+                    "reminder_sent": {"$ne": True},
+                },
+                {"_id": 0},
+            ).to_list(50)
+
+            for s in streams:
+                uid   = s["user_id"]
+                title = s.get("title", "Upcoming stream")
+
+                # Notify the streamer themselves
+                await _send_push(uid, "Your stream starts in 30 minutes!", f'"{title}" — get ready to go live.', "/go-live", tag=f"sched-self-{s['schedule_id']}")
+
+                # Notify followers
+                streamer = await db.users.find_one({"user_id": uid}, {"name": 1, "display_name": 1})
+                sname = (streamer or {}).get("display_name") or (streamer or {}).get("name", "A streamer")
+                followers = await db.follows.find({"following_id": uid}, {"follower_id": 1}).to_list(None)
+                for f in followers:
+                    await _send_push(
+                        f["follower_id"],
+                        title=f"{sname} goes live in 30 min",
+                        body=title,
+                        url="/live",
+                        tag=f"sched-follow-{s['schedule_id']}",
+                    )
+
+                await db.scheduled_streams.update_one(
+                    {"schedule_id": s["schedule_id"]},
+                    {"$set": {"reminder_sent": True}},
+                )
+        except Exception as exc:
+            logger.warning(f"Scheduled stream reminder loop error: {exc}")
+
+
 @app.on_event("startup")
 async def startup():
+    import asyncio as _aio
     result = await db.users.update_many(
         {"access_granted": {"$exists": False}},
         {"$set": {"access_granted": True}}
     )
     if result.modified_count:
         logger.info(f"Migration: backfilled access_granted=True on {result.modified_count} users")
+    _aio.create_task(_scheduled_stream_reminder_loop())
 
 @app.on_event("shutdown")
 async def shutdown():
