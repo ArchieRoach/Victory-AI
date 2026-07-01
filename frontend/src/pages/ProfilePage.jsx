@@ -400,8 +400,27 @@ export default function ProfilePage() {
                 className="victory-input"
               >
                 <option value="">—</option>
-                {["Minimumweight","Light Flyweight","Flyweight","Super Flyweight","Bantamweight","Super Bantamweight","Featherweight","Super Featherweight","Lightweight","Super Lightweight","Welterweight","Super Welterweight","Middleweight","Super Middleweight","Light Heavyweight","Cruiserweight","Heavyweight","Super Heavyweight"].map((w) => (
-                  <option key={w} value={w}>{w}</option>
+                {[
+                  { name: "Minimumweight",       lbs: "up to 105 lbs",  kg: "47.6 kg" },
+                  { name: "Light Flyweight",      lbs: "up to 108 lbs",  kg: "49 kg"   },
+                  { name: "Flyweight",            lbs: "up to 112 lbs",  kg: "50.8 kg" },
+                  { name: "Super Flyweight",      lbs: "up to 115 lbs",  kg: "52.2 kg" },
+                  { name: "Bantamweight",         lbs: "up to 118 lbs",  kg: "53.5 kg" },
+                  { name: "Super Bantamweight",   lbs: "up to 122 lbs",  kg: "55.3 kg" },
+                  { name: "Featherweight",        lbs: "up to 126 lbs",  kg: "57.2 kg" },
+                  { name: "Super Featherweight",  lbs: "up to 130 lbs",  kg: "59 kg"   },
+                  { name: "Lightweight",          lbs: "up to 135 lbs",  kg: "61.2 kg" },
+                  { name: "Super Lightweight",    lbs: "up to 140 lbs",  kg: "63.5 kg" },
+                  { name: "Welterweight",         lbs: "up to 147 lbs",  kg: "66.7 kg" },
+                  { name: "Super Welterweight",   lbs: "up to 154 lbs",  kg: "69.9 kg" },
+                  { name: "Middleweight",         lbs: "up to 160 lbs",  kg: "72.6 kg" },
+                  { name: "Super Middleweight",   lbs: "up to 168 lbs",  kg: "76.2 kg" },
+                  { name: "Light Heavyweight",    lbs: "up to 175 lbs",  kg: "79.4 kg" },
+                  { name: "Cruiserweight",        lbs: "up to 200 lbs",  kg: "90.7 kg" },
+                  { name: "Heavyweight",          lbs: "200+ lbs",       kg: "90+ kg"  },
+                  { name: "Super Heavyweight",    lbs: "unlimited",      kg: "unlimited" },
+                ].map(({ name, lbs, kg }) => (
+                  <option key={name} value={name}>{name} — {lbs} / {kg}</option>
                 ))}
               </select>
             </div>
