@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { Check, Zap, Trophy, Target, Shield, Star } from "lucide-react";
+import { Check, Zap, Trophy, Target, Shield, Star, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const MOCK_DIMENSIONS = [
@@ -148,7 +148,14 @@ export default function PaywallPage() {
 
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col" data-testid="paywall-page">
-      <header className="p-6 text-center">
+      <header className="p-6 text-center relative">
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute left-4 top-6 w-10 h-10 flex items-center justify-center rounded-full bg-victory-card border border-victory-border text-victory-muted hover:text-victory-text transition-colors"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
         <img src="/victory-logo.png" alt="Victory AI" className="w-48 h-48 mx-auto mb-4 object-contain" />
         <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-victory-text mb-2">
           {t("paywall.headline")}
