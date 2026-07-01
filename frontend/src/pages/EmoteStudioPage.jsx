@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, Trash2, Coins, RefreshCw } from "lucide-react";
+import { ArrowLeft, Sparkles, Trash2, Coins, RefreshCw, Palette, X, RotateCcw } from "lucide-react";
 import { API, useAuth } from "@/App";
 
 const REACTIONS = [
@@ -68,7 +68,7 @@ function EmoteCard({ emote, onDelete }) {
 
 export default function EmoteStudioPage() {
   const navigate  = useNavigate();
-  const { user }  = useAuth();
+  const { user, setUser } = useAuth();
 
   const [myEmotes,    setMyEmotes]    = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -78,8 +78,58 @@ export default function EmoteStudioPage() {
   const [preview,     setPreview]     = useState(null);
   const [generating,  setGenerating]  = useState(false);
   const [saving,      setSaving]      = useState(false);
+  const [showAppearance, setShowAppearance] = useState(false);
+  const [apGender,    setApGender]    = useState(null);
+  const [apSkinTone,  setApSkinTone]  = useState(null);
+  const [regenerating, setRegenerating] = useState(false);
 
   const partner = user?.training_partner;
+
+  const GENDERS = [
+    { value: "male",       label: "Male",       icon: "♂" },
+    { value: "female",     label: "Female",     icon: "♀" },
+    { value: "non-binary", label: "Non-binary", icon: "⚧" },
+  ];
+
+  const SKIN_TONES = [
+    { value: "light",        label: "Light",        color: "#FDDBB4" },
+    { value: "medium-light", label: "Medium-light",  color: "#E8B88A" },
+    { value: "medium",       label: "Medium",        color: "#C68642" },
+    { value: "medium-dark",  label: "Medium-dark",   color: "#8D5524" },
+    { value: "dark",         label: "Dark",          color: "#4A2912" },
+  ];
+
+  const openAppearance = () => {
+    setApGender(partner?.appearance_gender || "male");
+    setApSkinTone(partner?.appearance_skin_tone || "medium");
+    setShowAppearance(true);
+  };
+
+  const handleRegenerateAvatar = async () => {
+    if (!apGender || !apSkinTone) return;
+    setRegenerating(true);
+    try {
+      const res = await axios.post(`${API}/training-partner/regenerate-avatar`, {
+        gender: apGender,
+        skin_tone: apSkinTone,
+      });
+      setUser((prev) => ({
+        ...prev,
+        training_partner: {
+          ...prev.training_partner,
+          avatar_url: res.data.avatar_url,
+          appearance_gender: apGender,
+          appearance_skin_tone: apSkinTone,
+        },
+      }));
+      setShowAppearance(false);
+      toast.success("Character updated!");
+    } catch {
+      toast.error("Could not regenerate avatar. Try again.");
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -137,15 +187,22 @@ export default function EmoteStudioPage() {
         {partner ? (
           <div className="bg-victory-card border border-victory-border rounded-2xl p-4 flex items-center gap-4">
             {partner.avatar_url ? (
-              <img src={partner.avatar_url} alt={partner.name} className="w-16 h-16 rounded-full object-cover border-2 border-victory-lime" />
+              <img src={partner.avatar_url} alt={partner.name} className="w-16 h-16 rounded-full object-cover border-2 border-victory-lime flex-shrink-0" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-victory-lime/20 flex items-center justify-center text-3xl">🥊</div>
+              <div className="w-16 h-16 rounded-full bg-victory-lime/20 flex items-center justify-center text-3xl flex-shrink-0">🥊</div>
             )}
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-victory-text font-bold">{partner.name}</p>
               <p className="text-victory-muted text-xs capitalize">{partner.style_name || partner.style}</p>
               <p className="text-victory-lime text-xs mt-0.5">Your emote character</p>
             </div>
+            <button
+              onClick={openAppearance}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-victory-bg border border-victory-border text-victory-muted text-xs hover:border-victory-lime/40 hover:text-victory-lime transition-colors"
+            >
+              <Palette className="w-3.5 h-3.5" />
+              Customize
+            </button>
           </div>
         ) : (
           <div className="bg-victory-card border border-red-500/30 rounded-2xl p-4 text-center">
@@ -263,6 +320,77 @@ export default function EmoteStudioPage() {
           )}
         </div>
       </div>
+
+      {/* Appearance customisation sheet */}
+      {showAppearance && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowAppearance(false)} />
+          <div className="relative bg-victory-card border-t border-victory-border rounded-t-2xl p-5 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-victory-text">Customise Character</h2>
+              <button onClick={() => setShowAppearance(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-victory-bg border border-victory-border text-victory-muted">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Gender */}
+            <div>
+              <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">Gender</p>
+              <div className="flex gap-2">
+                {GENDERS.map(({ value, label, icon }) => (
+                  <button
+                    key={value}
+                    onClick={() => setApGender(value)}
+                    className={`flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                      apGender === value
+                        ? "bg-victory-lime text-victory-bg border-victory-lime"
+                        : "bg-victory-bg border-victory-border text-victory-muted"
+                    }`}
+                  >
+                    <span className="mr-1">{icon}</span>{label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Skin tone */}
+            <div>
+              <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-3">Skin Tone</p>
+              <div className="flex gap-3 justify-between">
+                {SKIN_TONES.map(({ value, label, color }) => (
+                  <button
+                    key={value}
+                    onClick={() => setApSkinTone(value)}
+                    title={label}
+                    className={`flex flex-col items-center gap-1.5 ${apSkinTone === value ? "opacity-100" : "opacity-60"}`}
+                  >
+                    <div
+                      className={`w-11 h-11 rounded-full transition-all ${
+                        apSkinTone === value ? "ring-2 ring-offset-2 ring-victory-lime ring-offset-victory-card scale-110" : ""
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                    <span className="text-[10px] text-victory-muted leading-tight text-center">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handleRegenerateAvatar}
+              disabled={regenerating}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-victory-lime text-victory-bg font-bold text-sm disabled:opacity-40"
+            >
+              {regenerating ? (
+                <><RotateCcw className="w-4 h-4 animate-spin" /> Generating…</>
+              ) : (
+                <><RotateCcw className="w-4 h-4" /> Regenerate Avatar</>
+              )}
+            </button>
+            <p className="text-victory-muted text-[11px] text-center">This replaces your current character image everywhere in the app</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

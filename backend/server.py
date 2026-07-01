@@ -613,6 +613,54 @@ async def generate_partner_avatar(request: Request, user: dict = Depends(get_cur
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner.avatar_url": avatar_url}})
     return {"avatar_url": avatar_url}
 
+@api_router.post("/training-partner/regenerate-avatar")
+async def regenerate_partner_avatar_appearance(request: Request, user: dict = Depends(get_current_user)):
+    training_partner = user.get("training_partner")
+    if not training_partner:
+        raise HTTPException(status_code=400, detail="No training partner found")
+
+    body = await request.json()
+    gender = body.get("gender", "male")
+    skin_tone = body.get("skin_tone", "medium")
+
+    gender_desc = {
+        "male":       "male boxer",
+        "female":     "female boxer",
+        "non-binary": "androgynous boxer",
+    }.get(gender, "boxer")
+
+    skin_desc = {
+        "light":        "fair light skin",
+        "medium-light": "light brown skin",
+        "medium":       "medium brown skin",
+        "medium-dark":  "dark brown skin",
+        "dark":         "deep dark skin",
+    }.get(skin_tone, "medium brown skin")
+
+    style_info = TRAINING_PARTNER_STYLES.get(training_partner["style"], {})
+    style_name = style_info.get("name", "coach")
+
+    prompt = (
+        f"A {gender_desc} boxing trainer avatar, {skin_desc}, {style_name} personality, "
+        "stylized digital art portrait, athletic confident pose, dark background with "
+        "electric lime green accents, original character, professional boxing aesthetic, high quality"
+    )
+
+    import urllib.parse
+    seed = abs(hash(f"{user['user_id']}{gender}{skin_tone}")) % 99999
+    encoded_prompt = urllib.parse.quote(prompt)
+    avatar_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&nologo=true&seed={seed}"
+
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {
+            "training_partner.avatar_url":          avatar_url,
+            "training_partner.appearance_gender":   gender,
+            "training_partner.appearance_skin_tone": skin_tone,
+        }}
+    )
+    return {"avatar_url": avatar_url}
+
 # ============== CLOUDINARY VIDEO UPLOAD ==============
 
 @api_router.get("/cloudinary/signature")
