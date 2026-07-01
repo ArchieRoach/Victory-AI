@@ -44,6 +44,13 @@ import LiveFeedPage from "@/pages/LiveFeedPage";
 import StreamViewPage from "@/pages/StreamViewPage";
 import GoLivePage from "@/pages/GoLivePage";
 import AdvertisePage from "@/pages/AdvertisePage";
+import EmoteStudioPage from "@/pages/EmoteStudioPage";
+import { PushPrompt } from "@/components/PushPrompt";
+import StreamerDashboardPage from "@/pages/StreamerDashboardPage";
+import TokensPage from "@/pages/TokensPage";
+import DiscoverPage from "@/pages/DiscoverPage";
+import TokenSuccessPage from "@/pages/TokenSuccessPage";
+import TrendingClipsPage from "@/pages/TrendingClipsPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -244,6 +251,7 @@ const AppRouter = () => {
   return (
     <>
       <TrialExpirationBanner />
+      <PushPrompt />
       <Routes>
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/login/*" element={<LoginPage />} />
@@ -267,6 +275,7 @@ const AppRouter = () => {
 
         {/* Social / Network features — free tier */}
         <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+        <Route path="/discover" element={<ProtectedRoute><DiscoverPage /></ProtectedRoute>} />
         <Route path="/post/create" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
         <Route path="/gyms" element={<ProtectedRoute><GymsPage /></ProtectedRoute>} />
         <Route path="/gyms/:gymId" element={<ProtectedRoute><GymDetailPage /></ProtectedRoute>} />
@@ -278,6 +287,12 @@ const AppRouter = () => {
         <Route path="/live" element={<ProtectedRoute><LiveFeedPage /></ProtectedRoute>} />
         <Route path="/stream/:streamId" element={<ProtectedRoute><StreamViewPage /></ProtectedRoute>} />
         <Route path="/go-live" element={<ProtectedRoute><GoLivePage /></ProtectedRoute>} />
+        <Route path="/emotes" element={<ProtectedRoute><EmoteStudioPage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><StreamerDashboardPage /></ProtectedRoute>} />
+        <Route path="/tokens" element={<ProtectedRoute><TokensPage /></ProtectedRoute>} />
+        <Route path="/tokens/success" element={<ProtectedRoute><TokenSuccessPage /></ProtectedRoute>} />
+        <Route path="/clips" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />
+        <Route path="/clip/:postId" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />
 
         {/* Advertiser onboarding — public, no auth required */}
         <Route path="/advertise" element={<AdvertisePage />} />

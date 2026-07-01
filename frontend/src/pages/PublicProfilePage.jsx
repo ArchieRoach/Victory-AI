@@ -7,9 +7,110 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   ArrowLeft, Trophy, Swords, Target, Building2,
-  Clapperboard, CalendarDays, Radio, Play, Clock,
+  Clapperboard, CalendarDays, Radio, Play, Clock, X, Share2, Flame,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ShareSheet } from "@/components/ShareSheet";
+
+// ── Follow list modal (followers / following) ─────────────────────────────────
+function FollowListModal({ userId, mode, onClose }) {
+  const navigate = useNavigate();
+  const [users,   setUsers]   = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const endpoint = mode === "followers"
+      ? `${API}/users/${userId}/followers`
+      : `${API}/users/${userId}/following`;
+    axios.get(endpoint)
+      .then((r) => setUsers(r.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [userId, mode]);
+
+  const [followState, setFollowState] = useState({});
+
+  const handleFollow = async (targetId, currentlyFollowing) => {
+    setFollowState((s) => ({ ...s, [targetId]: "busy" }));
+    try {
+      if (currentlyFollowing) {
+        await axios.delete(`${API}/follows/${targetId}`);
+        setFollowState((s) => ({ ...s, [targetId]: false }));
+      } else {
+        await axios.post(`${API}/follows/${targetId}`);
+        setFollowState((s) => ({ ...s, [targetId]: true }));
+      }
+    } catch {
+      setFollowState((s) => { const n = { ...s }; delete n[targetId]; return n; });
+    }
+  };
+
+  const isFollowing = (u) => {
+    if (followState[u.user_id] !== undefined) return followState[u.user_id];
+    return u.is_following;
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col" onClick={onClose}>
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+      {/* Sheet */}
+      <div
+        className="relative mt-auto bg-victory-bg rounded-t-2xl max-h-[70vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Handle + header */}
+        <div className="flex items-center justify-between px-4 pt-3 pb-3 border-b border-victory-border">
+          <div className="w-10 h-1 rounded-full bg-victory-border absolute top-2 left-1/2 -translate-x-1/2" />
+          <p className="text-victory-text font-bold capitalize mt-1">{mode}</p>
+          <button onClick={onClose} className="text-victory-muted hover:text-victory-text">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 pb-6">
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <div className="w-6 h-6 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : users.length === 0 ? (
+            <p className="text-center text-victory-muted text-sm py-12">No {mode} yet</p>
+          ) : (
+            users.map((u) => (
+              <div key={u.user_id} className="flex items-center gap-3 px-4 py-3 border-b border-victory-border last:border-0">
+                <button onClick={() => { onClose(); navigate(`/profile/${u.user_id}`); }} className="flex items-center gap-3 flex-1 min-w-0">
+                  {u.avatar_url ? (
+                    <img src={u.avatar_url} alt={u.display_name} className="w-10 h-10 rounded-full object-cover border border-victory-border flex-shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-victory-lime/20 flex items-center justify-center text-victory-lime font-bold flex-shrink-0">
+                      {(u.display_name || u.name || "F")[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-victory-text font-semibold text-sm truncate">{u.display_name || u.name}</p>
+                    {u.weight_class && <p className="text-victory-muted text-xs">{u.weight_class}</p>}
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleFollow(u.user_id, isFollowing(u))}
+                  disabled={followState[u.user_id] === "busy"}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${
+                    isFollowing(u)
+                      ? "border-victory-border text-victory-muted"
+                      : "border-victory-lime text-victory-lime hover:bg-victory-lime/10"
+                  }`}
+                >
+                  {followState[u.user_id] === "busy" ? "…" : isFollowing(u) ? "Following" : "Follow"}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function timeAgo(str) {
   try { return formatDistanceToNow(new Date(str), { addSuffix: true }); }
@@ -18,9 +119,10 @@ function timeAgo(str) {
 
 // ── Clips grid ────────────────────────────────────────────────────────────────
 export function ClipsTab({ userId }) {
-  const [clips,   setClips]   = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [playing, setPlaying] = useState(null); // post_id of expanded clip
+  const [clips,       setClips]       = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [playing,     setPlaying]     = useState(null);
+  const [shareTarget, setShareTarget] = useState(null);
 
   useEffect(() => {
     axios.get(`${API}/users/${userId}/clips`)
@@ -55,6 +157,14 @@ export function ClipsTab({ userId }) {
 
   return (
     <div>
+      {shareTarget && (
+        <ShareSheet
+          post={shareTarget}
+          onClose={() => setShareTarget(null)}
+          onShared={(count) => setClips((prev) => prev.map((c) => c.post_id === shareTarget.post_id ? { ...c, share_count: count } : c))}
+        />
+      )}
+
       <div className="grid grid-cols-3 gap-px">
         {clips.map((clip) => (
           <button
@@ -68,16 +178,21 @@ export function ClipsTab({ userId }) {
             ) : (
               <video src={clip.video_url} className="w-full h-full object-cover" preload="none" />
             )}
-            {/* Play overlay */}
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
               <Play className="w-10 h-10 text-white drop-shadow-lg" />
             </div>
-            {/* Duration/like count */}
             <div className="absolute bottom-1 left-1 flex items-center gap-1">
               <div className="bg-black/60 backdrop-blur-sm text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
                 ▶ {clip.like_count || 0}
               </div>
             </div>
+            {(clip.share_count || 0) >= 50 && (
+              <div className="absolute top-1 right-1">
+                <span className="flex items-center gap-0.5 bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                  <Flame className="w-2.5 h-2.5" />
+                </span>
+              </div>
+            )}
           </button>
         ))}
       </div>
@@ -93,13 +208,22 @@ export function ClipsTab({ userId }) {
             {clip.caption && (
               <p className="px-4 py-3 text-victory-text text-sm">{clip.caption}</p>
             )}
-            <div className="flex items-center gap-3 px-4 pb-3">
-              <span className="text-victory-muted text-xs">{timeAgo(clip.created_at)}</span>
-              {clip.tags?.map((t) => (
-                <span key={t} className="text-[10px] bg-victory-lime/10 text-victory-lime px-2 py-0.5 rounded-full">
-                  #{t}
-                </span>
-              ))}
+            <div className="flex items-center justify-between px-4 pb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-victory-muted text-xs">{timeAgo(clip.created_at)}</span>
+                {clip.tags?.map((t) => (
+                  <span key={t} className="text-[10px] bg-victory-lime/10 text-victory-lime px-2 py-0.5 rounded-full">
+                    #{t}
+                  </span>
+                ))}
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShareTarget(clip); }}
+                className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${(clip.share_count || 0) > 0 ? "text-orange-400" : "text-victory-muted hover:text-orange-400"}`}
+              >
+                <Share2 className="w-4 h-4" />
+                {clip.share_count > 0 ? clip.share_count : "Share"}
+              </button>
             </div>
           </div>
         );
@@ -360,6 +484,7 @@ export default function PublicProfilePage() {
   const [following,     setFollowing]     = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [tab,           setTab]           = useState("home"); // "home" | "clips" | "schedule"
+  const [followModal,   setFollowModal]   = useState(null);  // "followers" | "following" | null
 
   const isOwn = userId === currentUser?.user_id;
 
@@ -425,6 +550,14 @@ export default function PublicProfilePage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="public-profile-page">
 
+      {followModal && (
+        <FollowListModal
+          userId={userId}
+          mode={followModal}
+          onClose={() => setFollowModal(null)}
+        />
+      )}
+
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <header className="p-4 flex items-center gap-3">
         <button onClick={() => navigate(-1)}
@@ -472,14 +605,14 @@ export default function PublicProfilePage() {
           </div>
           {/* Follower stats */}
           <div className="flex gap-6 mt-4 pt-4 border-t border-victory-border">
-            <div className="text-center">
+            <button onClick={() => setFollowModal("followers")} className="text-center hover:opacity-70 transition-opacity">
               <p className="font-mono font-bold text-victory-text">{profile.follower_count}</p>
               <p className="text-victory-muted text-xs">{t("publicProfile.followers")}</p>
-            </div>
-            <div className="text-center">
+            </button>
+            <button onClick={() => setFollowModal("following")} className="text-center hover:opacity-70 transition-opacity">
               <p className="font-mono font-bold text-victory-text">{profile.following_count}</p>
               <p className="text-victory-muted text-xs">{t("publicProfile.following")}</p>
-            </div>
+            </button>
             {profile.gym && (
               <button onClick={() => navigate(`/gyms/${profile.gym.gym_id}`)}
                 className="flex items-center gap-1.5 text-victory-lime text-sm">

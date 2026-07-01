@@ -7,8 +7,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Bell, Heart, MessageCircle, Radio, Users,
-  Send, Tv, ChevronDown, ChevronUp, Zap, Gift,
+  Send, Tv, ChevronDown, ChevronUp, Zap, Gift, Share2, Flame,
 } from "lucide-react";
+import { ShareSheet } from "@/components/ShareSheet";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function timeAgo(str) {
@@ -126,15 +127,18 @@ function LiveStreamFeedCard({ stream }) {
 }
 
 // ── Feed card: Post / Clip ────────────────────────────────────────────────────
-function PostFeedCard({ post, onLike, currentUserId }) {
+function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
   const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
   const [comments,     setComments]     = useState([]);
   const [loadingCmts,  setLoadingCmts]  = useState(false);
   const [commentText,  setCommentText]  = useState("");
   const [submitting,   setSubmitting]   = useState(false);
+  const [shareTarget,  setShareTarget]  = useState(null);
 
-  const authorName = post.author?.display_name || post.author?.name || "Fighter";
+  const authorName  = post.author?.display_name || post.author?.name || "Fighter";
+  const shareCount  = post.share_count || 0;
+  const isViral     = shareCount >= 50;
 
   const toggleComments = async () => {
     if (!showComments && comments.length === 0) {
@@ -160,6 +164,13 @@ function PostFeedCard({ post, onLike, currentUserId }) {
 
   return (
     <article className="bg-victory-card border-b border-victory-border">
+      {shareTarget && (
+        <ShareSheet
+          post={shareTarget}
+          onClose={() => setShareTarget(null)}
+          onShared={(count) => onShareUpdate?.(post.post_id, count)}
+        />
+      )}
       {/* Author */}
       <div className="flex items-center gap-3 px-4 py-3">
         <button onClick={() => navigate(`/profile/${post.user_id}`)} className="flex items-center gap-3 flex-1 min-w-0">
@@ -207,6 +218,15 @@ function PostFeedCard({ post, onLike, currentUserId }) {
           <span className="text-sm">{post.comment_count || 0}</span>
           {showComments ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
+        {post.video_url && (
+          <button
+            onClick={() => setShareTarget(post)}
+            className={`flex items-center gap-1.5 transition-colors ${shareCount > 0 ? "text-orange-400" : "text-victory-muted hover:text-orange-400"}`}
+          >
+            {isViral ? <Flame className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
+            <span className="text-sm">{shareCount > 0 ? shareCount.toLocaleString() : ""}</span>
+          </button>
+        )}
       </div>
 
       {showComments && (
@@ -333,13 +353,16 @@ export default function HomePage() {
   const navigate  = useNavigate();
   const { user }  = useAuth();
 
-  const [tab,          setTab]         = useState("foryou"); // "foryou" | "notifications"
-  const [feed,         setFeed]         = useState([]);
-  const [notifs,       setNotifs]       = useState([]);
-  const [unread,       setUnread]       = useState(0);
-  const [loadingFeed,  setLoadingFeed]  = useState(true);
-  const [loadingNotif, setLoadingNotif] = useState(false);
+  const [tab,             setTab]            = useState("foryou"); // "foryou" | "following" | "notifications"
+  const [feed,            setFeed]            = useState([]);
+  const [followingFeed,   setFollowingFeed]   = useState([]);
+  const [notifs,          setNotifs]          = useState([]);
+  const [unread,          setUnread]          = useState(0);
+  const [loadingFeed,     setLoadingFeed]     = useState(true);
+  const [loadingFollowing,setLoadingFollowing] = useState(false);
+  const [loadingNotif,    setLoadingNotif]    = useState(false);
   const markedReadRef = useRef(false);
+  const followingFetchedRef = useRef(false);
 
   const fetchFeed = useCallback(async () => {
     setLoadingFeed(true);
@@ -348,6 +371,15 @@ export default function HomePage() {
       setFeed(res.data);
     } catch {}
     finally { setLoadingFeed(false); }
+  }, []);
+
+  const fetchFollowingFeed = useCallback(async () => {
+    setLoadingFollowing(true);
+    try {
+      const res = await axios.get(`${API}/home/following`);
+      setFollowingFeed(res.data);
+    } catch {}
+    finally { setLoadingFollowing(false); }
   }, []);
 
   const fetchNotifs = useCallback(async () => {
@@ -362,6 +394,14 @@ export default function HomePage() {
 
   useEffect(() => { fetchFeed(); fetchNotifs(); }, [fetchFeed, fetchNotifs]);
 
+  // Lazy-load the following feed the first time the tab is opened
+  useEffect(() => {
+    if (tab === "following" && !followingFetchedRef.current) {
+      followingFetchedRef.current = true;
+      fetchFollowingFeed();
+    }
+  }, [tab, fetchFollowingFeed]);
+
   // Mark notifications read when user opens the tab
   useEffect(() => {
     if (tab === "notifications" && unread > 0 && !markedReadRef.current) {
@@ -373,14 +413,26 @@ export default function HomePage() {
   const handleLike = async (postId) => {
     try {
       const res = await axios.post(`${API}/posts/${postId}/like`);
-      setFeed((prev) =>
+      const update = (prev) =>
         prev.map((item) =>
           item.type === "post" && item.data.post_id === postId
             ? { ...item, data: { ...item.data, liked_by_me: res.data.liked, like_count: item.data.like_count + (res.data.liked ? 1 : -1) } }
             : item
-        )
-      );
+        );
+      setFeed(update);
+      setFollowingFeed(update);
     } catch {}
+  };
+
+  const handleShareUpdate = (postId, newCount) => {
+    const update = (prev) =>
+      prev.map((item) =>
+        item.type === "post" && item.data.post_id === postId
+          ? { ...item, data: { ...item.data, share_count: newCount } }
+          : item
+      );
+    setFeed(update);
+    setFollowingFeed(update);
   };
 
   // Interleave training tips into the feed every 8 real items
@@ -403,6 +455,14 @@ export default function HomePage() {
         <div className="flex items-center justify-between px-4 pt-4 pb-0">
           <h1 className="text-xl font-heading font-extrabold text-victory-text">Home</h1>
           <div className="flex items-center gap-3">
+            {/* Trending clips link */}
+            <button
+              onClick={() => navigate("/clips")}
+              className="flex items-center gap-1 text-orange-400 text-xs font-bold px-2.5 py-1.5 rounded-full border border-orange-400/30 bg-orange-500/10 hover:bg-orange-500/20 transition-colors"
+            >
+              <Flame className="w-3.5 h-3.5" />
+              Trending
+            </button>
             {/* Notification bell */}
             <button
               onClick={() => setTab("notifications")}
@@ -434,6 +494,16 @@ export default function HomePage() {
             }`}
           >
             For You
+          </button>
+          <button
+            onClick={() => setTab("following")}
+            className={`pb-3 pr-6 text-sm font-semibold border-b-2 transition-colors ${
+              tab === "following"
+                ? "border-victory-lime text-victory-lime"
+                : "border-transparent text-victory-muted hover:text-victory-text"
+            }`}
+          >
+            Following
           </button>
           <button
             onClick={() => setTab("notifications")}
@@ -482,12 +552,65 @@ export default function HomePage() {
                       key={`p-${item.data.post_id}-${i}`}
                       post={item.data}
                       onLike={handleLike}
+                      onShareUpdate={handleShareUpdate}
                       currentUserId={user?.user_id}
                     />
                   );
                 }
                 if (item.type === "tip") {
                   return <TipFeedCard key={`tip-${i}`} tip={item.data} />;
+                }
+                return null;
+              })}
+            </div>
+          )}
+        </main>
+      )}
+
+      {/* ── Following feed ───────────────────────────────────────────────── */}
+      {tab === "following" && (
+        <main>
+          {loadingFollowing ? (
+            <div className="space-y-1 mt-1">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-victory-card border-b border-victory-border">
+                  <div className="skeleton-shimmer w-full aspect-video" />
+                  <div className="p-4 space-y-2">
+                    <div className="skeleton-shimmer h-4 w-3/4 rounded" />
+                    <div className="skeleton-shimmer h-3 w-1/2 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : followingFeed.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 px-8 text-center gap-5">
+              <div className="w-16 h-16 rounded-full bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center">
+                <Users className="w-8 h-8 text-victory-lime/50" />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-victory-text font-bold text-lg">No posts yet</p>
+                <p className="text-victory-muted text-sm">Follow fighters on Discover to see their content here.</p>
+              </div>
+              <button onClick={() => navigate("/discover")} className="victory-btn-primary px-5 py-2.5 text-sm">
+                Find Fighters
+              </button>
+            </div>
+          ) : (
+            <div>
+              {followingFeed.map((item, i) => {
+                if (item.type === "stream") {
+                  return <LiveStreamFeedCard key={`sf-${item.data.stream_id}-${i}`} stream={item.data} />;
+                }
+                if (item.type === "post") {
+                  return (
+                    <PostFeedCard
+                      key={`pf-${item.data.post_id}-${i}`}
+                      post={item.data}
+                      onLike={handleLike}
+                      onShareUpdate={handleShareUpdate}
+                      currentUserId={user?.user_id}
+                    />
+                  );
                 }
                 return null;
               })}

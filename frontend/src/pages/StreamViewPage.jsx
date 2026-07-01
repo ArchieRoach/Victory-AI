@@ -3,15 +3,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { ArrowLeft, Radio, Users, Scissors, Zap, Gift } from "lucide-react";
+import { ArrowLeft, Radio, Users, Scissors, Zap, Gift, Smile, UserPlus, UserCheck, X, Share2 } from "lucide-react";
+import { ShareSheet } from "@/components/ShareSheet";
 import LivePlayer from "@/components/LivePlayer";
 import LiveChat from "@/components/LiveChat";
-import { TipModal }       from "@/components/streaming/TipModal";
-import { PunchAlert }     from "@/components/streaming/PunchAlert";
-import { TopKnockouts }   from "@/components/streaming/TopKnockouts";
-import { GiftSubModal }         from "@/components/streaming/GiftSubModal";
-import { SponsorBanner }        from "@/components/streaming/SponsorBanner";
-import { TokenPurchaseModal }   from "@/components/streaming/TokenPurchaseModal";
+import { TipModal }           from "@/components/streaming/TipModal";
+import { PunchAlert }         from "@/components/streaming/PunchAlert";
+import { TopKnockouts }       from "@/components/streaming/TopKnockouts";
+import { GiftSubModal }       from "@/components/streaming/GiftSubModal";
+import { SponsorBanner }      from "@/components/streaming/SponsorBanner";
+import { TokenPurchaseModal } from "@/components/streaming/TokenPurchaseModal";
+import { EmoteShop }          from "@/components/streaming/EmoteShop";
 
 const TYPE_COLORS = {
   training: "bg-blue-500/20 text-blue-400",
@@ -29,11 +31,20 @@ export default function StreamViewPage() {
   const [loading,      setLoading]      = useState(true);
   const [clipping,     setClipping]     = useState(false);
   const [tokenBalance, setTokenBalance] = useState(0);
+  const [following,    setFollowing]    = useState(false);
+  const [followBusy,   setFollowBusy]   = useState(false);
+
+  // Clip + share flow
+  const [clipPost,       setClipPost]       = useState(null);   // saved clip post
+  const [showClipModal,  setShowClipModal]  = useState(false);
+  const [clipCaption,    setClipCaption]    = useState("");
+  const [showShareSheet, setShowShareSheet] = useState(false);
 
   // Modal visibility
   const [showTip,     setShowTip]     = useState(false);
   const [showGift,    setShowGift]    = useState(false);
   const [showTopUp,   setShowTopUp]   = useState(false);
+  const [showEmotes,  setShowEmotes]  = useState(false);
 
   // PunchAlert queue: array of tip/gift events awaiting display
   const [alertQueue, setAlertQueue] = useState([]);
@@ -53,6 +64,13 @@ export default function StreamViewPage() {
         setStream(streamRes.data);
         setTokenBalance(tokenRes.data.balance);
         streamStartRef.current = Date.now();
+        // Load follow state for this streamer
+        if (streamRes.data.user_id && streamRes.data.user_id !== user?.user_id) {
+          try {
+            const profileRes = await axios.get(`${API}/users/${streamRes.data.user_id}/profile`);
+            setFollowing(profileRes.data.is_following);
+          } catch {}
+        }
       } catch (err) {
         if (err?.response?.status === 404) {
           toast.error("Stream not found.");
@@ -97,15 +115,45 @@ export default function StreamViewPage() {
     setClipping(true);
     const end = Date.now();
     try {
-      await axios.post(`${API}/streams/${streamId}/clip`, null, {
+      const res = await axios.post(`${API}/streams/${streamId}/clip`, null, {
         params: { start_time: end - 30_000, end_time: end },
       });
-      toast.success("Clip saved!");
+      setClipPost(res.data);
+      setClipCaption(res.data.caption || "");
+      setShowClipModal(true);
     } catch {
       toast.error("Clip failed — try again.");
     } finally {
       setClipping(false);
     }
+  };
+
+  const handleClipShare = async () => {
+    setShowClipModal(false);
+    setShowShareSheet(true);
+  };
+
+  const handleClipDismiss = () => {
+    setShowClipModal(false);
+    toast.success("Clip saved to your profile!");
+  };
+
+  // ── Follow / unfollow the streamer ───────────────────────────────────────
+  const handleFollow = async () => {
+    if (!stream?.user_id) return;
+    setFollowBusy(true);
+    try {
+      if (following) {
+        await axios.delete(`${API}/follows/${stream.user_id}`);
+        setFollowing(false);
+      } else {
+        await axios.post(`${API}/follows/${stream.user_id}`);
+        setFollowing(true);
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Could not update follow.");
+    }
+    setFollowBusy(false);
   };
 
   // ── After successful tip, refresh balance ─────────────────────────────────
@@ -134,6 +182,54 @@ export default function StreamViewPage() {
 
       {/* ── Punch alert overlay (renders above everything) ── */}
       <PunchAlert events={alertQueue} onDismiss={dismissAlert} />
+
+      {/* ── Clip saved modal ── */}
+      {showClipModal && clipPost && (
+        <div className="fixed inset-0 z-50 flex items-end" onClick={handleClipDismiss}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            className="relative w-full bg-victory-bg rounded-t-2xl p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 rounded-full bg-victory-border mx-auto" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-victory-lime/20 flex items-center justify-center flex-shrink-0">
+                <Scissors className="w-5 h-5 text-victory-lime" />
+              </div>
+              <div>
+                <p className="text-victory-text font-bold">Clip saved!</p>
+                <p className="text-victory-muted text-xs">Share it to start trending</p>
+              </div>
+              <button onClick={handleClipDismiss} className="ml-auto text-victory-muted">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleClipShare}
+                className="flex-1 flex items-center justify-center gap-2 bg-victory-lime text-victory-bg font-bold py-3 rounded-xl"
+              >
+                <Share2 className="w-4 h-4" /> Share Now
+              </button>
+              <button
+                onClick={handleClipDismiss}
+                className="flex-1 victory-btn-ghost py-3 text-sm"
+              >
+                Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Share sheet ── */}
+      {showShareSheet && clipPost && (
+        <ShareSheet
+          post={clipPost}
+          onClose={() => { setShowShareSheet(false); toast.success("Clip shared!"); }}
+          onShared={() => {}}
+        />
+      )}
 
       {/* ── Top bar ── */}
       <div className="flex items-center gap-3 px-4 py-3 bg-black/80">
@@ -187,6 +283,22 @@ export default function StreamViewPage() {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Follow button — only shown for other people's streams */}
+            {stream.user_id !== user?.user_id && (
+              <button
+                onClick={handleFollow}
+                disabled={followBusy}
+                className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors disabled:opacity-50 ${
+                  following
+                    ? "border-victory-border text-victory-muted hover:border-red-500/40 hover:text-red-400"
+                    : "border-victory-lime text-victory-lime hover:bg-victory-lime/10"
+                }`}
+              >
+                {following ? <UserCheck className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
+                {followBusy ? "…" : following ? "Following" : "Follow"}
+              </button>
+            )}
+
             {/* Token balance chip — tap to top up */}
             <button
               onClick={() => setShowTopUp(true)}
@@ -194,6 +306,15 @@ export default function StreamViewPage() {
             >
               <Zap className="w-3 h-3" />
               {tokenBalance.toLocaleString()}
+            </button>
+
+            {/* Emotes shop button */}
+            <button
+              onClick={() => setShowEmotes(true)}
+              className="flex items-center gap-1.5 border border-victory-border text-victory-text text-xs rounded-lg px-3 py-1.5 hover:border-victory-lime transition-colors"
+            >
+              <Smile className="w-3.5 h-3.5" />
+              Emotes
             </button>
 
             {isLive && user?.has_subscription && (
@@ -218,6 +339,7 @@ export default function StreamViewPage() {
         {/* Chat */}
         <LiveChat
           streamId={streamId}
+          streamOwnerId={stream?.user_id}
           user={user}
           className="h-full"
           onTipEvent={handleTipEvent}
@@ -256,6 +378,14 @@ export default function StreamViewPage() {
       {showTopUp && (
         <TokenPurchaseModal
           onClose={() => setShowTopUp(false)}
+        />
+      )}
+      {showEmotes && stream && (
+        <EmoteShop
+          streamOwnerId={stream.user_id}
+          tokenBalance={tokenBalance}
+          onClose={() => setShowEmotes(false)}
+          onBalanceChange={(delta) => setTokenBalance((b) => Math.max(0, b + delta))}
         />
       )}
     </div>
