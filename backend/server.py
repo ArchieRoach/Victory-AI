@@ -1881,8 +1881,22 @@ async def toggle_like(post_id: str, user: dict = Depends(get_current_user)):
     user_id = user["user_id"]
     if user_id in post.get("likes", []):
         await db.posts.update_one({"post_id": post_id}, {"$pull": {"likes": user_id}, "$inc": {"like_count": -1}})
+        await db.notifications.delete_one({"type": "like", "actor_id": user_id, "post_id": post_id})
         return {"liked": False}
     await db.posts.update_one({"post_id": post_id}, {"$addToSet": {"likes": user_id}, "$inc": {"like_count": 1}})
+    # Write notification to post owner (skip self-likes)
+    if post["user_id"] != user_id:
+        try:
+            await db.notifications.insert_one({
+                "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+                "recipient_id": post["user_id"],
+                "actor_id": user_id,
+                "type": "like",
+                "post_id": post_id,
+                "read": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+        except Exception: pass
     return {"liked": True}
 
 @api_router.delete("/posts/{post_id}")
@@ -1911,6 +1925,20 @@ async def add_comment(post_id: str, comment_data: CommentCreate, user: dict = De
     await db.posts.update_one({"post_id": post_id}, {"$inc": {"comment_count": 1}})
     comment_doc.pop("_id", None)
     comment_doc["author"] = safe_user(user)
+    # Notify post owner (skip self-comments)
+    if post["user_id"] != user["user_id"]:
+        try:
+            await db.notifications.insert_one({
+                "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+                "recipient_id": post["user_id"],
+                "actor_id": user["user_id"],
+                "type": "comment",
+                "post_id": post_id,
+                "text": comment_data.text[:200],
+                "read": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+        except Exception: pass
     return comment_doc
 
 @api_router.get("/posts/{post_id}/comments")
@@ -1920,6 +1948,156 @@ async def get_comments(post_id: str, user: dict = Depends(get_current_user)):
         author = await db.users.find_one({"user_id": c["user_id"]}, {"_id": 0, "password": 0})
         c["author"] = safe_user(author) if author else {"display_name": "Unknown", "name": "Unknown"}
     return comments
+
+# ============== HOME FOR-YOU FEED ==============
+
+@api_router.get("/home/feed")
+async def home_for_you_feed(user: dict = Depends(get_current_user)):
+    """Personalised For You feed: live streams + posts ranked by relevance."""
+    user_id      = user["user_id"]
+    weight_class = (user.get("weight_class") or "").lower()
+    category     = (user.get("category") or "").lower()
+
+    # Following set for boosting
+    follows = await db.follows.find({"follower_id": user_id}, {"following_id": 1}).to_list(5000)
+    following_ids = {f["following_id"] for f in follows}
+
+    # Fetch streams (live first, then recent)
+    streams = await db.streams.find({}, {"_id": 0, "stream_key": 0}).sort(
+        [("status", -1), ("viewer_count", -1)]
+    ).limit(30).to_list(30)
+
+    # Fetch posts from last 14 days
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=14)).isoformat()
+    posts = await db.posts.find(
+        {"created_at": {"$gte": cutoff}}, {"_id": 0}
+    ).sort("created_at", -1).limit(50).to_list(50)
+
+    now_ts = datetime.now(timezone.utc).timestamp()
+
+    def score_stream(s):
+        sc = 0.0
+        if s.get("status") == "live":  sc += 60
+        elif s.get("status") == "idle": sc += 5
+        if weight_class and (s.get("weight_class") or "").lower() == weight_class: sc += 35
+        if category     and (s.get("category")     or "").lower() == category:     sc += 25
+        if s.get("user_id") in following_ids: sc += 50
+        sc += min((s.get("viewer_count") or 0) * 0.5, 25)
+        return sc
+
+    def score_post(p):
+        sc = 0.0
+        if p.get("user_id") in following_ids: sc += 50
+        sc += min((p.get("like_count")    or 0) * 3, 30)
+        sc += min((p.get("comment_count") or 0) * 2, 20)
+        try:
+            age_h = (now_ts - datetime.fromisoformat(p["created_at"]).timestamp()) / 3600
+            sc += max(0.0, 40 - age_h * 1.5)
+        except Exception: pass
+        for tag in (p.get("tags") or []):
+            if weight_class and weight_class in tag.lower(): sc += 10
+            if category     and category     in tag.lower(): sc += 8
+        return sc
+
+    scored_streams = sorted(
+        [{"type": "stream", "score": score_stream(s), "data": s} for s in streams],
+        key=lambda x: x["score"], reverse=True
+    )
+    scored_posts = sorted(
+        [{"type": "post", "score": score_post(p), "data": p} for p in posts],
+        key=lambda x: x["score"], reverse=True
+    )
+
+    # Live streams surface first (up to 3), then interleave rest
+    live_items   = [x for x in scored_streams if x["data"].get("status") == "live"][:3]
+    other_streams = [x for x in scored_streams if x not in live_items]
+
+    result = list(live_items)
+    si = pi = 0
+    for i in range(min(27, len(other_streams) + len(scored_posts))):
+        # Inject a stream every 4th slot after the live block
+        if si < len(other_streams) and (pi >= len(scored_posts) or i % 4 == 0):
+            result.append(other_streams[si]); si += 1
+        elif pi < len(scored_posts):
+            result.append(scored_posts[pi]); pi += 1
+
+    # Enrich items
+    final = []
+    for item in result[:30]:
+        d = item["data"]
+        if item["type"] == "post":
+            author = await db.users.find_one({"user_id": d["user_id"]}, {"_id": 0, "password": 0})
+            d["author"]      = safe_user(author) if author else {"display_name": "Unknown"}
+            d["liked_by_me"] = user_id in d.get("likes", [])
+            d.pop("likes", None)
+        else:
+            streamer = await db.users.find_one({"user_id": d["user_id"]}, {"_id": 0, "password": 0})
+            if streamer:
+                d["display_name"] = streamer.get("display_name") or streamer.get("name")
+                d["user_name"]    = streamer.get("name")
+                d["user_avatar"]  = streamer.get("avatar_url")
+        final.append({"type": item["type"], "data": d})
+
+    return final
+
+
+@api_router.get("/notifications")
+async def get_notifications(user: dict = Depends(get_current_user)):
+    """Return recent notifications for the authenticated user."""
+    user_id = user["user_id"]
+    cutoff  = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+
+    notifs = await db.notifications.find(
+        {"recipient_id": user_id, "created_at": {"$gte": cutoff}},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(50).to_list(50)
+
+    # Also surface tips received in the last 30 days
+    tips = await db.tips.find(
+        {"streamer_id": user_id, "created_at": {"$gte": cutoff}},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(20).to_list(20)
+
+    for tip in tips:
+        notifs.append({
+            "notification_id": tip.get("tip_id", f"notif_tip_{uuid.uuid4().hex[:8]}"),
+            "recipient_id": user_id,
+            "actor_id": tip.get("tipper_id"),
+            "type": "tip",
+            "amount": tip.get("amount"),
+            "message": tip.get("message", ""),
+            "read": True,
+            "created_at": tip.get("created_at", ""),
+        })
+
+    # Sort merged list
+    notifs.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+
+    # Enrich with actor names / avatars
+    actor_ids = list({n["actor_id"] for n in notifs if n.get("actor_id")})
+    if actor_ids:
+        actors = await db.users.find({"user_id": {"$in": actor_ids}}, {"_id": 0, "password": 0}).to_list(len(actor_ids))
+        actor_map = {a["user_id"]: a for a in actors}
+    else:
+        actor_map = {}
+
+    for n in notifs:
+        a = actor_map.get(n.get("actor_id"), {})
+        n["actor_name"]   = a.get("display_name") or a.get("name") or "Fighter"
+        n["actor_avatar"] = a.get("avatar_url")
+
+    unread_count = sum(1 for n in notifs if not n.get("read"))
+    return {"notifications": notifs[:50], "unread_count": unread_count}
+
+
+@api_router.post("/notifications/mark-read")
+async def mark_notifications_read(user: dict = Depends(get_current_user)):
+    await db.notifications.update_many(
+        {"recipient_id": user["user_id"], "read": False},
+        {"$set": {"read": True}}
+    )
+    return {"ok": True}
+
 
 # ============== COMPETITION ENDPOINTS ==============
 
