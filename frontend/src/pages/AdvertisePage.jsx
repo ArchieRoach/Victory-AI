@@ -50,6 +50,11 @@ const STATS = [
 export default function AdvertisePage({ success = false }) {
   const navigate = useNavigate();
 
+  const [selectedPkg, setSelectedPkg] = useState("pro");
+  const [form, setForm]               = useState({ brand_name: "", tagline: "", website_url: "", advertiser_email: "" });
+  const [loading, setLoading]         = useState(false);
+  const [errors, setErrors]           = useState({});
+
   if (success) {
     return (
       <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center px-6 text-center gap-6">
@@ -66,10 +71,6 @@ export default function AdvertisePage({ success = false }) {
       </div>
     );
   }
-  const [selectedPkg, setSelectedPkg] = useState("pro");
-  const [form, setForm]               = useState({ brand_name: "", tagline: "", website_url: "", advertiser_email: "" });
-  const [loading, setLoading]         = useState(false);
-  const [errors, setErrors]           = useState({});
 
   const pkg = PACKAGES.find((p) => p.id === selectedPkg);
 
