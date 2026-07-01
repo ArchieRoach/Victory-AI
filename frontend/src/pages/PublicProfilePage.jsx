@@ -712,6 +712,29 @@ export default function PublicProfilePage() {
               </div>
             </section>
           )}
+
+          {/* Belts */}
+          {profile.belts?.length > 0 && (
+            <section className="px-4 pb-4">
+              <h2 className="text-victory-text font-bold text-sm mb-3 flex items-center gap-2">
+                <span className="text-base">🏆</span> Belts &amp; Titles
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {profile.belts.map((belt) => (
+                  <div key={belt.belt_id} title={belt.desc} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                    belt.tier === "legend"  ? "bg-yellow-500/15 border-yellow-400/40 text-yellow-300" :
+                    belt.tier === "diamond" ? "bg-blue-400/15  border-blue-400/40  text-blue-300"   :
+                    belt.tier === "gold"    ? "bg-amber-500/15 border-amber-400/40 text-amber-300"  :
+                    belt.tier === "silver"  ? "bg-slate-400/15 border-slate-400/40 text-slate-200"  :
+                                             "bg-orange-700/15 border-orange-600/30 text-orange-300"
+                  }`}>
+                    <span>{belt.emoji}</span>
+                    {belt.name}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </main>
       )}
 

@@ -953,9 +953,11 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
     
     await db.sessions.insert_one({**session_record})
     await db.training_sessions.update_one({"session_id": session_id}, {"$set": {"status": "completed", "overall_score": round(overall_score, 1)}})
-    
+    new_belts = await check_and_award_belts(user["user_id"])
     # Return a clean copy without _id
-    return session_record
+    result = dict(session_record)
+    result["new_belts"] = new_belts
+    return result
 
 # ============== STRIPE PAYMENT ENDPOINTS ==============
 
@@ -1720,6 +1722,66 @@ async def check_subscription(user: dict) -> bool:
     )
     return sub is not None
 
+BELT_CATALOGUE = {
+    # Training milestones
+    "first_jab":      {"name": "First Jab",       "emoji": "🥊", "tier": "bronze", "desc": "Complete your first training session"},
+    "heat_seeker":    {"name": "Heat Seeker",      "emoji": "🔥", "tier": "bronze", "desc": "Complete 10 training sessions"},
+    "voltage":        {"name": "Voltage",          "emoji": "⚡", "tier": "silver", "desc": "Complete 25 training sessions"},
+    "diamond_gloves": {"name": "Diamond Gloves",   "emoji": "💎", "tier": "diamond","desc": "Complete 100 training sessions"},
+    "living_legend":  {"name": "Living Legend",    "emoji": "👑", "tier": "legend", "desc": "Complete 250 training sessions"},
+    # Score tiers
+    "sharpshooter":   {"name": "Sharpshooter",     "emoji": "🎯", "tier": "silver", "desc": "Average score 7.0+ (min 5 sessions)"},
+    "elite":          {"name": "Elite",            "emoji": "🌟", "tier": "gold",   "desc": "Average score 8.0+ (min 10 sessions)"},
+    "masterclass":    {"name": "Masterclass",      "emoji": "🔮", "tier": "legend", "desc": "Average score 9.0+ (min 20 sessions)"},
+    # Competition belts
+    "contender":      {"name": "Contender",        "emoji": "🏅", "tier": "bronze", "desc": "Win your first competition"},
+    "regional_champ": {"name": "Regional Champion","emoji": "🥈", "tier": "silver", "desc": "Win 3 competitions"},
+    "national_title": {"name": "National Title",   "emoji": "🥇", "tier": "gold",   "desc": "Win 5 competitions"},
+    "world_champion": {"name": "World Champion",   "emoji": "🏆", "tier": "legend", "desc": "Win 10 competitions"},
+    # Social
+    "team_player":    {"name": "Team Player",      "emoji": "👥", "tier": "bronze", "desc": "Join a gym"},
+    "gym_captain":    {"name": "Gym Captain",      "emoji": "🏟️", "tier": "gold",   "desc": "Create and own a gym"},
+    "live_debut":     {"name": "Live Debut",       "emoji": "🔴", "tier": "silver", "desc": "Complete your first livestream"},
+}
+
+async def check_and_award_belts(user_id: str) -> list:
+    user = await db.users.find_one({"user_id": user_id})
+    if not user:
+        return []
+    already_earned = {b["belt_id"] for b in user.get("badges", [])}
+    sessions = await db.sessions.find({"user_id": user_id}, {"overall_score": 1}).to_list(None)
+    total = len(sessions)
+    avg   = sum(s.get("overall_score", 0) for s in sessions) / total if sessions else 0
+    comp_wins    = user.get("competition_wins", 0)
+    has_gym      = bool(user.get("gym_id"))
+    is_owner     = bool(await db.gyms.find_one({"owner_id": user_id}))
+    has_streamed = bool(await db.streams.find_one({"user_id": user_id, "status": "ended"}))
+    criteria = [
+        ("first_jab",      total >= 1),
+        ("heat_seeker",    total >= 10),
+        ("voltage",        total >= 25),
+        ("diamond_gloves", total >= 100),
+        ("living_legend",  total >= 250),
+        ("sharpshooter",   total >= 5  and avg >= 7.0),
+        ("elite",          total >= 10 and avg >= 8.0),
+        ("masterclass",    total >= 20 and avg >= 9.0),
+        ("contender",      comp_wins >= 1),
+        ("regional_champ", comp_wins >= 3),
+        ("national_title", comp_wins >= 5),
+        ("world_champion", comp_wins >= 10),
+        ("team_player",    has_gym),
+        ("gym_captain",    is_owner),
+        ("live_debut",     has_streamed),
+    ]
+    now = datetime.now(timezone.utc).isoformat()
+    new_badges = []
+    for belt_id, qualifies in criteria:
+        if qualifies and belt_id not in already_earned:
+            new_badges.append({"belt_id": belt_id, **BELT_CATALOGUE[belt_id], "earned_at": now})
+    if new_badges:
+        await db.users.update_one({"user_id": user_id}, {"$push": {"badges": {"$each": new_badges}}})
+    return new_badges
+
 def safe_user(user: dict) -> dict:
     return {
         "user_id": user.get("user_id"),
@@ -1737,6 +1799,9 @@ def safe_user(user: dict) -> dict:
         "competition_wins": user.get("competition_wins", 0),
         "competition_losses": user.get("competition_losses", 0),
         "badges": user.get("badges", []),
+        "belts": user.get("badges", []),
+        "competition_wins": user.get("competition_wins", 0),
+        "competition_losses": user.get("competition_losses", 0),
         "is_public": user.get("is_public", True),
     }
 
@@ -2215,6 +2280,7 @@ async def create_gym(gym_data: GymCreate, user: dict = Depends(get_current_user)
     }
     await db.gyms.insert_one(gym_doc)
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
+    await check_and_award_belts(user["user_id"])
     gym_doc.pop("_id", None)
     return gym_doc
 
@@ -2295,6 +2361,7 @@ async def join_gym(gym_id: str, user: dict = Depends(get_current_user)):
     )
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
     await _recalculate_gym_stats(gym_id)
+    await check_and_award_belts(user["user_id"])
     return {"message": "Joined gym", "gym_id": gym_id}
 
 @api_router.post("/gyms/{gym_id}/leave")
@@ -2903,6 +2970,29 @@ async def vote_on_competition(comp_id: str, vote_data: VoteCreate, user: dict = 
             {"comp_id": comp_id},
             {"$set": {"dimension_averages": dim_avgs, "avg_score": overall}, "$inc": {"vote_count": 1}},
         )
+    # Close competition and determine winner if voting period has ended
+    comp_now = await db.competitions.find_one({"comp_id": comp_id})
+    closes_at = comp_now.get("voting_closes_at")
+    if closes_at:
+        close_dt = datetime.fromisoformat(closes_at)
+        if close_dt.tzinfo is None:
+            close_dt = close_dt.replace(tzinfo=timezone.utc)
+        vote_count = comp_now.get("vote_count", 0)
+        avg_score  = comp_now.get("avg_score", 0)
+        if datetime.now(timezone.utc) > close_dt and comp_now.get("status") != "closed":
+            winner_id = None
+            if vote_count >= 2 and avg_score >= 6.5:
+                winner_id = comp_now.get("challenger_id")
+            await db.competitions.update_one(
+                {"comp_id": comp_id},
+                {"$set": {"status": "closed", "winner_id": winner_id}}
+            )
+            if winner_id:
+                await db.users.update_one({"user_id": winner_id}, {"$inc": {"competition_wins": 1}})
+                await check_and_award_belts(winner_id)
+            loser_id = comp_now.get("creator_id") if winner_id == comp_now.get("challenger_id") else comp_now.get("challenger_id")
+            if loser_id and loser_id != winner_id:
+                await db.users.update_one({"user_id": loser_id}, {"$inc": {"competition_losses": 1}})
     return {"message": "Vote cast", "vote_id": vote_doc["vote_id"]}
 
 # ============== FOLLOW ENDPOINTS ==============
@@ -3359,6 +3449,8 @@ async def update_stream(stream_id: str, data: StreamUpdate, user: dict = Depends
         updates["description"] = data.description
     if updates:
         await db.streams.update_one({"stream_id": stream_id}, {"$set": updates})
+    if data.status == "ended":
+        await check_and_award_belts(user["user_id"])
     updated = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
     return updated
 
@@ -3503,6 +3595,35 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
         count = ws_manager.viewer_count(stream_id)
         await db.streams.update_one({"stream_id": stream_id}, {"$set": {"viewer_count": count}})
         await ws_manager.broadcast(stream_id, {"type": "viewer_count", "count": count})
+
+# ============== BELT SYSTEM ==============
+
+@api_router.get("/belts/catalogue")
+async def get_belt_catalogue(user: dict = Depends(get_current_user)):
+    earned_ids = {b["belt_id"] for b in user.get("badges", [])}
+    earned_map = {b["belt_id"]: b for b in user.get("badges", [])}
+    sessions = await db.sessions.find({"user_id": user["user_id"]}, {"overall_score": 1}).to_list(None)
+    total = len(sessions)
+    avg   = sum(s.get("overall_score", 0) for s in sessions) / total if sessions else 0
+    comp_wins = user.get("competition_wins", 0)
+    result = []
+    for belt_id, belt in BELT_CATALOGUE.items():
+        earned = belt_id in earned_ids
+        entry = {**belt, "belt_id": belt_id, "earned": earned,
+                 "earned_at": earned_map[belt_id]["earned_at"] if earned else None}
+        # progress hint
+        if belt_id == "heat_seeker":    entry["progress"] = f"{min(total,10)}/10 sessions"
+        elif belt_id == "voltage":      entry["progress"] = f"{min(total,25)}/25 sessions"
+        elif belt_id == "diamond_gloves": entry["progress"] = f"{min(total,100)}/100 sessions"
+        elif belt_id == "living_legend":  entry["progress"] = f"{min(total,250)}/250 sessions"
+        elif belt_id == "sharpshooter": entry["progress"] = f"avg {round(avg,1)}/7.0 ({total} sessions)"
+        elif belt_id == "elite":        entry["progress"] = f"avg {round(avg,1)}/8.0 ({total} sessions)"
+        elif belt_id == "masterclass":  entry["progress"] = f"avg {round(avg,1)}/9.0 ({total} sessions)"
+        elif belt_id == "regional_champ": entry["progress"] = f"{comp_wins}/3 wins"
+        elif belt_id == "national_title": entry["progress"] = f"{comp_wins}/5 wins"
+        elif belt_id == "world_champion": entry["progress"] = f"{comp_wins}/10 wins"
+        result.append(entry)
+    return result
 
 # ============== EMOTE SYSTEM ==============
 
