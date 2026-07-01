@@ -5,7 +5,8 @@ import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays } from "lucide-react";
+import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
 import {
   Select,
@@ -63,6 +64,7 @@ export default function ProfilePage() {
     avatar_url: user?.avatar_url || "",
   });
   const [savingExtended, setSavingExtended] = useState(false);
+  const [tab, setTab] = useState("settings"); // "settings" | "clips" | "schedule"
   const [titleInput, setTitleInput] = useState("");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef(null);
@@ -196,6 +198,32 @@ export default function ProfilePage() {
         </h1>
       </header>
 
+      {/* ── Tab bar ─────────────────────────────────────────────────────── */}
+      <div className="sticky top-0 bg-victory-bg/95 backdrop-blur-sm border-b border-victory-border z-10">
+        <div className="flex px-4 overflow-x-auto scrollbar-hide">
+          {[
+            { key: "settings", label: "Profile Settings", icon: User },
+            { key: "clips",    label: "Clips",            icon: Clapperboard },
+            { key: "schedule", label: "Schedule",         icon: CalendarDays },
+          ].map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`flex-shrink-0 flex items-center gap-1.5 pb-3 pt-3 pr-6 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                tab === key
+                  ? "border-victory-lime text-victory-lime"
+                  : "border-transparent text-victory-muted hover:text-victory-text"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Settings tab (existing form content) ─────────────────────────── */}
+      {tab === "settings" && (
       <main className="px-4 space-y-6">
         {/* My Profile Section */}
         <section className="victory-card p-4">
@@ -531,6 +559,17 @@ export default function ProfilePage() {
           {t("profile.signOut")}
         </button>
       </main>
+      )} {/* end settings tab */}
+
+      {/* ── Clips tab ────────────────────────────────────────────────────── */}
+      {tab === "clips" && user?.user_id && (
+        <ClipsTab userId={user.user_id} />
+      )}
+
+      {/* ── Schedule tab ─────────────────────────────────────────────────── */}
+      {tab === "schedule" && user?.user_id && (
+        <ScheduleTab userId={user.user_id} isOwn={true} />
+      )}
 
       <BottomNav />
     </div>

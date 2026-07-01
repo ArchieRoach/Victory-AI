@@ -1665,7 +1665,78 @@ async def get_public_profile(user_id: str, current_user: dict = Depends(get_curr
         profile["gym"] = gym
     posts = await db.posts.find({"user_id": user_id}, {"_id": 0}).sort("created_at", -1).to_list(6)
     profile["recent_posts"] = posts
+    # Clip and schedule counts for the profile header
+    profile["clip_count"] = await db.posts.count_documents(
+        {"user_id": user_id, "video_url": {"$exists": True, "$ne": ""}}
+    )
+    now_iso = datetime.now(timezone.utc).isoformat()
+    profile["upcoming_stream_count"] = await db.scheduled_streams.count_documents(
+        {"user_id": user_id, "scheduled_at": {"$gte": now_iso}}
+    )
     return profile
+
+
+# ── Clips ──────────────────────────────────────────────────────────────────────
+
+@api_router.get("/users/{user_id}/clips")
+async def get_user_clips(user_id: str, current_user: dict = Depends(get_current_user)):
+    clips = await db.posts.find(
+        {"user_id": user_id, "video_url": {"$exists": True, "$ne": ""}},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    return clips
+
+
+# ── Schedule ───────────────────────────────────────────────────────────────────
+
+class ScheduledStreamCreate(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    scheduled_at: str   # ISO 8601 string, must be future
+    category: Optional[str] = None
+    weight_class: Optional[str] = None
+
+@api_router.get("/users/{user_id}/schedule")
+async def get_user_schedule(user_id: str, current_user: dict = Depends(get_current_user)):
+    now_iso = datetime.now(timezone.utc).isoformat()
+    items = await db.scheduled_streams.find(
+        {"user_id": user_id, "scheduled_at": {"$gte": now_iso}},
+        {"_id": 0}
+    ).sort("scheduled_at", 1).limit(20).to_list(20)
+    return items
+
+@api_router.post("/streams/schedule")
+async def create_scheduled_stream(data: ScheduledStreamCreate, user: dict = Depends(get_current_user)):
+    try:
+        scheduled_dt = datetime.fromisoformat(data.scheduled_at.replace("Z", "+00:00"))
+        if scheduled_dt <= datetime.now(timezone.utc):
+            raise HTTPException(400, "Scheduled time must be in the future")
+    except ValueError:
+        raise HTTPException(400, "Invalid datetime format — use ISO 8601")
+    doc = {
+        "schedule_id": f"sched_{uuid.uuid4().hex[:12]}",
+        "user_id": user["user_id"],
+        "title": data.title,
+        "description": data.description or "",
+        "scheduled_at": data.scheduled_at,
+        "category": data.category,
+        "weight_class": data.weight_class,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.scheduled_streams.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.delete("/streams/schedule/{schedule_id}")
+async def delete_scheduled_stream(schedule_id: str, user: dict = Depends(get_current_user)):
+    item = await db.scheduled_streams.find_one({"schedule_id": schedule_id})
+    if not item:
+        raise HTTPException(404, "Not found")
+    if item["user_id"] != user["user_id"]:
+        raise HTTPException(403, "Not your scheduled stream")
+    await db.scheduled_streams.delete_one({"schedule_id": schedule_id})
+    return {"ok": True}
+
 
 # ============== GYM ENDPOINTS ==============
 
