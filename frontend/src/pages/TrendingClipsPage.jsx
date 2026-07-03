@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 import { API, useAuth } from "@/App";
@@ -141,22 +141,29 @@ function ClipCard({ clip, onLike, onShare }) {
 export default function TrendingClipsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { postId } = useParams();
 
   const [period,  setPeriod]  = useState("24h");
   const [clips,   setClips]   = useState([]);
+  const [featured, setFeatured] = useState(null);
   const [page,    setPage]    = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [shareTarget, setShareTarget] = useState(null);
+  const reqIdRef = useRef(0);
+  const likingRef = useRef(new Set());
 
   const fetchClips = useCallback(async (p, append = false) => {
     setLoading(true);
+    // Ignore responses from superseded requests (period switch racing with load-more).
+    const reqId = ++reqIdRef.current;
     try {
       const res = await axios.get(`${API}/clips/trending`, { params: { period, page: p } });
+      if (reqId !== reqIdRef.current) return;
       setClips((prev) => append ? [...prev, ...res.data.clips] : res.data.clips);
       setHasMore(res.data.has_more);
     } catch {}
-    setLoading(false);
+    if (reqId === reqIdRef.current) setLoading(false);
   }, [period]);
 
   useEffect(() => {
@@ -164,23 +171,36 @@ export default function TrendingClipsPage() {
     fetchClips(1);
   }, [fetchClips]);
 
+  // Deep-linked shared clip (/clip/:postId): fetch and pin it above the trending list.
+  useEffect(() => {
+    if (!postId) { setFeatured(null); return; }
+    let cancelled = false;
+    axios.get(`${API}/posts/${postId}`)
+      .then((res) => { if (!cancelled) setFeatured(res.data); })
+      .catch(() => { if (!cancelled) setFeatured(null); });
+    return () => { cancelled = true; };
+  }, [postId]);
+
   const loadMore = () => {
     const next = page + 1;
     setPage(next);
     fetchClips(next, true);
   };
 
-  const handleLike = async (postId) => {
+  const handleLike = async (pid) => {
+    if (likingRef.current.has(pid)) return; // ignore rapid double-taps
+    likingRef.current.add(pid);
     try {
-      const res = await axios.post(`${API}/posts/${postId}/like`);
-      setClips((prev) =>
-        prev.map((c) =>
-          c.post_id === postId
-            ? { ...c, liked_by_me: res.data.liked, like_count: c.like_count + (res.data.liked ? 1 : -1) }
-            : c
-        )
-      );
-    } catch {}
+      const res = await axios.post(`${API}/posts/${pid}/like`);
+      const apply = (c) =>
+        c.post_id === pid
+          ? { ...c, liked_by_me: res.data.liked, like_count: res.data.like_count ?? (c.like_count + (res.data.liked ? 1 : -1)) }
+          : c;
+      setClips((prev) => prev.map(apply));
+      setFeatured((f) => (f && f.post_id === pid ? apply(f) : f));
+    } catch {} finally {
+      likingRef.current.delete(pid);
+    }
   };
 
   const handleShareClose = () => setShareTarget(null);
@@ -233,6 +253,12 @@ export default function TrendingClipsPage() {
 
       {/* Clips */}
       <main>
+        {featured && (
+          <div className="mb-1">
+            <p className="px-4 py-2 text-xs font-semibold text-orange-400 uppercase tracking-wide">Shared clip</p>
+            <ClipCard clip={featured} onLike={handleLike} onShare={setShareTarget} />
+          </div>
+        )}
         {loading && clips.length === 0 ? (
           <div className="space-y-1 mt-1">
             {[1,2,3].map((i) => (

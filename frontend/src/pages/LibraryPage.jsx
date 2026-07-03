@@ -19,18 +19,22 @@ export default function LibraryPage() {
     { value: "Combinations", label: t("library.filterCombinations") },
   ];
 
+  // Map each filter to the training dimensions it covers (legends carry a `dimensions` array).
+  const FILTER_DIMENSIONS = {
+    Offensive: ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow", "Punch Balance", "Punch Accuracy"],
+    Defensive: ["Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement"],
+    "Footwork & Movement": ["Footwork", "Ring Generalship", "Body Movement"],
+    Combinations: ["Combination Flow"],
+  };
+
   useEffect(() => {
     fetchLegends();
-  }, [activeFilter]);
+  }, []);
 
   const fetchLegends = async () => {
     setLoading(true);
     try {
-      const params = activeFilter !== "All" ? { filter: activeFilter } : {}; // activeFilter holds the English value for the API
-      const response = await axios.get(`${API}/legends`, {
-        params,
-        withCredentials: true,
-      });
+      const response = await axios.get(`${API}/legends`, { withCredentials: true });
       setLegends(response.data);
     } catch (error) {
       console.error("Error fetching legends:", error);
@@ -38,6 +42,10 @@ export default function LibraryPage() {
       setLoading(false);
     }
   };
+
+  const visibleLegends = activeFilter === "All"
+    ? legends
+    : legends.filter((l) => (l.dimensions || []).some((d) => (FILTER_DIMENSIONS[activeFilter] || []).includes(d)));
 
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="library-page">
@@ -80,8 +88,8 @@ export default function LibraryPage() {
               <div key={i} className="victory-card p-4 skeleton-shimmer h-32" />
             ))}
           </>
-        ) : legends.length > 0 ? (
-          legends.map((legend) => (
+        ) : visibleLegends.length > 0 ? (
+          visibleLegends.map((legend) => (
             <LegendCard key={legend.name} legend={legend} />
           ))
         ) : (

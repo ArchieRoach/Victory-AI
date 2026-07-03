@@ -34,6 +34,8 @@ export default function GoLivePage() {
   const mediaRef = useRef(null);
   const pcRef = useRef(null);
   const pollRef = useRef(null);
+  const mountedRef = useRef(true);
+  const startingRef = useRef(false);
 
   const cleanup = useCallback(() => {
     clearInterval(pollRef.current);
@@ -45,6 +47,7 @@ export default function GoLivePage() {
       pcRef.current.close();
       pcRef.current = null;
     }
+    startingRef.current = false;
   }, []);
 
   // Assign stream to video element once we're live
@@ -54,10 +57,19 @@ export default function GoLivePage() {
     }
   }, [phase]);
 
-  // Cleanup on unmount (navigating away while live)
-  useEffect(() => () => cleanup(), [cleanup]);
+  // Cleanup on unmount (navigating away while live or mid-setup)
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      cleanup();
+    };
+  }, [cleanup]);
 
   const handleGoLive = async () => {
+    // Guard against double-taps launching two parallel setups (leaks streams/PCs).
+    if (startingRef.current) return;
+    startingRef.current = true;
     setPhase("starting");
     setErrorMsg("");
 
@@ -71,6 +83,8 @@ export default function GoLivePage() {
     } catch (err) {
       const denied = err.name === "NotAllowedError" || err.name === "PermissionDeniedError";
       const notFound = err.name === "NotFoundError" || err.name === "DevicesNotFoundError";
+      startingRef.current = false;
+      if (!mountedRef.current) return;
       setErrorMsg(
         denied
           ? "Camera and microphone access is required. Tap the camera icon in your browser's address bar to allow access, then try again."
@@ -79,6 +93,12 @@ export default function GoLivePage() {
           : `Camera error: ${err.message}`
       );
       setPhase("error");
+      return;
+    }
+
+    // If the user navigated away during the permission prompt, don't leave the camera on.
+    if (!mountedRef.current) {
+      localStream.getTracks().forEach((t) => t.stop());
       return;
     }
 
@@ -104,19 +124,38 @@ export default function GoLivePage() {
     }
 
     // Step 3: WebRTC peer connection (send-only)
-    const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-      bundlePolicy: "max-bundle",
-    });
-    pcRef.current = pc;
+    let pc;
+    try {
+      pc = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        bundlePolicy: "max-bundle",
+      });
+      pcRef.current = pc;
 
-    for (const track of localStream.getTracks()) {
-      pc.addTransceiver(track, { direction: "sendonly" });
+      // Surface a dropped connection instead of showing "LIVE" over a dead stream.
+      pc.onconnectionstatechange = () => {
+        if (!mountedRef.current) return;
+        if (["failed", "disconnected", "closed"].includes(pc.connectionState)) {
+          cleanup();
+          setErrorMsg("Your connection to the stream server dropped. Please go live again.");
+          setPhase("error");
+        }
+      };
+
+      for (const track of localStream.getTracks()) {
+        pc.addTransceiver(track, { direction: "sendonly" });
+      }
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await waitForIce(pc);
+    } catch (err) {
+      cleanup();
+      if (!mountedRef.current) return;
+      setErrorMsg(`Could not initialise the broadcast: ${err.message}`);
+      setPhase("error");
+      return;
     }
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    await waitForIce(pc);
 
     // Step 4: Proxy SDP through backend — stream key never touches the browser
     let answerSdp;
@@ -152,6 +191,8 @@ export default function GoLivePage() {
       return;
     }
 
+    if (!mountedRef.current) { cleanup(); return; }
+    startingRef.current = false;
     setStreamInfo({
       stream_id: streamData.stream_id,
       playback_id: streamData.playback_id,
@@ -172,12 +213,17 @@ export default function GoLivePage() {
   const handleEndStream = async () => {
     const sid = streamInfo?.stream_id;
     cleanup();
-    navigate("/live");
+    // Mark the stream ended server-side BEFORE leaving, so it doesn't linger as "live"
+    // in the feeds. Best-effort retry, then navigate regardless.
     if (sid) {
-      try {
-        await axios.patch(`${API}/streams/${sid}`, { status: "ended" });
-      } catch {}
+      for (let i = 0; i < 2; i++) {
+        try {
+          await axios.patch(`${API}/streams/${sid}`, { status: "ended" });
+          break;
+        } catch {}
+      }
     }
+    navigate("/live");
   };
 
   // ── Live screen ──────────────────────────────────────────────────────────

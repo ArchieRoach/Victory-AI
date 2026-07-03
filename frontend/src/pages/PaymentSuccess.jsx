@@ -8,52 +8,56 @@ import { useTranslation } from "react-i18next";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
-  const { checkAuth } = useAuth();
+  const { refreshUser } = useAuth();
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState("checking");
 
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
-    if (sessionId) {
-      pollPaymentStatus(sessionId);
-    } else {
+    if (!sessionId) {
       navigate("/live", { replace: true });
-    }
-  }, [searchParams, navigate]);
-
-  const pollPaymentStatus = async (sessionId, attempts = 0) => {
-    const maxAttempts = 5;
-
-    if (attempts >= maxAttempts) {
-      setStatus("timeout");
-      toast.error(t("payment.timeoutToast"));
       return;
     }
 
-    try {
-      const response = await axios.get(`${API}/payments/status/${sessionId}`, {
-        withCredentials: true,
-      });
+    let cancelled = false;
+    let pollTimer, redirectTimer;
+    const maxAttempts = 5;
 
-      if (response.data.payment_status === "paid") {
-        setStatus("success");
-        await checkAuth(); // Refresh user data
-        toast.success(t("payment.successToast"));
-        setTimeout(() => navigate("/home", { replace: true }), 2000);
-        return;
-      } else if (response.data.status === "expired") {
-        setStatus("expired");
+    const poll = async (attempts = 0) => {
+      if (cancelled) return;
+      if (attempts >= maxAttempts) {
+        setStatus("timeout");
+        toast.error(t("payment.timeoutToast"));
         return;
       }
+      try {
+        const response = await axios.get(`${API}/payments/status/${sessionId}`);
+        if (cancelled) return;
+        if (response.data.payment_status === "paid") {
+          await refreshUser(); // refresh without unmounting this page
+          if (cancelled) return;
+          setStatus("success");
+          toast.success(t("payment.successToast"));
+          redirectTimer = setTimeout(() => navigate("/home", { replace: true }), 2000);
+          return;
+        } else if (response.data.status === "expired") {
+          setStatus("expired");
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking payment status:", error);
+      }
+      pollTimer = setTimeout(() => poll(attempts + 1), 2000);
+    };
 
-      // Continue polling
-      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), 2000);
-    } catch (error) {
-      console.error("Error checking payment status:", error);
-      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), 2000);
-    }
-  };
+    poll();
+    return () => {
+      cancelled = true;
+      clearTimeout(pollTimer);
+      clearTimeout(redirectTimer);
+    };
+  }, [searchParams, navigate, refreshUser, t]);
 
   return (
     <div className="min-h-screen bg-victory-bg flex items-center justify-center p-6">

@@ -92,7 +92,8 @@ export default function SessionResultsPage() {
     if (!previousSession) return null;
     const current = session.dimension_scores.find((d) => d.dimension_name === dimensionName)?.score;
     const previous = previousSession.dimension_scores.find((d) => d.dimension_name === dimensionName)?.score;
-    if (current === null || previous === null) return null;
+    // Guard against undefined (dimension missing from a prior session) → avoids a NaN "change".
+    if (current == null || previous == null) return null;
     return current - previous;
   };
 

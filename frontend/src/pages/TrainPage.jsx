@@ -143,6 +143,8 @@ export default function TrainPage() {
 
   // ── Hype message cycling (during rounds) ─────────────────────────────────────
   const startHypeCycle = useCallback(() => {
+    // Clear any existing cycle first so intervals can't stack (pause/resume during rest).
+    if (hypeTimerRef.current) clearInterval(hypeTimerRef.current);
     // Shuffle HYPE_LINES
     const shuffled = [...HYPE_LINES].sort(() => Math.random() - 0.5);
     setHypeQueue(shuffled);
@@ -176,7 +178,9 @@ export default function TrainPage() {
         record_video:   false,
       }, { withCredentials: true });
       setSessionId(res.data.session_id);
-    } catch {}
+    } catch {
+      toast.error(t("train.startOffline", "Couldn't reach the server — this session won't be saved."));
+    }
 
     setIsConfiguring(false);
     setTimeLeft(roundDuration);
@@ -244,10 +248,14 @@ export default function TrainPage() {
       try {
         const res = await axios.post(`${API}/training/${sessionId}/complete`, {}, { withCredentials: true });
         navigate("/score/results", { state: { session: res.data, fromTraining: true } });
+        return;
       } catch {
         toast.error(t("train.failedSave"));
       }
     }
+    // No session was saved (offline / failed start or complete) — don't strand the user on a
+    // frozen 0:00 screen; return them home.
+    navigate("/home");
   };
 
   const togglePause = () => {

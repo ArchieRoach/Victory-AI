@@ -16,6 +16,7 @@ function PostCard({ post, onLike, onDelete, currentUserId }) {
   const [commentText, setCommentText] = useState("");
   const [loadingComments, setLoadingComments] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [commentCount, setCommentCount] = useState(post.comment_count || 0);
 
   const fetchComments = async () => {
     if (comments.length > 0) return;
@@ -41,6 +42,7 @@ function PostCard({ post, onLike, onDelete, currentUserId }) {
     try {
       const res = await axios.post(`${API}/posts/${post.post_id}/comments`, { text: commentText.trim() });
       setComments((prev) => [...prev, res.data]);
+      setCommentCount((c) => c + 1);
       setCommentText("");
     } catch {
       toast.error(t("common.error"));
@@ -137,7 +139,7 @@ function PostCard({ post, onLike, onDelete, currentUserId }) {
           className="flex items-center gap-1.5 text-victory-muted hover:text-victory-text transition-colors touch-target"
         >
           <MessageCircle className="w-5 h-5" />
-          <span className="text-sm">{post.comment_count || 0}</span>
+          <span className="text-sm">{commentCount}</span>
           {showComments ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
       </div>

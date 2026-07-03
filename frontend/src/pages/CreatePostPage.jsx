@@ -89,8 +89,11 @@ export default function CreatePostPage() {
   };
 
   const handleSubmit = async () => {
-    if (isCompeteMode && !compTitle.trim()) return toast.error(t("createPost.titleRequired"));
-    if (!videoFile && isCompeteMode) return toast.error(t("createPost.videoRequired"));
+    // A competition can be started either via ?mode=compete or by picking the "competition_result"
+    // post type — both must enforce the title + video requirements.
+    const competing = isCompeteMode || postType === "competition_result";
+    if (competing && !compTitle.trim()) return toast.error(t("createPost.titleRequired"));
+    if (!videoFile && competing) return toast.error(t("createPost.videoRequired"));
 
     setUploading(true);
     try {

@@ -20,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user, setUser, logout } = useAuth();
+  const { user, setUser, logout, refreshUser } = useAuth();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -129,6 +129,7 @@ export default function ProfilePage() {
     setSavingExtended(true);
     try {
       await axios.put(`${API}/users/profile`, extendedForm);
+      await refreshUser();   // keep header/feeds in sync with the saved changes
       toast.success(t("profile.saved"));
     } catch {
       toast.error(t("profile.saveFailed"));

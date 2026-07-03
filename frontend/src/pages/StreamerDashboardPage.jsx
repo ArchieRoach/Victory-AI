@@ -37,11 +37,31 @@ function StatCard({ icon: Icon, label, value, sub, accent }) {
   );
 }
 
-function EarningsChart({ data }) {
-  if (!data || data.length === 0) return null;
+function EarningsChart({ data: rawData }) {
+  if (!rawData || rawData.length === 0) return null;
+
+  // Long ranges (e.g. "All time" → 365 daily points) don't fit in the column; bucket them
+  // into ~52 groups so bars stay readable instead of collapsing to zero-width slivers.
+  let data = rawData;
+  if (rawData.length > 60) {
+    const size = Math.ceil(rawData.length / 52);
+    const buckets = [];
+    for (let i = 0; i < rawData.length; i += size) {
+      const chunk = rawData.slice(i, i + size);
+      buckets.push({
+        date:   chunk[0].date,
+        label:  chunk[0].label,
+        tips:   chunk.reduce((s, d) => s + (d.tips   || 0), 0),
+        emotes: chunk.reduce((s, d) => s + (d.emotes || 0), 0),
+        total:  chunk.reduce((s, d) => s + (d.total  || 0), 0),
+      });
+    }
+    data = buckets;
+  }
+
   const maxVal = Math.max(...data.map((d) => d.total), 1);
 
-  // For 30-day view, label every 5th day; for 7-day, label all
+  // For 30-day view, label every 5th bar; for 7-day, label all
   const showLabel = data.length <= 10
     ? () => true
     : (_, i) => i % 5 === 0 || i === data.length - 1;

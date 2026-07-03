@@ -69,7 +69,7 @@ const TIER_BG = {
 const QUICK_AMOUNTS = [25, 50, 100, 250, 500];
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export function TipModal({ streamId, balance, onClose, onSuccess }) {
+export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
   const [selectedKey, setSelectedKey] = useState("heart");
   const [tab,         setTab]         = useState("menu"); // "menu" | "custom"
   const [custom,      setCustom]      = useState("");
@@ -317,7 +317,7 @@ export function TipModal({ streamId, balance, onClose, onSuccess }) {
           {effectiveAmount > balance && (
             <p className="text-red-400 text-xs text-center">
               Not enough tokens.{" "}
-              <button onClick={onClose} className="underline">
+              <button onClick={() => { onClose(); onTopUp?.(); }} className="underline">
                 Top up your balance
               </button>
             </p>

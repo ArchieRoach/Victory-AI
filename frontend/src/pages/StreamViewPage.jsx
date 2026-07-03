@@ -29,6 +29,7 @@ export default function StreamViewPage() {
 
   const [stream,       setStream]       = useState(null);
   const [loading,      setLoading]      = useState(true);
+  const [loadError,    setLoadError]    = useState(null);
   const [clipping,     setClipping]     = useState(false);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [following,    setFollowing]    = useState(false);
@@ -57,13 +58,14 @@ export default function StreamViewPage() {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [streamRes, tokenRes] = await Promise.all([
-          axios.get(`${API}/streams/${streamId}`),
-          axios.get(`${API}/tokens/balance`),
-        ]);
+        // Stream is required; the token balance is best-effort and must not block the page.
+        const streamRes = await axios.get(`${API}/streams/${streamId}`);
         setStream(streamRes.data);
-        setTokenBalance(tokenRes.data.balance);
+        setLoadError(null);
         streamStartRef.current = Date.now();
+        axios.get(`${API}/tokens/balance`)
+          .then((r) => setTokenBalance(r.data.balance))
+          .catch(() => {});
         // Load follow state for this streamer
         if (streamRes.data.user_id && streamRes.data.user_id !== user?.user_id) {
           try {
@@ -72,9 +74,14 @@ export default function StreamViewPage() {
           } catch {}
         }
       } catch (err) {
-        if (err?.response?.status === 404) {
+        const status = err?.response?.status;
+        if (status === 404) {
           toast.error("Stream not found.");
           navigate("/live");
+        } else if (status === 403) {
+          setLoadError("This stream is private.");
+        } else {
+          setLoadError("Couldn't load this stream. Check your connection and try again.");
         }
       } finally {
         setLoading(false);
@@ -173,7 +180,19 @@ export default function StreamViewPage() {
     );
   }
 
-  if (!stream) return null;
+  if (!stream) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-victory-muted">{loadError || "Stream unavailable."}</p>
+        <button
+          onClick={() => navigate("/live")}
+          className="px-5 py-2 rounded-full bg-victory-lime text-black font-semibold"
+        >
+          Back to live
+        </button>
+      </div>
+    );
+  }
 
   const isLive = stream.status === "live";
 
@@ -367,6 +386,7 @@ export default function StreamViewPage() {
           balance={tokenBalance}
           onClose={() => setShowTip(false)}
           onSuccess={handleTipSuccess}
+          onTopUp={() => setShowTopUp(true)}
         />
       )}
       {showGift && (

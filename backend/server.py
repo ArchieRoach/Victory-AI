@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import asyncio
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
@@ -40,6 +41,9 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 STRIPE_FOUNDERS_COUPON_ID = os.environ.get('STRIPE_FOUNDERS_COUPON_ID', '')
 stripe_lib.api_key = STRIPE_API_KEY
+
+# Livepeer webhook signing secret (optional; when set, incoming webhooks are HMAC-verified)
+LIVEPEER_WEBHOOK_SECRET = os.environ.get('LIVEPEER_WEBHOOK_SECRET', '')
 
 # ── Web Push (VAPID) ─────────────────────────────────────────────────────────
 # Generate keys once with:
@@ -709,22 +713,25 @@ async def check_and_consume_ai_tokens(user: dict, feature: str) -> dict:
     cost = AI_TOKEN_COSTS.get(feature, 1_000)
     current_month = datetime.now(timezone.utc).strftime("%Y-%m")
     user_id = user["user_id"]
+    # Reset the counter atomically when the month rolls over.
     if user.get("ai_tokens_month") != current_month:
         await db.users.update_one(
-            {"user_id": user_id},
+            {"user_id": user_id, "ai_tokens_month": {"$ne": current_month}},
             {"$set": {"ai_tokens_used": 0, "ai_tokens_month": current_month}},
         )
-        tokens_used = 0
-    else:
-        tokens_used = user.get("ai_tokens_used", 0)
-    remaining = FREE_MONTHLY_AI_TOKENS - tokens_used
-    if remaining < cost:
-        return {"allowed": False, "tokens_remaining": max(0, remaining)}
-    await db.users.update_one(
-        {"user_id": user_id},
-        {"$set": {"ai_tokens_used": tokens_used + cost, "ai_tokens_month": current_month}},
+    # Reserve the cost atomically: only succeeds if enough budget remains this month.
+    reserved = await db.users.update_one(
+        {"user_id": user_id, "ai_tokens_month": current_month,
+         "ai_tokens_used": {"$lte": FREE_MONTHLY_AI_TOKENS - cost}},
+        {"$inc": {"ai_tokens_used": cost}},
     )
-    return {"allowed": True, "tokens_remaining": remaining - cost}
+    if reserved.matched_count == 0:
+        fresh = await db.users.find_one({"user_id": user_id}, {"ai_tokens_used": 1})
+        used = (fresh or {}).get("ai_tokens_used", 0)
+        return {"allowed": False, "tokens_remaining": max(0, FREE_MONTHLY_AI_TOKENS - used)}
+    fresh = await db.users.find_one({"user_id": user_id}, {"ai_tokens_used": 1})
+    used = (fresh or {}).get("ai_tokens_used", cost)
+    return {"allowed": True, "tokens_remaining": max(0, FREE_MONTHLY_AI_TOKENS - used)}
 
 
 @api_router.get("/usage")
@@ -813,9 +820,9 @@ Format as JSON with keys: dimension_scores (array), what_did_well, what_to_impro
         except:
             analysis = generate_simulated_analysis(round_number, partner_name, focus_areas)
         
-        # Store analysis
+        # Store analysis — scoped to this user so one caller can't overwrite another's video record
         await db.round_videos.update_one(
-            {"video_url": video_url},
+            {"video_url": video_url, "user_id": user["user_id"]},
             {"$set": {"analyzed": True, "analysis_results": analysis, "analyzed_at": datetime.now(timezone.utc).isoformat()}}
         )
         
@@ -1030,7 +1037,6 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
 
 @api_router.get("/payments/status/{session_id}")
 async def get_payment_status(session_id: str, user: dict = Depends(get_current_user)):
-    import asyncio
     try:
         session = await asyncio.to_thread(stripe_lib.checkout.Session.retrieve, session_id)
     except Exception as e:
@@ -1045,7 +1051,8 @@ async def get_payment_status(session_id: str, user: dict = Depends(get_current_u
         {"$set": {"payment_status": effective_payment_status, "status": session.status}}
     )
 
-    if is_complete and not await db.subscriptions.find_one({"session_id": session_id}):
+    # Only subscription-mode checkouts create a subscription; token/ad payments must not.
+    if is_complete and session.mode == "subscription" and not await db.subscriptions.find_one({"session_id": session_id}):
         transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
         plan_id = (transaction or {}).get("plan_id", "monthly")
         trial_end = datetime.now(timezone.utc) + timedelta(days=14)
@@ -1077,15 +1084,14 @@ async def get_subscription_status(user: dict = Depends(get_current_user)):
 async def stripe_webhook(request: Request):
     body = await request.body()
     signature = request.headers.get("stripe-signature", "")
+    if not STRIPE_WEBHOOK_SECRET:
+        logger.error("Stripe webhook secret not configured — refusing to process unsigned event")
+        raise HTTPException(status_code=500, detail="Webhook not configured")
     try:
-        if STRIPE_WEBHOOK_SECRET:
-            event = stripe_lib.Webhook.construct_event(body, signature, STRIPE_WEBHOOK_SECRET)
-        else:
-            import json
-            event = json.loads(body)
+        event = stripe_lib.Webhook.construct_event(body, signature, STRIPE_WEBHOOK_SECRET)
     except Exception as e:
-        logger.error(f"Webhook parse error: {e}")
-        return {"received": True}
+        logger.error(f"Webhook signature verification failed: {e}")
+        raise HTTPException(status_code=400, detail="Invalid signature")
 
     event_type = event.get("type", "") if isinstance(event, dict) else event.type
     event_data = event.get("data", {}).get("object", {}) if isinstance(event, dict) else event.data.object
@@ -1139,12 +1145,12 @@ async def stripe_webhook(request: Request):
                     if stream_id:
                         gifter = await db.users.find_one({"user_id": uid}, {"name": 1, "display_name": 1, "avatar_url": 1})
                         gname = (gifter or {}).get("display_name") or (gifter or {}).get("name", "Someone")
-                        await ws_manager.broadcast(stream_id, json.dumps({
+                        await ws_manager.broadcast(stream_id, {
                             "type": "gift_sub",
                             "user_name": gname,
                             "count": count,
                             "timestamp": datetime.now(timezone.utc).isoformat(),
-                        }))
+                        })
             elif purchase_type == "ad_campaign":
                 campaign_id = meta.get("campaign_id")
                 days = int(meta.get("days", 7))
@@ -1228,12 +1234,11 @@ async def purchase_tokens(
 async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_current_user)):
     if req.amount < 25:
         raise HTTPException(400, "Minimum tip is 25 tokens")
-    balance = user.get("token_balance", 0)
-    if balance < req.amount:
-        raise HTTPException(402, detail="insufficient_tokens")
     stream = await db.streams.find_one({"stream_id": stream_id})
     if not stream:
         raise HTTPException(404, "Stream not found")
+    if stream["user_id"] == user["user_id"]:
+        raise HTTPException(400, "Cannot tip your own stream")
 
     # Determine punch action: prefer exact key match, fall back to amount threshold
     punch = None
@@ -1242,8 +1247,13 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
     if not punch:
         punch = next((p for p in reversed(PUNCH_MENU) if req.amount >= p["tokens"]), PUNCH_MENU[0])
 
-    # Atomically deduct sender, credit streamer (70% cut)
-    await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {"token_balance": -req.amount}})
+    # Atomically deduct sender only if they still have the balance (guards double-spend / negative balance)
+    debit = await db.users.update_one(
+        {"user_id": user["user_id"], "token_balance": {"$gte": req.amount}},
+        {"$inc": {"token_balance": -req.amount}},
+    )
+    if debit.matched_count == 0:
+        raise HTTPException(402, detail="insufficient_tokens")
     await db.users.update_one({"user_id": stream["user_id"]}, {"$inc": {"token_balance": int(req.amount * 0.7)}})
 
     now = datetime.now(timezone.utc).isoformat()
@@ -1265,9 +1275,10 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
 
     # Broadcast tip event to all chat viewers
     is_combo = punch.get("category") == "combo" if punch else False
-    await ws_manager.broadcast(stream_id, json.dumps({
+    await ws_manager.broadcast(stream_id, {
         "type": "tip",
         "tip_id": tip_doc["tip_id"],
+        "user_id": user["user_id"],
         "user_name": tip_doc["sender_name"],
         "user_avatar": tip_doc["sender_avatar"],
         "amount": req.amount,
@@ -1280,7 +1291,7 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
         "combo_sequence": punch.get("combo_sequence", []) if punch else [],
         "combo_label": punch.get("combo_label", "") if punch else "",
         "timestamp": now,
-    }))
+    })
 
     # Push notification to streamer (non-blocking)
     sender_name = user.get("display_name") or user.get("name", "Someone")
@@ -1365,7 +1376,7 @@ async def create_ad_checkout(req: AdCampaignRequest):
     pkg = AD_PACKAGES.get(req.package_id)
     if not pkg:
         raise HTTPException(400, "Invalid ad package")
-    if not STRIPE_SECRET_KEY:
+    if not STRIPE_API_KEY:
         raise HTTPException(500, "Payments not configured")
     campaign_id = f"ad_{uuid.uuid4().hex[:12]}"
     # Pre-create pending campaign so we have the ID for metadata
@@ -1467,6 +1478,42 @@ async def get_sessions(user: dict = Depends(get_current_user), limit: int = 100)
     sessions = await db.sessions.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(limit)
     return sessions
 
+class DimensionScore(BaseModel):
+    dimension_name: str
+    score: Optional[float] = None
+
+class SessionCreate(BaseModel):
+    video_url: Optional[str] = None
+    session_notes: Optional[str] = None
+    date: Optional[str] = None
+    dimension_scores: List[DimensionScore] = []
+
+@api_router.post("/sessions")
+async def create_session(data: SessionCreate, user: dict = Depends(get_current_user)):
+    dimension_scores = [{"dimension_name": d.dimension_name, "score": d.score} for d in data.dimension_scores]
+    scored = [d["score"] for d in dimension_scores if d["score"] is not None]
+    if not scored:
+        raise HTTPException(status_code=400, detail="At least one dimension must be scored")
+    overall_score = round(sum(scored) / len(scored), 1)
+    now = datetime.now(timezone.utc).isoformat()
+    session_record = {
+        "session_id": f"session_{uuid.uuid4().hex[:12]}",
+        "user_id": user["user_id"],
+        "date": data.date or now,
+        "overall_score": overall_score,
+        "dimension_scores": dimension_scores,
+        "video_url": data.video_url,
+        "session_notes": data.session_notes,
+        "source": "manual",
+        "created_at": now,
+        "completed_at": now,
+    }
+    await db.sessions.insert_one({**session_record})
+    new_belts = await check_and_award_belts(user["user_id"])
+    result = dict(session_record)
+    result["new_belts"] = new_belts
+    return result
+
 @api_router.get("/sessions/{session_id}")
 async def get_session(session_id: str, user: dict = Depends(get_current_user)):
     session = await db.sessions.find_one({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0})
@@ -1564,22 +1611,44 @@ async def get_leaderboard(user: dict = Depends(get_current_user)):
     ]
     leaders = await db.sessions.aggregate(pipeline).to_list(50)
     result = []
+    def _display_name(raw: str) -> str:
+        # Show first name + last initial only for privacy; tolerate empty/blank names.
+        parts = (raw or "Fighter").strip().split() or ["Fighter"]
+        return parts[0] if len(parts) == 1 else f"{parts[0]} {parts[-1][0]}."
+
     for i, leader in enumerate(leaders):
         user_info = leader.get("user_info") or {}
-        name = user_info.get("name", "Fighter")
-        # Show first name + last initial only for privacy
-        parts = name.strip().split()
-        display_name = parts[0] if len(parts) == 1 else f"{parts[0]} {parts[-1][0]}."
         result.append({
             "rank": i + 1,
-            "display_name": display_name,
+            "display_name": _display_name(user_info.get("name")),
             "avg_score": round(leader["avg_score"], 1),
             "total_sessions": leader["total_sessions"],
             "best_score": round(leader["best_score"], 1),
             "is_current_user": leader["_id"] == user["user_id"]
         })
-    # Find current user's rank if not in top 50
+    # Current user's rank — computed across all fighters, not just the visible top 50.
     current_rank = next((r for r in result if r["is_current_user"]), None)
+    if current_rank is None:
+        my_agg = await db.sessions.aggregate([
+            {"$match": {"user_id": user["user_id"]}},
+            {"$group": {"_id": "$user_id", "avg_score": {"$avg": "$overall_score"},
+                        "total_sessions": {"$sum": 1}, "best_score": {"$max": "$overall_score"}}},
+        ]).to_list(1)
+        if my_agg:
+            my = my_agg[0]
+            higher = await db.sessions.aggregate([
+                {"$group": {"_id": "$user_id", "avg_score": {"$avg": "$overall_score"}}},
+                {"$match": {"avg_score": {"$gt": my["avg_score"]}}},
+                {"$count": "n"},
+            ]).to_list(1)
+            current_rank = {
+                "rank": (higher[0]["n"] if higher else 0) + 1,
+                "display_name": _display_name(user.get("name")),
+                "avg_score": round(my["avg_score"], 1),
+                "total_sessions": my["total_sessions"],
+                "best_score": round(my["best_score"], 1),
+                "is_current_user": True,
+            }
     return {"leaderboard": result, "current_user_rank": current_rank}
 
 # ============== SESSION REPLAY ENDPOINTS ==============
@@ -1998,10 +2067,12 @@ async def get_user_schedule(user_id: str, current_user: dict = Depends(get_curre
 async def create_scheduled_stream(data: ScheduledStreamCreate, user: dict = Depends(get_current_user)):
     try:
         scheduled_dt = datetime.fromisoformat(data.scheduled_at.replace("Z", "+00:00"))
-        if scheduled_dt <= datetime.now(timezone.utc):
-            raise HTTPException(400, "Scheduled time must be in the future")
-    except ValueError:
+    except (ValueError, TypeError):
         raise HTTPException(400, "Invalid datetime format — use ISO 8601")
+    if scheduled_dt.tzinfo is None:
+        scheduled_dt = scheduled_dt.replace(tzinfo=timezone.utc)
+    if scheduled_dt <= datetime.now(timezone.utc):
+        raise HTTPException(400, "Scheduled time must be in the future")
     doc = {
         "schedule_id": f"sched_{uuid.uuid4().hex[:12]}",
         "user_id": user["user_id"],
@@ -2355,10 +2426,12 @@ async def join_gym(gym_id: str, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=400, detail="Already a member")
     if user.get("gym_id"):
         raise HTTPException(status_code=400, detail="Leave your current gym first")
-    await db.gyms.update_one(
-        {"gym_id": gym_id},
+    joined = await db.gyms.update_one(
+        {"gym_id": gym_id, "members": {"$ne": user["user_id"]}},
         {"$addToSet": {"members": user["user_id"]}, "$inc": {"member_count": 1}}
     )
+    if joined.modified_count == 0:
+        raise HTTPException(status_code=400, detail="Already a member")
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
     await _recalculate_gym_stats(gym_id)
     await check_and_award_belts(user["user_id"])
@@ -2372,7 +2445,7 @@ async def leave_gym(gym_id: str, user: dict = Depends(get_current_user)):
     if gym["owner_id"] == user["user_id"]:
         raise HTTPException(status_code=400, detail="Gym owner cannot leave — delete the gym instead")
     await db.gyms.update_one(
-        {"gym_id": gym_id},
+        {"gym_id": gym_id, "members": user["user_id"]},
         {"$pull": {"members": user["user_id"]}, "$inc": {"member_count": -1}}
     )
     await db.users.update_one({"user_id": user["user_id"]}, {"$unset": {"gym_id": ""}})
@@ -2404,10 +2477,12 @@ async def join_gym_by_code(request: Request, user: dict = Depends(get_current_us
     if user.get("gym_id"):
         raise HTTPException(status_code=400, detail="Leave your current gym first")
     gym_id = gym["gym_id"]
-    await db.gyms.update_one(
-        {"gym_id": gym_id},
+    joined = await db.gyms.update_one(
+        {"gym_id": gym_id, "members": {"$ne": user["user_id"]}},
         {"$addToSet": {"members": user["user_id"]}, "$inc": {"member_count": 1}}
     )
+    if joined.modified_count == 0:
+        raise HTTPException(status_code=400, detail="Already a member")
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
     await _recalculate_gym_stats(gym_id)
     return {"message": "Joined gym", "gym_id": gym_id, "gym_name": gym["name"]}
@@ -2886,6 +2961,33 @@ async def create_competition(data: CompetitionCreate, user: dict = Depends(get_c
     comp_doc["challenger"] = safe_user(user)
     return comp_doc
 
+async def _close_competition_if_due(comp: dict) -> Optional[str]:
+    """Close an expired, voter-judged competition exactly once and award the winner.
+
+    Solo format: the challenger 'wins' if the crowd scores them well (>=2 votes, avg>=6.5).
+    There is no opponent, so nothing is ever counted as a loss. Returns the winner_id (or None).
+    """
+    if comp.get("status") == "closed":
+        return comp.get("winner_id")
+    closes_at = comp.get("voting_closes_at")
+    if not closes_at:
+        return None
+    close_dt = datetime.fromisoformat(closes_at)
+    if close_dt.tzinfo is None:
+        close_dt = close_dt.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) <= close_dt:
+        return None
+    winner_id = comp.get("challenger_id") if (comp.get("vote_count", 0) >= 2 and comp.get("avg_score", 0) >= 6.5) else None
+    # Atomically claim the close so concurrent callers can't double-award.
+    claimed = await db.competitions.update_one(
+        {"comp_id": comp["comp_id"], "status": {"$ne": "closed"}},
+        {"$set": {"status": "closed", "winner_id": winner_id}},
+    )
+    if claimed.modified_count == 1 and winner_id:
+        await db.users.update_one({"user_id": winner_id}, {"$inc": {"competition_wins": 1}})
+        await check_and_award_belts(winner_id)
+    return winner_id
+
 @api_router.get("/competitions/mine")
 async def get_my_competitions(user: dict = Depends(get_current_user)):
     comps = await db.competitions.find({"challenger_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(50)
@@ -2899,6 +3001,9 @@ async def browse_competitions(
     status: str = Query("open", enum=["open", "closed", "all"]),
     user: dict = Depends(get_current_user),
 ):
+    # Lazily close any competitions whose voting window has elapsed before filtering by status.
+    for expired in await db.competitions.find({"status": "open"}, {"_id": 0}).to_list(200):
+        await _close_competition_if_due(expired)
     query: dict = {} if status == "all" else {"status": status}
     comps = await db.competitions.find(query, {"_id": 0}).sort("created_at", -1).to_list(50)
     enriched = []
@@ -2915,6 +3020,9 @@ async def get_competition(comp_id: str, user: dict = Depends(get_current_user)):
     comp = await db.competitions.find_one({"comp_id": comp_id}, {"_id": 0})
     if not comp:
         raise HTTPException(status_code=404, detail="Competition not found")
+    if comp.get("status") == "open":
+        await _close_competition_if_due(comp)
+        comp = await db.competitions.find_one({"comp_id": comp_id}, {"_id": 0})
     challenger = await db.users.find_one({"user_id": comp["challenger_id"]}, {"_id": 0, "password": 0})
     comp["challenger"] = safe_user(challenger) if challenger else {"display_name": "Unknown"}
     my_vote = await db.competition_votes.find_one({"comp_id": comp_id, "voter_id": user["user_id"]}, {"_id": 0})
@@ -2947,13 +3055,21 @@ async def vote_on_competition(comp_id: str, vote_data: VoteCreate, user: dict = 
         if close_dt.tzinfo is None:
             close_dt = close_dt.replace(tzinfo=timezone.utc)
         if datetime.now(timezone.utc) > close_dt:
-            await db.competitions.update_one({"comp_id": comp_id}, {"$set": {"status": "closed"}})
+            await _close_competition_if_due(comp)
             raise HTTPException(status_code=400, detail="Voting period has ended")
+    # Sanitize score keys: reject Mongo-hostile characters and clamp values to 1-10.
+    clean_scores = {
+        dim: max(1, min(10, int(score)))
+        for dim, score in (vote_data.scores or {}).items()
+        if isinstance(dim, str) and "." not in dim and not dim.startswith("$") and isinstance(score, (int, float))
+    }
+    if not clean_scores:
+        raise HTTPException(status_code=400, detail="At least one valid dimension score is required")
     vote_doc = {
         "vote_id": f"vote_{uuid.uuid4().hex[:12]}",
         "comp_id": comp_id,
         "voter_id": user["user_id"],
-        "scores": vote_data.scores,
+        "scores": clean_scores,
         "comment": vote_data.comment or "",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -2970,29 +3086,10 @@ async def vote_on_competition(comp_id: str, vote_data: VoteCreate, user: dict = 
             {"comp_id": comp_id},
             {"$set": {"dimension_averages": dim_avgs, "avg_score": overall}, "$inc": {"vote_count": 1}},
         )
-    # Close competition and determine winner if voting period has ended
+    # Award immediately if this vote lands exactly as the voting window closes.
     comp_now = await db.competitions.find_one({"comp_id": comp_id})
-    closes_at = comp_now.get("voting_closes_at")
-    if closes_at:
-        close_dt = datetime.fromisoformat(closes_at)
-        if close_dt.tzinfo is None:
-            close_dt = close_dt.replace(tzinfo=timezone.utc)
-        vote_count = comp_now.get("vote_count", 0)
-        avg_score  = comp_now.get("avg_score", 0)
-        if datetime.now(timezone.utc) > close_dt and comp_now.get("status") != "closed":
-            winner_id = None
-            if vote_count >= 2 and avg_score >= 6.5:
-                winner_id = comp_now.get("challenger_id")
-            await db.competitions.update_one(
-                {"comp_id": comp_id},
-                {"$set": {"status": "closed", "winner_id": winner_id}}
-            )
-            if winner_id:
-                await db.users.update_one({"user_id": winner_id}, {"$inc": {"competition_wins": 1}})
-                await check_and_award_belts(winner_id)
-            loser_id = comp_now.get("creator_id") if winner_id == comp_now.get("challenger_id") else comp_now.get("challenger_id")
-            if loser_id and loser_id != winner_id:
-                await db.users.update_one({"user_id": loser_id}, {"$inc": {"competition_losses": 1}})
+    if comp_now:
+        await _close_competition_if_due(comp_now)
     return {"message": "Vote cast", "vote_id": vote_doc["vote_id"]}
 
 # ============== FOLLOW ENDPOINTS ==============
@@ -3518,6 +3615,8 @@ async def create_clip(
         "tags":               ["clip", stream.get("type", "training")],
         "stream_id_ref":      stream_id,
         "stream_title":       stream.get("title", ""),
+        "streamer_id":        stream.get("user_id"),
+        "streamer_name":      stream.get("streamer_name") or stream.get("title", ""),
         "likes":              [],
         "like_count":         0,
         "comment_count":      0,
@@ -3534,7 +3633,15 @@ async def create_clip(
 
 @app.post("/api/livepeer/webhook")
 async def livepeer_webhook(request: Request):
-    body = await request.json()
+    raw = await request.body()
+    if LIVEPEER_WEBHOOK_SECRET:
+        import hmac, hashlib
+        sig_header = request.headers.get("Livepeer-Signature", "")
+        provided = sig_header.split("v1=")[-1].split(",")[0].strip() if "v1=" in sig_header else sig_header.strip()
+        expected = hmac.new(LIVEPEER_WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
+        if not provided or not hmac.compare_digest(provided, expected):
+            raise HTTPException(status_code=400, detail="Invalid signature")
+    body = json.loads(raw)
     event = body.get("event", "")
     lp_id = body.get("streamId") or body.get("id", "")
     if event in ("stream.started", "stream.idle"):
@@ -3557,9 +3664,11 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
     await ws_manager.connect(websocket, stream_id)
     count = ws_manager.viewer_count(stream_id)
     await db.streams.update_one({"stream_id": stream_id}, {"$set": {"viewer_count": count}})
+    # Most recent 50 messages, returned in chronological order for display.
     history = await db.chat_messages.find(
         {"stream_id": stream_id}, {"_id": 0}
-    ).sort("created_at", 1).limit(50).to_list(length=50)
+    ).sort("created_at", -1).limit(50).to_list(length=50)
+    history.reverse()
     await websocket.send_text(json.dumps({"type": "history", "messages": history}))
     await ws_manager.broadcast(stream_id, {"type": "viewer_count", "count": count})
     try:
@@ -3578,6 +3687,7 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
             msg = {
                 "message_id": f"msg_{uuid.uuid4().hex[:10]}",
                 "stream_id": stream_id,
+                "user_id": (payload.get("user_id") or "")[:64],
                 "user_name": (payload.get("user_name") or "Fighter")[:50],
                 "user_avatar": (payload.get("user_avatar") or "")[:200],
                 "message": text,
@@ -3755,11 +3865,13 @@ async def purchase_emote(emote_id: str, user: dict = Depends(get_current_user)):
 
     price = emote.get("token_price", 0)
     if price > 0:
-        balance = user.get("token_balance", 0)
-        if balance < price:
+        # Deduct from buyer only if they still have the balance (guards double-spend / negative balance)
+        debit = await db.users.update_one(
+            {"user_id": user["user_id"], "token_balance": {"$gte": price}},
+            {"$inc": {"token_balance": -price}},
+        )
+        if debit.matched_count == 0:
             raise HTTPException(402, detail="insufficient_tokens")
-        # Deduct from buyer, 70% to emote owner
-        await db.users.update_one({"user_id": user["user_id"]},           {"$inc": {"token_balance": -price}})
         await db.users.update_one({"user_id": emote["owner_id"]},          {"$inc": {"token_balance": int(price * 0.7)}})
 
     await db.emote_unlocks.insert_one({

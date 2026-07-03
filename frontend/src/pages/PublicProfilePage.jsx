@@ -481,6 +481,7 @@ export default function PublicProfilePage() {
   const { user: currentUser } = useAuth();
   const [profile,       setProfile]       = useState(null);
   const [loading,       setLoading]       = useState(true);
+  const [loadError,     setLoadError]     = useState(false);
   const [following,     setFollowing]     = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [tab,           setTab]           = useState("home"); // "home" | "clips" | "schedule"
@@ -495,13 +496,16 @@ export default function PublicProfilePage() {
 
   const fetchProfile = async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const res = await axios.get(`${API}/users/${userId}/profile`);
       setProfile(res.data);
       setFollowing(res.data.is_following);
     } catch (err) {
+      // On a deep link there's no history to go back to, so show an error state
+      // instead of silently rendering a blank page.
       toast.error(err.response?.data?.detail || t("common.error"));
-      navigate(-1);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -535,7 +539,22 @@ export default function PublicProfilePage() {
       </div>
     );
   }
-  if (!profile) return null;
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-victory-bg pb-nav flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-victory-muted">
+          {loadError ? t("publicProfile.notFound", "This fighter's profile couldn't be loaded.") : t("common.error")}
+        </p>
+        <button
+          onClick={() => navigate("/discover")}
+          className="px-5 py-2 rounded-full bg-victory-lime text-black font-semibold"
+        >
+          {t("publicProfile.browseFighters", "Browse fighters")}
+        </button>
+        <BottomNav />
+      </div>
+    );
+  }
 
   const displayName    = profile.display_name || profile.name || t("publicProfile.unknownFighter");
   const hasRealRecord  = profile.amateur_wins > 0 || profile.amateur_losses > 0 || profile.amateur_draws > 0;

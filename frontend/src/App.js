@@ -13,6 +13,7 @@ if (storedLang === "ar") {
   document.documentElement.lang = storedLang;
 }
 import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
 
 // Pages
@@ -112,6 +113,19 @@ const AuthProvider = ({ children }) => {
     checkAuth();
   }, [checkAuth]);
 
+  // Refresh the user doc WITHOUT toggling global loading (so callers like the
+  // payment-success pages aren't unmounted mid-flow).
+  const refreshUser = useCallback(async () => {
+    if (!isSignedIn) return;
+    try {
+      const token = await getToken();
+      const res = await axios.get(`${API}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(res.data);
+    } catch (e) {}
+  }, [isSignedIn, getToken]);
+
   const logout = useCallback(async () => {
     await signOut();
     setUser(null);
@@ -126,6 +140,7 @@ const AuthProvider = ({ children }) => {
       login: () => {},
       logout,
       checkAuth,
+      refreshUser,
     }}>
       {children}
     </AuthContext.Provider>

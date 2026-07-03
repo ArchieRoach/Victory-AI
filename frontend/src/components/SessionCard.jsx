@@ -8,8 +8,9 @@ export const SessionCard = ({ session, onClick }) => {
     day: "numeric",
   });
 
-  // Create mini radar data
-  const scores = session.dimension_scores
+  // Create mini radar data (tolerate sessions that were started but never scored)
+  const dimensionScores = session.dimension_scores || [];
+  const scores = dimensionScores
     .filter((d) => d.score !== null)
     .map((d) => d.score);
 
@@ -40,7 +41,7 @@ export const SessionCard = ({ session, onClick }) => {
           />
           {/* Simplified radar shape */}
           <polygon
-            points={session.dimension_scores
+            points={dimensionScores
               .slice(0, 8)
               .map((d, i) => {
                 const angle = (i * 45 - 90) * (Math.PI / 180);
@@ -60,7 +61,7 @@ export const SessionCard = ({ session, onClick }) => {
       <div className="flex-1 text-left">
         <p className="text-victory-text font-medium">{formattedDate}</p>
         <p className="text-victory-muted text-sm">
-          Overall: {session.overall_score.toFixed(1)}/10
+          Overall: {(session.overall_score ?? 0).toFixed(1)}/10
         </p>
       </div>
 

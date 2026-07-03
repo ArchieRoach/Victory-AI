@@ -13,7 +13,7 @@ const PKG_LABELS = {
 
 export default function TokenSuccessPage() {
   const navigate        = useNavigate();
-  const { checkAuth }   = useAuth();
+  const { refreshUser } = useAuth();
   const [params]        = useSearchParams();
   const [status, setStatus] = useState("checking"); // checking | success | failed
 
@@ -26,29 +26,38 @@ export default function TokenSuccessPage() {
 
     let attempts = 0;
     const MAX = 8;
+    let cancelled = false;
+    let pollTimer, redirectTimer;
 
     const poll = async () => {
+      if (cancelled) return;
       try {
         const res = await axios.get(`${API}/payments/status/${sessionId}`);
         const paid = res.data.payment_status === "paid" || res.data.status === "complete";
         if (paid) {
-          await checkAuth();   // refresh user balance in context
+          await refreshUser();   // refresh balance without unmounting this page
+          if (cancelled) return;
           setStatus("success");
-          setTimeout(() => navigate("/live", { replace: true }), 3000);
+          redirectTimer = setTimeout(() => navigate("/live", { replace: true }), 3000);
           return;
         }
       } catch {}
 
       attempts++;
       if (attempts >= MAX) {
-        setStatus("failed");
+        if (!cancelled) setStatus("failed");
         return;
       }
-      setTimeout(poll, 2000);
+      pollTimer = setTimeout(poll, 2000);
     };
 
     poll();
-  }, [sessionId, navigate, checkAuth]);
+    return () => {
+      cancelled = true;
+      clearTimeout(pollTimer);
+      clearTimeout(redirectTimer);
+    };
+  }, [sessionId, navigate, refreshUser]);
 
   return (
     <div className="min-h-screen bg-victory-bg flex items-center justify-center p-6">
@@ -72,8 +81,8 @@ export default function TokenSuccessPage() {
               <CheckCircle className="w-10 h-10 text-victory-lime" />
             </div>
             <div>
-              <h1 className="text-victory-text font-black text-2xl">Tokens added!</h1>
-              <p className="text-victory-muted text-sm mt-2">Your account has been credited.</p>
+              <h1 className="text-victory-text font-black text-2xl">Payment confirmed!</h1>
+              <p className="text-victory-muted text-sm mt-2">Your tokens are on the way — your balance will update within a moment.</p>
             </div>
             <div className="bg-victory-card border border-victory-lime/30 rounded-2xl p-5">
               <p className="text-victory-muted text-xs mb-1">{pkg.label} Pack</p>

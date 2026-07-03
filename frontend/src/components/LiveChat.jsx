@@ -106,11 +106,11 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
         } else if (data.type === "viewer_count") {
           setViewerCount(data.count);
         } else if (data.type === "tip") {
-          setMessages((prev) => [...prev.slice(-199), { ...data, _isTip: true }]);
+          setMessages((prev) => [...prev.slice(-199), { ...data, _isTip: true, _localId: `tip-${data.tip_id || Date.now() + Math.random()}` }]);
           scrollToBottom();
           onTipEvent?.(data);
         } else if (data.type === "gift_sub") {
-          setMessages((prev) => [...prev.slice(-199), { ...data, _isGift: true }]);
+          setMessages((prev) => [...prev.slice(-199), { ...data, _isGift: true, _localId: `gift-${Date.now()}-${Math.random()}` }]);
           scrollToBottom();
           // Update local gifter badge count for this user
           setGifterMap((prev) => ({
@@ -201,8 +201,8 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
           </p>
         )}
         {messages.map((msg, i) => {
-          if (msg._isTip)  return <TipMessage    key={msg.tip_id || i}  msg={msg} />;
-          if (msg._isGift) return <GiftSubMessage key={`gift-${i}`}     msg={msg} />;
+          if (msg._isTip)  return <TipMessage    key={msg._localId || msg.tip_id || i}  msg={msg} />;
+          if (msg._isGift) return <GiftSubMessage key={msg._localId || i}               msg={msg} />;
 
           const badge = GIFTER_BADGE(gifterMap[msg.user_id]);
           return (

@@ -259,7 +259,8 @@ export default function LiveFeedPage() {
     try {
       const params = {};
       if (status === "live")   params.status = "live";
-      if (status === "recent") params.status = "ended";
+      // Streams that stopped go "idle" (Livepeer webhook); "ended" is only the manual-stop case.
+      if (status === "recent") params.status = "idle";
       const res = await axios.get(`${API}/streams`, { params });
       setStreams(res.data);
     } catch {}

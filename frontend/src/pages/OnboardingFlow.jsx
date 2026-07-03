@@ -454,7 +454,12 @@ const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
       return;
     }
     setLoading(true);
-    await onComplete(name);
+    try {
+      await onComplete(name);
+    } finally {
+      // Reset so a failed create-partner call doesn't leave the button stuck spinning.
+      setLoading(false);
+    }
   };
 
   return (
