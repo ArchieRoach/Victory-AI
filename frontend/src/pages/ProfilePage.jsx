@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { WEIGHT_CLASS_DATA } from "@/utils/weightClasses";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ export default function ProfilePage() {
     display_name: user?.display_name || "",
     bio: user?.bio || "",
     weight_class: user?.weight_class || "",
+    weight_unit: user?.weight_unit || "kg",
     stance: user?.stance || "",
     amateur_wins: user?.amateur_wins ?? 0,
     amateur_losses: user?.amateur_losses ?? 0,
@@ -394,6 +396,30 @@ export default function ProfilePage() {
             />
           </div>
 
+          {/* Weight unit preference toggle */}
+          <div>
+            <label className="victory-label">Weight unit preference</label>
+            <div className="flex gap-2 mt-1">
+              {["kg", "lbs"].map((unit) => (
+                <button
+                  key={unit}
+                  type="button"
+                  onClick={() => setExtendedForm({ ...extendedForm, weight_unit: unit })}
+                  className={`px-5 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                    extendedForm.weight_unit === unit
+                      ? "bg-victory-lime text-victory-bg border-victory-lime"
+                      : "border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-text"
+                  }`}
+                >
+                  {unit.toUpperCase()}
+                </button>
+              ))}
+              <span className="self-center text-victory-muted text-xs ml-1">
+                Used everywhere weights are shown
+              </span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="victory-label">{t("profile.weightClass")}</label>
@@ -403,28 +429,16 @@ export default function ProfilePage() {
                 className="victory-input"
               >
                 <option value="">—</option>
-                {[
-                  { name: "Minimumweight",       lbs: "up to 105 lbs",  kg: "47.6 kg" },
-                  { name: "Light Flyweight",      lbs: "up to 108 lbs",  kg: "49 kg"   },
-                  { name: "Flyweight",            lbs: "up to 112 lbs",  kg: "50.8 kg" },
-                  { name: "Super Flyweight",      lbs: "up to 115 lbs",  kg: "52.2 kg" },
-                  { name: "Bantamweight",         lbs: "up to 118 lbs",  kg: "53.5 kg" },
-                  { name: "Super Bantamweight",   lbs: "up to 122 lbs",  kg: "55.3 kg" },
-                  { name: "Featherweight",        lbs: "up to 126 lbs",  kg: "57.2 kg" },
-                  { name: "Super Featherweight",  lbs: "up to 130 lbs",  kg: "59 kg"   },
-                  { name: "Lightweight",          lbs: "up to 135 lbs",  kg: "61.2 kg" },
-                  { name: "Super Lightweight",    lbs: "up to 140 lbs",  kg: "63.5 kg" },
-                  { name: "Welterweight",         lbs: "up to 147 lbs",  kg: "66.7 kg" },
-                  { name: "Super Welterweight",   lbs: "up to 154 lbs",  kg: "69.9 kg" },
-                  { name: "Middleweight",         lbs: "up to 160 lbs",  kg: "72.6 kg" },
-                  { name: "Super Middleweight",   lbs: "up to 168 lbs",  kg: "76.2 kg" },
-                  { name: "Light Heavyweight",    lbs: "up to 175 lbs",  kg: "79.4 kg" },
-                  { name: "Cruiserweight",        lbs: "up to 200 lbs",  kg: "90.7 kg" },
-                  { name: "Heavyweight",          lbs: "200+ lbs",       kg: "90+ kg"  },
-                  { name: "Super Heavyweight",    lbs: "unlimited",      kg: "unlimited" },
-                ].map(({ name, lbs, kg }) => (
-                  <option key={name} value={name}>{name} — {lbs} / {kg}</option>
-                ))}
+                {WEIGHT_CLASS_DATA.map(({ name, kg_str, lbs_str }) => {
+                  const primary   = extendedForm.weight_unit === "lbs" ? lbs_str : kg_str;
+                  const secondary = extendedForm.weight_unit === "lbs" ? kg_str  : lbs_str;
+                  const label = primary && secondary
+                    ? `${name} — ${primary} (${secondary})`
+                    : primary
+                    ? `${name} — ${primary}`
+                    : name;
+                  return <option key={name} value={name}>{label}</option>;
+                })}
               </select>
             </div>
             <div>
@@ -704,7 +718,7 @@ export default function ProfilePage() {
 
       {/* ── Schedule tab ─────────────────────────────────────────────────── */}
       {tab === "schedule" && user?.user_id && (
-        <ScheduleTab userId={user.user_id} isOwn={true} />
+        <ScheduleTab userId={user.user_id} isOwn={true} weightUnit={extendedForm.weight_unit} />
       )}
 
       <BottomNav />

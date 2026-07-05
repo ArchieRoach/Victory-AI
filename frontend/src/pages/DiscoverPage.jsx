@@ -7,14 +7,11 @@ import { toast } from "sonner";
 import {
   Search, X, Radio, Users, Dumbbell, ChevronDown, ChevronUp,
 } from "lucide-react";
+import { WEIGHT_CLASS_DATA, formatWeightClass, weightBadge, getWeightUnit } from "@/utils/weightClasses";
 
-const WEIGHT_CLASSES = [
+const WEIGHT_CLASS_NAMES = [
   "All",
-  "Strawweight", "Light Flyweight", "Flyweight", "Super Flyweight",
-  "Bantamweight", "Super Bantamweight", "Featherweight", "Super Featherweight",
-  "Lightweight", "Super Lightweight", "Welterweight", "Super Welterweight",
-  "Middleweight", "Super Middleweight", "Light Heavyweight",
-  "Cruiserweight", "Heavyweight", "Super Heavyweight",
+  ...WEIGHT_CLASS_DATA.map((w) => w.name),
 ];
 
 const STANCES  = ["All", "Orthodox", "Southpaw", "Switch"];
@@ -31,7 +28,7 @@ const STANCE_COLORS = {
   Switch:   "bg-violet-500/10 text-violet-400 border-violet-500/20",
 };
 
-function FighterCard({ fighter, onFollowChange }) {
+function FighterCard({ fighter, onFollowChange, weightUnit }) {
   const navigate   = useNavigate();
   const [following, setFollowing] = useState(fighter.is_following);
   const [busy,      setBusy]      = useState(false);
@@ -98,6 +95,11 @@ function FighterCard({ fighter, onFollowChange }) {
           {fighter.weight_class && (
             <span className="text-[10px] text-victory-lime font-medium">
               {fighter.weight_class}
+              {weightBadge(fighter.weight_class, weightUnit) && (
+                <span className="text-victory-muted font-normal ml-1">
+                  · {weightBadge(fighter.weight_class, weightUnit)}
+                </span>
+              )}
             </span>
           )}
           {fighter.stance && (
@@ -148,6 +150,7 @@ function FighterCard({ fighter, onFollowChange }) {
 
 export default function DiscoverPage() {
   const { user }    = useAuth();
+  const weightUnit  = getWeightUnit(user);
   const [q,              setQ]             = useState("");
   const [weightClass,    setWeightClass]   = useState("All");
   const [stance,         setStance]        = useState("All");
@@ -232,17 +235,17 @@ export default function DiscoverPage() {
 
         {/* Weight class pills — always visible, horizontal scroll */}
         <div className="flex gap-2 px-4 pb-3 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-          {WEIGHT_CLASSES.map((wc) => (
+          {WEIGHT_CLASS_NAMES.map((wc) => (
             <button
               key={wc}
               onClick={() => setWeightClass(wc)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
                 weightClass === wc
                   ? "bg-victory-lime text-victory-bg border-victory-lime"
                   : "border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-text"
               }`}
             >
-              {wc}
+              {formatWeightClass(wc, weightUnit)}
             </button>
           ))}
         </div>
@@ -336,6 +339,7 @@ export default function DiscoverPage() {
           <FighterCard
             key={f.user_id}
             fighter={f}
+            weightUnit={weightUnit}
             onFollowChange={(uid, nowFollowing) => {
               setFighters((prev) =>
                 prev.map((x) => x.user_id === uid ? { ...x, is_following: nowFollowing, follower_count: x.follower_count + (nowFollowing ? 1 : -1) } : x)

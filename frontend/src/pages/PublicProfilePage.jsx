@@ -11,9 +11,10 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ShareSheet } from "@/components/ShareSheet";
+import { formatWeightClass, getWeightUnit } from "@/utils/weightClasses";
 
 // ── Follow list modal (followers / following) ─────────────────────────────────
-function FollowListModal({ userId, mode, onClose }) {
+function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
   const navigate = useNavigate();
   const [users,   setUsers]   = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +90,7 @@ function FollowListModal({ userId, mode, onClose }) {
                   )}
                   <div className="min-w-0">
                     <p className="text-victory-text font-semibold text-sm truncate">{u.display_name || u.name}</p>
-                    {u.weight_class && <p className="text-victory-muted text-xs">{u.weight_class}</p>}
+                    {u.weight_class && <p className="text-victory-muted text-xs">{formatWeightClass(u.weight_class, weightUnit)}</p>}
                   </div>
                 </button>
                 <button
@@ -233,7 +234,7 @@ export function ClipsTab({ userId }) {
 }
 
 // ── Schedule list ─────────────────────────────────────────────────────────────
-export function ScheduleTab({ userId, isOwn, onScheduleChange }) {
+export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg" }) {
   const navigate = useNavigate();
   const [items,   setItems]   = useState([]);
   const [loading, setLoading] = useState(true);
@@ -436,7 +437,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange }) {
                     )}
                     {item.weight_class && (
                       <span className="text-[10px] text-victory-muted bg-victory-card border border-victory-border px-2 py-0.5 rounded-full">
-                        {item.weight_class}
+                        {formatWeightClass(item.weight_class, weightUnit)}
                       </span>
                     )}
                     {soon && (
@@ -479,6 +480,7 @@ export default function PublicProfilePage() {
   const navigate = useNavigate();
   const { userId } = useParams();
   const { user: currentUser } = useAuth();
+  const weightUnit = getWeightUnit(currentUser);
   const [profile,       setProfile]       = useState(null);
   const [loading,       setLoading]       = useState(true);
   const [loadError,     setLoadError]     = useState(false);
@@ -574,6 +576,7 @@ export default function PublicProfilePage() {
           userId={userId}
           mode={followModal}
           onClose={() => setFollowModal(null)}
+          weightUnit={weightUnit}
         />
       )}
 
@@ -616,7 +619,9 @@ export default function PublicProfilePage() {
                   <span className="text-xs text-victory-muted bg-victory-card border border-victory-border px-2 py-0.5 rounded-full capitalize">{profile.stance}</span>
                 )}
                 {profile.weight_class && (
-                  <span className="text-xs text-victory-muted bg-victory-card border border-victory-border px-2 py-0.5 rounded-full">{profile.weight_class}</span>
+                  <span className="text-xs text-victory-muted bg-victory-card border border-victory-border px-2 py-0.5 rounded-full">
+                    {formatWeightClass(profile.weight_class, weightUnit)}
+                  </span>
                 )}
               </div>
               {profile.bio && <p className="text-victory-muted text-sm mt-2 leading-relaxed">{profile.bio}</p>}
@@ -762,7 +767,7 @@ export default function PublicProfilePage() {
       )}
 
       {tab === "schedule" && (
-        <ScheduleTab userId={userId} isOwn={false} />
+        <ScheduleTab userId={userId} isOwn={false} weightUnit={weightUnit} />
       )}
 
       <BottomNav />

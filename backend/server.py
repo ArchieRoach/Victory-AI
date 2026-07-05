@@ -1754,6 +1754,7 @@ class UserProfileExtend(BaseModel):
     avatar_url: Optional[str] = None
     is_public: Optional[bool] = None
     display_name: Optional[str] = None
+    weight_unit: Optional[str] = None  # "kg" | "lbs"
 
 class GymCreate(BaseModel):
     name: str
@@ -1859,6 +1860,7 @@ def safe_user(user: dict) -> dict:
         "picture": user.get("picture"),
         "avatar_url": user.get("avatar_url"),
         "weight_class": user.get("weight_class"),
+        "weight_unit": user.get("weight_unit", "kg"),
         "stance": user.get("stance"),
         "gym_id": user.get("gym_id"),
         "bio": user.get("bio", ""),
