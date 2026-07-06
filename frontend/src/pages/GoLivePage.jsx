@@ -115,7 +115,7 @@ export default function GoLivePage() {
       if (detail && detail.toLowerCase().includes("not configured")) {
         setErrorMsg("Streaming is not configured on the server. Please contact support.");
       } else if (detail) {
-        setErrorMsg(`Stream setup failed: ${detail}`);
+        setErrorMsg("Stream setup failed. Please check your connection and try again.");
       } else {
         setErrorMsg("Failed to set up the stream. Check your connection and try again.");
       }

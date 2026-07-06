@@ -45,8 +45,8 @@ export default function PaymentSuccess() {
           setStatus("expired");
           return;
         }
-      } catch (error) {
-        console.error("Error checking payment status:", error);
+      } catch {
+        // silent — polling will retry
       }
       pollTimer = setTimeout(() => poll(attempts + 1), 2000);
     };

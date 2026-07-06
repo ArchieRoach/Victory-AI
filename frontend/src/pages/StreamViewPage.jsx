@@ -102,11 +102,8 @@ export default function StreamViewPage() {
   const handleTipEvent = useCallback((data) => {
     setAlertQueue((q) => [...q, { ...data, _key: data.tip_id || Date.now() }]);
     setTipTick((n) => n + 1);
-    // Deduct from local balance if we sent the tip
-    if (data.user_id === user?.user_id) {
-      setTokenBalance((b) => Math.max(0, b - (data.amount || 0)));
-    }
-  }, [user?.user_id]);
+    // Balance is refreshed via handleTipSuccess after the API call confirms — no optimistic deduction
+  }, []);
 
   const handleGiftEvent = useCallback((data) => {
     setAlertQueue((q) => [...q, { ...data, type: "gift_sub", _key: `gift-${Date.now()}` }]);

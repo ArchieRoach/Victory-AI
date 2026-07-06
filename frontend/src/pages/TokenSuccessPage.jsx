@@ -18,8 +18,7 @@ export default function TokenSuccessPage() {
   const [status, setStatus] = useState("checking"); // checking | success | failed
 
   const sessionId = params.get("session_id");
-  const pkgId     = params.get("pkg") || "fighter";
-  const pkg       = PKG_LABELS[pkgId] || { tokens: "—", label: "" };
+  const [confirmedPkg, setConfirmedPkg] = useState(null);
 
   useEffect(() => {
     if (!sessionId) { navigate("/tokens", { replace: true }); return; }
@@ -35,7 +34,11 @@ export default function TokenSuccessPage() {
         const res = await axios.get(`${API}/payments/status/${sessionId}`);
         const paid = res.data.payment_status === "paid" || res.data.status === "complete";
         if (paid) {
-          await refreshUser();   // refresh balance without unmounting this page
+          const pkgId  = res.data.token_package || "fighter";
+          const tokens = res.data.tokens || PKG_LABELS[pkgId]?.tokens || "—";
+          const label  = PKG_LABELS[pkgId]?.label || "";
+          if (!cancelled) setConfirmedPkg({ tokens, label });
+          await refreshUser();
           if (cancelled) return;
           setStatus("success");
           redirectTimer = setTimeout(() => navigate("/live", { replace: true }), 3000);
@@ -85,11 +88,11 @@ export default function TokenSuccessPage() {
               <p className="text-victory-muted text-sm mt-2">Your tokens are on the way — your balance will update within a moment.</p>
             </div>
             <div className="bg-victory-card border border-victory-lime/30 rounded-2xl p-5">
-              <p className="text-victory-muted text-xs mb-1">{pkg.label} Pack</p>
+              <p className="text-victory-muted text-xs mb-1">{confirmedPkg?.label || ""} Pack</p>
               <div className="flex items-center justify-center gap-2">
                 <Zap className="w-6 h-6 text-victory-lime" />
                 <span className="text-4xl font-black text-victory-lime font-mono">
-                  +{typeof pkg.tokens === "number" ? pkg.tokens.toLocaleString() : pkg.tokens}
+                  +{typeof confirmedPkg?.tokens === "number" ? confirmedPkg.tokens.toLocaleString() : (confirmedPkg?.tokens ?? "—")}
                 </span>
               </div>
               <p className="text-victory-muted text-xs mt-1">tokens</p>

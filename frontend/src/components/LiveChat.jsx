@@ -2,6 +2,17 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Send, Zap, Gift, Smile } from "lucide-react";
 import axios from "axios";
 import { API } from "@/App";
+import { useAuth as useClerkHook } from "@clerk/clerk-react";
+
+const _SAFE_IMG_PREFIXES = [
+  "https://res.cloudinary.com/",
+  "https://img.clerk.com/",
+  "https://images.unsplash.com/",
+  "https://lh3.googleusercontent.com/",
+  "https://uploadthing.com/",
+];
+const isSafeImageUrl = (url) =>
+  typeof url === "string" && _SAFE_IMG_PREFIXES.some((p) => url.startsWith(p));
 
 const WS_BASE = (process.env.REACT_APP_BACKEND_URL || "http://localhost:8000")
   .replace(/^https/, "wss")
@@ -51,7 +62,7 @@ function ChatText({ text, emoteMap }) {
     <span className="text-victory-text text-xs break-words">
       {parts.map((part, i) => {
         const match = part.match(/^:(\w+):$/);
-        if (match && emoteMap[match[1]]) {
+        if (match && emoteMap[match[1]] && isSafeImageUrl(emoteMap[match[1]])) {
           return <img key={i} src={emoteMap[match[1]]} alt={part} title={part} className="inline-block w-5 h-5 rounded align-middle mx-0.5 object-cover" loading="lazy" />;
         }
         return part;
@@ -61,6 +72,7 @@ function ChatText({ text, emoteMap }) {
 }
 
 export default function LiveChat({ streamId, streamOwnerId, user, className = "", onTipEvent, onGiftEvent, onTipClick, onGiftClick }) {
+  const { getToken } = useClerkHook();
   const [messages,    setMessages]    = useState([]);
   const [input,       setInput]       = useState("");
   const [connected,   setConnected]   = useState(false);
@@ -82,12 +94,20 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     if (deadRef.current) return;
+    let token = "";
+    try { token = (await getToken()) || ""; } catch {}
+    if (!token) {
+      // Retry shortly if token not ready yet (Clerk may still be initialising)
+      if (!deadRef.current) reconnectRef.current = setTimeout(connect, 2000);
+      return;
+    }
     const ws = new WebSocket(`${WS_BASE}/api/ws/chat/${streamId}`);
     wsRef.current = ws;
 
     ws.onopen = () => {
+      ws.send(JSON.stringify({ type: "auth", token }));
       setConnected(true);
       pingRef.current = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "ping" }));
@@ -163,13 +183,7 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
   const send = (overrideText) => {
     const text = (overrideText ?? input).trim();
     if (!text || !connected || !wsRef.current) return;
-    wsRef.current.send(JSON.stringify({
-      type:        "message",
-      message:     text,
-      user_name:   user?.name || "Fighter",
-      user_avatar: user?.avatar_url || "",
-      user_id:     user?.user_id || "",
-    }));
+    wsRef.current.send(JSON.stringify({ type: "message", message: text }));
     if (!overrideText) setInput("");
   };
 
@@ -207,7 +221,7 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
           const badge = GIFTER_BADGE(gifterMap[msg.user_id]);
           return (
             <div key={msg.message_id || i} className="flex gap-2 items-start">
-              {msg.user_avatar ? (
+              {msg.user_avatar && isSafeImageUrl(msg.user_avatar) ? (
                 <img src={msg.user_avatar} alt={msg.user_name} className="w-6 h-6 rounded-full object-cover flex-shrink-0 mt-0.5" onError={(e) => { e.target.style.display = "none"; }} />
               ) : (
                 <div className="w-6 h-6 rounded-full bg-victory-lime/20 flex items-center justify-center text-victory-lime text-[10px] font-bold flex-shrink-0 mt-0.5">
@@ -232,7 +246,7 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
             <p className="text-victory-muted text-xs text-center py-2">No emotes unlocked yet</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
-              {unlockedEmotes.map((e) => (
+              {unlockedEmotes.filter((e) => isSafeImageUrl(e.image_url)).map((e) => (
                 <button
                   key={e.emote_id}
                   onClick={() => sendEmote(e)}

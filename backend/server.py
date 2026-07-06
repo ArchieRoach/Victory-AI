@@ -8,7 +8,9 @@ import asyncio
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
+import re
+import html
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
@@ -33,6 +35,8 @@ db = client[os.environ.get('DB_NAME', 'victoryai')]
 
 # JWT Settings
 JWT_SECRET = os.environ.get('JWT_SECRET', 'victory-ai-secret-key-change-in-prod')
+if JWT_SECRET == 'victory-ai-secret-key-change-in-prod':
+    logging.warning("JWT_SECRET is using the insecure default — set JWT_SECRET in Railway environment variables")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_DAYS = 7
 
@@ -146,6 +150,17 @@ AD_PACKAGES = {
     "champion": {"days": 90, "price": 349.00, "label": "Champion", "description": "90-day run · maximum exposure · best value"},
 }
 LIVEPEER_BASE_URL = "https://livepeer.studio/api"
+
+_rate_buckets: Dict[str, list] = {}
+
+def _rate_limited(key: str, max_calls: int = 10, window: float = 60.0) -> bool:
+    now = time.time()
+    bucket = _rate_buckets.get(key, [])
+    _rate_buckets[key] = [t for t in bucket if now - t < window]
+    if len(_rate_buckets[key]) >= max_calls:
+        return True
+    _rate_buckets[key].append(now)
+    return False
 
 # ElevenLabs TTS Settings
 ELEVENLABS_API_KEY = os.environ.get('ELEVENLABS_API_KEY', '')
@@ -368,7 +383,7 @@ def create_jwt_token(user_id: str) -> str:
 def decode_jwt_token(token: str) -> Optional[dict]:
     try:
         return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    except:
+    except Exception:
         return None
 
 async def verify_clerk_token(token: str) -> Optional[str]:
@@ -487,7 +502,10 @@ async def register(user_data: UserCreate, response: Response):
     return TokenResponse(access_token=token)
 
 @api_router.post("/auth/login", response_model=TokenResponse)
-async def login(user_data: UserLogin, response: Response):
+async def login(request: Request, user_data: UserLogin, response: Response):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"login:{client_ip}", 10, 60):
+        raise HTTPException(429, "Too many login attempts — try again in a minute")
     user = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if not user or not verify_password(user_data.password, user.get("password", "")):
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -1042,6 +1060,14 @@ async def get_payment_status(session_id: str, user: dict = Depends(get_current_u
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    # Ownership check: session must belong to the authenticated user
+    txn = await db.payment_transactions.find_one({"session_id": session_id}, {"user_id": 1})
+    if txn:
+        if txn.get("user_id") != user["user_id"]:
+            raise HTTPException(403, "Not your payment session")
+    elif (session.metadata or {}).get("user_id") and session.metadata["user_id"] != user["user_id"]:
+        raise HTTPException(403, "Not your payment session")
+
     is_complete = session.status == "complete"
     # Subscriptions with a trial have payment_status="no_payment_required" — treat "complete" as success
     effective_payment_status = "paid" if is_complete else session.payment_status
@@ -1066,11 +1092,14 @@ async def get_payment_status(session_id: str, user: dict = Depends(get_current_u
             "created_at": datetime.now(timezone.utc).isoformat()
         })
 
+    meta = session.metadata or {}
     return {
         "status": session.status,
         "payment_status": effective_payment_status,
         "amount_total": session.amount_total,
-        "currency": session.currency
+        "currency": session.currency,
+        "token_package": meta.get("token_package"),
+        "tokens": int(meta["tokens"]) if meta.get("tokens", "").isdigit() else None,
     }
 
 @api_router.get("/subscription/status")
@@ -1232,6 +1261,8 @@ async def purchase_tokens(
 
 @api_router.post("/streams/{stream_id}/tip")
 async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"tip:{user['user_id']}", 30, 60):
+        raise HTTPException(429, "Too many tip requests — slow down")
     if req.amount < 25:
         raise HTTPException(400, "Minimum tip is 25 tokens")
     stream = await db.streams.find_one({"stream_id": stream_id})
@@ -1246,6 +1277,10 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
         punch = next((p for p in PUNCH_MENU if p.get("key") == req.action_key), None)
     if not punch:
         punch = next((p for p in reversed(PUNCH_MENU) if req.amount >= p["tokens"]), PUNCH_MENU[0])
+
+    # Amount must match the selected punch price exactly
+    if req.action_key and punch and req.amount != punch["tokens"]:
+        raise HTTPException(400, "Amount does not match punch price")
 
     # Atomically deduct sender only if they still have the balance (guards double-spend / negative balance)
     debit = await db.users.update_one(
@@ -1303,7 +1338,7 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
         tag=f"tip-{stream_id}",
     )
 
-    return {"success": True, "tokens_remaining": balance - req.amount, "punch_action": tip_doc["punch_action"]}
+    return {"success": True, "tokens_remaining": user.get("token_balance", 0) - req.amount, "punch_action": tip_doc["punch_action"]}
 
 @api_router.get("/streams/{stream_id}/leaderboard")
 async def get_stream_leaderboard(stream_id: str, scope: str = Query("session", enum=["session", "lifetime"]), _: dict = Depends(get_current_user)):
@@ -1740,10 +1775,18 @@ async def subscribe_push(sub: PushSubscription, user: dict = Depends(get_current
 
 # ============== SOCIAL MODELS ==============
 
+_AVATAR_PREFIXES = (
+    "https://res.cloudinary.com/",
+    "https://img.clerk.com/",
+    "https://images.unsplash.com/",
+    "https://lh3.googleusercontent.com/",
+    "https://uploadthing.com/",
+)
+
 class UserProfileExtend(BaseModel):
-    bio: Optional[str] = None
-    weight_class: Optional[str] = None
-    stance: Optional[str] = None
+    bio: Optional[str] = Field(None, max_length=500)
+    weight_class: Optional[str] = Field(None, max_length=50)
+    stance: Optional[str] = Field(None, max_length=20)
     amateur_wins: Optional[int] = None
     amateur_losses: Optional[int] = None
     amateur_draws: Optional[int] = None
@@ -1751,10 +1794,10 @@ class UserProfileExtend(BaseModel):
     pro_losses: Optional[int] = None
     pro_draws: Optional[int] = None
     titles: Optional[List[str]] = None
-    avatar_url: Optional[str] = None
+    avatar_url: Optional[str] = Field(None, max_length=500)
     is_public: Optional[bool] = None
-    display_name: Optional[str] = None
-    weight_unit: Optional[str] = None  # "kg" | "lbs"
+    display_name: Optional[str] = Field(None, max_length=60)
+    weight_unit: Optional[Literal["kg", "lbs"]] = None
 
 class GymCreate(BaseModel):
     name: str
@@ -1765,12 +1808,12 @@ class GymCreate(BaseModel):
 class PostCreate(BaseModel):
     video_url: Optional[str] = None
     thumbnail_url: Optional[str] = None
-    caption: str = ""
+    caption: str = Field("", max_length=1000)
     post_type: str = "clip"
     tags: List[str] = []
 
 class CommentCreate(BaseModel):
-    text: str
+    text: str = Field(..., max_length=500)
 
 class CompetitionCreate(BaseModel):
     title: str
@@ -1896,6 +1939,8 @@ async def _recalculate_gym_stats(gym_id: str):
 @api_router.put("/users/profile")
 async def update_extended_profile(data: UserProfileExtend, user: dict = Depends(get_current_user)):
     update = {k: v for k, v in data.model_dump().items() if v is not None}
+    if "avatar_url" in update and not any(update["avatar_url"].startswith(p) for p in _AVATAR_PREFIXES):
+        del update["avatar_url"]
     if update:
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0})
@@ -1925,7 +1970,7 @@ async def search_fighters(
     query: dict = {"is_public": {"$ne": False}}
 
     if q.strip():
-        pattern = {"$regex": q.strip(), "$options": "i"}
+        pattern = {"$regex": re.escape(q.strip()), "$options": "i"}
         query["$or"] = [{"display_name": pattern}, {"name": pattern}]
 
     if weight_class and weight_class != "All":
@@ -3059,11 +3104,11 @@ async def vote_on_competition(comp_id: str, vote_data: VoteCreate, user: dict = 
         if datetime.now(timezone.utc) > close_dt:
             await _close_competition_if_due(comp)
             raise HTTPException(status_code=400, detail="Voting period has ended")
-    # Sanitize score keys: reject Mongo-hostile characters and clamp values to 1-10.
+    _DIMENSION_SET = set(DIMENSIONS)
     clean_scores = {
         dim: max(1, min(10, int(score)))
         for dim, score in (vote_data.scores or {}).items()
-        if isinstance(dim, str) and "." not in dim and not dim.startswith("$") and isinstance(score, (int, float))
+        if dim in _DIMENSION_SET and isinstance(score, (int, float))
     }
     if not clean_scores:
         raise HTTPException(status_code=400, detail="At least one valid dimension score is required")
@@ -3201,7 +3246,7 @@ async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current
     await db.feedback.insert_one(doc)
 
     if RESEND_API_KEY:
-        type_label = {"bug": "🐛 Bug Report", "feature": "💡 Feature Request", "general": "💬 General Feedback"}.get(data.type, data.type)
+        type_label = html.escape({"bug": "🐛 Bug Report", "feature": "💡 Feature Request", "general": "💬 General Feedback"}.get(data.type, data.type))
         rating_str = f"{'⭐' * data.rating} ({data.rating}/5)" if data.rating else "Not rated"
         email_html = f"""
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#12121A;color:#F0F0F5;padding:32px;border-radius:12px;">
@@ -3491,7 +3536,7 @@ async def whip_proxy(stream_id: str, request: Request, user: dict = Depends(get_
 
 @api_router.get("/streams/my")
 async def my_streams(user: dict = Depends(get_current_user), limit: int = Query(10, le=20)):
-    cursor = db.streams.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).limit(limit)
+    cursor = db.streams.find({"user_id": user["user_id"]}, {"_id": 0, "stream_key": 0}).sort("created_at", -1).limit(limit)
     return await cursor.to_list(length=limit)
 
 
@@ -3585,6 +3630,8 @@ async def create_clip(
     stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
     if not stream:
         raise HTTPException(404, "Stream not found")
+    if stream["user_id"] != user["user_id"]:
+        raise HTTPException(403, "Not your stream")
     if not stream.get("playback_id"):
         raise HTTPException(400, "No playback ID")
     try:
@@ -3664,6 +3711,34 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
         await websocket.close(code=4004)
         return
     await ws_manager.connect(websocket, stream_id)
+
+    # Require an auth frame as the very first message (10-second window)
+    try:
+        raw_auth = await asyncio.wait_for(websocket.receive_text(), timeout=10.0)
+        auth_payload = json.loads(raw_auth)
+        if auth_payload.get("type") != "auth" or not auth_payload.get("token"):
+            raise ValueError("Missing auth")
+    except Exception:
+        ws_manager.disconnect(websocket, stream_id)
+        await websocket.close(code=4003)
+        return
+
+    clerk_user_id = await verify_clerk_token(auth_payload["token"])
+    if not clerk_user_id:
+        ws_manager.disconnect(websocket, stream_id)
+        await websocket.close(code=4003)
+        return
+
+    ws_user = await db.users.find_one({"user_id": clerk_user_id}, {"_id": 0, "password": 0})
+    if not ws_user:
+        ws_manager.disconnect(websocket, stream_id)
+        await websocket.close(code=4003)
+        return
+
+    server_user_id   = ws_user["user_id"]
+    server_user_name = ws_user.get("display_name") or ws_user.get("name", "Fighter")
+    server_user_avatar = ws_user.get("avatar_url", "")
+
     count = ws_manager.viewer_count(stream_id)
     await db.streams.update_one({"stream_id": stream_id}, {"$set": {"viewer_count": count}})
     # Most recent 50 messages, returned in chronological order for display.
@@ -3689,9 +3764,9 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
             msg = {
                 "message_id": f"msg_{uuid.uuid4().hex[:10]}",
                 "stream_id": stream_id,
-                "user_id": (payload.get("user_id") or "")[:64],
-                "user_name": (payload.get("user_name") or "Fighter")[:50],
-                "user_avatar": (payload.get("user_avatar") or "")[:200],
+                "user_id":     server_user_id,
+                "user_name":   server_user_name,
+                "user_avatar": server_user_avatar,
                 "message": text,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }
@@ -3911,7 +3986,19 @@ async def delete_emote(emote_id: str, user: dict = Depends(get_current_user)):
 
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
 _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]
-app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_origin_regex=r'https://.*\.lovable\.app', allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_methods=["*"], allow_headers=["*"])
+
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        return response
+
+app.add_middleware(_SecurityHeadersMiddleware)
 app.include_router(api_router)
 
 async def _scheduled_stream_reminder_loop():
