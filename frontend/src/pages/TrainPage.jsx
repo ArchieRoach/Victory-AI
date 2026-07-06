@@ -315,9 +315,13 @@ export default function TrainPage() {
       {isConfiguring ? (
         /* ── Config screen ──────────────────────────────────────────────────── */
         <div className="flex-1 flex flex-col justify-center p-6">
-          <h1 className="text-2xl font-heading font-extrabold text-victory-text text-center mb-8">
-            {t("train.title")}
-          </h1>
+          <div className="text-center mb-8">
+            <p className="text-victory-lime text-xs font-bold uppercase tracking-[0.2em] mb-2">Ready to work</p>
+            <h1 className="text-3xl font-heading font-extrabold text-victory-text leading-tight">
+              {t("train.title")}
+            </h1>
+            <p className="text-victory-muted text-sm mt-2">Set your session, then step into the ring.</p>
+          </div>
 
           <div className="space-y-6 max-w-md mx-auto w-full">
 
@@ -488,12 +492,13 @@ export default function TrainPage() {
               </div>
             )}
 
-            <p className="text-center text-victory-muted">
-              {t("train.total")} <span className="text-victory-text">{getTotalWorkoutTime()}</span>
-            </p>
+            <div className="flex items-center justify-center gap-2 text-sm">
+              <span className="text-victory-muted">{t("train.total")}</span>
+              <span className="text-victory-lime font-bold font-mono">{getTotalWorkoutTime()}</span>
+            </div>
 
-            <button onClick={startTraining} className="victory-btn-primary" data-testid="start-training-btn">
-              {sessionMode === "public" ? "Go Live" : t("train.startBtn")}
+            <button onClick={startTraining} className="victory-btn-primary font-heading text-base tracking-wide" data-testid="start-training-btn">
+              {sessionMode === "public" ? "🔴 Go Live" : `🥊 ${t("train.startBtn")}`}
             </button>
           </div>
         </div>
@@ -501,19 +506,48 @@ export default function TrainPage() {
       ) : (
         /* ── Active session screen ────────────────────────────────────────────── */
         <div className="flex-1 flex flex-col">
+
+          {/* Phase progress bar — full width, shrinks as time runs down */}
+          <div className="h-1 w-full bg-victory-border">
+            <div
+              className={`h-full rounded-r-full transition-[width] duration-1000 ease-linear ${isResting ? "bg-victory-teal" : "bg-victory-lime"}`}
+              style={{ width: `${(timeLeft / (isResting ? restDuration : roundDuration)) * 100}%` }}
+            />
+          </div>
+
           <div className="flex-1 flex flex-col items-center justify-center p-6">
 
+            {/* Round dots */}
+            <div className="flex items-center gap-2 mb-6">
+              {Array.from({ length: totalRounds }).map((_, i) => {
+                const isDone = i < currentRound - 1;
+                const isCurrent = i === currentRound - 1;
+                return (
+                  <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${
+                    isCurrent
+                      ? `w-5 ${isResting ? "bg-victory-teal" : "bg-victory-lime"}`
+                      : isDone
+                      ? "w-2 bg-victory-lime/40"
+                      : "w-2 bg-victory-border"
+                  }`} />
+                );
+              })}
+              <span className="text-victory-muted text-xs ml-2 font-mono">
+                {currentRound}/{totalRounds}
+              </span>
+            </div>
+
             {/* Phase label */}
-            <p className={`text-lg uppercase tracking-widest mb-4 font-semibold ${isResting ? "text-victory-teal" : "text-victory-lime"}`}>
+            <p className={`text-sm uppercase tracking-[0.2em] mb-3 font-bold ${isResting ? "text-victory-teal" : "text-victory-lime"}`}>
               {isResting ? t("train.restLabel") : t("train.roundLabel")}
             </p>
 
             {/* Timer */}
-            <div className="timer-display text-victory-text mb-4" data-testid="timer-display">
+            <div className={`timer-display mb-2 transition-colors ${isResting ? "text-victory-teal" : "text-victory-text"}`} data-testid="timer-display">
               {formatTime(timeLeft)}
             </div>
 
-            <p className="text-victory-muted text-lg mb-6">
+            <p className="text-victory-muted text-sm mb-6">
               {t("train.roundOf", { current: currentRound, total: totalRounds })}
             </p>
 
@@ -613,23 +647,41 @@ export default function TrainPage() {
             )}
 
             {/* Controls */}
-            <div className="flex items-center gap-4 mt-8">
-              <button onClick={togglePause}
-                className="w-16 h-16 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target transition-transform active:scale-95">
-                {isPaused ? <Play className="w-8 h-8" /> : <Pause className="w-8 h-8" />}
+            <div className="flex items-center justify-center gap-5 mt-6">
+              {/* Skip — secondary */}
+              <button
+                onClick={skipToNext}
+                className="w-14 h-14 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-muted hover:text-victory-text touch-target transition-all active:scale-90"
+                aria-label="Skip"
+              >
+                <SkipForward className="w-6 h-6" />
               </button>
-              <button onClick={skipToNext}
-                className="w-16 h-16 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target transition-transform active:scale-95">
-                <SkipForward className="w-8 h-8" />
+
+              {/* Play/Pause — primary dominant CTA */}
+              <button
+                onClick={togglePause}
+                className={`w-20 h-20 rounded-full flex items-center justify-center touch-target transition-all active:scale-90 shadow-xl ${
+                  isPaused
+                    ? "bg-victory-lime text-victory-bg shadow-victory-lime/25 hover:bg-[#D4E630]"
+                    : "bg-victory-card border-2 border-victory-lime text-victory-lime hover:bg-victory-lime/10"
+                }`}
+                aria-label={isPaused ? "Resume" : "Pause"}
+              >
+                {isPaused ? <Play className="w-9 h-9 ml-1" /> : <Pause className="w-9 h-9" />}
               </button>
-              <button onClick={endTimer}
-                className="w-16 h-16 rounded-full bg-victory-card border border-victory-danger flex items-center justify-center text-victory-danger touch-target transition-transform active:scale-95">
-                <Square className="w-8 h-8" />
+
+              {/* End session — danger */}
+              <button
+                onClick={endTimer}
+                className="w-14 h-14 rounded-full bg-victory-card border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/10 touch-target transition-all active:scale-90"
+                aria-label="End session"
+              >
+                <Square className="w-6 h-6" />
               </button>
             </div>
 
             {/* Reset */}
-            <button onClick={resetTimer} className="mt-6 text-victory-muted text-sm hover:text-victory-text transition-colors">
+            <button onClick={resetTimer} className="mt-6 text-victory-muted text-xs hover:text-victory-text transition-colors tracking-wide">
               ← Back to setup
             </button>
           </div>

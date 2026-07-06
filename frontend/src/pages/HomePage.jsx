@@ -6,7 +6,7 @@ import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
-  Bell, Heart, MessageCircle, Radio, Users,
+  Bell, Heart, MessageCircle, Users,
   Send, Tv, ChevronDown, ChevronUp, Zap, Gift, Share2, Flame,
 } from "lucide-react";
 import { ShareSheet } from "@/components/ShareSheet";
@@ -268,14 +268,14 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
 // ── Training tip card ─────────────────────────────────────────────────────────
 function TipFeedCard({ tip }) {
   return (
-    <div className="bg-victory-lime/5 border-y border-victory-lime/20 px-4 py-4 flex items-start gap-3">
-      <div className="w-9 h-9 rounded-xl bg-victory-lime/15 flex items-center justify-center flex-shrink-0">
-        <Radio className="w-4 h-4 text-victory-lime" />
+    <div className="mx-4 my-2 bg-victory-card-highlight border border-victory-lime/20 rounded-2xl px-4 py-4 flex items-start gap-3">
+      <div className="w-9 h-9 rounded-xl bg-victory-lime flex items-center justify-center flex-shrink-0 text-victory-bg text-base">
+        🥊
       </div>
-      <div>
-        <p className="text-victory-lime text-xs font-bold uppercase tracking-wide mb-1">Coach's Corner</p>
-        <p className="text-victory-text text-sm font-semibold leading-tight">{tip.title}</p>
-        <p className="text-victory-muted text-xs mt-1 leading-relaxed">{tip.body}</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-victory-lime text-[10px] font-bold uppercase tracking-[0.15em] mb-1">Coach's Corner</p>
+        <p className="text-victory-text text-sm font-semibold leading-snug">{tip.title}</p>
+        <p className="text-victory-muted text-xs mt-1.5 leading-relaxed">{tip.body}</p>
       </div>
     </div>
   );
@@ -447,13 +447,23 @@ export default function HomePage() {
 
   const name = user?.name?.split(" ")[0] || "Champ";
 
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Morning";
+    if (h < 17) return "Afternoon";
+    return "Evening";
+  })();
+
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="home-page">
 
       {/* ── Sticky header ────────────────────────────────────────────────── */}
       <header className="sticky top-0 bg-victory-bg/95 backdrop-blur-sm border-b border-victory-border z-20">
         <div className="flex items-center justify-between px-4 pt-4 pb-0">
-          <h1 className="text-xl font-heading font-extrabold text-victory-text">Home</h1>
+          <div>
+            <p className="text-victory-muted text-xs font-medium">{greeting},</p>
+            <h1 className="text-xl font-heading font-extrabold text-victory-text leading-tight">{name} 🥊</h1>
+          </div>
           <div className="flex items-center gap-3">
             {/* Trending clips link */}
             <button

@@ -316,21 +316,21 @@ export default function ProfilePage() {
             {t("profile.statsTitle")}
           </h2>
           <div className="grid grid-cols-3 gap-3">
-            <div className="text-center">
+            <div className="stat-pill">
               <p className="font-mono text-2xl font-semibold text-victory-lime">{stats.total_sessions}</p>
-              <p className="text-victory-muted text-xs">{t("profile.totalSessions")}</p>
+              <p className="text-victory-muted text-xs mt-1">{t("profile.totalSessions")}</p>
             </div>
-            <div className="text-center">
+            <div className="stat-pill">
               <p className="font-mono text-2xl font-semibold text-victory-lime">
                 {stats.best_score ? stats.best_score.toFixed(1) : "—"}
               </p>
-              <p className="text-victory-muted text-xs">{t("profile.bestScore")}</p>
+              <p className="text-victory-muted text-xs mt-1">{t("profile.bestScore")}</p>
             </div>
-            <div className="text-center">
-              <p className="font-mono text-sm font-semibold text-victory-lime truncate">
+            <div className="stat-pill">
+              <p className="font-mono text-sm font-semibold text-victory-lime truncate text-center">
                 {stats.most_improved_dimension || "—"}
               </p>
-              <p className="text-victory-muted text-xs">{t("profile.mostImproved")}</p>
+              <p className="text-victory-muted text-xs mt-1">{t("profile.mostImproved")}</p>
             </div>
           </div>
         </section>

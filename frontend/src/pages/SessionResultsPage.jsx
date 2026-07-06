@@ -294,13 +294,30 @@ export default function SessionResultsPage() {
 
       <main className="p-4 space-y-6">
         {/* Header Message */}
-        <section className="text-center py-4">
+        <section className="text-center py-2">
+          <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
+            <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 128 128">
+              <circle cx="64" cy="64" r="56" fill="none" stroke="rgba(232,255,71,0.08)" strokeWidth="6"/>
+              <circle
+                cx="64" cy="64" r="56"
+                fill="none" stroke="#E8FF47" strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray={`${(session.overall_score / 10) * 351.86} 351.86`}
+              />
+            </svg>
+            <div>
+              <p className="font-heading font-extrabold text-4xl text-victory-lime leading-none">
+                {session.overall_score.toFixed(1)}
+              </p>
+              <p className="text-victory-muted text-[10px] text-center font-mono">/10</p>
+            </div>
+          </div>
           {isFirstSession ? (
             <>
               <h1 className="text-2xl font-heading font-extrabold text-victory-text mb-2">
                 {t("results.baselineTitle")}
               </h1>
-              <p className="text-victory-muted">{t("results.baselineSubtitle")}</p>
+              <p className="text-victory-muted text-sm">{t("results.baselineSubtitle")}</p>
             </>
           ) : (
             <>
@@ -308,11 +325,13 @@ export default function SessionResultsPage() {
                 {t("results.sessionComplete")}
               </h1>
               {scoreDiff !== null && (
-                <p className={`flex items-center justify-center gap-1 ${scoreDiff >= 0 ? "text-victory-lime" : "text-victory-orange"}`}>
-                  {scoreDiff >= 0 ? <ArrowUp className="w-5 h-5" /> : <ArrowDown className="w-5 h-5" />}
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold ${
+                  scoreDiff >= 0 ? "bg-victory-lime/15 text-victory-lime" : "bg-red-500/15 text-red-400"
+                }`}>
+                  {scoreDiff >= 0 ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
                   {t("results.pointsUp", { points: Math.abs(scoreDiff).toFixed(1) })}
-                  {scoreDiff < 0 && t("results.letsLookWhy")}
-                </p>
+                  {scoreDiff < 0 && <> — {t("results.letsLookWhy")}</>}
+                </span>
               )}
             </>
           )}
@@ -330,12 +349,10 @@ export default function SessionResultsPage() {
         {/* Top 3 Highlights */}
         {topDimensions.length > 0 && (
           <section>
-            <div className="flex items-center gap-2 mb-3">
-              <Star className="w-5 h-5 text-victory-lime fill-victory-lime" />
-              <h2 className="text-lg font-heading font-bold text-victory-text">
-                {t("results.highlights")}
-              </h2>
-            </div>
+            <p className="section-label mb-3 flex items-center gap-1.5">
+              <Star className="w-3 h-3 fill-current" />
+              {t("results.highlights")}
+            </p>
             <div className="space-y-2">
               {topDimensions.map((dim, idx) => (
                 <div
@@ -363,9 +380,7 @@ export default function SessionResultsPage() {
 
         {/* Dimension Breakdown */}
         <section>
-          <h2 className="text-lg font-heading font-bold text-victory-text mb-3">
-            {t("results.breakdown")}
-          </h2>
+          <p className="section-label mb-3">{t("results.breakdown")}</p>
           <div className="victory-card divide-y divide-victory-border">
             {session.dimension_scores
               .filter((d) => d.score !== null)
@@ -397,9 +412,7 @@ export default function SessionResultsPage() {
 
         {/* Drill Recommendations */}
         <section>
-          <h2 className="text-lg font-heading font-bold text-victory-text mb-3">
-            {t("results.homework")}
-          </h2>
+          <p className="section-label mb-3">{t("results.homework")}</p>
           <div className="space-y-3">
             {lowestDimensions.map((dim) => (
               <DrillCard key={dim.dimension_name} dimension={dim.dimension_name} score={dim.score} />
