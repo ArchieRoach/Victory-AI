@@ -638,7 +638,7 @@ export default function OnboardingFlow() {
       const res = await axios.get(`${API}/onboarding/social-proof`, { withCredentials: true });
       setSocialProof(res.data);
     } catch (e) {
-      console.error(e);
+      console.error("Failed to fetch social proof:", e);
     }
   };
 
@@ -647,7 +647,7 @@ export default function OnboardingFlow() {
       const res = await axios.get(`${API}/onboarding/partner-styles`, { withCredentials: true });
       setPartnerStyles(res.data.styles);
     } catch (e) {
-      console.error(e);
+      console.error("Failed to fetch partner styles:", e);
     }
   };
 

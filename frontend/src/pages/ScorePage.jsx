@@ -176,7 +176,7 @@ export default function ScorePage() {
     } catch (error) {
       clearInterval(analysisIntervalRef.current);
       setLoading(false);
-      toast.error(error.response?.data?.detail || "Failed to save session");
+      toast.error("Failed to save session. Please try again.");
     }
   };
 

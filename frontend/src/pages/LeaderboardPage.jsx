@@ -52,7 +52,7 @@ export default function LeaderboardPage() {
             </h1>
             <p className="text-victory-muted text-sm">{t("leaderboard.subtitle")}</p>
           </div>
-          <button onClick={fetchLeaderboard} className="w-9 h-9 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-muted hover:text-victory-text">
+          <button onClick={fetchLeaderboard} className="w-12 h-12 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-muted hover:text-victory-text touch-target" aria-label="Refresh leaderboard">
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>

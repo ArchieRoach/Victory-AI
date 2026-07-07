@@ -835,7 +835,7 @@ Format as JSON with keys: dimension_scores (array), what_did_well, what_to_impro
         import json
         try:
             analysis = json.loads(response)
-        except:
+        except Exception:
             analysis = generate_simulated_analysis(round_number, partner_name, focus_areas)
         
         # Store analysis — scoped to this user so one caller can't overwrite another's video record

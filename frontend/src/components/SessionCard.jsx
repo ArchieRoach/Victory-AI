@@ -60,13 +60,19 @@ export const SessionCard = ({ session, onClick }) => {
       {/* Session Info */}
       <div className="flex-1 text-left">
         <p className="text-victory-text font-medium">{formattedDate}</p>
-        <p className="text-victory-muted text-sm">
-          Overall: {(session.overall_score ?? 0).toFixed(1)}/10
+        <p className="text-victory-muted text-xs">
+          {scores.length} dimension{scores.length !== 1 ? "s" : ""} scored
         </p>
       </div>
 
-      {/* Arrow */}
-      <ChevronRight className="w-5 h-5 text-victory-muted" />
+      {/* Score + arrow */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="text-right">
+          <p className="font-mono font-bold text-victory-lime leading-none">{(session.overall_score ?? 0).toFixed(1)}</p>
+          <p className="text-victory-muted text-[10px] font-mono">/10</p>
+        </div>
+        <ChevronRight className="w-5 h-5 text-victory-muted" />
+      </div>
     </button>
   );
 };
