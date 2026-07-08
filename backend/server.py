@@ -79,8 +79,8 @@ CLERK_SECRET_KEY = os.environ.get('CLERK_SECRET_KEY', '')
 CLERK_JWKS_URL = "https://allowing-dragon-5.clerk.accounts.dev/.well-known/jwks.json"
 _clerk_jwks_cache: dict = {"keys": [], "fetched_at": 0}
 
-# Emergent LLM Key
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+# OpenAI
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 
 # Livepeer
 LIVEPEER_API_KEY = os.environ.get('LIVEPEER_API_KEY', '')
@@ -791,64 +791,36 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
     feedback_tone = training_partner.get("feedback_tone", "encouraging")
     focus_areas = training_partner.get("focus_areas", ["Guard Position", "Head Movement"])
     
-    if not EMERGENT_LLM_KEY:
-        # Return simulated analysis
+    if not OPENAI_API_KEY:
         return generate_simulated_analysis(round_number, partner_name, focus_areas)
-    
+
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
-        import httpx
-        
-        # Download video thumbnail/frame for analysis
-        # In production, extract frames from video. For now, analyze video URL metadata
-        
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"analysis_{user['user_id']}_{round_number}",
-            system_message=f"""You are {partner_name}, an expert boxing technique analyst with a {feedback_tone} style.
-Analyze the boxing footage and provide feedback on:
-1. Guard Position - Are hands at cheekbone height? Elbows tucked?
-2. Head Movement - Is the head moving off centerline?
-3. Footwork - Balanced stance, no crossing feet?
-4. Punch Technique - Extension, snap, hip rotation?
-5. Combination Flow - Smooth transitions between punches?
-
-Focus especially on: {', '.join(focus_areas)}
-
-Provide scores 1-10 for each dimension and specific, actionable feedback.
-Be {feedback_tone} in your tone but always honest about areas needing work."""
+        import json as _json
+        prompt = (
+            f"You are {partner_name}, an expert boxing technique analyst with a {feedback_tone} style. "
+            f"Analyze the boxing footage from round {round_number}. "
+            f"Focus especially on: {', '.join(focus_areas)}. "
+            f"Video URL: {video_url}. "
+            f"Provide scores 1-10 for: Jab, Cross, Guard Position, Head Movement, Footwork, Combination Flow. "
+            f'Respond in JSON with keys: dimension_scores (array of {{dimension_name, score}}), what_did_well, what_to_improve, drill_recommendation.'
         )
-        chat.with_model("openai", "gpt-4o")
-        
-        # For video analysis, we'd extract frames. Simulating with URL-based prompt
-        prompt = f"""Based on the training video from round {round_number}, analyze the boxer's technique.
-Video URL: {video_url}
+        async with httpx.AsyncClient() as http_client:
+            res = await http_client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"},
+                json={"model": "gpt-4o", "messages": [{"role": "user", "content": prompt}], "response_format": {"type": "json_object"}},
+                timeout=30,
+            )
+        if res.status_code != 200:
+            raise ValueError(f"OpenAI error {res.status_code}")
+        analysis = _json.loads(res.json()["choices"][0]["message"]["content"])
 
-Provide:
-1. Scores (1-10) for: Jab, Cross, Guard Position, Head Movement, Footwork, Combination Flow
-2. One thing they did well
-3. One thing to improve next round
-4. A specific drill recommendation
-
-Format as JSON with keys: dimension_scores (array), what_did_well, what_to_improve, drill_recommendation"""
-
-        response = await chat.send_message(UserMessage(text=prompt))
-        
-        # Parse AI response
-        import json
-        try:
-            analysis = json.loads(response)
-        except Exception:
-            analysis = generate_simulated_analysis(round_number, partner_name, focus_areas)
-        
-        # Store analysis — scoped to this user so one caller can't overwrite another's video record
         await db.round_videos.update_one(
             {"video_url": video_url, "user_id": user["user_id"]},
             {"$set": {"analyzed": True, "analysis_results": analysis, "analyzed_at": datetime.now(timezone.utc).isoformat()}}
         )
-        
         return {"analysis": analysis, "partner_name": partner_name}
-        
+
     except Exception as e:
         logger.error(f"Video analysis error: {e}")
         return generate_simulated_analysis(round_number, partner_name, focus_areas)
@@ -2987,7 +2959,7 @@ async def create_competition(data: CompetitionCreate, user: dict = Depends(get_c
             raise HTTPException(status_code=402, detail="ai_quota_exceeded")
         try:
             import json as _json
-            headers = {"Authorization": f"Bearer {EMERGENT_LLM_KEY}", "Content-Type": "application/json"}
+            headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
             prompt = (
                 f"You are a professional boxing judge. Score this boxing video on: "
                 f"Jab, Cross, Left Hook, Right Hook, Guard Position, Head Movement, Footwork, Combination Flow, Punch Accuracy. "
