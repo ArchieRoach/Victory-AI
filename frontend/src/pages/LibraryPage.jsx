@@ -4,6 +4,7 @@ import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { LegendCard } from "@/components/LegendCard";
 import { useTranslation } from "react-i18next";
+import { BookOpen } from "lucide-react";
 
 export default function LibraryPage() {
   const { t } = useTranslation();
@@ -93,10 +94,26 @@ export default function LibraryPage() {
             <LegendCard key={legend.name} legend={legend} />
           ))
         ) : (
-          <div className="victory-card p-6 text-center">
-            <p className="text-victory-muted">
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
+              <BookOpen className="w-8 h-8 text-victory-lime/60" />
+            </div>
+            <p className="text-victory-text font-bold text-lg mb-1">
               {t("library.noTechniques")}
             </p>
+            <p className="text-victory-muted text-sm">
+              {activeFilter === "All"
+                ? "Techniques will appear here once available."
+                : `No techniques match the "${activeFilter}" filter — try All.`}
+            </p>
+            {activeFilter !== "All" && (
+              <button
+                onClick={() => setActiveFilter("All")}
+                className="mt-4 text-victory-lime text-sm font-semibold underline underline-offset-2"
+              >
+                Show all techniques
+              </button>
+            )}
           </div>
         )}
       </main>

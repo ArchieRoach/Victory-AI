@@ -484,7 +484,10 @@ async def get_current_user_with_subscription(request: Request) -> dict:
 # ============== AUTH ENDPOINTS ==============
 
 @api_router.post("/auth/register", response_model=TokenResponse)
-async def register(user_data: UserCreate, response: Response):
+async def register(request: Request, user_data: UserCreate, response: Response):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"register:{client_ip}", 5, 60):
+        raise HTTPException(429, "Too many registration attempts — try again in a minute")
     existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -1462,8 +1465,11 @@ class WaitlistSignup(BaseModel):
     name: Optional[str] = None
 
 @api_router.post("/waitlist/signup")
-async def waitlist_signup(data: WaitlistSignup):
+async def waitlist_signup(request: Request, data: WaitlistSignup):
     import asyncio
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"waitlist:{client_ip}", 5, 60):
+        raise HTTPException(429, "Too many requests — try again in a minute")
 
     # Prevent duplicate signups
     existing = await db.waitlist.find_one({"email": data.email})

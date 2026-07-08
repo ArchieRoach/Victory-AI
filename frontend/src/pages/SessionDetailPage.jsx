@@ -161,23 +161,35 @@ export default function SessionDetailPage() {
 
         {/* Dimension Scores */}
         <section>
-          <h2 className="text-lg font-heading font-bold text-victory-text mb-3">
-            {t("sessionDetail.allScores")}
-          </h2>
+          <p className="section-label mb-3">{t("sessionDetail.allScores")}</p>
           <div className="victory-card divide-y divide-victory-border">
             {session.dimension_scores
               .filter((d) => d.score !== null)
-              .map((dim) => (
-                <div
-                  key={dim.dimension_name}
-                  className="p-4 flex items-center justify-between"
-                >
-                  <span className="text-victory-text">{dim.dimension_name}</span>
-                  <span className="font-mono text-xl font-semibold text-victory-lime">
-                    {dim.score}
-                  </span>
-                </div>
-              ))}
+              .map((dim) => {
+                const score = dim.score ?? 0;
+                const pct = (score / 10) * 100;
+                const barColor =
+                  score >= 8 ? "bg-victory-lime" :
+                  score >= 5 ? "bg-yellow-400" :
+                  "bg-red-500";
+                return (
+                  <div
+                    key={dim.dimension_name}
+                    className="p-4 flex items-center gap-3"
+                  >
+                    <span className="text-victory-text text-sm flex-1 min-w-0 truncate">{dim.dimension_name}</span>
+                    <div className="w-20 h-1.5 rounded-full bg-victory-border flex-shrink-0 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${barColor} transition-all`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="font-mono text-lg font-semibold text-victory-lime w-8 text-right flex-shrink-0">
+                      {score}
+                    </span>
+                  </div>
+                );
+              })}
           </div>
         </section>
 
