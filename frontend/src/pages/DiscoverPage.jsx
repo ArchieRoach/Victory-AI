@@ -350,16 +350,18 @@ export default function DiscoverPage() {
 
         {/* Empty state */}
         {initialDone && !loading && fighters.length === 0 && (
-          <div className="text-center py-16 space-y-2">
-            <p className="text-4xl">🥊</p>
-            <p className="text-victory-text font-bold">No fighters found</p>
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
+              <Search className="w-8 h-8 text-victory-lime/60" />
+            </div>
+            <p className="text-victory-text font-bold text-lg mb-1">No fighters found</p>
             <p className="text-victory-muted text-sm">
-              {q ? `No one matches "${q}"` : "Be the first in this weight class!"}
+              {q ? `No one matches "${q}"` : "Be the first to represent your weight class!"}
             </p>
-            {activeFilters.length > 0 && (
+            {(activeFilters.length > 0 || q) && (
               <button
                 onClick={() => { setWeightClass("All"); setStance("All"); setQ(""); }}
-                className="text-victory-lime text-sm underline mt-2"
+                className="mt-4 text-victory-lime text-sm font-semibold underline underline-offset-2"
               >
                 Clear all filters
               </button>

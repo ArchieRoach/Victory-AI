@@ -255,7 +255,8 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
               onKeyDown={(e) => e.key === "Enter" && submitComment()}
               placeholder="Add a comment…" className="victory-input flex-1 text-sm py-1.5" maxLength={300} />
             <button onClick={submitComment} disabled={submitting || !commentText.trim()}
-              className="w-8 h-8 rounded-full bg-victory-lime flex items-center justify-center disabled:opacity-40">
+              aria-label="Post comment"
+              className="w-9 h-9 rounded-full bg-victory-lime flex items-center justify-center disabled:opacity-40 flex-shrink-0">
               <Send className="w-4 h-4 text-victory-bg" />
             </button>
           </div>
@@ -476,18 +477,22 @@ export default function HomePage() {
             {/* Notification bell */}
             <button
               onClick={() => setTab("notifications")}
-              className="relative w-9 h-9 flex items-center justify-center text-victory-muted hover:text-victory-text"
+              aria-label="Notifications"
+              className="relative w-11 h-11 flex items-center justify-center text-victory-muted hover:text-victory-text touch-target"
             >
               <Bell className="w-5 h-5" />
               {unread > 0 && (
-                <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center">
+                <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center">
                   {unread > 9 ? "9+" : unread}
                 </span>
               )}
             </button>
             {/* User avatar */}
-            <button onClick={() => navigate("/profile")}
-              className="w-9 h-9 rounded-full bg-victory-card-highlight border border-victory-border flex items-center justify-center text-victory-text font-semibold text-sm">
+            <button
+              onClick={() => navigate("/profile")}
+              aria-label="My profile"
+              className="w-11 h-11 rounded-full bg-victory-card-highlight border border-victory-border flex items-center justify-center text-victory-text font-semibold text-sm touch-target"
+            >
               {user?.name?.[0]?.toUpperCase() || "U"}
             </button>
           </div>

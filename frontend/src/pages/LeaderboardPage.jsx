@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
-import { Trophy, Medal, Star, RefreshCw } from "lucide-react";
+import { Trophy, Star, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 const RANK_STYLES = {
   1: { icon: "🥇", color: "text-yellow-400", bg: "bg-yellow-400/10 border-yellow-400/30" },
@@ -28,8 +29,8 @@ export default function LeaderboardPage() {
       const res = await axios.get(`${API}/leaderboard`, { withCredentials: true });
       setLeaderboard(res.data.leaderboard || []);
       setCurrentUserRank(res.data.current_user_rank);
-    } catch (error) {
-      console.error("Leaderboard fetch error:", error);
+    } catch {
+      toast.error("Could not load leaderboard — check your connection");
     } finally {
       setLoading(false);
     }
@@ -87,10 +88,12 @@ export default function LeaderboardPage() {
             ))}
           </div>
         ) : sorted.length === 0 ? (
-          <div className="text-center py-16">
-            <Star className="w-12 h-12 text-victory-muted mx-auto mb-4" />
-            <p className="text-victory-muted">{t("leaderboard.noFighters")}</p>
-            <p className="text-victory-muted text-sm mt-1">{t("leaderboard.completeToAppear")}</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
+              <Star className="w-8 h-8 text-victory-lime/60" />
+            </div>
+            <p className="text-victory-text font-bold text-lg mb-1">{t("leaderboard.noFighters")}</p>
+            <p className="text-victory-muted text-sm">{t("leaderboard.completeToAppear")}</p>
           </div>
         ) : (
           <>

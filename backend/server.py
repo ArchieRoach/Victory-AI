@@ -1487,7 +1487,7 @@ async def waitlist_signup(request: Request, data: WaitlistSignup):
 # ============== SESSION & STATIC ENDPOINTS ==============
 
 @api_router.get("/sessions")
-async def get_sessions(user: dict = Depends(get_current_user), limit: int = 100):
+async def get_sessions(user: dict = Depends(get_current_user), limit: int = Query(100, ge=1, le=500)):
     sessions = await db.sessions.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(limit)
     return sessions
 
@@ -2515,7 +2515,9 @@ async def join_gym_by_code(request: Request, user: dict = Depends(get_current_us
 # ============== FEED / POSTS ENDPOINTS ==============
 
 @api_router.post("/posts")
-async def create_post(post_data: PostCreate, user: dict = Depends(get_current_user)):
+async def create_post(request: Request, post_data: PostCreate, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"posts:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many posts — slow down")
     post_id = f"post_{uuid.uuid4().hex[:12]}"
     post_doc = {
         "post_id": post_id,
@@ -2685,7 +2687,9 @@ async def trending_clips(
     }
 
 @api_router.post("/posts/{post_id}/comments")
-async def add_comment(post_id: str, comment_data: CommentCreate, user: dict = Depends(get_current_user)):
+async def add_comment(request: Request, post_id: str, comment_data: CommentCreate, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"comment:{user['user_id']}", 20, 60):
+        raise HTTPException(429, "Too many comments — slow down")
     post = await db.posts.find_one({"post_id": post_id})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
