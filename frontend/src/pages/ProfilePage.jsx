@@ -109,8 +109,8 @@ export default function ProfilePage() {
     try {
       const response = await axios.get(`${API}/users/stats`, { withCredentials: true });
       setStats(response.data);
-    } catch (error) {
-      console.error("Error fetching stats:", error);
+    } catch {
+      toast.error("Couldn't load your stats");
     }
   };
 

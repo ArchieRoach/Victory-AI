@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { RadarChart } from "@/components/RadarChart";
 import { DrillCard } from "@/components/DrillCard";
 import { ArrowLeft, Edit, ExternalLink, Play, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 export default function SessionDetailPage() {
@@ -31,8 +32,8 @@ export default function SessionDetailPage() {
         withCredentials: true,
       });
       setSession(response.data);
-    } catch (error) {
-      console.error("Error fetching session:", error);
+    } catch {
+      toast.error("Couldn't load this session");
       navigate("/home", { replace: true });
     } finally {
       setLoading(false);
@@ -61,8 +62,8 @@ export default function SessionDetailPage() {
       const res = await axios.get(`${API}/sessions/${sessionId}/replay`, { withCredentials: true });
       setReplay(res.data);
       setReplayOpen(true);
-    } catch (error) {
-      console.error("Replay fetch error:", error);
+    } catch {
+      toast.error("Couldn't load replay");
     } finally {
       setReplayLoading(false);
     }

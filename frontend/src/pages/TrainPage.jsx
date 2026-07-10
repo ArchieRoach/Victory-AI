@@ -609,7 +609,8 @@ export default function TrainPage() {
                       <p className="text-victory-muted text-xs">Round {currentRound} debrief</p>
                     </div>
                     <button onClick={() => setVoiceEnabled((v) => !v)}
-                      className="w-8 h-8 flex items-center justify-center text-victory-muted hover:text-victory-text">
+                      aria-label={voiceEnabled ? "Disable voice" : "Enable voice"}
+                      className="w-11 h-11 flex items-center justify-center text-victory-muted hover:text-victory-text">
                       {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                     </button>
                   </div>

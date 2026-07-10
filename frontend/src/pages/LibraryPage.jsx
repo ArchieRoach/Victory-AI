@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { API } from "@/App";
+import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { LegendCard } from "@/components/LegendCard";
 import { useTranslation } from "react-i18next";
@@ -37,8 +38,8 @@ export default function LibraryPage() {
     try {
       const response = await axios.get(`${API}/legends`, { withCredentials: true });
       setLegends(response.data);
-    } catch (error) {
-      console.error("Error fetching legends:", error);
+    } catch {
+      toast.error("Failed to load techniques — try again");
     } finally {
       setLoading(false);
     }
