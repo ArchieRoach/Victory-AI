@@ -2,6 +2,8 @@
 
 Full-stack boxing-training + live-streaming app. See `HANDOFF.md` for current branch/status.
 
+> **UI rule**: Read `DESIGN.md` before writing any frontend code. All colors, typography, components, and patterns are defined there. Never use generic Tailwind colors or write UI without following the Victory AI design system.
+
 ## Stack
 - **Frontend:** React (CRA + CRACO), JavaScript `.jsx` (no TypeScript, no Next.js). Tailwind only.
   Deployed to **Vercel** (`victory-ai-alpha.vercel.app`).
