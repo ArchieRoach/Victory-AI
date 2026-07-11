@@ -42,8 +42,7 @@ export default function AuthCallback() {
         // Clear the hash and navigate to home
         window.history.replaceState(null, "", window.location.pathname);
         navigate("/home", { replace: true, state: { user: userData } });
-      } catch (error) {
-        console.error("Auth callback error:", error);
+      } catch {
         toast.error("Authentication failed");
         navigate("/login", { replace: true });
       }

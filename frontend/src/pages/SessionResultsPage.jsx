@@ -57,8 +57,8 @@ export default function SessionResultsPage() {
     try {
       const response = await axios.get(`${API}/sessions?limit=10`, { withCredentials: true });
       setSessions(response.data);
-    } catch (error) {
-      console.error("Error fetching sessions:", error);
+    } catch {
+      // comparison data is supplementary — result page still works without it
     }
   };
 
@@ -69,8 +69,8 @@ export default function SessionResultsPage() {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
-    } catch (error) {
-      console.error("Error checking first session:", error);
+    } catch {
+      // confetti is decorative — failure is acceptable
     }
   };
 

@@ -7,9 +7,9 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 const RANK_STYLES = {
-  1: { icon: "🥇", color: "text-yellow-400", bg: "bg-yellow-400/10 border-yellow-400/30" },
-  2: { icon: "🥈", color: "text-gray-300", bg: "bg-gray-300/10 border-gray-300/30" },
-  3: { icon: "🥉", color: "text-orange-400", bg: "bg-orange-400/10 border-orange-400/30" },
+  1: { icon: "🥇", color: "text-victory-lime", bg: "bg-victory-lime/10 border-victory-lime/30" },
+  2: { icon: "🥈", color: "text-victory-muted", bg: "bg-victory-muted/10 border-victory-muted/30" },
+  3: { icon: "🥉", color: "text-victory-orange", bg: "bg-victory-orange/10 border-victory-orange/30" },
 };
 
 export default function LeaderboardPage() {
@@ -68,11 +68,7 @@ export default function LeaderboardPage() {
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                filter === key
-                  ? "bg-victory-lime text-victory-bg"
-                  : "bg-victory-card border border-victory-border text-victory-muted"
-              }`}
+              className={filter === key ? "filter-pill filter-pill-active" : "filter-pill filter-pill-inactive"}
             >
               {label}
             </button>
@@ -103,9 +99,9 @@ export default function LeaderboardPage() {
                 {/* 2nd place */}
                 <div className="flex flex-col items-center pt-4">
                   <div className="text-2xl mb-1">🥈</div>
-                  <div className="w-full victory-card border border-gray-300/20 p-3 text-center rounded-lg">
+                  <div className="w-full victory-card border border-victory-muted/20 p-3 text-center rounded-lg">
                     <p className="text-victory-text text-xs font-semibold truncate">{sorted[1]?.display_name}</p>
-                    <p className="text-gray-300 font-mono font-bold mt-1">
+                    <p className="text-victory-muted font-mono font-bold mt-1">
                       {filter === "total_sessions" ? sorted[1]?.total_sessions : sorted[1]?.[filter]?.toFixed(1)}
                     </p>
                     {sorted[1]?.is_current_user && <p className="text-victory-lime text-xs mt-1">{t("leaderboard.you")}</p>}
@@ -115,9 +111,9 @@ export default function LeaderboardPage() {
                 {/* 1st place */}
                 <div className="flex flex-col items-center">
                   <div className="text-3xl mb-1">🥇</div>
-                  <div className="w-full victory-card border border-yellow-400/30 p-3 text-center rounded-lg bg-yellow-400/5">
+                  <div className="w-full victory-card border border-victory-lime/30 p-3 text-center rounded-lg bg-victory-lime/5">
                     <p className="text-victory-text text-xs font-semibold truncate">{sorted[0]?.display_name}</p>
-                    <p className="text-yellow-400 font-mono font-bold text-lg mt-1">
+                    <p className="text-victory-lime font-mono font-bold text-lg mt-1">
                       {filter === "total_sessions" ? sorted[0]?.total_sessions : sorted[0]?.[filter]?.toFixed(1)}
                     </p>
                     {sorted[0]?.is_current_user && <p className="text-victory-lime text-xs mt-1">You</p>}
@@ -127,9 +123,9 @@ export default function LeaderboardPage() {
                 {/* 3rd place */}
                 <div className="flex flex-col items-center pt-6">
                   <div className="text-2xl mb-1">🥉</div>
-                  <div className="w-full victory-card border border-orange-400/20 p-3 text-center rounded-lg">
+                  <div className="w-full victory-card border border-victory-orange/20 p-3 text-center rounded-lg">
                     <p className="text-victory-text text-xs font-semibold truncate">{sorted[2]?.display_name}</p>
-                    <p className="text-orange-400 font-mono font-bold mt-1">
+                    <p className="text-victory-orange font-mono font-bold mt-1">
                       {filter === "total_sessions" ? sorted[2]?.total_sessions : sorted[2]?.[filter]?.toFixed(1)}
                     </p>
                     {sorted[2]?.is_current_user && <p className="text-victory-lime text-xs mt-1">You</p>}
