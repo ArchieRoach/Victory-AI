@@ -1382,7 +1382,10 @@ async def get_active_ad():
     }
 
 @api_router.post("/ads/checkout")
-async def create_ad_checkout(req: AdCampaignRequest):
+async def create_ad_checkout(request: Request, req: AdCampaignRequest):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"ads_checkout:{client_ip}", 5, 60):
+        raise HTTPException(429, "Too many requests — try again in a minute")
     pkg = AD_PACKAGES.get(req.package_id)
     if not pkg:
         raise HTTPException(400, "Invalid ad package")

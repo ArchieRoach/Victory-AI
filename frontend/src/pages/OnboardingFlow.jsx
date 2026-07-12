@@ -648,6 +648,7 @@ export default function OnboardingFlow() {
       setPartnerStyles(res.data.styles);
     } catch (e) {
       console.error("Failed to fetch partner styles:", e);
+      toast.error("Couldn't load training partner styles — try again");
     }
   };
 

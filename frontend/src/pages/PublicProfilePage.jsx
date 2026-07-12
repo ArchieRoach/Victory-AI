@@ -7,7 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   ArrowLeft, Trophy, Swords, Target, Building2,
-  Clapperboard, CalendarDays, Radio, Play, Clock, X, Share2, Flame,
+  Clapperboard, CalendarDays, Radio, Play, Clock, X, Share2, Flame, Users,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ShareSheet } from "@/components/ShareSheet";
@@ -76,7 +76,13 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
               <div className="w-6 h-6 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
             </div>
           ) : users.length === 0 ? (
-            <p className="text-center text-victory-muted text-sm py-12">No {mode} yet</p>
+            <div className="flex flex-col items-center text-center py-12 px-6">
+              <Users className="w-8 h-8 text-victory-muted mb-3" />
+              <p className="text-victory-text font-bold">No {mode} yet</p>
+              <p className="text-victory-muted text-sm mt-1">
+                {mode === "followers" ? "When people follow this fighter, they'll show up here." : "Fighters this account follows will show up here."}
+              </p>
+            </div>
           ) : (
             users.map((u) => (
               <div key={u.user_id} className="flex items-center gap-3 px-4 py-3 border-b border-victory-border last:border-0">

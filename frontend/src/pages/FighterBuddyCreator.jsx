@@ -51,6 +51,7 @@ export default function FighterBuddyCreator() {
       setArchetypes(response.data.archetypes);
     } catch (error) {
       console.error("Failed to fetch archetypes:", error);
+      toast.error("Couldn't load fighter styles — try again");
     }
   };
 

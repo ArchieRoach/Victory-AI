@@ -221,7 +221,7 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
         {post.video_url && (
           <button
             onClick={() => setShareTarget(post)}
-            className={`flex items-center gap-1.5 transition-colors ${shareCount > 0 ? "text-orange-400" : "text-victory-muted hover:text-orange-400"}`}
+            className={`flex items-center gap-1.5 transition-colors ${shareCount > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
           >
             {isViral ? <Flame className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
             <span className="text-sm">{shareCount > 0 ? shareCount.toLocaleString() : ""}</span>
@@ -469,7 +469,7 @@ export default function HomePage() {
             {/* Trending clips link */}
             <button
               onClick={() => navigate("/clips")}
-              className="flex items-center gap-1 text-orange-400 text-xs font-bold px-2.5 py-1.5 rounded-full border border-orange-400/30 bg-orange-500/10 hover:bg-orange-500/20 transition-colors"
+              className="flex items-center gap-1 text-victory-orange text-xs font-bold px-2.5 py-1.5 rounded-full border border-victory-orange/30 bg-victory-orange/10 hover:bg-victory-orange/20 transition-colors"
             >
               <Flame className="w-3.5 h-3.5" />
               Trending

@@ -224,7 +224,7 @@ export default function TrendingClipsPage() {
       {/* Header */}
       <header className="sticky top-0 z-20 bg-victory-bg/95 backdrop-blur border-b border-victory-border">
         <div className="flex items-center gap-3 px-4 py-3">
-          <button onClick={() => navigate(-1)} className="text-victory-muted hover:text-victory-text">
+          <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 flex-1">
