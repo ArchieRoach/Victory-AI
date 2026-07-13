@@ -103,7 +103,7 @@ export default function FeedbackWidget() {
           <>
             <div className="flex items-center justify-between">
               <h2 className="font-heading font-bold text-victory-text">{t("feedback.title")}</h2>
-              <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-victory-border text-victory-muted">
+              <button onClick={handleClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target rounded-full bg-victory-border text-victory-muted">
                 <X className="w-4 h-4" />
               </button>
             </div>
