@@ -19,6 +19,10 @@ Add these in Xcode → File → Add Package Dependencies:
 <key>CLERK_PUBLISHABLE_KEY</key>
 <string>pk_live_XXXX</string>
 
+<!-- Web app URL — MainAppView loads this in a WKWebView post-paywall -->
+<key>WEB_APP_URL</key>
+<string>https://victory-ai-alpha.vercel.app</string>
+
 <!-- Web subscription page — opened in SFSafariViewController -->
 <key>SUBSCRIBE_URL</key>
 <string>https://buy.stripe.com/7sY8wP8ED7qp6CP8qCaR200</string>
@@ -78,15 +82,13 @@ Add these to `Assets.xcassets`:
 - `ic_google` — Google logo (20×20)
 - `ic_facebook` — Facebook logo (20×20)
 
-## Stub view to create
+## MainAppView
 
-Only `MainAppView` is still a stub — create it to match your app's tab bar / home screen:
-
-```swift
-struct MainAppView: View {
-    var body: some View { Text("Main App") }
-}
-```
+Implemented as a `WKWebView` wrapper around the deployed web app (`App/MainAppView.swift`) rather
+than a native rebuild — the web app already has every screen. It bridges the native Clerk session
+into the page via `window.__setMobileAuthToken`, which `frontend/src/App.js`'s `AuthProvider`
+accepts as a Bearer token source alongside (and preferred over) the web Clerk SDK. Token is
+re-pushed every 45s since Clerk session JWTs are short-lived.
 
 ## Environment variables on Railway (already set — confirm they exist)
 

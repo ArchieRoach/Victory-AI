@@ -65,39 +65,54 @@ export const useAuth = () => {
   return context;
 };
 
+// Mobile app bridge: the native iOS shell (WKWebView wrapping this same site)
+// has no Clerk web session, so it pushes a fresh Clerk token in periodically
+// via window.__setMobileAuthToken. When present, it wins over the web Clerk
+// SDK. See ios/VictoryAI/App/MainAppView.swift.
+let setMobileToken = null;
+window.__setMobileAuthToken = (token) => setMobileToken?.(token);
+window.__clearMobileAuthToken = () => setMobileToken?.(null);
+
 const AuthProvider = ({ children }) => {
   const { isSignedIn, isLoaded } = useUser();
   const { getToken, signOut } = useClerkAuth();
   const [user, setUser] = useState(null);
   const [mongoLoading, setMongoLoading] = useState(true);
+  const [mobileToken, setMobileTokenState] = useState(null);
   const getTokenRef = useRef(getToken);
 
   useEffect(() => {
     getTokenRef.current = getToken;
   }, [getToken]);
 
-  // Global axios interceptor — adds Clerk Bearer token to every request
+  useEffect(() => {
+    setMobileToken = setMobileTokenState;
+    return () => { setMobileToken = null; };
+  }, []);
+
+  // Global axios interceptor — adds a Bearer token to every request.
+  // Native mobile token (if the bridge above set one) takes priority.
   useEffect(() => {
     const id = axios.interceptors.request.use(async (config) => {
       try {
-        const token = await getTokenRef.current();
+        const token = mobileToken || await getTokenRef.current();
         if (token) config.headers.Authorization = `Bearer ${token}`;
       } catch (e) {}
       return config;
     });
     return () => axios.interceptors.request.eject(id);
-  }, []);
+  }, [mobileToken]);
 
   const checkAuth = useCallback(async () => {
-    if (!isLoaded) return;
-    if (!isSignedIn) {
+    if (!mobileToken && !isLoaded) return;
+    if (!mobileToken && !isSignedIn) {
       setUser(null);
       setMongoLoading(false);
       return;
     }
     setMongoLoading(true);
     try {
-      const token = await getToken();
+      const token = mobileToken || await getToken();
       const res = await axios.get(`${API}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -107,7 +122,7 @@ const AuthProvider = ({ children }) => {
     } finally {
       setMongoLoading(false);
     }
-  }, [isSignedIn, isLoaded, getToken]);
+  }, [isSignedIn, isLoaded, getToken, mobileToken]);
 
   useEffect(() => {
     checkAuth();
@@ -116,27 +131,33 @@ const AuthProvider = ({ children }) => {
   // Refresh the user doc WITHOUT toggling global loading (so callers like the
   // payment-success pages aren't unmounted mid-flow).
   const refreshUser = useCallback(async () => {
-    if (!isSignedIn) return;
+    if (!mobileToken && !isSignedIn) return;
     try {
-      const token = await getToken();
+      const token = mobileToken || await getToken();
       const res = await axios.get(`${API}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data);
     } catch (e) {}
-  }, [isSignedIn, getToken]);
+  }, [isSignedIn, getToken, mobileToken]);
 
   const logout = useCallback(async () => {
+    if (mobileToken) {
+      // No web Clerk session to sign out of — just clear local state.
+      setMobileTokenState(null);
+      setUser(null);
+      return;
+    }
     await signOut();
     setUser(null);
-  }, [signOut]);
+  }, [signOut, mobileToken]);
 
   return (
     <AuthContext.Provider value={{
       user,
       setUser,
-      loading: !isLoaded || mongoLoading,
-      isAuthenticated: isLoaded && isSignedIn && !!user,
+      loading: !mobileToken && (!isLoaded || mongoLoading),
+      isAuthenticated: (mobileToken || (isLoaded && isSignedIn)) && !!user,
       login: () => {},
       logout,
       checkAuth,
