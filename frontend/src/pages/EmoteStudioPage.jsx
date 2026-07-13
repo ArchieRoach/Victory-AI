@@ -349,7 +349,7 @@ export default function EmoteStudioPage() {
           <div className="relative bg-victory-card border-t border-victory-border rounded-t-2xl p-5 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="font-bold text-victory-text">Customise Character</h2>
-              <button onClick={() => setShowAppearance(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-victory-bg border border-victory-border text-victory-muted">
+              <button onClick={() => setShowAppearance(false)} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target rounded-full bg-victory-bg border border-victory-border text-victory-muted">
                 <X className="w-4 h-4" />
               </button>
             </div>

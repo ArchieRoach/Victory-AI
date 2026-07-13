@@ -69,7 +69,7 @@ export function ShareSheet({ post, onClose, onShared }) {
             <Share2 className="w-4 h-4 text-victory-lime" />
             <p className="text-victory-text font-bold text-sm">Share Clip</p>
             {isViral && (
-              <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-500/30">
+              <span className="flex items-center gap-1 bg-victory-orange/20 text-victory-orange text-[10px] font-bold px-2 py-0.5 rounded-full border border-victory-orange/30">
                 <Flame className="w-3 h-3" /> VIRAL
               </span>
             )}
