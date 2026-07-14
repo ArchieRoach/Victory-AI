@@ -65,7 +65,7 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
         <div className="flex items-center justify-between px-4 pt-3 pb-3 border-b border-victory-border">
           <div className="w-10 h-1 rounded-full bg-victory-border absolute top-2 left-1/2 -translate-x-1/2" />
           <p className="text-victory-text font-bold capitalize mt-1">{mode}</p>
-          <button onClick={onClose} className="text-victory-muted hover:text-victory-text">
+          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>

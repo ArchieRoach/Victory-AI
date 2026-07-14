@@ -34,7 +34,7 @@ function CreateGymModal({ onClose, onCreated }) {
       <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-heading font-bold text-victory-text">{t("gyms.createTitle")}</h2>
-          <button onClick={onClose} className="text-victory-muted hover:text-victory-text touch-target">
+          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -96,7 +96,7 @@ function JoinByCodeModal({ onClose, onJoined }) {
       <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-heading font-bold text-victory-text">{t("gyms.joinByCode")}</h2>
-          <button onClick={onClose} className="text-victory-muted hover:text-victory-text touch-target">
+          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>

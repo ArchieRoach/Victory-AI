@@ -713,6 +713,8 @@ async def generate_cloudinary_signature(
 
 @api_router.post("/videos/register")
 async def register_uploaded_video(video_data: RoundVideoUpload, user: dict = Depends(get_current_user)):
+    if not video_data.video_url.startswith("https://res.cloudinary.com/"):
+        raise HTTPException(400, "video_url must be a Cloudinary URL")
     video_doc = {
         "video_id": f"vid_{uuid.uuid4().hex[:12]}",
         "user_id": user["user_id"],
@@ -778,9 +780,11 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
     body = await request.json()
     video_url = body.get("video_url")
     round_number = body.get("round_number", 1)
-    
+
     if not video_url:
         raise HTTPException(status_code=400, detail="video_url required")
+    if not video_url.startswith("https://res.cloudinary.com/"):
+        raise HTTPException(status_code=400, detail="video_url must be a Cloudinary URL")
 
     quota = await check_and_consume_ai_tokens(user, "analyze_video")
     if not quota["allowed"]:
