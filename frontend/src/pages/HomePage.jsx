@@ -7,9 +7,10 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Bell, Heart, MessageCircle, Users,
-  Send, Tv, ChevronDown, ChevronUp, Zap, Gift, Share2, Flame,
+  Send, Tv, ChevronDown, ChevronUp, Zap, Gift, Share2, Flame, Flag,
 } from "lucide-react";
 import { ShareSheet } from "@/components/ShareSheet";
+import { ReportModal } from "@/components/ReportModal";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function timeAgo(str) {
@@ -135,6 +136,7 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
   const [commentText,  setCommentText]  = useState("");
   const [submitting,   setSubmitting]   = useState(false);
   const [shareTarget,  setShareTarget]  = useState(null);
+  const [reportTarget, setReportTarget] = useState(null); // { type, id } | null
 
   const authorName  = post.author?.display_name || post.author?.name || "Fighter";
   const shareCount  = post.share_count || 0;
@@ -171,6 +173,13 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
           onShared={(count) => onShareUpdate?.(post.post_id, count)}
         />
       )}
+      {reportTarget && (
+        <ReportModal
+          contentType={reportTarget.type}
+          contentId={reportTarget.id}
+          onClose={() => setReportTarget(null)}
+        />
+      )}
       {/* Author */}
       <div className="flex items-center gap-3 px-4 py-3">
         <button onClick={() => navigate(`/profile/${post.user_id}`)} className="flex items-center gap-3 flex-1 min-w-0">
@@ -191,6 +200,13 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
             #{tag}
           </span>
         ))}
+        <button
+          onClick={() => setReportTarget({ type: "post", id: post.post_id })}
+          aria-label="Report post"
+          className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger flex-shrink-0 -mr-2"
+        >
+          <Flag className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Caption */}
@@ -248,6 +264,13 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
                 <span className="text-victory-lime text-xs font-semibold mr-1">{c.author?.display_name || c.author?.name}</span>
                 <span className="text-victory-text text-sm">{c.text}</span>
               </div>
+              <button
+                onClick={() => setReportTarget({ type: "comment", id: c.comment_id })}
+                aria-label="Report comment"
+                className="w-11 h-11 -my-2.5 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger flex-shrink-0"
+              >
+                <Flag className="w-3 h-3" />
+              </button>
             </div>
           ))}
           <div className="flex gap-2 pt-1">
