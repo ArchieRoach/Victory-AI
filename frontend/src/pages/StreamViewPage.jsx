@@ -3,8 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { ArrowLeft, Radio, Users, Scissors, Zap, Gift, Smile, UserPlus, UserCheck, X, Share2 } from "lucide-react";
+import { ArrowLeft, Radio, Users, Scissors, Zap, Gift, Smile, UserPlus, UserCheck, X, Share2, Flag } from "lucide-react";
 import { ShareSheet } from "@/components/ShareSheet";
+import { ReportModal } from "@/components/ReportModal";
 import LivePlayer from "@/components/LivePlayer";
 import LiveChat from "@/components/LiveChat";
 import { TipModal }           from "@/components/streaming/TipModal";
@@ -46,6 +47,7 @@ export default function StreamViewPage() {
   const [showGift,    setShowGift]    = useState(false);
   const [showTopUp,   setShowTopUp]   = useState(false);
   const [showEmotes,  setShowEmotes]  = useState(false);
+  const [showReport,  setShowReport]  = useState(false);
 
   // PunchAlert queue: array of tip/gift events awaiting display
   const [alertQueue, setAlertQueue] = useState([]);
@@ -249,7 +251,7 @@ export default function StreamViewPage() {
 
       {/* ── Top bar ── */}
       <div className="flex items-center gap-3 px-4 py-3 bg-black/80">
-        <button onClick={() => navigate("/live")} className="text-victory-muted hover:text-victory-text">
+        <button onClick={() => navigate("/live")} aria-label="Go back" className="w-11 h-11 -mx-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text flex-shrink-0">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1 min-w-0">
@@ -271,7 +273,18 @@ export default function StreamViewPage() {
           <Users className="w-3.5 h-3.5" />
           {stream.viewer_count}
         </div>
+        <button
+          onClick={() => setShowReport(true)}
+          aria-label="Report stream"
+          className="w-11 h-11 -mx-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger flex-shrink-0"
+        >
+          <Flag className="w-4 h-4" />
+        </button>
       </div>
+
+      {showReport && (
+        <ReportModal contentType="stream" contentId={streamId} onClose={() => setShowReport(false)} />
+      )}
 
       {/* ── Sponsor banner (above video) ── */}
       <SponsorBanner simulateAd={false} />

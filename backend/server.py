@@ -162,6 +162,27 @@ def _rate_limited(key: str, max_calls: int = 10, window: float = 60.0) -> bool:
     _rate_buckets[key].append(now)
     return False
 
+async def is_content_flagged(text: str) -> bool:
+    """Checks free-text user input (captions, comments, chat, display names, AI
+    image prompts) against OpenAI's moderation endpoint before it's stored or
+    shown to other users. Fails open (allows content through) if the key is
+    missing or the call errors — the report/auto-hide system is the second
+    line of defense, so a moderation-API outage doesn't take down posting."""
+    if not text or not text.strip() or not OPENAI_API_KEY:
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.post(
+                "https://api.openai.com/v1/moderations",
+                headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+                json={"input": text},
+            )
+            resp.raise_for_status()
+            return bool(resp.json()["results"][0]["flagged"])
+    except Exception as e:
+        logger.error(f"Moderation check failed: {e}")
+        return False
+
 # ElevenLabs TTS Settings
 ELEVENLABS_API_KEY = os.environ.get('ELEVENLABS_API_KEY', '')
 ELEVENLABS_VOICE_ID = os.environ.get('ELEVENLABS_VOICE_ID', 'EXAVITQu4vr4xnSDxMaL')
@@ -595,8 +616,10 @@ async def submit_onboarding(answers: OnboardingAnswers, user: dict = Depends(get
 
 @api_router.post("/onboarding/create-partner")
 async def create_training_partner(partner_data: TrainingPartnerCreate, user: dict = Depends(get_current_user)):
+    if await is_content_flagged(partner_data.name):
+        raise HTTPException(400, "Training partner name violates community guidelines")
     style_info = TRAINING_PARTNER_STYLES.get(partner_data.style, TRAINING_PARTNER_STYLES["supportive_mentor"])
-    
+
     partner_id = f"partner_{uuid.uuid4().hex[:12]}"
     training_partner = {
         "partner_id": partner_id,
@@ -623,6 +646,8 @@ async def generate_partner_avatar(request: Request, user: dict = Depends(get_cur
 
     body = await request.json()
     favorite_fighter = body.get("favorite_fighter", "")
+    if await is_content_flagged(favorite_fighter):
+        raise HTTPException(400, "That input violates community guidelines")
 
     style_info = TRAINING_PARTNER_STYLES.get(training_partner["style"], {})
 
@@ -1539,6 +1564,8 @@ async def get_session(session_id: str, user: dict = Depends(get_current_user)):
 
 @api_router.put("/users/me")
 async def update_profile(update_data: UserUpdate, user: dict = Depends(get_current_user)):
+    if update_data.name and await is_content_flagged(update_data.name):
+        raise HTTPException(400, "Name violates community guidelines")
     update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
     if update_dict:
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": update_dict})
@@ -1919,6 +1946,10 @@ async def _recalculate_gym_stats(gym_id: str):
 
 @api_router.put("/users/profile")
 async def update_extended_profile(data: UserProfileExtend, user: dict = Depends(get_current_user)):
+    for field in ("display_name", "bio"):
+        value = getattr(data, field)
+        if value and await is_content_flagged(value):
+            raise HTTPException(400, f"{field.replace('_', ' ').title()} violates community guidelines")
     update = {k: v for k, v in data.model_dump().items() if v is not None}
     if "avatar_url" in update and not any(update["avatar_url"].startswith(p) for p in _AVATAR_PREFIXES):
         del update["avatar_url"]
@@ -2521,6 +2552,8 @@ async def join_gym_by_code(request: Request, user: dict = Depends(get_current_us
 async def create_post(request: Request, post_data: PostCreate, user: dict = Depends(get_current_user)):
     if _rate_limited(f"posts:{user['user_id']}", 10, 60):
         raise HTTPException(429, "Too many posts — slow down")
+    if await is_content_flagged(post_data.caption):
+        raise HTTPException(400, "Caption violates community guidelines")
     post_id = f"post_{uuid.uuid4().hex[:12]}"
     post_doc = {
         "post_id": post_id,
@@ -2551,13 +2584,13 @@ async def get_feed(
 ):
     limit = 20
     skip = (page - 1) * limit
-    query: dict = {}
+    query: dict = {"is_hidden": {"$ne": True}}
     if feed_type == "following":
         follows = await db.follows.find({"follower_id": user["user_id"]}, {"following_id": 1}).to_list(10000)
         following_ids = [f["following_id"] for f in follows] + [user["user_id"]]
-        query = {"user_id": {"$in": following_ids}}
+        query["user_id"] = {"$in": following_ids}
     elif feed_type == "gym" and user.get("gym_id"):
-        query = {"gym_id": user["gym_id"]}
+        query["gym_id"] = user["gym_id"]
     posts = await db.posts.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     enriched = []
     for post in posts:
@@ -2615,7 +2648,7 @@ async def delete_post(post_id: str, user: dict = Depends(get_current_user)):
 
 @api_router.get("/posts/{post_id}")
 async def get_post(post_id: str, user: dict = Depends(get_current_user)):
-    post = await db.posts.find_one({"post_id": post_id}, {"_id": 0})
+    post = await db.posts.find_one({"post_id": post_id, "is_hidden": {"$ne": True}}, {"_id": 0})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     author = await db.users.find_one({"user_id": post["user_id"]}, {"_id": 0, "password": 0})
@@ -2656,7 +2689,7 @@ async def trending_clips(
     limit = 20
     skip  = (page - 1) * limit
 
-    query: dict = {"video_url": {"$exists": True, "$ne": ""}}
+    query: dict = {"video_url": {"$exists": True, "$ne": ""}, "is_hidden": {"$ne": True}}
     if period == "24h":
         cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
         query["created_at"] = {"$gte": cutoff}
@@ -2693,6 +2726,8 @@ async def trending_clips(
 async def add_comment(request: Request, post_id: str, comment_data: CommentCreate, user: dict = Depends(get_current_user)):
     if _rate_limited(f"comment:{user['user_id']}", 20, 60):
         raise HTTPException(429, "Too many comments — slow down")
+    if await is_content_flagged(comment_data.text):
+        raise HTTPException(400, "Comment violates community guidelines")
     post = await db.posts.find_one({"post_id": post_id})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
@@ -2734,7 +2769,9 @@ async def add_comment(request: Request, post_id: str, comment_data: CommentCreat
 
 @api_router.get("/posts/{post_id}/comments")
 async def get_comments(post_id: str, user: dict = Depends(get_current_user)):
-    comments = await db.comments.find({"post_id": post_id}, {"_id": 0}).sort("created_at", 1).to_list(100)
+    comments = await db.comments.find(
+        {"post_id": post_id, "is_hidden": {"$ne": True}}, {"_id": 0}
+    ).sort("created_at", 1).to_list(100)
     for c in comments:
         author = await db.users.find_one({"user_id": c["user_id"]}, {"_id": 0, "password": 0})
         c["author"] = safe_user(author) if author else {"display_name": "Unknown", "name": "Unknown"}
@@ -2754,14 +2791,14 @@ async def home_for_you_feed(user: dict = Depends(get_current_user)):
     following_ids = {f["following_id"] for f in follows}
 
     # Fetch streams (live first, then recent)
-    streams = await db.streams.find({}, {"_id": 0, "stream_key": 0}).sort(
+    streams = await db.streams.find({"is_hidden": {"$ne": True}}, {"_id": 0, "stream_key": 0}).sort(
         [("status", -1), ("viewer_count", -1)]
     ).limit(30).to_list(30)
 
     # Fetch posts from last 14 days
     cutoff = (datetime.now(timezone.utc) - timedelta(days=14)).isoformat()
     posts = await db.posts.find(
-        {"created_at": {"$gte": cutoff}}, {"_id": 0}
+        {"created_at": {"$gte": cutoff}, "is_hidden": {"$ne": True}}, {"_id": 0}
     ).sort("created_at", -1).limit(50).to_list(50)
 
     now_ts = datetime.now(timezone.utc).timestamp()
@@ -3266,6 +3303,83 @@ async def get_feedback(user: dict = Depends(get_current_user)):
     items = await db.feedback.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
     return items
 
+# ============== CONTENT REPORTING ==============
+
+REPORT_HIDE_THRESHOLD = 3  # unique reporters before content auto-hides pending review
+REPORTABLE_COLLECTIONS = {"post": "posts", "comment": "comments", "stream": "streams"}
+REPORTABLE_ID_FIELDS = {"post": "post_id", "comment": "comment_id", "stream": "stream_id"}
+
+class ReportCreate(BaseModel):
+    content_type: Literal["post", "comment", "stream", "user"]
+    content_id: str
+    reason: str = Field("", max_length=300)
+
+@api_router.post("/reports")
+async def create_report(data: ReportCreate, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"report:{user['user_id']}", 20, 60):
+        raise HTTPException(429, "Too many reports — slow down")
+
+    existing = await db.reports.find_one({
+        "content_type": data.content_type,
+        "content_id": data.content_id,
+        "reporter_id": user["user_id"],
+    })
+    if existing:
+        return {"message": "Already reported", "content_hidden": False}
+
+    await db.reports.insert_one({
+        "report_id": f"report_{uuid.uuid4().hex[:12]}",
+        "content_type": data.content_type,
+        "content_id": data.content_id,
+        "reporter_id": user["user_id"],
+        "reason": data.reason,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    # User reports aren't auto-actioned — account-level bans need a human,
+    # since a report count alone is too easy to brigade.
+    if data.content_type == "user":
+        return {"message": "Report submitted", "content_hidden": False}
+
+    report_count = await db.reports.count_documents({
+        "content_type": data.content_type,
+        "content_id": data.content_id,
+    })
+    hidden = False
+    if report_count >= REPORT_HIDE_THRESHOLD:
+        collection = REPORTABLE_COLLECTIONS[data.content_type]
+        id_field = REPORTABLE_ID_FIELDS[data.content_type]
+        result = await db[collection].update_one(
+            {id_field: data.content_id, "is_hidden": {"$ne": True}},
+            {"$set": {"is_hidden": True}},
+        )
+        hidden = result.modified_count > 0
+        if hidden and RESEND_API_KEY:
+            try:
+                async with httpx.AsyncClient() as client:
+                    await client.post(
+                        "https://api.resend.com/emails",
+                        headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+                        json={
+                            "from": RESEND_FROM,
+                            "to": [ADMIN_EMAIL],
+                            "subject": f"[Victory AI] {data.content_type} auto-hidden after {report_count} reports",
+                            "html": f"<p>{html.escape(data.content_type)} <code>{html.escape(data.content_id)}</code> was auto-hidden after reaching {report_count} reports. Review in the <code>reports</code> and <code>{collection}</code> collections.</p>",
+                        },
+                        timeout=5,
+                    )
+            except Exception:
+                pass
+
+    return {"message": "Report submitted", "content_hidden": hidden}
+
+@api_router.get("/reports")
+async def list_reports(user: dict = Depends(get_current_user)):
+    if user.get("email") != ADMIN_EMAIL:
+        raise HTTPException(status_code=403, detail="Admin only")
+    items = await db.reports.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    return items
+
 @api_router.post("/auth/validate")
 async def validate_access(user: dict = Depends(get_current_user)):
     """iOS: verify Stripe subscription live and check access_granted flag."""
@@ -3532,7 +3646,7 @@ async def list_streams(
     limit: int = Query(20, le=50),
     _: dict = Depends(get_current_user),
 ):
-    q: Dict[str, Any] = {"is_private": False}
+    q: Dict[str, Any] = {"is_private": False, "is_hidden": {"$ne": True}}
     if status:
         q["status"] = status
     if type:
@@ -3547,7 +3661,7 @@ async def list_streams(
 
 @api_router.get("/streams/{stream_id}")
 async def get_stream(stream_id: str, user: dict = Depends(get_current_user)):
-    stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
+    stream = await db.streams.find_one({"stream_id": stream_id, "is_hidden": {"$ne": True}}, {"_id": 0})
     if not stream:
         raise HTTPException(404, "Stream not found")
     if stream.get("is_private") and stream["user_id"] != user["user_id"]:
@@ -3746,6 +3860,8 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
             text = (payload.get("message") or "").strip()
             if not text or len(text) > 500:
                 continue
+            if await is_content_flagged(text):
+                continue
             msg = {
                 "message_id": f"msg_{uuid.uuid4().hex[:10]}",
                 "stream_id": stream_id,
@@ -3832,6 +3948,8 @@ async def generate_emote(data: EmoteCreate, user: dict = Depends(get_current_use
         raise HTTPException(400, "Invalid token price")
     if not data.name.strip():
         raise HTTPException(400, "Emote name is required")
+    if await is_content_flagged(data.name):
+        raise HTTPException(400, "Emote name violates community guidelines")
 
     reaction = EMOTE_REACTIONS[data.reaction_type]
     partner  = user.get("training_partner") or {}
