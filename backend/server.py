@@ -2507,11 +2507,14 @@ async def leave_gym(gym_id: str, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Gym not found")
     if gym["owner_id"] == user["user_id"]:
         raise HTTPException(status_code=400, detail="Gym owner cannot leave — delete the gym instead")
-    await db.gyms.update_one(
+    if user.get("gym_id") != gym_id:
+        raise HTTPException(status_code=400, detail="You're not a member of this gym")
+    result = await db.gyms.update_one(
         {"gym_id": gym_id, "members": user["user_id"]},
         {"$pull": {"members": user["user_id"]}, "$inc": {"member_count": -1}}
     )
-    await db.users.update_one({"user_id": user["user_id"]}, {"$unset": {"gym_id": ""}})
+    if result.modified_count:
+        await db.users.update_one({"user_id": user["user_id"]}, {"$unset": {"gym_id": ""}})
     return {"message": "Left gym"}
 
 @api_router.delete("/gyms/{gym_id}")

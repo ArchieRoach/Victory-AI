@@ -81,7 +81,7 @@ export default function GymDetailPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="gym-detail-page">
       <header className="p-4 flex items-center gap-3 border-b border-victory-border">
-        <button onClick={() => navigate("/gyms")} className="w-10 h-10 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
+        <button onClick={() => navigate("/gyms")} aria-label="Go back" className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
         <div className="flex-1 min-w-0">
@@ -89,12 +89,12 @@ export default function GymDetailPage() {
           <p className="text-victory-muted text-sm">{gym.style} · {gym.member_count} {t("gym.members")}</p>
         </div>
         {isMember && !isOwner && (
-          <button onClick={handleLeave} className="text-victory-muted hover:text-victory-danger touch-target p-2">
+          <button onClick={handleLeave} aria-label="Leave gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger">
             <LogOut className="w-5 h-5" />
           </button>
         )}
         {isOwner && (
-          <button onClick={handleDelete} className="text-victory-muted hover:text-victory-danger touch-target p-2">
+          <button onClick={handleDelete} aria-label="Delete gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger">
             <Trash2 className="w-5 h-5" />
           </button>
         )}

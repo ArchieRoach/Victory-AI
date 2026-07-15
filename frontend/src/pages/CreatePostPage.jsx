@@ -142,7 +142,7 @@ export default function CreatePostPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-40" data-testid="create-post-page">
       <header className="p-4 flex items-center gap-3 border-b border-victory-border">
-        <button onClick={() => navigate("/feed")} className="w-10 h-10 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
+        <button onClick={() => navigate("/feed")} aria-label="Go back" className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
         <h1 className="text-lg font-heading font-bold text-victory-text">
