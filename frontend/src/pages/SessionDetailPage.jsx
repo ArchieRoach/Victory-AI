@@ -171,7 +171,7 @@ export default function SessionDetailPage() {
                 const pct = (score / 10) * 100;
                 const barColor =
                   score >= 8 ? "bg-victory-lime" :
-                  score >= 5 ? "bg-yellow-400" :
+                  score >= 5 ? "bg-victory-orange" :
                   "bg-red-500";
                 return (
                   <div

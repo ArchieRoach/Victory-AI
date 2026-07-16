@@ -218,7 +218,7 @@ export default function StreamViewPage() {
                 <p className="text-victory-text font-bold">Clip saved!</p>
                 <p className="text-victory-muted text-xs">Share it to start trending</p>
               </div>
-              <button onClick={handleClipDismiss} className="ml-auto text-victory-muted">
+              <button onClick={handleClipDismiss} aria-label="Dismiss" className="w-11 h-11 -my-2.5 -mr-2 ml-auto flex items-center justify-center touch-target text-victory-muted">
                 <X className="w-5 h-5" />
               </button>
             </div>
