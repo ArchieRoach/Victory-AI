@@ -1285,6 +1285,8 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
     # Amount must match the selected punch price exactly
     if req.action_key and punch and req.amount != punch["tokens"]:
         raise HTTPException(400, "Amount does not match punch price")
+    if await is_content_flagged(req.message):
+        raise HTTPException(400, "Tip message violates community guidelines")
 
     # Atomically deduct sender only if they still have the balance (guards double-spend / negative balance)
     debit = await db.users.update_one(
@@ -1418,6 +1420,8 @@ async def create_ad_checkout(request: Request, req: AdCampaignRequest):
     pkg = AD_PACKAGES.get(req.package_id)
     if not pkg:
         raise HTTPException(400, "Invalid ad package")
+    if await is_content_flagged(req.brand_name) or await is_content_flagged(req.tagline):
+        raise HTTPException(400, "Ad content violates community guidelines")
     if not STRIPE_API_KEY:
         raise HTTPException(500, "Payments not configured")
     campaign_id = f"ad_{uuid.uuid4().hex[:12]}"
@@ -2136,6 +2140,8 @@ async def create_scheduled_stream(data: ScheduledStreamCreate, user: dict = Depe
         scheduled_dt = scheduled_dt.replace(tzinfo=timezone.utc)
     if scheduled_dt <= datetime.now(timezone.utc):
         raise HTTPException(400, "Scheduled time must be in the future")
+    if await is_content_flagged(data.title) or await is_content_flagged(data.description):
+        raise HTTPException(400, "Stream content violates community guidelines")
     doc = {
         "schedule_id": f"sched_{uuid.uuid4().hex[:12]}",
         "user_id": user["user_id"],
@@ -2985,6 +2991,8 @@ async def mark_notifications_read(user: dict = Depends(get_current_user)):
 async def create_competition(data: CompetitionCreate, user: dict = Depends(get_current_user)):
     if data.competition_type == "ai_judge" and not await check_subscription(user):
         raise HTTPException(status_code=403, detail="Pro subscription required for AI judging")
+    if await is_content_flagged(data.title) or await is_content_flagged(data.description):
+        raise HTTPException(400, "Competition content violates community guidelines")
     comp_id = f"comp_{uuid.uuid4().hex[:12]}"
     closes_at = (datetime.now(timezone.utc) + timedelta(hours=data.duration_hours)).isoformat()
     comp_doc = {
@@ -3125,6 +3133,8 @@ async def vote_on_competition(comp_id: str, vote_data: VoteCreate, user: dict = 
         raise HTTPException(status_code=400, detail="Cannot vote on your own competition")
     if await db.competition_votes.find_one({"comp_id": comp_id, "voter_id": user["user_id"]}):
         raise HTTPException(status_code=400, detail="Already voted")
+    if await is_content_flagged(vote_data.comment):
+        raise HTTPException(400, "Comment violates community guidelines")
     closes_at = comp.get("voting_closes_at")
     if closes_at:
         close_dt = datetime.fromisoformat(closes_at)
@@ -3491,6 +3501,8 @@ class StreamUpdate(BaseModel):
 async def create_stream(data: StreamCreate, user: dict = Depends(get_current_user)):
     if not LIVEPEER_API_KEY:
         raise HTTPException(500, "Streaming not configured")
+    if await is_content_flagged(data.title) or await is_content_flagged(data.description):
+        raise HTTPException(400, "Stream title/description violates community guidelines")
     try:
         lp = await _livepeer("POST", "/stream", {
             "name": f"{user.get('name', 'Fighter')} - {data.title}",
@@ -3694,8 +3706,12 @@ async def update_stream(stream_id: str, data: StreamUpdate, user: dict = Depends
         elif data.status == "ended":
             updates["ended_at"] = datetime.now(timezone.utc).isoformat()
     if data.title is not None:
+        if await is_content_flagged(data.title):
+            raise HTTPException(400, "Stream title violates community guidelines")
         updates["title"] = data.title
     if data.description is not None:
+        if await is_content_flagged(data.description):
+            raise HTTPException(400, "Stream description violates community guidelines")
         updates["description"] = data.description
     if updates:
         await db.streams.update_one({"stream_id": stream_id}, {"$set": updates})

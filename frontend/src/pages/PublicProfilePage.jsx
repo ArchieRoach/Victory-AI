@@ -588,8 +588,8 @@ export default function PublicProfilePage() {
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <header className="p-4 flex items-center gap-3">
-        <button onClick={() => navigate(-1)}
-          className="w-10 h-10 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
+        <button onClick={() => navigate(-1)} aria-label="Go back"
+          className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
         <h1 className="text-lg font-heading font-bold text-victory-text flex-1 truncate">{displayName}</h1>

@@ -65,7 +65,7 @@ export function PushPrompt() {
             </button>
           </div>
         </div>
-        <button onClick={dismiss} className="text-victory-muted hover:text-victory-text flex-shrink-0">
+        <button onClick={dismiss} aria-label="Dismiss" className="w-11 h-11 -m-2.5 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text flex-shrink-0">
           <X className="w-4 h-4" />
         </button>
       </div>

@@ -210,7 +210,7 @@ export default function DiscoverPage() {
               className="w-full bg-victory-card border border-victory-border rounded-xl pl-9 pr-9 py-2.5 text-victory-text text-sm placeholder:text-victory-muted focus:outline-none focus:border-victory-lime"
             />
             {q && (
-              <button onClick={() => setQ("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-victory-muted hover:text-victory-text">
+              <button onClick={() => setQ("")} aria-label="Clear search" className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
                 <X className="w-4 h-4" />
               </button>
             )}
