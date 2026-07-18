@@ -36,8 +36,8 @@
     "subtitle": "Sign in to continue your training"
   },
   "paywall": {
-    "headline": "Train like a pro for less than one coffee a month.",
-    "subheadline": "Your AI training partner runs your rounds, analyses your technique, and tells you exactly what to work on.",
+    "headline": "Free to train. Upgrade only if you want unlimited AI.",
+    "subheadline": "Track sessions, stream live, and join the community for free. Your AI training partner gives you 10,000 free credits a month — about 5 full analyses — no card required.",
     "whatsInside": "What's inside",
     "partnerReady": "is ready",
     "partnerAwaits": "Your {{style}} awaits",
@@ -45,7 +45,23 @@
       "unlimitedTraining": "Unlimited training sessions",
       "aiFeedback": "AI-powered instant feedback",
       "progressTracking": "Progress tracking & analytics",
-      "drillRecommendations": "Personalized drill recommendations"
+      "drillRecommendations": "Personalized drill recommendations",
+      "unlimitedAi": "Unlimited AI credits — no monthly cap",
+      "adFree": "Ad-free — no sponsor banners"
+    },
+    "freePlan": {
+      "title": "Free",
+      "subtitle": "Forever, no card required",
+      "price": "$0",
+      "cta": "Continue with Free",
+      "features": {
+        "timer": "Round timer",
+        "streaming": "Live streaming",
+        "feed": "Community feed",
+        "leaderboard": "Leaderboard",
+        "profile": "Fighter profile",
+        "aiCredits": "10,000 AI credits/month (~5 analyses)"
+      }
     },
     "plans": {
       "annual": "Annual",
@@ -62,9 +78,9 @@
     "hideDetails": "Hide plan details",
     "planDetails": {
       "title": "Plan Details",
-      "monthlyLine": "Monthly ($5/mo): Full access, cancel anytime",
+      "monthlyLine": "Monthly ($5/mo): Unlimited AI + ad-free, cancel anytime",
       "annualLine": "Annual ($25/yr): Same features, 58% savings",
-      "trial": "14-day free trial on both plans",
+      "trial": "14-day free trial on both paid plans",
       "billing": "Card required upfront — billing starts automatically after trial"
     },
     "cta": "Start 14-Day Free Trial",

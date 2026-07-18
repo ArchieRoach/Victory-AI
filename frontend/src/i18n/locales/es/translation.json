@@ -35,8 +35,8 @@
     "subtitle": "Inicia sesión para continuar tu entrenamiento"
   },
   "paywall": {
-    "headline": "Entrena como un pro por menos que un café al mes.",
-    "subheadline": "Tu compañero de entrenamiento con IA dirige tus asaltos, analiza tu técnica y te dice exactamente en qué trabajar.",
+    "headline": "Entrena gratis. Mejora solo si quieres IA ilimitada.",
+    "subheadline": "Registra tus sesiones, transmite en vivo y únete a la comunidad gratis. Tu compañero de entrenamiento con IA te da 10,000 créditos gratuitos al mes — unos 5 análisis completos — sin necesidad de tarjeta.",
     "whatsInside": "Qué incluye",
     "partnerReady": "está listo",
     "partnerAwaits": "Tu {{style}} te espera",
@@ -44,7 +44,23 @@
       "unlimitedTraining": "Sesiones de entrenamiento ilimitadas",
       "aiFeedback": "Retroalimentación instantánea con IA",
       "progressTracking": "Seguimiento de progreso y análisis",
-      "drillRecommendations": "Ejercicios personalizados recomendados"
+      "drillRecommendations": "Ejercicios personalizados recomendados",
+      "unlimitedAi": "Créditos de IA ilimitados — sin límite mensual",
+      "adFree": "Sin anuncios — sin banners de patrocinadores"
+    },
+    "freePlan": {
+      "title": "Gratis",
+      "subtitle": "Para siempre, sin tarjeta",
+      "price": "$0",
+      "cta": "Unirse gratis",
+      "features": {
+        "timer": "Temporizador de asaltos",
+        "streaming": "Transmisión en vivo",
+        "feed": "Feed de la comunidad",
+        "leaderboard": "Clasificación",
+        "profile": "Perfil de luchador",
+        "aiCredits": "10,000 créditos de IA al mes (~5 análisis)"
+      }
     },
     "plans": {
       "annual": "Anual",
@@ -61,9 +77,9 @@
     "hideDetails": "Ocultar detalles del plan",
     "planDetails": {
       "title": "Detalles del plan",
-      "monthlyLine": "Mensual ($5/mes): Acceso completo, cancela cuando quieras",
+      "monthlyLine": "Mensual ($5/mes): IA ilimitada + sin anuncios, cancela cuando quieras",
       "annualLine": "Anual ($25/año): Mismas funciones, 58% de ahorro",
-      "trial": "Prueba gratuita de 7 días en ambos planes",
+      "trial": "Prueba gratuita de 14 días en ambos planes pagos",
       "billing": "Tarjeta requerida — la facturación comienza automáticamente después del período de prueba"
     },
     "cta": "Comenzar prueba gratuita de 14 días",

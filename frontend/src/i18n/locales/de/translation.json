@@ -35,8 +35,8 @@
     "subtitle": "Melde dich an, um dein Training fortzusetzen"
   },
   "paywall": {
-    "headline": "Trainiere wie ein Profi für weniger als einen Kaffee im Monat.",
-    "subheadline": "Dein KI-Trainingspartner leitet deine Runden, analysiert deine Technik und sagt dir genau, woran du arbeiten musst.",
+    "headline": "Kostenlos trainieren. Upgrade nur, wenn du unbegrenzte KI willst.",
+    "subheadline": "Verfolge Einheiten, streame live und tritt der Community kostenlos bei. Dein KI-Trainingspartner gibt dir 10.000 kostenlose Credits pro Monat — etwa 5 vollständige Analysen — keine Karte erforderlich.",
     "whatsInside": "Was enthalten ist",
     "partnerReady": "ist bereit",
     "partnerAwaits": "Dein {{style}} wartet",
@@ -44,7 +44,23 @@
       "unlimitedTraining": "Unbegrenzte Trainingseinheiten",
       "aiFeedback": "KI-gestütztes sofortiges Feedback",
       "progressTracking": "Fortschrittsverfolgung & Analysen",
-      "drillRecommendations": "Personalisierte Übungsempfehlungen"
+      "drillRecommendations": "Personalisierte Übungsempfehlungen",
+      "unlimitedAi": "Unbegrenzte KI-Credits — kein monatliches Limit",
+      "adFree": "Werbefrei — keine Sponsor-Banner"
+    },
+    "freePlan": {
+      "title": "Kostenlos",
+      "subtitle": "Für immer, keine Karte erforderlich",
+      "price": "0 $",
+      "cta": "Kostenlos beitreten",
+      "features": {
+        "timer": "Rundentimer",
+        "streaming": "Live-Streaming",
+        "feed": "Community-Feed",
+        "leaderboard": "Bestenliste",
+        "profile": "Kämpferprofil",
+        "aiCredits": "10.000 KI-Credits/Monat (~5 Analysen)"
+      }
     },
     "plans": {
       "annual": "Jährlich",
@@ -61,9 +77,9 @@
     "hideDetails": "Details ausblenden",
     "planDetails": {
       "title": "Plandetails",
-      "monthlyLine": "Monatlich (5 $/Monat): Voller Zugang, jederzeit kündbar",
+      "monthlyLine": "Monatlich (5 $/Monat): Unbegrenzte KI + werbefrei, jederzeit kündbar",
       "annualLine": "Jährlich (25 $/Jahr): Gleiche Funktionen, 58 % Ersparnis",
-      "trial": "7-tägige kostenlose Testphase bei beiden Plänen",
+      "trial": "14-tägige kostenlose Testphase bei beiden kostenpflichtigen Plänen",
       "billing": "Karte erforderlich — Abrechnung startet automatisch nach der Testphase"
     },
     "cta": "14-tägige kostenlose Testphase starten",

@@ -35,8 +35,8 @@
     "subtitle": "Entre para continuar seu treinamento"
   },
   "paywall": {
-    "headline": "Treine como um profissional por menos de um café por mês.",
-    "subheadline": "Seu parceiro de treino com IA conduz seus rounds, analisa sua técnica e diz exatamente no que trabalhar.",
+    "headline": "Treine de graça. Faça upgrade só se quiser IA ilimitada.",
+    "subheadline": "Registre sessões, transmita ao vivo e participe da comunidade de graça. Seu parceiro de treino com IA te dá 10.000 créditos grátis por mês — cerca de 5 análises completas — sem precisar de cartão.",
     "whatsInside": "O que está incluso",
     "partnerReady": "está pronto",
     "partnerAwaits": "Seu {{style}} te espera",
@@ -44,7 +44,23 @@
       "unlimitedTraining": "Sessões de treino ilimitadas",
       "aiFeedback": "Feedback instantâneo com IA",
       "progressTracking": "Acompanhamento de progresso e análises",
-      "drillRecommendations": "Exercícios personalizados recomendados"
+      "drillRecommendations": "Exercícios personalizados recomendados",
+      "unlimitedAi": "Créditos de IA ilimitados — sem limite mensal",
+      "adFree": "Sem anúncios — sem banners de patrocinadores"
+    },
+    "freePlan": {
+      "title": "Grátis",
+      "subtitle": "Para sempre, sem cartão necessário",
+      "price": "$0",
+      "cta": "Participar grátis",
+      "features": {
+        "timer": "Cronômetro de round",
+        "streaming": "Transmissão ao vivo",
+        "feed": "Feed da comunidade",
+        "leaderboard": "Classificação",
+        "profile": "Perfil de lutador",
+        "aiCredits": "10.000 créditos de IA/mês (~5 análises)"
+      }
     },
     "plans": {
       "annual": "Anual",
@@ -61,9 +77,9 @@
     "hideDetails": "Ocultar detalhes",
     "planDetails": {
       "title": "Detalhes do plano",
-      "monthlyLine": "Mensal ($5/mês): Acesso completo, cancele quando quiser",
+      "monthlyLine": "Mensal ($5/mês): IA ilimitada + sem anúncios, cancele quando quiser",
       "annualLine": "Anual ($25/ano): Mesmos recursos, 58% de economia",
-      "trial": "Período de teste gratuito de 7 dias em ambos os planos",
+      "trial": "Teste grátis de 14 dias em ambos os planos pagos",
       "billing": "Cartão necessário — cobrança inicia automaticamente após o teste"
     },
     "cta": "Começar teste gratuito de 14 dias",

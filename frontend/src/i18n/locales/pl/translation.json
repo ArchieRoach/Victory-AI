@@ -35,8 +35,8 @@
     "subtitle": "Zaloguj się, aby kontynuować trening"
   },
   "paywall": {
-    "headline": "Trenuj jak zawodowiec za mniej niż jedna kawa miesięcznie.",
-    "subheadline": "Twój partner treningowy AI prowadzi Twoje rundy, analizuje technikę i mówi Ci dokładnie, nad czym pracować.",
+    "headline": "Trenuj za darmo. Ulepszenie tylko jeśli chcesz nieograniczonej AI.",
+    "subheadline": "Śledź sesje, streamuj na żywo i dołącz do społeczności za darmo. Twój partner treningowy AI daje ci 10 000 darmowych kredytów miesięcznie — około 5 pełnych analiz — bez potrzeby podawania karty.",
     "whatsInside": "Co jest w środku",
     "partnerReady": "jest gotowy",
     "partnerAwaits": "Twój {{style}} czeka",
@@ -44,7 +44,23 @@
       "unlimitedTraining": "Nieograniczone sesje treningowe",
       "aiFeedback": "Natychmiastowa informacja zwrotna AI",
       "progressTracking": "Śledzenie postępów i analityka",
-      "drillRecommendations": "Spersonalizowane rekomendacje ćwiczeń"
+      "drillRecommendations": "Spersonalizowane rekomendacje ćwiczeń",
+      "unlimitedAi": "Nieograniczone kredyty AI — bez miesięcznego limitu",
+      "adFree": "Bez reklam — brak banerów sponsorów"
+    },
+    "freePlan": {
+      "title": "Darmowy",
+      "subtitle": "Na zawsze, bez karty",
+      "price": "$0",
+      "cta": "Dołącz za darmo",
+      "features": {
+        "timer": "Minutnik rund",
+        "streaming": "Transmisja na żywo",
+        "feed": "Kanał społeczności",
+        "leaderboard": "Ranking",
+        "profile": "Profil zawodnika",
+        "aiCredits": "10 000 kredytów AI/miesiąc (~5 analiz)"
+      }
     },
     "plans": {
       "annual": "Roczny",
@@ -61,9 +77,9 @@
     "hideDetails": "Ukryj szczegóły",
     "planDetails": {
       "title": "Szczegóły planu",
-      "monthlyLine": "Miesięczny ($5/mies.): Pełny dostęp, anuluj kiedy chcesz",
+      "monthlyLine": "Miesięczny ($5/mies.): Nieograniczone AI + bez reklam, anuluj kiedy chcesz",
       "annualLine": "Roczny ($25/rok): Te same funkcje, 58% oszczędności",
-      "trial": "7-dniowy bezpłatny okres próbny dla obu planów",
+      "trial": "14-dniowy bezpłatny okres próbny dla obu płatnych planów",
       "billing": "Karta wymagana — rozliczenie rozpoczyna się automatycznie po okresie próbnym"
     },
     "cta": "Rozpocznij 14-dniowy bezpłatny okres próbny",

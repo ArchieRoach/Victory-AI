@@ -84,7 +84,7 @@ export function SponsorBanner({ className = "", simulateAd = false }) {
           >
             {isLive ? "Learn More" : "Advertise Here"}
           </button>
-          <button onClick={() => setDismissed(true)} className="text-victory-muted hover:text-victory-text">
+          <button onClick={() => setDismissed(true)} aria-label="Dismiss ad" className="w-11 h-11 -my-3.5 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>

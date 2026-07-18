@@ -146,6 +146,20 @@ export default function PaywallPage() {
     { icon: Shield, text: t("paywall.features.drillRecommendations") },
   ];
 
+  const proOnlyFeatures = [
+    t("paywall.features.unlimitedAi"),
+    t("paywall.features.adFree"),
+  ];
+
+  const freeFeatures = [
+    t("paywall.freePlan.features.timer"),
+    t("paywall.freePlan.features.streaming"),
+    t("paywall.freePlan.features.feed"),
+    t("paywall.freePlan.features.leaderboard"),
+    t("paywall.freePlan.features.profile"),
+    t("paywall.freePlan.features.aiCredits"),
+  ];
+
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col" data-testid="paywall-page">
       <header className="p-6 text-center relative">
@@ -220,6 +234,32 @@ export default function PaywallPage() {
           ))}
         </div>
 
+        {/* Free Plan */}
+        <div className="victory-card p-4 mb-3 border border-victory-border">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="font-semibold text-victory-text">{t("paywall.freePlan.title")}</h3>
+              <p className="text-victory-muted text-sm">{t("paywall.freePlan.subtitle")}</p>
+            </div>
+            <p className="text-2xl font-heading font-bold text-victory-text">{t("paywall.freePlan.price")}</p>
+          </div>
+          <div className="space-y-1.5 mb-4">
+            {freeFeatures.map((f) => (
+              <div key={f} className="flex items-center gap-2 text-sm text-victory-muted">
+                <Check className="w-3.5 h-3.5 text-victory-muted flex-shrink-0" />
+                {f}
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => navigate("/home")}
+            className="victory-btn-ghost w-full"
+            data-testid="continue-free-btn"
+          >
+            {t("paywall.freePlan.cta")}
+          </button>
+        </div>
+
         {/* Plan Selection */}
         <div className="space-y-3 mb-6">
           {/* Annual Plan */}
@@ -280,6 +320,18 @@ export default function PaywallPage() {
               </div>
             )}
           </button>
+        </div>
+
+        {/* What Pro adds over Free */}
+        <div className="space-y-2 mb-4">
+          {proOnlyFeatures.map((text) => (
+            <div key={text} className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-victory-lime/20 flex items-center justify-center">
+                <Zap className="w-4 h-4 text-victory-lime" />
+              </div>
+              <span className="text-victory-text">{text}</span>
+            </div>
+          ))}
         </div>
 
         {/* Details Toggle */}

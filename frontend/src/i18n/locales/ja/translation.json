@@ -35,8 +35,8 @@
     "subtitle": "トレーニングを続けるためにログイン"
   },
   "paywall": {
-    "headline": "コーヒー1杯以下の費用でプロのようにトレーニング。",
-    "subheadline": "AIトレーニングパートナーがラウンドを管理し、テクニックを分析し、何に取り組むべきか正確に教えます。",
+    "headline": "無料でトレーニング。AIを無制限にしたい時だけアップグレード。",
+    "subheadline": "セッションの記録、ライブ配信、コミュニティへの参加はすべて無料。AIトレーニングパートナーは毎月10,000クレジット無料付与 — フル分析約5回分 — カード登録不要。",
     "whatsInside": "含まれる内容",
     "partnerReady": "準備完了",
     "partnerAwaits": "あなたの{{style}}が待っています",
@@ -44,7 +44,23 @@
       "unlimitedTraining": "無制限のトレーニングセッション",
       "aiFeedback": "AI搭載の即時フィードバック",
       "progressTracking": "進捗追跡と分析",
-      "drillRecommendations": "パーソナライズドドリル推薦"
+      "drillRecommendations": "パーソナライズドドリル推薦",
+      "unlimitedAi": "AIクレジット無制限 — 月間上限なし",
+      "adFree": "広告なし — スポンサーバナー非表示"
+    },
+    "freePlan": {
+      "title": "無料",
+      "subtitle": "永久無料、カード登録不要",
+      "price": "$0",
+      "cta": "無料で参加",
+      "features": {
+        "timer": "ラウンドタイマー",
+        "streaming": "ライブ配信",
+        "feed": "コミュニティフィード",
+        "leaderboard": "リーダーボード",
+        "profile": "ファイタープロフィール",
+        "aiCredits": "毎月10,000 AIクレジット（フル分析約5回分）"
+      }
     },
     "plans": {
       "annual": "年間",
@@ -61,9 +77,9 @@
     "hideDetails": "詳細を隠す",
     "planDetails": {
       "title": "プラン詳細",
-      "monthlyLine": "月間（$5/月）：フルアクセス、いつでもキャンセル可",
+      "monthlyLine": "月額（$5/月）：AI無制限 + 広告なし、いつでも解約可能",
       "annualLine": "年間（$25/年）：同じ機能、58%節約",
-      "trial": "両プランとも7日間の無料トライアル付き",
+      "trial": "両有料プランとも14日間無料トライアル",
       "billing": "カードが必要 — トライアル終了後に自動的に請求が開始"
     },
     "cta": "14日間無料トライアルを始める",

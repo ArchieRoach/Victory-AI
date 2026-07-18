@@ -35,8 +35,8 @@
     "subtitle": "Connecte-toi pour continuer ton entraînement"
   },
   "paywall": {
-    "headline": "Entraîne-toi comme un pro pour moins d'un café par mois.",
-    "subheadline": "Ton partenaire d'entraînement IA gère tes rounds, analyse ta technique et te dit exactement sur quoi travailler.",
+    "headline": "Entraîne-toi gratuitement. Passe à l'offre supérieure seulement si tu veux une IA illimitée.",
+    "subheadline": "Suis tes séances, diffuse en direct et rejoins la communauté gratuitement. Ton partenaire d'entraînement IA t'offre 10 000 crédits gratuits par mois — environ 5 analyses complètes — sans carte requise.",
     "whatsInside": "Ce qui est inclus",
     "partnerReady": "est prêt",
     "partnerAwaits": "Ton {{style}} t'attend",
@@ -44,7 +44,23 @@
       "unlimitedTraining": "Sessions d'entraînement illimitées",
       "aiFeedback": "Retour instantané alimenté par l'IA",
       "progressTracking": "Suivi des progrès et analyses",
-      "drillRecommendations": "Exercices personnalisés recommandés"
+      "drillRecommendations": "Exercices personnalisés recommandés",
+      "unlimitedAi": "Crédits IA illimités — sans plafond mensuel",
+      "adFree": "Sans publicité — aucune bannière de sponsor"
+    },
+    "freePlan": {
+      "title": "Gratuit",
+      "subtitle": "Pour toujours, sans carte requise",
+      "price": "0 $",
+      "cta": "Rejoindre gratuitement",
+      "features": {
+        "timer": "Minuteur de round",
+        "streaming": "Diffusion en direct",
+        "feed": "Fil de la communauté",
+        "leaderboard": "Classement",
+        "profile": "Profil de combattant",
+        "aiCredits": "10 000 crédits IA/mois (~5 analyses)"
+      }
     },
     "plans": {
       "annual": "Annuel",
@@ -61,9 +77,9 @@
     "hideDetails": "Masquer les détails",
     "planDetails": {
       "title": "Détails du plan",
-      "monthlyLine": "Mensuel (5 $/mois) : Accès complet, annulation à tout moment",
+      "monthlyLine": "Mensuel (5 $/mois) : IA illimitée + sans publicité, annulable à tout moment",
       "annualLine": "Annuel (25 $/an) : Mêmes fonctionnalités, 58 % d'économies",
-      "trial": "Essai gratuit de 7 jours sur les deux plans",
+      "trial": "Essai gratuit de 14 jours sur les deux plans payants",
       "billing": "Carte requise — la facturation démarre automatiquement après l'essai"
     },
     "cta": "Commencer l'essai gratuit de 14 jours",

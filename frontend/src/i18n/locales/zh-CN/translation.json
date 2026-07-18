@@ -35,8 +35,8 @@
     "subtitle": "登录以继续你的训练"
   },
   "paywall": {
-    "headline": "以不到一杯咖啡的价格像职业选手一样训练。",
-    "subheadline": "你的AI训练伙伴运行你的回合，分析你的技术，精确告诉你需要提升的地方。",
+    "headline": "免费训练。仅当你需要无限AI时才需升级。",
+    "subheadline": "免费记录训练、直播并加入社区。你的AI训练搭档每月赠送10,000免费额度 — 约5次完整分析 — 无需绑卡。",
     "whatsInside": "包含内容",
     "partnerReady": "已准备好",
     "partnerAwaits": "你的{{style}}在等你",
@@ -44,7 +44,23 @@
       "unlimitedTraining": "无限次训练课",
       "aiFeedback": "AI驱动即时反馈",
       "progressTracking": "进度跟踪与分析",
-      "drillRecommendations": "个性化训练推荐"
+      "drillRecommendations": "个性化训练推荐",
+      "unlimitedAi": "无限AI额度 — 无月度上限",
+      "adFree": "无广告 — 不显示赞助横幅"
+    },
+    "freePlan": {
+      "title": "免费版",
+      "subtitle": "永久免费，无需绑卡",
+      "price": "$0",
+      "cta": "免费加入",
+      "features": {
+        "timer": "回合计时器",
+        "streaming": "直播",
+        "feed": "社区动态",
+        "leaderboard": "排行榜",
+        "profile": "拳手主页",
+        "aiCredits": "每月10,000 AI额度（约5次分析）"
+      }
     },
     "plans": {
       "annual": "年度",
@@ -61,9 +77,9 @@
     "hideDetails": "隐藏详情",
     "planDetails": {
       "title": "方案详情",
-      "monthlyLine": "月度（$5/月）：完整访问，随时取消",
+      "monthlyLine": "月度（$5/月）：无限AI + 无广告，随时取消",
       "annualLine": "年度（$25/年）：相同功能，节省58%",
-      "trial": "两种方案均享7天免费试用",
+      "trial": "两种付费方案均享14天免费试用",
       "billing": "需要提前绑定银行卡 — 试用期结束后自动开始计费"
     },
     "cta": "开始14天免费试用",

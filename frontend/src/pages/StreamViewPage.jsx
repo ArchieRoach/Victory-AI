@@ -286,8 +286,8 @@ export default function StreamViewPage() {
         <ReportModal contentType="stream" contentId={streamId} onClose={() => setShowReport(false)} />
       )}
 
-      {/* ── Sponsor banner (above video) ── */}
-      <SponsorBanner simulateAd={false} />
+      {/* ── Sponsor banner (above video) — Pro subscribers are ad-free ── */}
+      {!user?.has_subscription && <SponsorBanner simulateAd={false} />}
 
       {/* ── Video player ── */}
       <LivePlayer playbackId={stream.playback_id} autoPlay />
