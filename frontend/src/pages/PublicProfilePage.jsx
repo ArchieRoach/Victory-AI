@@ -177,6 +177,7 @@ export function ClipsTab({ userId }) {
           <button
             key={clip.post_id}
             onClick={() => setPlaying(playing === clip.post_id ? null : clip.post_id)}
+            aria-label={playing === clip.post_id ? "Pause clip" : "Play clip"}
             className="relative aspect-square bg-black overflow-hidden group"
           >
             {clip.thumbnail_url ? (
@@ -195,7 +196,7 @@ export function ClipsTab({ userId }) {
             </div>
             {(clip.share_count || 0) >= 50 && (
               <div className="absolute top-1 right-1">
-                <span className="flex items-center gap-0.5 bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                <span className="flex items-center gap-0.5 bg-victory-orange text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                   <Flame className="w-2.5 h-2.5" />
                 </span>
               </div>

@@ -87,6 +87,7 @@ function ClipCard({ clip, onLike, onShare }) {
           {!playing && (
             <button
               onClick={togglePlay}
+              aria-label="Play video"
               className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/20 transition-colors"
             >
               <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -95,7 +96,7 @@ function ClipCard({ clip, onLike, onShare }) {
             </button>
           )}
           {playing && (
-            <button onClick={togglePlay} className="absolute inset-0" />
+            <button onClick={togglePlay} aria-label="Pause video" className="absolute inset-0" />
           )}
         </div>
       ) : clip.thumbnail_url ? (

@@ -3756,6 +3756,8 @@ async def create_clip(
         raise HTTPException(403, "Not your stream")
     if not stream.get("playback_id"):
         raise HTTPException(400, "No playback ID")
+    if await is_content_flagged(caption):
+        raise HTTPException(400, "Caption violates community guidelines")
     try:
         clip_resp = await _livepeer("POST", "/clip", {
             "playbackId": stream["playback_id"],
