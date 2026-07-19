@@ -719,6 +719,8 @@ async def generate_cloudinary_signature(
     folder: str = Query("victory_rounds"),
     user: dict = Depends(get_current_user)
 ):
+    if _rate_limited(f"cloudinary_sig:{user['user_id']}", 20, 60):
+        raise HTTPException(429, "Too many upload requests — slow down")
     if not os.environ.get("CLOUDINARY_API_SECRET"):
         raise HTTPException(status_code=500, detail="Cloudinary not configured")
     
@@ -1046,7 +1048,7 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
         )
     except Exception as e:
         logger.error(f"Stripe checkout error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Could not start checkout — please try again")
 
     await db.payment_transactions.insert_one({
         "transaction_id": f"txn_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"],
@@ -1062,7 +1064,8 @@ async def get_payment_status(session_id: str, user: dict = Depends(get_current_u
     try:
         session = await asyncio.to_thread(stripe_lib.checkout.Session.retrieve, session_id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Stripe status lookup error: {e}")
+        raise HTTPException(status_code=500, detail="Could not check payment status — please try again")
 
     # Ownership check: session must belong to the authenticated user
     txn = await db.payment_transactions.find_one({"session_id": session_id}, {"user_id": 1})
@@ -1260,7 +1263,8 @@ async def purchase_tokens(
             },
         )
     except Exception as e:
-        raise HTTPException(500, str(e))
+        logger.error(f"Stripe token checkout error: {e}")
+        raise HTTPException(500, "Could not start checkout — please try again")
     return {"checkout_url": session.url, "tokens": pkg["tokens"], "price": pkg["price"]}
 
 @api_router.post("/streams/{stream_id}/tip")
@@ -1386,7 +1390,8 @@ async def gift_subscription(stream_id: str, req: GiftSubRequest, user: dict = De
             metadata={"user_id": user["user_id"], "gift_type": "gift_sub", "stream_id": stream_id, "gift_count": str(req.count), "recipient_user_id": req.recipient_user_id or "community"},
         )
     except Exception as e:
-        raise HTTPException(500, str(e))
+        logger.error(f"Stripe gift-sub checkout error: {e}")
+        raise HTTPException(500, "Could not start checkout — please try again")
     return {"checkout_url": session.url}
 
 # ============== ADVERTISER ENDPOINTS ==============
@@ -1462,7 +1467,8 @@ async def create_ad_checkout(request: Request, req: AdCampaignRequest):
             },
         )
     except Exception as e:
-        raise HTTPException(500, str(e))
+        logger.error(f"Stripe ad checkout error: {e}")
+        raise HTTPException(500, "Could not start checkout — please try again")
     return {"checkout_url": session.url, "campaign_id": campaign_id}
 
 # ============== WAITLIST ENDPOINTS ==============
@@ -1578,6 +1584,39 @@ async def update_profile(update_data: UserUpdate, user: dict = Depends(get_curre
     if update_dict:
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": update_dict})
     return await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0})
+
+@api_router.delete("/users/me")
+async def delete_account(user: dict = Depends(get_current_user)):
+    """GDPR/CCPA account deletion. Removes the account and the primary
+    personal-content collections. Financial/transaction records (tips,
+    payment_transactions) are intentionally retained for fraud-prevention
+    and accounting purposes, per common GDPR legal-basis exceptions."""
+    user_id = user["user_id"]
+    if await db.gyms.find_one({"owner_id": user_id}):
+        raise HTTPException(400, "Transfer or delete your gym before deleting your account")
+
+    post_ids = await db.posts.distinct("post_id", {"user_id": user_id})
+    if post_ids:
+        await db.comments.delete_many({"post_id": {"$in": post_ids}})
+    await db.posts.delete_many({"user_id": user_id})
+    await db.comments.delete_many({"user_id": user_id})
+    await db.sessions.delete_many({"user_id": user_id})
+    await db.round_videos.delete_many({"user_id": user_id})
+    await db.follows.delete_many({"$or": [{"follower_id": user_id}, {"following_id": user_id}]})
+    await db.notifications.delete_many({"$or": [{"recipient_id": user_id}, {"actor_id": user_id}]})
+    await db.scheduled_streams.delete_many({"user_id": user_id})
+    await db.reports.delete_many({"reporter_id": user_id})
+
+    stream_ids = await db.streams.distinct("stream_id", {"user_id": user_id})
+    if stream_ids:
+        await db.chat_messages.delete_many({"stream_id": {"$in": stream_ids}})
+    await db.streams.delete_many({"user_id": user_id})
+
+    if user.get("gym_id"):
+        await db.gyms.update_one({"gym_id": user["gym_id"]}, {"$pull": {"members": user_id}, "$inc": {"member_count": -1}})
+
+    await db.users.delete_one({"user_id": user_id})
+    return {"message": "Account and personal data deleted"}
 
 @api_router.get("/users/stats")
 async def get_user_stats(user: dict = Depends(get_current_user)):
@@ -1935,6 +1974,15 @@ def safe_user(user: dict) -> dict:
         "is_public": user.get("is_public", True),
     }
 
+async def _require_profile_visible(user_id: str, current_user: dict):
+    """Raise 403 if user_id's profile is private and current_user isn't them.
+    Shared by every endpoint that exposes another user's clips/schedule/follows."""
+    if user_id == current_user["user_id"]:
+        return
+    target = await db.users.find_one({"user_id": user_id}, {"is_public": 1})
+    if target and not target.get("is_public", True):
+        raise HTTPException(status_code=403, detail="Profile is private")
+
 async def _recalculate_gym_stats(gym_id: str):
     gym = await db.gyms.find_one({"gym_id": gym_id})
     if not gym:
@@ -2105,6 +2153,7 @@ async def get_public_profile(user_id: str, current_user: dict = Depends(get_curr
 
 @api_router.get("/users/{user_id}/clips")
 async def get_user_clips(user_id: str, current_user: dict = Depends(get_current_user)):
+    await _require_profile_visible(user_id, current_user)
     clips = await db.posts.find(
         {"user_id": user_id, "video_url": {"$exists": True, "$ne": ""}},
         {"_id": 0}
@@ -2123,6 +2172,7 @@ class ScheduledStreamCreate(BaseModel):
 
 @api_router.get("/users/{user_id}/schedule")
 async def get_user_schedule(user_id: str, current_user: dict = Depends(get_current_user)):
+    await _require_profile_visible(user_id, current_user)
     now_iso = datetime.now(timezone.utc).isoformat()
     items = await db.scheduled_streams.find(
         {"user_id": user_id, "scheduled_at": {"$gte": now_iso}},
@@ -3233,6 +3283,7 @@ async def get_followers(user: dict = Depends(get_current_user)):
 
 @api_router.get("/users/{user_id}/followers")
 async def get_user_followers(user_id: str, current_user: dict = Depends(get_current_user)):
+    await _require_profile_visible(user_id, current_user)
     follows = await db.follows.find({"following_id": user_id}, {"_id": 0}).to_list(10000)
     my_following_docs = await db.follows.find({"follower_id": current_user["user_id"]}, {"following_id": 1}).to_list(10000)
     my_following_ids = {f["following_id"] for f in my_following_docs}
@@ -3247,6 +3298,7 @@ async def get_user_followers(user_id: str, current_user: dict = Depends(get_curr
 
 @api_router.get("/users/{user_id}/following")
 async def get_user_following(user_id: str, current_user: dict = Depends(get_current_user)):
+    await _require_profile_visible(user_id, current_user)
     follows = await db.follows.find({"follower_id": user_id}, {"_id": 0}).to_list(10000)
     my_following_docs = await db.follows.find({"follower_id": current_user["user_id"]}, {"following_id": 1}).to_list(10000)
     my_following_ids = {f["following_id"] for f in my_following_docs}
@@ -3807,13 +3859,15 @@ async def create_clip(
 @app.post("/api/livepeer/webhook")
 async def livepeer_webhook(request: Request):
     raw = await request.body()
-    if LIVEPEER_WEBHOOK_SECRET:
-        import hmac, hashlib
-        sig_header = request.headers.get("Livepeer-Signature", "")
-        provided = sig_header.split("v1=")[-1].split(",")[0].strip() if "v1=" in sig_header else sig_header.strip()
-        expected = hmac.new(LIVEPEER_WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
-        if not provided or not hmac.compare_digest(provided, expected):
-            raise HTTPException(status_code=400, detail="Invalid signature")
+    if not LIVEPEER_WEBHOOK_SECRET:
+        logger.error("LIVEPEER_WEBHOOK_SECRET not set — refusing to process unsigned event")
+        raise HTTPException(status_code=500, detail="Webhook not configured")
+    import hmac, hashlib
+    sig_header = request.headers.get("Livepeer-Signature", "")
+    provided = sig_header.split("v1=")[-1].split(",")[0].strip() if "v1=" in sig_header else sig_header.strip()
+    expected = hmac.new(LIVEPEER_WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
+    if not provided or not hmac.compare_digest(provided, expected):
+        raise HTTPException(status_code=400, detail="Invalid signature")
     body = json.loads(raw)
     event = body.get("event", "")
     lp_id = body.get("streamId") or body.get("id", "")
@@ -4124,6 +4178,7 @@ class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
         return response
 
 app.add_middleware(_SecurityHeadersMiddleware)
