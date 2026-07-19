@@ -125,7 +125,7 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
               Balance:{" "}
               <span className="text-victory-lime font-bold">{balance.toLocaleString()}</span>
             </span>
-            <button onClick={onClose} className="text-victory-muted hover:text-victory-text">
+            <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
               <X className="w-5 h-5" />
             </button>
           </div>

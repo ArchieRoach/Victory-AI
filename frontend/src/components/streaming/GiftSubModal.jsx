@@ -48,7 +48,9 @@ export function GiftSubModal({ streamId, onClose }) {
             <Gift className="w-5 h-5 text-victory-lime" />
             <h2 className="font-heading font-extrabold text-victory-text text-lg">Gift a Sub</h2>
           </div>
-          <button onClick={onClose}><X className="w-5 h-5 text-victory-muted hover:text-victory-text" /></button>
+          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target">
+            <X className="w-5 h-5 text-victory-muted hover:text-victory-text" />
+          </button>
         </div>
 
         <div className="p-5 space-y-4">

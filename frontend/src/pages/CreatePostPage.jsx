@@ -180,7 +180,8 @@ export default function CreatePostPage() {
               <video src={videoPreview} controls className="w-full h-full object-contain" />
               <button
                 onClick={() => { setVideoFile(null); setVideoPreview(null); }}
-                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center"
+                aria-label="Remove video"
+                className="absolute top-2 right-2 w-11 h-11 rounded-full bg-black/60 flex items-center justify-center touch-target"
               >
                 <X className="w-4 h-4 text-white" />
               </button>

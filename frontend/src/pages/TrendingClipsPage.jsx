@@ -61,7 +61,7 @@ function ClipCard({ clip, onLike, onShare }) {
         </button>
 
         {clip.is_viral && (
-          <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-500/30 flex-shrink-0">
+          <span className="flex items-center gap-1 bg-victory-orange/20 text-victory-orange text-[10px] font-bold px-2 py-0.5 rounded-full border border-victory-orange/30 flex-shrink-0">
             <Flame className="w-3 h-3" /> VIRAL
           </span>
         )}
@@ -129,7 +129,7 @@ function ClipCard({ clip, onLike, onShare }) {
         </button>
         <button
           onClick={() => onShare(clip)}
-          className={`flex items-center gap-1.5 transition-colors ${shareCount > 0 ? "text-orange-400" : "text-victory-muted hover:text-orange-400"}`}
+          className={`flex items-center gap-1.5 transition-colors ${shareCount > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
         >
           <Share2 className="w-5 h-5" />
           <span className="text-sm">{shareCount.toLocaleString()}</span>
@@ -229,7 +229,7 @@ export default function TrendingClipsPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 flex-1">
-            <Flame className="w-5 h-5 text-orange-400" />
+            <Flame className="w-5 h-5 text-victory-orange" />
             <h1 className="text-lg font-heading font-extrabold text-victory-text">Trending Clips</h1>
           </div>
         </div>
@@ -242,7 +242,7 @@ export default function TrendingClipsPage() {
               onClick={() => setPeriod(p.value)}
               className={`pb-3 pr-6 text-sm font-semibold border-b-2 transition-colors ${
                 period === p.value
-                  ? "border-orange-400 text-orange-400"
+                  ? "border-victory-orange text-victory-orange"
                   : "border-transparent text-victory-muted hover:text-victory-text"
               }`}
             >
@@ -256,7 +256,7 @@ export default function TrendingClipsPage() {
       <main>
         {featured && (
           <div className="mb-1">
-            <p className="px-4 py-2 text-xs font-semibold text-orange-400 uppercase tracking-wide">Shared clip</p>
+            <p className="px-4 py-2 text-xs font-semibold text-victory-orange uppercase tracking-wide">Shared clip</p>
             <ClipCard clip={featured} onLike={handleLike} onShare={setShareTarget} />
           </div>
         )}
@@ -278,7 +278,7 @@ export default function TrendingClipsPage() {
           </div>
         ) : clips.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-8 text-center gap-4">
-            <Flame className="w-12 h-12 text-orange-400/30" />
+            <Flame className="w-12 h-12 text-victory-orange/30" />
             <p className="text-victory-text font-bold">No clips yet</p>
             <p className="text-victory-muted text-sm">
               {period === "24h"

@@ -20,7 +20,7 @@ export function TokenPurchaseModal({ onClose }) {
             <Zap className="w-5 h-5 text-victory-lime" />
             <h2 className="font-heading font-extrabold text-victory-text text-lg">Top Up Tokens</h2>
           </div>
-          <button onClick={onClose}>
+          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target">
             <X className="w-5 h-5 text-victory-muted hover:text-victory-text" />
           </button>
         </div>

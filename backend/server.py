@@ -539,11 +539,14 @@ async def login(request: Request, user_data: UserLogin, response: Response):
 
 @api_router.post("/auth/session")
 async def exchange_session(request: Request, response: Response):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"session_exchange:{client_ip}", 10, 60):
+        raise HTTPException(429, "Too many attempts — try again in a minute")
     body = await request.json()
     session_id = body.get("session_id")
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id required")
-    
+
     async with httpx.AsyncClient() as client:
         auth_response = await client.get("https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data", headers={"X-Session-ID": session_id}, timeout=10.0)
         if auth_response.status_code != 200:
@@ -1578,8 +1581,10 @@ async def get_session(session_id: str, user: dict = Depends(get_current_user)):
 
 @api_router.put("/users/me")
 async def update_profile(update_data: UserUpdate, user: dict = Depends(get_current_user)):
-    if update_data.name and await is_content_flagged(update_data.name):
-        raise HTTPException(400, "Name violates community guidelines")
+    for field in ("name", "experience_level"):
+        value = getattr(update_data, field)
+        if value and await is_content_flagged(value):
+            raise HTTPException(400, f"{field.replace('_', ' ').title()} violates community guidelines")
     update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
     if update_dict:
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": update_dict})
@@ -2002,7 +2007,7 @@ async def _recalculate_gym_stats(gym_id: str):
 
 @api_router.put("/users/profile")
 async def update_extended_profile(data: UserProfileExtend, user: dict = Depends(get_current_user)):
-    for field in ("display_name", "bio"):
+    for field in ("display_name", "bio", "weight_class", "stance"):
         value = getattr(data, field)
         if value and await is_content_flagged(value):
             raise HTTPException(400, f"{field.replace('_', ' ').title()} violates community guidelines")

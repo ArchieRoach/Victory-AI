@@ -57,7 +57,7 @@ export function EmoteShop({ streamOwnerId, onClose, tokenBalance, onBalanceChang
               Balance: <span className="text-victory-lime font-semibold">{tokenBalance?.toLocaleString()} tokens</span>
             </p>
           </div>
-          <button onClick={onClose} className="text-victory-muted hover:text-victory-text p-1">
+          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>

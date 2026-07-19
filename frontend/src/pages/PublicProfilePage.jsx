@@ -227,7 +227,7 @@ export function ClipsTab({ userId }) {
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); setShareTarget(clip); }}
-                className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${(clip.share_count || 0) > 0 ? "text-orange-400" : "text-victory-muted hover:text-orange-400"}`}
+                className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${(clip.share_count || 0) > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
               >
                 <Share2 className="w-4 h-4" />
                 {clip.share_count > 0 ? clip.share_count : "Share"}
