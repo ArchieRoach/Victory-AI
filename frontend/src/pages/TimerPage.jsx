@@ -331,6 +331,7 @@ export default function TimerPage() {
               onClick={togglePause}
               className="w-16 h-16 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target transition-transform active:scale-95"
               data-testid="pause-btn"
+              aria-label={isPaused ? "Resume" : "Pause"}
             >
               {isPaused ? (
                 <Play className="w-8 h-8" />
@@ -342,6 +343,7 @@ export default function TimerPage() {
               onClick={skipToNext}
               className="w-16 h-16 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target transition-transform active:scale-95"
               data-testid="skip-btn"
+              aria-label="Skip"
             >
               <SkipForward className="w-8 h-8" />
             </button>
@@ -349,6 +351,7 @@ export default function TimerPage() {
               onClick={endTimer}
               className="w-16 h-16 rounded-full bg-victory-card border border-victory-danger flex items-center justify-center text-victory-danger touch-target transition-transform active:scale-95"
               data-testid="end-btn"
+              aria-label="End session"
             >
               <Square className="w-8 h-8" />
             </button>

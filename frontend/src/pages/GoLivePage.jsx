@@ -242,7 +242,7 @@ export default function GoLivePage() {
 
           {/* Overlays */}
           <div className="absolute top-safe-top top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-            <span className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
+            <span className="flex items-center gap-1.5 bg-victory-danger text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
               <Radio className="w-3 h-3" />
               LIVE
             </span>
@@ -260,7 +260,7 @@ export default function GoLivePage() {
           </p>
           <button
             onClick={handleEndStream}
-            className="w-full py-4 rounded-2xl bg-red-500/20 border border-red-500/50 text-red-400 font-bold text-base transition-colors active:bg-red-500/30"
+            className="w-full py-4 rounded-2xl bg-victory-danger/20 border border-victory-danger/50 text-victory-danger font-bold text-base transition-colors active:bg-victory-danger/30"
           >
             End Stream
           </button>
@@ -280,11 +280,11 @@ export default function GoLivePage() {
           </div>
         ) : phase === "error" ? (
           <div className="flex flex-col items-center gap-5 text-center max-w-xs">
-            <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-victory-danger/20 flex items-center justify-center">
               {errorMsg.toLowerCase().includes("camera") ? (
-                <VideoOff className="w-7 h-7 text-red-400" />
+                <VideoOff className="w-7 h-7 text-victory-danger" />
               ) : (
-                <AlertCircle className="w-7 h-7 text-red-400" />
+                <AlertCircle className="w-7 h-7 text-victory-danger" />
               )}
             </div>
             <p className="text-victory-muted text-sm leading-relaxed">{errorMsg}</p>
@@ -317,7 +317,7 @@ export default function GoLivePage() {
             {/* Big Go Live button */}
             <button
               onClick={handleGoLive}
-              className="w-full flex items-center justify-center gap-3 bg-red-500 hover:bg-red-600 text-white font-bold text-xl rounded-2xl py-5 transition-colors active:scale-95 transition-transform shadow-lg shadow-red-500/30"
+              className="w-full flex items-center justify-center gap-3 bg-victory-danger hover:bg-victory-danger/90 text-white font-bold text-xl rounded-2xl py-5 transition-colors active:scale-95 transition-transform shadow-lg shadow-victory-danger/30"
             >
               <Radio className="w-6 h-6" />
               Go Live

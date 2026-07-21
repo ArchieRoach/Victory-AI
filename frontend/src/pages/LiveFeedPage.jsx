@@ -334,6 +334,7 @@ export default function LiveFeedPage() {
       {/* Plus / Go Live FAB — matches TikTok centre */}
       <button
         onClick={() => navigate("/go-live")}
+        aria-label="Go live"
         className="fixed bottom-24 left-1/2 -translate-x-1/2 z-30 w-12 h-12 bg-victory-lime rounded-2xl flex items-center justify-center shadow-lg shadow-victory-lime/30 pointer-events-auto"
       >
         <Plus className="w-6 h-6 text-black stroke-[3]" />
