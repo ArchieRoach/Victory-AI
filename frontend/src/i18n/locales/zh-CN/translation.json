@@ -97,6 +97,13 @@
     "upgrade": "升级"
   },
   "onboarding": {
+    "birth_date": {
+      "question": "你的出生日期是？",
+      "subtitle": "我们仅询问一次，以遵守数据保护法规。",
+      "cta": "继续",
+      "under13": "您必须年满13岁才能使用 Victory AI",
+      "required": "请输入您的出生日期"
+    },
     "affirmation": {
       "title": "明智之举，冠军。",
       "subtitle": "你刚刚加入了数千名每轮都在进步的拳手。",
@@ -349,7 +356,13 @@
     "amateur_draws": "平",
     "virtualRecord": "虚拟战绩",
     "competition_wins": "胜",
-    "competition_losses": "负"
+    "competition_losses": "负",
+    "privacyPolicy": "隐私政策",
+    "downloadMyData": "下载我的数据",
+    "deleteAccount": "删除账户",
+    "deleteAccountConfirm": "此操作将永久删除您的账户和个人数据，且无法撤销。是否继续？",
+    "deleteAccountFailed": "无法删除您的账户，请重试",
+    "exportDataFailed": "无法导出您的数据，请重试"
   },
   "train": {
     "title": "设置训练",

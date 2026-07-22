@@ -97,6 +97,13 @@
     "upgrade": "ترقية"
   },
   "onboarding": {
+    "birth_date": {
+      "question": "متى ولدت؟",
+      "subtitle": "نسألك هذا مرة واحدة فقط، للامتثال لقوانين حماية البيانات.",
+      "cta": "متابعة",
+      "under13": "يجب أن يكون عمرك 13 عامًا على الأقل لاستخدام Victory AI",
+      "required": "يرجى إدخال تاريخ ميلادك"
+    },
     "affirmation": {
       "title": "قرار ذكي، بطل.",
       "subtitle": "لقد انضممت للتو إلى آلاف المقاتلين الذين يتحسنون في كل جولة.",
@@ -349,7 +356,13 @@
     "amateur_draws": "تعادلات",
     "virtualRecord": "السجل الافتراضي",
     "competition_wins": "انتصارات",
-    "competition_losses": "هزائم"
+    "competition_losses": "هزائم",
+    "privacyPolicy": "سياسة الخصوصية",
+    "downloadMyData": "تنزيل بياناتي",
+    "deleteAccount": "حذف الحساب",
+    "deleteAccountConfirm": "سيؤدي هذا إلى حذف حسابك وبياناتك الشخصية نهائيًا. لا يمكن التراجع عن هذا. هل تريد المتابعة؟",
+    "deleteAccountFailed": "تعذر حذف حسابك — حاول مرة أخرى",
+    "exportDataFailed": "تعذر تصدير بياناتك — حاول مرة أخرى"
   },
   "train": {
     "title": "إعداد التدريب",

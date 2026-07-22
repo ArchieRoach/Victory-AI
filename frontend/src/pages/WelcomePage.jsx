@@ -101,6 +101,10 @@ export default function WelcomePage() {
             {t("common.login")}
           </button>
         </p>
+
+        <button onClick={() => navigate("/privacy")} className="mt-3 text-victory-muted text-xs hover:underline" data-testid="welcome-privacy-link">
+          {t("profile.privacyPolicy")}
+        </button>
       </div>
     </div>
   );

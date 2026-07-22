@@ -45,6 +45,7 @@ import LiveFeedPage from "@/pages/LiveFeedPage";
 import StreamViewPage from "@/pages/StreamViewPage";
 import GoLivePage from "@/pages/GoLivePage";
 import AdvertisePage from "@/pages/AdvertisePage";
+import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import EmoteStudioPage from "@/pages/EmoteStudioPage";
 import { PushPrompt } from "@/components/PushPrompt";
 import StreamerDashboardPage from "@/pages/StreamerDashboardPage";
@@ -329,6 +330,9 @@ const AppRouter = () => {
         <Route path="/tokens/success" element={<ProtectedRoute><TokenSuccessPage /></ProtectedRoute>} />
         <Route path="/clips" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />
         <Route path="/clip/:postId" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />
+
+        {/* Public — no auth required */}
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
         {/* Advertiser onboarding — public, no auth required */}
         <Route path="/advertise" element={<AdvertisePage />} />

@@ -5,7 +5,7 @@ import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2 } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
@@ -183,6 +183,32 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     await logout();
     navigate("/login", { replace: true });
+  };
+
+  const handleExportData = async () => {
+    try {
+      const res = await axios.get(`${API}/users/me/export`, { withCredentials: true });
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "victory-ai-my-data.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error(t("profile.exportDataFailed"));
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm(t("profile.deleteAccountConfirm"))) return;
+    try {
+      await axios.delete(`${API}/users/me`, { withCredentials: true });
+      await logout();
+      navigate("/login", { replace: true });
+    } catch {
+      toast.error(t("profile.deleteAccountFailed"));
+    }
   };
 
   const levelIndex = EXPERIENCE_LEVELS.indexOf(formData.experience_level);
@@ -708,6 +734,34 @@ export default function ProfilePage() {
           <LogOut className="w-5 h-5" />
           {t("profile.signOut")}
         </button>
+
+        {/* Privacy & data controls (GDPR Art. 13-15, 17, 20) */}
+        <div className="pt-4 mt-2 border-t border-victory-border space-y-3">
+          <button
+            onClick={() => navigate("/privacy")}
+            className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+            data-testid="privacy-policy-btn"
+          >
+            <Shield className="w-5 h-5" />
+            {t("profile.privacyPolicy")}
+          </button>
+          <button
+            onClick={handleExportData}
+            className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+            data-testid="export-data-btn"
+          >
+            <Download className="w-5 h-5" />
+            {t("profile.downloadMyData")}
+          </button>
+          <button
+            onClick={handleDeleteAccount}
+            className="victory-btn-ghost w-full flex items-center justify-center gap-2 text-victory-danger border-victory-danger"
+            data-testid="delete-account-btn"
+          >
+            <Trash2 className="w-5 h-5" />
+            {t("profile.deleteAccount")}
+          </button>
+        </div>
       </main>
       )} {/* end settings tab */}
 
