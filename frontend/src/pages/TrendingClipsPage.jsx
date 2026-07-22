@@ -199,7 +199,9 @@ export default function TrendingClipsPage() {
           : c;
       setClips((prev) => prev.map(apply));
       setFeatured((f) => (f && f.post_id === pid ? apply(f) : f));
-    } catch {} finally {
+    } catch {
+      toast.error("Couldn't update like — try again.");
+    } finally {
       likingRef.current.delete(pid);
     }
   };

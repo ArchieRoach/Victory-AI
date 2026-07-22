@@ -304,7 +304,13 @@ export default function StreamerDashboardPage() {
               <TrendingUp className="w-4 h-4 text-victory-lime" />
             </div>
             {data.chart.every(d => d.total === 0) ? (
-              <p className="text-victory-muted text-sm text-center py-8">No earnings yet this period.</p>
+              <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
+                <div className="w-10 h-10 rounded-full bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-victory-lime/50" />
+                </div>
+                <p className="text-victory-text font-semibold text-sm">No earnings yet</p>
+                <p className="text-victory-muted text-xs">Go live to start earning tokens from tips and gifts.</p>
+              </div>
             ) : (
               <EarningsChart data={data.chart} />
             )}
@@ -322,7 +328,13 @@ export default function StreamerDashboardPage() {
               </button>
             </div>
             {data.streams.length === 0 ? (
-              <p className="text-victory-muted text-sm text-center py-6">No streams yet.</p>
+              <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
+                <div className="w-10 h-10 rounded-full bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center">
+                  <Radio className="w-5 h-5 text-victory-lime/50" />
+                </div>
+                <p className="text-victory-text font-semibold text-sm">No streams yet</p>
+                <p className="text-victory-muted text-xs">Your past streams will show up here once you go live.</p>
+              </div>
             ) : (
               data.streams.map((s) => <StreamRow key={s.stream_id} stream={s} />)
             )}
@@ -340,11 +352,15 @@ export default function StreamerDashboardPage() {
               </button>
             </div>
             {data.emote_performance.length === 0 ? (
-              <div className="text-center py-6">
-                <p className="text-victory-muted text-sm">No emotes yet.</p>
+              <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
+                <div className="w-10 h-10 rounded-full bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center">
+                  <Smile className="w-5 h-5 text-victory-lime/50" />
+                </div>
+                <p className="text-victory-text font-semibold text-sm">No emotes yet</p>
+                <p className="text-victory-muted text-xs">Create emotes for your viewers to use in chat.</p>
                 <button
                   onClick={() => navigate("/emotes")}
-                  className="mt-2 text-victory-lime text-xs underline"
+                  className="mt-1 text-victory-lime text-xs underline"
                 >
                   Create your first emote
                 </button>
