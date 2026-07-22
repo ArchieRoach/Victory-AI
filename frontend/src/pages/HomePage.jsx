@@ -445,7 +445,9 @@ export default function HomePage() {
         );
       setFeed(update);
       setFollowingFeed(update);
-    } catch {}
+    } catch {
+      toast.error("Couldn't update like — try again.");
+    }
   };
 
   const handleShareUpdate = (postId, newCount) => {

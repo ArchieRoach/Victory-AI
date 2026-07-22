@@ -137,7 +137,9 @@ export default function TrainPage() {
       if (voiceEnabled && res.data?.what_you_did_well) {
         playVoiceFeedback(`${res.data.what_you_did_well} ${res.data.what_to_tighten}`);
       }
-    } catch {}
+    } catch {
+      toast.error(t("train.feedbackFailed", "Couldn't generate feedback for this round."));
+    }
     finally { setLoadingFeedback(false); }
   };
 

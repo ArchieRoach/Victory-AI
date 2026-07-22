@@ -251,7 +251,8 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
                   key={e.emote_id}
                   onClick={() => sendEmote(e)}
                   title={`:${e.name}:`}
-                  className="w-9 h-9 rounded-lg hover:bg-victory-lime/10 transition-colors p-0.5"
+                  aria-label={`Send ${e.name} emote`}
+                  className="w-11 h-11 touch-target rounded-lg hover:bg-victory-lime/10 transition-colors p-0.5"
                 >
                   <img src={e.image_url} alt={e.name} className="w-full h-full rounded object-cover" loading="lazy" />
                 </button>
@@ -267,7 +268,8 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
         <button
           onClick={onTipClick}
           title="Send tokens"
-          className="w-9 h-9 flex items-center justify-center rounded-lg border border-victory-lime/40 text-victory-lime hover:bg-victory-lime/10 transition-colors flex-shrink-0"
+          aria-label="Send tokens"
+          className="w-11 h-11 touch-target flex items-center justify-center rounded-lg border border-victory-lime/40 text-victory-lime hover:bg-victory-lime/10 transition-colors flex-shrink-0"
         >
           <Zap className="w-4 h-4" />
         </button>
@@ -276,7 +278,8 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
         <button
           onClick={onGiftClick}
           title="Gift a subscription"
-          className="w-9 h-9 flex items-center justify-center rounded-lg border border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-lime transition-colors flex-shrink-0"
+          aria-label="Gift a subscription"
+          className="w-11 h-11 touch-target flex items-center justify-center rounded-lg border border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-lime transition-colors flex-shrink-0"
         >
           <Gift className="w-4 h-4" />
         </button>
@@ -286,7 +289,9 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
           <button
             onClick={() => setShowEmotes((v) => !v)}
             title="Emotes"
-            className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-colors flex-shrink-0 ${
+            aria-label="Toggle emote picker"
+            aria-pressed={showEmotes}
+            className={`w-11 h-11 touch-target flex items-center justify-center rounded-lg border transition-colors flex-shrink-0 ${
               showEmotes ? "border-victory-lime text-victory-lime bg-victory-lime/10" : "border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-lime"
             }`}
           >
@@ -306,7 +311,8 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
         <button
           onClick={() => send()}
           disabled={!connected || !input.trim()}
-          className="w-9 h-9 flex items-center justify-center rounded-lg bg-victory-lime text-victory-bg disabled:opacity-40 transition-opacity flex-shrink-0"
+          aria-label="Send message"
+          className="w-11 h-11 touch-target flex items-center justify-center rounded-lg bg-victory-lime text-victory-bg disabled:opacity-40 transition-opacity flex-shrink-0"
         >
           <Send className="w-4 h-4" />
         </button>

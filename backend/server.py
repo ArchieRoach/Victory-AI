@@ -1016,7 +1016,7 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
         raise HTTPException(status_code=400, detail="Invalid plan")
 
     plan = SUBSCRIPTION_PLANS[checkout_req.plan_id]
-    host_url = checkout_req.origin_url.rstrip('/')
+    host_url = _safe_checkout_origin(checkout_req.origin_url)
 
     checkout_params = {
         "mode": "subscription",
@@ -1249,7 +1249,7 @@ async def purchase_tokens(
     if pkg_id not in TOKEN_PACKAGES:
         raise HTTPException(400, "Invalid package")
     pkg = TOKEN_PACKAGES[pkg_id]
-    host = origin_url.rstrip("/") or "https://victory-ai-alpha.vercel.app"
+    host = _safe_checkout_origin(origin_url)
     safe_return = return_path.lstrip("/")
     try:
         session = await asyncio.to_thread(
@@ -1392,7 +1392,7 @@ async def gift_subscription(stream_id: str, req: GiftSubRequest, user: dict = De
     if req.count not in GIFT_SUB_TIERS:
         raise HTTPException(400, f"Gift count must be one of: {list(GIFT_SUB_TIERS.keys())}")
     price = GIFT_SUB_TIERS[req.count]
-    host = req.origin_url.rstrip("/") or "https://victory-ai-alpha.vercel.app"
+    host = _safe_checkout_origin(req.origin_url)
     label = f"{req.count} Gift Sub{'s' if req.count > 1 else ''}"
     try:
         session = await asyncio.to_thread(
@@ -1447,6 +1447,7 @@ async def create_ad_checkout(request: Request, req: AdCampaignRequest):
     if not STRIPE_API_KEY:
         raise HTTPException(500, "Payments not configured")
     campaign_id = f"ad_{uuid.uuid4().hex[:12]}"
+    host = _safe_checkout_origin(req.origin_url)
     # Pre-create pending campaign so we have the ID for metadata
     await db.ad_campaigns.insert_one({
         "campaign_id": campaign_id,
@@ -1475,8 +1476,8 @@ async def create_ad_checkout(request: Request, req: AdCampaignRequest):
                 "quantity": 1,
             }],
             customer_email=req.advertiser_email or None,
-            success_url=f"{req.origin_url}/advertise/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{req.origin_url}/advertise",
+            success_url=f"{host}/advertise/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{host}/advertise",
             metadata={
                 "purchase_type": "ad_campaign",
                 "campaign_id": campaign_id,
@@ -1719,6 +1720,8 @@ async def generate_tts(tts_req: TTSRequest, user: dict = Depends(get_current_use
         raise HTTPException(status_code=402, detail="ai_quota_exceeded")
 
     voice_id = tts_req.voice_id or ELEVENLABS_VOICE_ID
+    if not re.fullmatch(r"[A-Za-z0-9]{1,64}", voice_id or ""):
+        raise HTTPException(status_code=400, detail="Invalid voice_id")
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
@@ -2506,6 +2509,8 @@ async def create_gym(gym_data: GymCreate, user: dict = Depends(get_current_user)
         raise HTTPException(status_code=403, detail="Pro subscription required to create a gym")
     if user.get("gym_id"):
         raise HTTPException(status_code=400, detail="Leave your current gym before creating a new one")
+    if await is_content_flagged(gym_data.name) or await is_content_flagged(gym_data.description):
+        raise HTTPException(status_code=400, detail="Gym content violates community guidelines")
     gym_id = f"gym_{uuid.uuid4().hex[:12]}"
     invite_code = uuid.uuid4().hex[:8].upper()
     gym_doc = {
@@ -3398,12 +3403,12 @@ async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current
           <h2 style="color:#E8FF47;margin-top:0;">New Beta Feedback</h2>
           <table style="width:100%;border-collapse:collapse;">
             <tr><td style="color:#8888A0;padding:6px 0;width:120px;">Type</td><td>{type_label}</td></tr>
-            <tr><td style="color:#8888A0;padding:6px 0;">From</td><td>{doc['user_name']} &lt;{doc['user_email']}&gt;</td></tr>
+            <tr><td style="color:#8888A0;padding:6px 0;">From</td><td>{html.escape(doc['user_name'])} &lt;{html.escape(doc['user_email'])}&gt;</td></tr>
             <tr><td style="color:#8888A0;padding:6px 0;">Rating</td><td>{rating_str}</td></tr>
-            <tr><td style="color:#8888A0;padding:6px 0;">Page</td><td>{data.page or 'Unknown'}</td></tr>
+            <tr><td style="color:#8888A0;padding:6px 0;">Page</td><td>{html.escape(data.page or 'Unknown')}</td></tr>
           </table>
           <div style="margin-top:20px;padding:16px;background:#1A1A2E;border-radius:8px;border-left:3px solid #E8FF47;">
-            <p style="margin:0;line-height:1.6;">{data.message}</p>
+            <p style="margin:0;line-height:1.6;">{html.escape(data.message)}</p>
           </div>
         </div>"""
         try:
@@ -4223,6 +4228,12 @@ async def delete_emote(emote_id: str, user: dict = Depends(get_current_user)):
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
 _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_methods=["*"], allow_headers=["*"])
+
+
+def _safe_checkout_origin(origin_url: str) -> str:
+    """Prevents open-redirect: only allow checkout redirects back to a known frontend origin."""
+    origin_url = (origin_url or "").rstrip("/")
+    return origin_url if origin_url in _cors_origins else _cors_origins[0]
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
