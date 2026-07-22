@@ -97,6 +97,13 @@
     "upgrade": "Mettre à niveau"
   },
   "onboarding": {
+    "birth_date": {
+      "question": "Quelle est votre date de naissance ?",
+      "subtitle": "Nous ne le demandons qu'une fois, pour respecter la réglementation sur la protection des données.",
+      "cta": "Continuer",
+      "under13": "Vous devez avoir au moins 13 ans pour utiliser Victory AI",
+      "required": "Veuillez indiquer votre date de naissance"
+    },
     "affirmation": {
       "title": "Bon choix, champion.",
       "subtitle": "Tu viens de rejoindre des milliers de combattants qui progressent à chaque round.",
@@ -349,7 +356,13 @@
     "amateur_draws": "Nuls",
     "virtualRecord": "Palmarès virtuel",
     "competition_wins": "Victoires",
-    "competition_losses": "Défaites"
+    "competition_losses": "Défaites",
+    "privacyPolicy": "Politique de confidentialité",
+    "downloadMyData": "Télécharger mes données",
+    "deleteAccount": "Supprimer le compte",
+    "deleteAccountConfirm": "Cela supprime définitivement votre compte et vos données personnelles. Cette action est irréversible. Continuer ?",
+    "deleteAccountFailed": "Impossible de supprimer votre compte — réessayez",
+    "exportDataFailed": "Impossible d'exporter vos données — réessayez"
   },
   "train": {
     "title": "Configurer l'entraînement",

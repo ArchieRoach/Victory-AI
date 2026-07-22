@@ -97,6 +97,13 @@
     "upgrade": "アップグレード"
   },
   "onboarding": {
+    "birth_date": {
+      "question": "生年月日を教えてください",
+      "subtitle": "データ保護法を遵守するため、一度だけお尋ねします。",
+      "cta": "次へ",
+      "under13": "Victory AIを利用するには13歳以上である必要があります",
+      "required": "生年月日を入力してください"
+    },
     "affirmation": {
       "title": "賢い選択ですね、チャンプ。",
       "subtitle": "毎ラウンド上達している数千人のファイターに仲間入りしました。",
@@ -349,7 +356,13 @@
     "amateur_draws": "引き分け",
     "virtualRecord": "バーチャル戦績",
     "competition_wins": "勝利",
-    "competition_losses": "敗北"
+    "competition_losses": "敗北",
+    "privacyPolicy": "プライバシーポリシー",
+    "downloadMyData": "自分のデータをダウンロード",
+    "deleteAccount": "アカウントを削除",
+    "deleteAccountConfirm": "アカウントと個人データが完全に削除されます。この操作は取り消せません。続行しますか？",
+    "deleteAccountFailed": "アカウントを削除できませんでした。もう一度お試しください",
+    "exportDataFailed": "データをエクスポートできませんでした。もう一度お試しください"
   },
   "train": {
     "title": "トレーニング設定",

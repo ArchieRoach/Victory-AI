@@ -12,7 +12,7 @@ from typing import List, Optional, Dict, Any, Literal
 import re
 import html
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 import httpx
 import bcrypt
 import jwt
@@ -225,6 +225,7 @@ class UserUpdate(BaseModel):
     primary_goal: Optional[str] = None
 
 class OnboardingAnswers(BaseModel):
+    birth_date: str  # ISO date "YYYY-MM-DD"
     why_downloaded: str
     heard_from: str
     biggest_frustration: str
@@ -597,8 +598,20 @@ async def get_social_proof():
 async def get_partner_styles():
     return {"styles": TRAINING_PARTNER_STYLES}
 
+def _age_years(birth_date: date) -> int:
+    today = date.today()
+    return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+
 @api_router.post("/onboarding/submit")
 async def submit_onboarding(answers: OnboardingAnswers, user: dict = Depends(get_current_user)):
+    try:
+        birth_date = date.fromisoformat(answers.birth_date)
+    except ValueError:
+        raise HTTPException(400, "Invalid birth_date")
+    # GDPR Art. 8 minimum digital-consent age floor across all EU/UK member states is 13.
+    if _age_years(birth_date) < 13:
+        raise HTTPException(403, "You must be at least 13 years old to use Victory AI")
+
     # Generate personalized affirmation based on answers
     affirmations = {
         "counter_goal": f"Landing double the amount of your favorite {answers.favorite_counter} is a realistic target within 8 weeks.",
@@ -610,6 +623,7 @@ async def submit_onboarding(answers: OnboardingAnswers, user: dict = Depends(get
         {"user_id": user["user_id"]},
         {"$set": {
             "onboarding_answers": answers.model_dump(),
+            "birth_date": answers.birth_date,
             "experience_level": answers.experience_level,
             "primary_goal": answers.biggest_frustration,
             "personalized_affirmations": affirmations
@@ -1477,7 +1491,6 @@ async def create_ad_checkout(request: Request, req: AdCampaignRequest):
 # ============== WAITLIST ENDPOINTS ==============
 
 class WaitlistSignup(BaseModel):
-    model_config = {"extra": "allow"}
     email: EmailStr
     name: Optional[str] = None
 
@@ -1615,13 +1628,49 @@ async def delete_account(user: dict = Depends(get_current_user)):
     stream_ids = await db.streams.distinct("stream_id", {"user_id": user_id})
     if stream_ids:
         await db.chat_messages.delete_many({"stream_id": {"$in": stream_ids}})
+    # Also remove messages this user sent in streams they didn't own — previously only
+    # cascade-deleted via owned streams, leaving their identity attached elsewhere (GDPR Art. 17).
+    await db.chat_messages.delete_many({"user_id": user_id})
     await db.streams.delete_many({"user_id": user_id})
+    await db.push_subscriptions.delete_many({"user_id": user_id})
+    await db.waitlist.delete_many({"email": user["email"]})
 
     if user.get("gym_id"):
         await db.gyms.update_one({"gym_id": user["gym_id"]}, {"$pull": {"members": user_id}, "$inc": {"member_count": -1}})
 
     await db.users.delete_one({"user_id": user_id})
     return {"message": "Account and personal data deleted"}
+
+@api_router.get("/users/me/export")
+async def export_my_data(user: dict = Depends(get_current_user)):
+    """GDPR Art. 15/20: full export of this user's personal data across collections."""
+    from fastapi.encoders import jsonable_encoder
+    user_id = user["user_id"]
+    proj = {"_id": 0}
+
+    post_ids = await db.posts.distinct("post_id", {"user_id": user_id})
+    comments_on_own_posts = await db.comments.find({"post_id": {"$in": post_ids}}, proj).to_list(10000) if post_ids else []
+    stream_ids = await db.streams.distinct("stream_id", {"user_id": user_id})
+    chat_in_own_streams = await db.chat_messages.find({"stream_id": {"$in": stream_ids}}, proj).to_list(10000) if stream_ids else []
+
+    export = {
+        "profile": await db.users.find_one({"user_id": user_id}, {**proj, "password": 0}),
+        "posts": await db.posts.find({"user_id": user_id}, proj).to_list(10000),
+        "comments_authored": await db.comments.find({"user_id": user_id}, proj).to_list(10000),
+        "comments_on_own_posts": comments_on_own_posts,
+        "sessions": await db.sessions.find({"user_id": user_id}, proj).to_list(10000),
+        "round_videos": await db.round_videos.find({"user_id": user_id}, proj).to_list(10000),
+        "follows": await db.follows.find({"$or": [{"follower_id": user_id}, {"following_id": user_id}]}, proj).to_list(10000),
+        "notifications": await db.notifications.find({"$or": [{"recipient_id": user_id}, {"actor_id": user_id}]}, proj).to_list(10000),
+        "scheduled_streams": await db.scheduled_streams.find({"user_id": user_id}, proj).to_list(10000),
+        "streams_hosted": await db.streams.find({"user_id": user_id}, proj).to_list(10000),
+        "chat_messages_sent": await db.chat_messages.find({"user_id": user_id}, proj).to_list(10000),
+        "chat_messages_in_own_streams": chat_in_own_streams,
+        "reports_filed": await db.reports.find({"reporter_id": user_id}, proj).to_list(10000),
+        "feedback_submitted": await db.feedback.find({"user_id": user_id}, proj).to_list(10000),
+        "push_subscriptions": await db.push_subscriptions.find({"user_id": user_id}, proj).to_list(1000),
+    }
+    return jsonable_encoder(export)
 
 @api_router.get("/users/stats")
 async def get_user_stats(user: dict = Depends(get_current_user)):
@@ -4234,6 +4283,35 @@ async def _scheduled_stream_reminder_loop():
             logger.warning(f"Scheduled stream reminder loop error: {exc}")
 
 
+# GDPR Art. 5(1)(e) storage limitation: ephemeral collections with a bounded retention
+# window. Excludes `sessions` (training history — the core product value, kept indefinitely
+# per the account's own lifetime) and `posts`/`comments` (user content, not time-bound).
+_RETENTION_POLICIES = {
+    "user_sessions": ("expires_at", 0),     # legacy auth tokens — purge once actually expired
+    "notifications": ("created_at", 180),   # engagement pings, no purpose after ~6 months
+    "chat_messages":  ("created_at", 90),    # live-stream chat, ephemeral
+    "waitlist":       ("created_at", 365),   # pre-signup leads that never converted
+    "reports":        ("created_at", 730),   # trust & safety records, kept 2y for disputes
+}
+
+async def _run_retention_cleanup():
+    now_iso = datetime.now(timezone.utc).isoformat()
+    for collection, (field, max_age_days) in _RETENTION_POLICIES.items():
+        cutoff = now_iso if max_age_days == 0 else (datetime.now(timezone.utc) - timedelta(days=max_age_days)).isoformat()
+        try:
+            result = await db[collection].delete_many({field: {"$lt": cutoff}})
+            if result.deleted_count:
+                logger.info(f"Retention cleanup: purged {result.deleted_count} old docs from {collection}")
+        except Exception as exc:
+            logger.warning(f"Retention cleanup failed for {collection}: {exc}")
+
+async def _retention_cleanup_loop():
+    """Once a day: enforce the data retention policy above."""
+    import asyncio as _aio
+    while True:
+        await _run_retention_cleanup()
+        await _aio.sleep(86400)
+
 @app.on_event("startup")
 async def startup():
     import asyncio as _aio
@@ -4244,6 +4322,7 @@ async def startup():
     if result.modified_count:
         logger.info(f"Migration: backfilled access_granted=True on {result.modified_count} users")
     _aio.create_task(_scheduled_stream_reminder_loop())
+    _aio.create_task(_retention_cleanup_loop())
 
 @app.on_event("shutdown")
 async def shutdown():

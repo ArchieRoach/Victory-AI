@@ -7,6 +7,44 @@ import { ChevronRight, Star, Users, Target, Zap, Check, Quote } from "lucide-rea
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "react-i18next";
 
+// PHASE 0: BIRTH DATE (age gate — GDPR Art. 8 minimum digital-consent age)
+const BirthDatePhase = ({ onNext }) => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [birthDate, setBirthDate] = useState("");
+
+  const handleContinue = () => {
+    if (!birthDate) return toast.error(t("onboarding.birth_date.required"));
+    const age = Math.floor((Date.now() - new Date(birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+    if (age < 13) return toast.error(t("onboarding.birth_date.under13"));
+    onNext(birthDate);
+  };
+
+  return (
+    <div className="animate-fade-in space-y-6">
+      <div className="mb-6">
+        <h1 className="text-xl font-heading font-extrabold text-victory-text mb-1">{t("onboarding.birth_date.question")}</h1>
+        <p className="text-victory-muted text-sm">{t("onboarding.birth_date.subtitle")}</p>
+      </div>
+      <input
+        type="date"
+        value={birthDate}
+        onChange={(e) => setBirthDate(e.target.value)}
+        max={new Date().toISOString().split("T")[0]}
+        className="victory-input"
+        data-testid="birth-date-input"
+      />
+      <button onClick={handleContinue} className="victory-btn-primary flex items-center justify-center gap-2" data-testid="birth-date-continue">
+        {t("onboarding.birth_date.cta")}
+        <ChevronRight className="w-5 h-5" />
+      </button>
+      <button onClick={() => navigate("/privacy")} className="w-full text-center text-victory-muted text-xs hover:underline">
+        {t("profile.privacyPolicy")}
+      </button>
+    </div>
+  );
+};
+
 // PHASE 1: AFFIRMATION
 const AffirmationPhase = ({ stats, testimonials, onNext }) => {
   const { t } = useTranslation();
@@ -619,7 +657,7 @@ export default function OnboardingFlow() {
   const { user, setUser } = useAuth();
   const { t } = useTranslation();
 
-  const [phase, setPhase] = useState("affirmation");
+  const [phase, setPhase] = useState("birth_date");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [currentPartnerStep, setCurrentPartnerStep] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -656,6 +694,7 @@ export default function OnboardingFlow() {
   const totalPartnerSteps = 3;
 
   const getProgress = () => {
+    if (phase === "birth_date") return 2;
     if (phase === "affirmation") return 5;
     if (phase === "why_hook") return 10 + (currentQuestion / totalQuestions) * 40;
     if (phase === "personalized") return 55;
@@ -739,6 +778,15 @@ export default function OnboardingFlow() {
       )}
 
       <main className="flex-1 p-6 overflow-y-auto">
+        {phase === "birth_date" && (
+          <BirthDatePhase
+            onNext={(birthDate) => {
+              setAnswers((prev) => ({ ...prev, birth_date: birthDate }));
+              setPhase("affirmation");
+            }}
+          />
+        )}
+
         {phase === "affirmation" && (
           <AffirmationPhase
             stats={socialProof.stats}

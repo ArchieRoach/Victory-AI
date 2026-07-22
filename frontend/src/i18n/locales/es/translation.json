@@ -97,6 +97,13 @@
     "upgrade": "Actualizar"
   },
   "onboarding": {
+    "birth_date": {
+      "question": "¿Cuándo naciste?",
+      "subtitle": "Te lo preguntamos una sola vez, para cumplir con la normativa de protección de datos.",
+      "cta": "Continuar",
+      "under13": "Debes tener al menos 13 años para usar Victory AI",
+      "required": "Introduce tu fecha de nacimiento"
+    },
     "affirmation": {
       "title": "Buena decisión, campeón.",
       "subtitle": "Acabas de unirte a miles de luchadores que mejoran cada asalto.",
@@ -349,7 +356,13 @@
     "amateur_draws": "Empates",
     "virtualRecord": "Récord virtual",
     "competition_wins": "Victorias",
-    "competition_losses": "Derrotas"
+    "competition_losses": "Derrotas",
+    "privacyPolicy": "Política de privacidad",
+    "downloadMyData": "Descargar mis datos",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteAccountConfirm": "Esto elimina permanentemente tu cuenta y tus datos personales. No se puede deshacer. ¿Continuar?",
+    "deleteAccountFailed": "No se pudo eliminar tu cuenta — inténtalo de nuevo",
+    "exportDataFailed": "No se pudieron exportar tus datos — inténtalo de nuevo"
   },
   "train": {
     "title": "Configura tu entrenamiento",
