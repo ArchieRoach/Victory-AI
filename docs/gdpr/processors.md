@@ -3,23 +3,14 @@
 Tracks every processor with access to Victory AI user personal data, plus exactly how to get
 each DPA in place. Checked 2026-07-22 against each vendor's current legal/trust page.
 
-## ⚠️ Fix first: undisclosed processor found in code
+## ✅ Resolved: undisclosed processor found in code
 
-`backend/server.py:552` (`POST /auth/session`) forwards a client-supplied `session_id` to
-`https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data` and uses whatever it
-returns (email, name, picture, session_token) to create/update a user account and issue a
-real session cookie.
-
-- The frontend route that used to call this (`AuthCallback.jsx`) is **not wired into
-  `App.js`** — no current UI reaches it. But the backend endpoint is still live and public.
-- "demobackend" reads as a leftover from an early prototyping platform, not a real vendor
-  relationship — worth confirming, then either **removing the endpoint** (Clerk now handles
-  auth) or, if it's genuinely still needed, adding Emergent as a proper Art. 28 processor
-  with a DPA.
-- Until resolved this is both an undisclosed third-party data flow (Art. 13(1)(e), 28) and a
-  live auth-bypass surface: anyone can `POST` an arbitrary `session_id` to this endpoint.
-- **Recommendation: delete the dead route** rather than sort a DPA for it — it's not part of
-  the current auth flow. Flag if you want that change made.
+`POST /auth/session` (`backend/server.py`) used to forward a client-supplied `session_id` to
+`https://demobackend.emergentagent.com/...` and mint a real session from whatever it returned.
+It was dead from the frontend's side (`AuthCallback.jsx` was never wired into `App.js`) but
+still live and publicly reachable on the backend — an undisclosed processor relationship plus
+an auth-bypass surface. Removed both the endpoint and the orphaned `AuthCallback.jsx` component
+that only called it. No DPA needed since it's no longer a real vendor relationship.
 
 ## Processor tracker
 

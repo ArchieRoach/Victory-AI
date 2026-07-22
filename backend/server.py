@@ -538,42 +538,6 @@ async def login(request: Request, user_data: UserLogin, response: Response):
     response.set_cookie(key="session_token", value=token, httponly=True, secure=True, samesite="none", path="/", max_age=JWT_EXPIRATION_DAYS * 24 * 60 * 60)
     return TokenResponse(access_token=token)
 
-@api_router.post("/auth/session")
-async def exchange_session(request: Request, response: Response):
-    client_ip = request.client.host if request.client else "unknown"
-    if _rate_limited(f"session_exchange:{client_ip}", 10, 60):
-        raise HTTPException(429, "Too many attempts — try again in a minute")
-    body = await request.json()
-    session_id = body.get("session_id")
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id required")
-
-    async with httpx.AsyncClient() as client:
-        auth_response = await client.get("https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data", headers={"X-Session-ID": session_id}, timeout=10.0)
-        if auth_response.status_code != 200:
-            raise HTTPException(status_code=401, detail="Invalid session")
-        auth_data = auth_response.json()
-    
-    email, name, picture, session_token = auth_data.get("email"), auth_data.get("name"), auth_data.get("picture"), auth_data.get("session_token")
-    existing_user = await db.users.find_one({"email": email}, {"_id": 0})
-    
-    if existing_user:
-        user_id = existing_user["user_id"]
-        await db.users.update_one({"user_id": user_id}, {"$set": {"name": name, "picture": picture}})
-    else:
-        user_id = f"user_{uuid.uuid4().hex[:12]}"
-        await db.users.insert_one({
-            "user_id": user_id, "email": email, "name": name, "picture": picture,
-            "experience_level": "beginner", "primary_goal": "", "created_at": datetime.now(timezone.utc).isoformat(),
-            "password": None, "onboarding_completed": False, "training_partner": None, "onboarding_answers": None
-        })
-    
-    await db.user_sessions.delete_many({"user_id": user_id})
-    await db.user_sessions.insert_one({"user_id": user_id, "session_token": session_token, "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(), "created_at": datetime.now(timezone.utc).isoformat()})
-    response.set_cookie(key="session_token", value=session_token, httponly=True, secure=True, samesite="none", path="/", max_age=7 * 24 * 60 * 60)
-    user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
-    return user
-
 @api_router.get("/auth/me")
 async def get_me(user: dict = Depends(get_current_user_with_subscription)):
     if isinstance(user.get("created_at"), datetime):
