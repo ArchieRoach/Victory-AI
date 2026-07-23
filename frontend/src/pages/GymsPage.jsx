@@ -176,7 +176,8 @@ export default function GymsPage() {
             {hasSubscription ? (
               <button
                 onClick={() => setShowCreate(true)}
-                className="w-9 h-9 rounded-full bg-victory-lime flex items-center justify-center"
+                aria-label={t("gyms.createBtn")}
+                className="w-11 h-11 rounded-full bg-victory-lime flex items-center justify-center touch-target"
               >
                 <Plus className="w-5 h-5 text-victory-bg" />
               </button>

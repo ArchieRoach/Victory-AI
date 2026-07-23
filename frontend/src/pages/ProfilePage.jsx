@@ -390,6 +390,7 @@ export default function ProfilePage() {
               <button
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={uploadingAvatar}
+                aria-label="Change photo"
                 className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-victory-lime flex items-center justify-center shadow-lg border-2 border-victory-bg"
               >
                 {uploadingAvatar

@@ -129,7 +129,7 @@ export function StreamCard({ stream }) {
 
         {/* LIVE badge */}
         {isLive && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow">
+          <div className="absolute top-2 left-2 flex items-center gap-1 bg-victory-danger text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow">
             <Radio className="w-2.5 h-2.5" />
             LIVE
           </div>
