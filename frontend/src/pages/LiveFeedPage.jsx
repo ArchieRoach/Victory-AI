@@ -133,7 +133,7 @@ function StreamCard({ stream, muted, onToggleMute }) {
       {/* Top-left badges */}
       <div className="absolute top-16 left-4 flex items-center gap-2 z-20 pointer-events-none">
         {isLive ? (
-          <span className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded">
+          <span className="flex items-center gap-1.5 bg-victory-danger text-white text-xs font-bold px-2.5 py-1 rounded">
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
             LIVE
           </span>
@@ -178,7 +178,7 @@ function StreamCard({ stream, muted, onToggleMute }) {
             </div>
           )}
           {isLive && (
-            <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">
+            <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-victory-danger text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">
               LIVE
             </span>
           )}
@@ -296,8 +296,8 @@ export default function LiveFeedPage() {
             </button>
           ))}
           {liveCount > 0 && (
-            <span className="flex-shrink-0 ml-auto flex items-center gap-1 text-red-400 text-xs font-semibold">
-              <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" />
+            <span className="flex-shrink-0 ml-auto flex items-center gap-1 text-victory-danger text-xs font-semibold">
+              <span className="w-1.5 h-1.5 bg-victory-danger rounded-full animate-pulse" />
               {liveCount} live
             </span>
           )}

@@ -393,7 +393,7 @@ export default function HomePage() {
     try {
       const res = await axios.get(`${API}/home/feed`);
       setFeed(res.data);
-    } catch {}
+    } catch { toast.error("Couldn't load feed — try again."); }
     finally { setLoadingFeed(false); }
   }, []);
 
@@ -402,7 +402,7 @@ export default function HomePage() {
     try {
       const res = await axios.get(`${API}/home/following`);
       setFollowingFeed(res.data);
-    } catch {}
+    } catch { toast.error("Couldn't load feed — try again."); }
     finally { setLoadingFollowing(false); }
   }, []);
 

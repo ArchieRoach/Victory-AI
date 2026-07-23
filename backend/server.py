@@ -1610,6 +1610,8 @@ async def delete_account(user: dict = Depends(get_current_user)):
 async def export_my_data(user: dict = Depends(get_current_user)):
     """GDPR Art. 15/20: full export of this user's personal data across collections."""
     from fastapi.encoders import jsonable_encoder
+    if _rate_limited(f"data_export:{user['user_id']}", 3, 60):
+        raise HTTPException(429, "Too many export requests — try again in a minute")
     user_id = user["user_id"]
     proj = {"_id": 0}
 

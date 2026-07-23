@@ -257,7 +257,7 @@ export default function StreamViewPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             {isLive && (
-              <span className="flex items-center gap-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+              <span className="flex items-center gap-1 bg-victory-danger text-white text-xs font-bold px-2 py-0.5 rounded">
                 <Radio className="w-3 h-3" /> LIVE
               </span>
             )}
