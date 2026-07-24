@@ -19,7 +19,7 @@ function UsageBanner({ usage, onUpgrade }) {
   const low = usage.tokens_remaining < 2_000;
 
   return (
-    <div className={`px-4 py-2 border-b flex items-center justify-between gap-3 ${low ? "bg-red-500/10 border-red-500/30" : "bg-victory-card/60 border-victory-border"}`}>
+    <div className={`px-4 py-2 border-b flex items-center justify-between gap-3 ${low ? "bg-victory-danger/10 border-victory-danger/30" : "bg-victory-card/60 border-victory-border"}`}>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-victory-muted">
@@ -29,7 +29,7 @@ function UsageBanner({ usage, onUpgrade }) {
         </div>
         <div className="h-1 bg-victory-border rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${low ? "bg-red-400" : "bg-victory-lime"}`}
+            className={`h-full rounded-full transition-all ${low ? "bg-victory-danger" : "bg-victory-lime"}`}
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -48,8 +48,8 @@ function QuotaExceededScreen({ feature }) {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6 text-center">
-      <div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-6">
-        <Zap className="w-9 h-9 text-red-400" />
+      <div className="w-20 h-20 rounded-full bg-victory-danger/10 border border-victory-danger/30 flex items-center justify-center mb-6">
+        <Zap className="w-9 h-9 text-victory-danger" />
       </div>
       <h2 className="font-heading font-extrabold text-2xl text-victory-text mb-2">
         Monthly limit reached
