@@ -217,7 +217,7 @@ export default function CompetitionDetailPage() {
                 <button
                   onClick={submitVote}
                   disabled={submitting}
-                  aria-label="Submit comment"
+                  aria-label="Cast vote"
                   className="w-11 h-11 rounded-full bg-victory-lime flex items-center justify-center disabled:opacity-40 flex-shrink-0 touch-target"
                 >
                   {submitting ? (
