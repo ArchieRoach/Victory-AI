@@ -226,8 +226,8 @@ export default function EmoteStudioPage() {
             </button>
           </div>
         ) : (
-          <div className="bg-victory-card border border-red-500/30 rounded-2xl p-4 text-center">
-            <p className="text-red-400 text-sm font-medium">No training partner yet</p>
+          <div className="bg-victory-card border border-victory-danger/30 rounded-2xl p-4 text-center">
+            <p className="text-victory-danger text-sm font-medium">No training partner yet</p>
             <p className="text-victory-muted text-xs mt-1">Create your AI partner in the Train section first.</p>
             <button onClick={() => navigate("/train")} className="mt-3 text-xs text-victory-lime underline">
               Go to Train

@@ -5,6 +5,7 @@ import { ExternalLink } from "lucide-react";
 
 export const DrillCard = ({ dimension, score, id }) => {
   const [drill, setDrill] = useState(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetchDrill();
@@ -16,8 +17,9 @@ export const DrillCard = ({ dimension, score, id }) => {
         withCredentials: true,
       });
       setDrill(response.data);
-    } catch (error) {
-      console.error("Error fetching drill:", error);
+    } catch (err) {
+      console.error("Error fetching drill:", err);
+      setError(true);
     }
   };
 
@@ -32,6 +34,12 @@ export const DrillCard = ({ dimension, score, id }) => {
     const query = encodeURIComponent(`${dimension} boxing drill tutorial`);
     return `https://www.youtube.com/results?search_query=${query}`;
   };
+
+  if (error) return (
+    <div className="victory-card p-4 text-center" data-testid={`drill-card-${dimension}-error`}>
+      <p className="text-victory-muted text-sm">Couldn't load this drill.</p>
+    </div>
+  );
 
   if (!drill) return (
     <div className="victory-card p-4 space-y-3">

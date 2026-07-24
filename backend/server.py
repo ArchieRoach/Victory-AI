@@ -4046,6 +4046,8 @@ class EmoteCreate(BaseModel):
 @api_router.post("/emotes/generate")
 async def generate_emote(data: EmoteCreate, user: dict = Depends(get_current_user)):
     """Generate an emote image via Pollinations.ai and persist it."""
+    if _rate_limited(f"emote_generate:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many requests — try again in a minute")
     if data.reaction_type not in EMOTE_REACTIONS:
         raise HTTPException(400, "Unknown reaction type")
     if data.token_price not in EMOTE_TOKEN_PRICES:
