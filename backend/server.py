@@ -2411,6 +2411,8 @@ async def get_vapid_key(_: dict = Depends(get_current_user)):
 async def push_subscribe(req: PushSubscribeRequest, user: dict = Depends(get_current_user)):
     if not VAPID_PUBLIC_KEY:
         raise HTTPException(503, "Push notifications not configured")
+    if _rate_limited(f"push_subscribe:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many requests — slow down")
     await db.push_subscriptions.update_one(
         {"endpoint": req.endpoint},
         {"$set": {

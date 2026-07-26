@@ -103,8 +103,8 @@ export default function TokenSuccessPage() {
 
         {status === "failed" && (
           <>
-            <div className="w-20 h-20 rounded-full bg-red-500/10 border-2 border-red-500/30 flex items-center justify-center mx-auto">
-              <XCircle className="w-10 h-10 text-red-400" />
+            <div className="w-20 h-20 rounded-full bg-victory-danger/10 border-2 border-victory-danger/30 flex items-center justify-center mx-auto">
+              <XCircle className="w-10 h-10 text-victory-danger" />
             </div>
             <div>
               <h1 className="text-victory-text font-black text-2xl">Something went wrong</h1>

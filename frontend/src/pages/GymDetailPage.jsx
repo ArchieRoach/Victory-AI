@@ -4,7 +4,7 @@ import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2 } from "lucide-react";
+import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2, MessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function GymDetailPage() {
@@ -192,7 +192,8 @@ export default function GymDetailPage() {
         ) : (
           <section className="space-y-3">
             {gym.recent_posts?.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+                <MessageSquare className="w-8 h-8 text-victory-muted/60" />
                 <p className="text-victory-muted">{t("gym.noPosts")}</p>
               </div>
             ) : (
