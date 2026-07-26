@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { toast } from 'sonner';
 import { API } from '@/App';
 
 function urlBase64ToUint8Array(base64String) {
@@ -57,6 +58,7 @@ export function usePushNotifications() {
       return true;
     } catch (err) {
       console.error('[push] subscribe failed:', err);
+      toast.error("Couldn't enable notifications — try again.");
       setLoading(false);
       return false;
     }
@@ -74,6 +76,7 @@ export function usePushNotifications() {
       setSubscribed(false);
     } catch (err) {
       console.error('[push] unsubscribe failed:', err);
+      toast.error("Couldn't disable notifications — try again.");
     }
     setLoading(false);
   }, []);

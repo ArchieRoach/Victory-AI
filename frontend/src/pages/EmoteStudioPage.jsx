@@ -329,8 +329,10 @@ export default function EmoteStudioPage() {
               <div className="w-6 h-6 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
             </div>
           ) : myEmotes.length === 0 ? (
-            <div className="text-center py-8 text-victory-muted text-sm">
-              No emotes yet — generate your first one above.
+            <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+              <Palette className="w-8 h-8 text-victory-muted/60" />
+              <p className="text-victory-text text-sm font-semibold">No emotes yet</p>
+              <p className="text-victory-muted text-xs">Generate your first one above.</p>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-3">
