@@ -621,6 +621,8 @@ async def create_training_partner(partner_data: TrainingPartnerCreate, user: dic
 
 @api_router.post("/onboarding/generate-avatar")
 async def generate_partner_avatar(request: Request, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"avatar_generate:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many requests — try again in a minute")
     training_partner = user.get("training_partner")
     if not training_partner:
         raise HTTPException(status_code=400, detail="Create a training partner first")
@@ -646,6 +648,8 @@ async def generate_partner_avatar(request: Request, user: dict = Depends(get_cur
 
 @api_router.post("/training-partner/regenerate-avatar")
 async def regenerate_partner_avatar_appearance(request: Request, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"avatar_generate:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many requests — try again in a minute")
     training_partner = user.get("training_partner")
     if not training_partner:
         raise HTTPException(status_code=400, detail="No training partner found")

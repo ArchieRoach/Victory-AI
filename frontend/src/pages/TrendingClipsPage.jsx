@@ -121,12 +121,10 @@ function ClipCard({ clip, onLike, onShare }) {
           <Heart className={`w-5 h-5 ${clip.liked_by_me ? "fill-current" : ""}`} />
           <span className="text-sm">{clip.like_count || 0}</span>
         </button>
-        <button
-          className="flex items-center gap-1.5 text-victory-muted hover:text-victory-text transition-colors"
-        >
+        <div className="flex items-center gap-1.5 text-victory-muted">
           <MessageCircle className="w-5 h-5" />
           <span className="text-sm">{clip.comment_count || 0}</span>
-        </button>
+        </div>
         <button
           onClick={() => onShare(clip)}
           className={`flex items-center gap-1.5 transition-colors ${shareCount > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
