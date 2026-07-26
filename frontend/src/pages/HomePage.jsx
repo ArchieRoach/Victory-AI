@@ -279,7 +279,7 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
               placeholder="Add a comment…" className="victory-input flex-1 text-sm py-1.5" maxLength={300} />
             <button onClick={submitComment} disabled={submitting || !commentText.trim()}
               aria-label="Post comment"
-              className="w-9 h-9 rounded-full bg-victory-lime flex items-center justify-center disabled:opacity-40 flex-shrink-0">
+              className="w-11 h-11 rounded-full bg-victory-lime flex items-center justify-center disabled:opacity-40 flex-shrink-0 touch-target">
               <Send className="w-4 h-4 text-victory-bg" />
             </button>
           </div>
@@ -297,7 +297,7 @@ function TipFeedCard({ tip }) {
         🥊
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-victory-lime text-[10px] font-bold uppercase tracking-[0.15em] mb-1">Coach's Corner</p>
+        <p className="section-label mb-1">Coach's Corner</p>
         <p className="text-victory-text text-sm font-semibold leading-snug">{tip.title}</p>
         <p className="text-victory-muted text-xs mt-1.5 leading-relaxed">{tip.body}</p>
       </div>
