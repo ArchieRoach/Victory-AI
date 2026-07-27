@@ -2618,6 +2618,8 @@ async def delete_gym(gym_id: str, user: dict = Depends(get_current_user)):
 
 @api_router.post("/gyms/join-by-code")
 async def join_gym_by_code(request: Request, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"gym_join_code:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many attempts — slow down")
     body = await request.json()
     invite_code = body.get("invite_code", "").upper().strip()
     if not invite_code:
@@ -3070,6 +3072,8 @@ async def mark_notifications_read(user: dict = Depends(get_current_user)):
 
 @api_router.post("/competitions")
 async def create_competition(data: CompetitionCreate, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"competitions:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many competitions — slow down")
     if data.competition_type == "ai_judge" and not await check_subscription(user):
         raise HTTPException(status_code=403, detail="Pro subscription required for AI judging")
     if await is_content_flagged(data.title) or await is_content_flagged(data.description):
@@ -3584,6 +3588,8 @@ class StreamUpdate(BaseModel):
 async def create_stream(data: StreamCreate, user: dict = Depends(get_current_user)):
     if not LIVEPEER_API_KEY:
         raise HTTPException(500, "Streaming not configured")
+    if _rate_limited(f"stream_create:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many streams — slow down")
     if await is_content_flagged(data.title) or await is_content_flagged(data.description):
         raise HTTPException(400, "Stream title/description violates community guidelines")
     try:
@@ -3832,6 +3838,8 @@ async def create_clip(
     caption: str = Query(""),
     user: dict = Depends(get_current_user),
 ):
+    if _rate_limited(f"clip_create:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many clips — slow down")
     stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
     if not stream:
         raise HTTPException(404, "Stream not found")
