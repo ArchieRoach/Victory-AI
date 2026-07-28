@@ -105,6 +105,7 @@ export default function SessionDetailPage() {
           onClick={() => navigate("/home")}
           className="w-10 h-10 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target"
           data-testid="back-btn"
+          aria-label="Go back"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>

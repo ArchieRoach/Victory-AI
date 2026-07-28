@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Coins, Check } from "lucide-react";
+import { X, Coins, Check, Smile } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { API } from "@/App";
@@ -68,9 +68,11 @@ export function EmoteShop({ streamOwnerId, onClose, tokenBalance, onBalanceChang
             <div className="w-7 h-7 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
           </div>
         ) : emotes.length === 0 ? (
-          <p className="text-victory-muted text-sm text-center py-10">
-            This streamer hasn't created any emotes yet.
-          </p>
+          <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+            <Smile className="w-8 h-8 text-victory-muted/60" />
+            <p className="text-victory-text text-sm font-semibold">No emotes yet</p>
+            <p className="text-victory-muted text-xs">This streamer hasn't created any emotes yet.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto pr-1" style={{ scrollbarWidth: "none" }}>
             {emotes.map((emote) => (
