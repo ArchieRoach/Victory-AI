@@ -2209,6 +2209,8 @@ async def get_user_schedule(user_id: str, current_user: dict = Depends(get_curre
 
 @api_router.post("/streams/schedule")
 async def create_scheduled_stream(data: ScheduledStreamCreate, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"stream_schedule:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many requests — slow down")
     try:
         scheduled_dt = datetime.fromisoformat(data.scheduled_at.replace("Z", "+00:00"))
     except (ValueError, TypeError):

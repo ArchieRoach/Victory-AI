@@ -165,7 +165,7 @@ export default function PaywallPage() {
       <header className="p-6 text-center relative">
         <button
           onClick={() => navigate(-1)}
-          className="absolute left-4 top-6 w-10 h-10 flex items-center justify-center rounded-full bg-victory-card border border-victory-border text-victory-muted hover:text-victory-text transition-colors"
+          className="absolute left-4 top-6 w-10 h-10 flex items-center justify-center rounded-full bg-victory-card border border-victory-border text-victory-muted hover:text-victory-text transition-colors touch-target"
           aria-label="Go back"
         >
           <ArrowLeft className="w-5 h-5" />
