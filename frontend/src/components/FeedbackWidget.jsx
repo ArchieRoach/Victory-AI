@@ -134,7 +134,9 @@ export default function FeedbackWidget() {
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
                     onClick={() => setRating(star === rating ? 0 : star)}
-                    className="text-2xl leading-none transition-colors"
+                    aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                    aria-pressed={rating >= star}
+                    className="text-2xl leading-none transition-colors touch-target flex items-center justify-center"
                   >
                     <Star
                       className="w-7 h-7"
