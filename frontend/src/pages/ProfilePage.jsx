@@ -181,8 +181,12 @@ export default function ProfilePage() {
     setExtendedForm((prev) => ({ ...prev, titles: prev.titles.filter((_, idx) => idx !== i) }));
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/login", { replace: true });
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch {
+      toast.error("Couldn't log out — try again");
+    }
   };
 
   const handleExportData = async () => {
