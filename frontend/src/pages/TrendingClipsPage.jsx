@@ -5,6 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { ShareSheet } from "@/components/ShareSheet";
+import { ProgressiveImage } from "@/components/ProgressiveImage";
 import { toast } from "sonner";
 import { Flame, Heart, Share2, MessageCircle, Play, ArrowLeft } from "lucide-react";
 
@@ -47,8 +48,8 @@ function ClipCard({ clip, onLike, onShare }) {
           className="flex items-center gap-3 flex-1 min-w-0"
         >
           {clip.author?.avatar_url ? (
-            <img src={clip.author.avatar_url} alt={authorName}
-              className="w-9 h-9 rounded-full object-cover border border-victory-border flex-shrink-0" />
+            <ProgressiveImage src={clip.author.avatar_url} alt={authorName}
+              className="w-9 h-9 rounded-full border border-victory-border flex-shrink-0" />
           ) : (
             <div className="w-9 h-9 rounded-full bg-victory-lime/20 flex items-center justify-center flex-shrink-0">
               <span className="text-victory-lime font-bold text-sm">{authorName[0]?.toUpperCase()}</span>
@@ -101,7 +102,7 @@ function ClipCard({ clip, onLike, onShare }) {
         </div>
       ) : clip.thumbnail_url ? (
         <div className="bg-black aspect-video">
-          <img src={clip.thumbnail_url} alt={clip.caption} className="w-full h-full object-cover" />
+          <ProgressiveImage src={clip.thumbnail_url} alt={clip.caption} className="w-full h-full" />
         </div>
       ) : null}
 
@@ -189,15 +190,26 @@ export default function TrendingClipsPage() {
   const handleLike = async (pid) => {
     if (likingRef.current.has(pid)) return; // ignore rapid double-taps
     likingRef.current.add(pid);
+
+    // Optimistic toggle — flip immediately rather than waiting on the round-trip.
+    const toggle = (c) =>
+      c.post_id === pid
+        ? { ...c, liked_by_me: !c.liked_by_me, like_count: c.like_count + (c.liked_by_me ? -1 : 1) }
+        : c;
+    setClips((prev) => prev.map(toggle));
+    setFeatured((f) => (f && f.post_id === pid ? toggle(f) : f));
+
     try {
       const res = await axios.post(`${API}/posts/${pid}/like`);
-      const apply = (c) =>
+      const reconcile = (c) =>
         c.post_id === pid
-          ? { ...c, liked_by_me: res.data.liked, like_count: res.data.like_count ?? (c.like_count + (res.data.liked ? 1 : -1)) }
+          ? { ...c, liked_by_me: res.data.liked, like_count: res.data.like_count ?? c.like_count }
           : c;
-      setClips((prev) => prev.map(apply));
-      setFeatured((f) => (f && f.post_id === pid ? apply(f) : f));
+      setClips((prev) => prev.map(reconcile));
+      setFeatured((f) => (f && f.post_id === pid ? reconcile(f) : f));
     } catch {
+      setClips((prev) => prev.map(toggle)); // revert the optimistic flip
+      setFeatured((f) => (f && f.post_id === pid ? toggle(f) : f));
       toast.error("Couldn't update like — try again.");
     } finally {
       likingRef.current.delete(pid);

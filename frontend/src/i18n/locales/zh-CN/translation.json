@@ -379,7 +379,12 @@
     "restLabel": "休息",
     "roundOf": "第{{current}}回合，共{{total}}回合",
     "uploading": "正在上传视频...",
-    "analyzing": "AI正在分析技术...",
+    "analyzing": {
+      "step0": "正在回顾你的组合拳…",
+      "step1": "正在检查你的防守…",
+      "step2": "正在分析步法…",
+      "step3": "正在完成反馈…"
+    },
     "generatingFeedback": "正在生成反馈...",
     "analyzingForm": "正在分析您的姿态...",
     "preparingFeedback": "正在准备反馈...",

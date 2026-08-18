@@ -379,7 +379,12 @@
     "restLabel": "DESCANSO",
     "roundOf": "Assalto {{current}} de {{total}}",
     "uploading": "Enviando vídeo...",
-    "analyzing": "Analisando técnica com IA...",
+    "analyzing": {
+      "step0": "Revisando suas combinações…",
+      "step1": "Verificando sua guarda…",
+      "step2": "Analisando o jogo de pernas…",
+      "step3": "Finalizando o feedback…"
+    },
     "generatingFeedback": "Gerando feedback...",
     "analyzingForm": "Analisando sua forma...",
     "preparingFeedback": "Preparando feedback...",

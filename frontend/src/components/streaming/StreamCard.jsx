@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Hls from "hls.js";
 import { Radio, Users } from "lucide-react";
+import { ProgressiveImage } from "@/components/ProgressiveImage";
 
 const HLS_BASE = "https://livepeercdn.studio/hls";
 
@@ -101,11 +102,10 @@ export function StreamCard({ stream }) {
           }`}
         >
           {stream.user_avatar ? (
-            <img
+            <ProgressiveImage
               src={stream.user_avatar}
               alt={name}
-              className="w-16 h-16 rounded-full object-cover border-2 border-victory-border"
-              onError={(e) => { e.target.style.display = "none"; }}
+              className="w-16 h-16 rounded-full border-2 border-victory-border"
             />
           ) : (
             <div className="w-16 h-16 rounded-full bg-victory-lime/20 flex items-center justify-center text-victory-lime text-2xl font-bold border-2 border-victory-lime/20">
@@ -169,7 +169,7 @@ export function StreamCard({ stream }) {
         {/* Small avatar for info row */}
         <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-victory-lime/10 border border-victory-border flex items-center justify-center">
           {stream.user_avatar ? (
-            <img src={stream.user_avatar} alt={name} className="w-full h-full object-cover" />
+            <ProgressiveImage src={stream.user_avatar} alt={name} className="w-full h-full" />
           ) : (
             <span className="text-victory-lime text-xs font-bold">{initial}</span>
           )}

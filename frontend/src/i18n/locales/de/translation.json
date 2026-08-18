@@ -379,7 +379,12 @@
     "restLabel": "PAUSE",
     "roundOf": "Runde {{current}} von {{total}}",
     "uploading": "Video wird hochgeladen...",
-    "analyzing": "Technik wird mit KI analysiert...",
+    "analyzing": {
+      "step0": "Kombinationen werden geprüft…",
+      "step1": "Deckung wird überprüft…",
+      "step2": "Fußarbeit wird analysiert…",
+      "step3": "Feedback wird fertiggestellt…"
+    },
     "generatingFeedback": "Feedback wird generiert...",
     "analyzingForm": "Deine Form wird analysiert...",
     "preparingFeedback": "Feedback wird vorbereitet...",

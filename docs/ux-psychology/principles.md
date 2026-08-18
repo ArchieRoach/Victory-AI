@@ -59,29 +59,32 @@ secondary actions is applied consistently across the design system. No gap found
 `skeleton-shimmer` / `Skeleton` components are used across 12+ pages (Feed, Home, Library,
 Competitions, Leaderboard, Gyms, Sessions, Trending Clips, etc.). Strong, consistent coverage.
 
-### 3.2 Blur-up progressive image loading — 🔴 Clear gap
-No progressive/blur-up image loading exists anywhere in the codebase — every image is a direct
-`<img src="...">` with no low-res placeholder or fade-in treatment. Fighter avatars, event
-banners, and clip thumbnails all load "hard" — on a slow connection this means either blank space
-or layout shift while the full-res asset downloads.
-**Recommendation**: introduce a small reusable `<ProgressiveImage>` wrapper (native `loading="lazy"`
-+ a blurred low-res placeholder, or simplest: a solid-color/skeleton placeholder sized to the final
-aspect ratio) and swap it in for avatar and thumbnail renders. Scoped, mechanical change — good
-candidate for a future daily-maintenance pass rather than a one-off.
+### 3.2 Blur-up progressive image loading — ✅ Fixed 2026-07-29
+Added a reusable `<ProgressiveImage>` drop-in `<img>` replacement
+(`frontend/src/components/ProgressiveImage.jsx`): fades in on load, shows a blurred low-res
+placeholder for Cloudinary-hosted images (via an on-the-fly `e_blur:1000,q_1,w_50` transform on
+the same URL) or a `skeleton-shimmer` placeholder otherwise, and sets native `loading="lazy"`.
+Applied to the highest-traffic avatar/thumbnail sites: `ProfilePage`'s main avatar,
+`PublicProfilePage`'s two avatars, `StreamCard`'s two avatars, and `TrendingClipsPage`'s author
+avatar + clip thumbnail. Deliberately **not** applied everywhere — one thumbnail in
+`PublicProfilePage`'s clips grid has its own `group-hover` opacity interaction that doesn't
+compose cleanly with the component's fade-in yet, and there are other lower-traffic `<img>` sites
+left as direct loads. Swapping in the remaining ones is a good next daily-maintenance-pass item —
+it's now a known, working pattern, not a new one to invent.
 
-### 3.3 Progress + ETA for heavy waits, optimistic UI — 🟡 Partial
-The onboarding training-partner avatar generation (`GeneratingScreen` in `OnboardingFlow.jsx`) is
-already a strong exemplar: animated progress bar + rotating descriptive status text. But the app's
-actual core AI loop — round feedback generation in `TrainPage.jsx`/`ScorePage.jsx` — only shows a
-bare spinner and one static label ("Generating feedback…"), no progress indication or status
-rotation, despite being the same class of >10s AI wait the framework is describing.
-Separately: like/vote actions (`TrendingClipsPage.jsx` `handleLike`) wait for the server response
-before updating the UI — not optimistic. Not wrong, just slower-feeling than it needs to be for a
-low-risk, reversible action.
-**Recommendation**: port the `GeneratingScreen` pattern (or a lighter version of it) to
-`TrainPage`/`ScorePage`'s feedback-loading state. Make `handleLike` optimistic (flip the heart
-immediately, revert on error) — same shape as the existing catch-and-toast pattern already used
-elsewhere.
+### 3.3 Progress + ETA for heavy waits, optimistic UI — 🟡 Partially fixed 2026-07-29
+Correction to the original audit: `ScorePage.jsx` was misread — it already had a full
+`AnalysisOverlay` (progress bar + rotating status steps) for its AI-judging wait; that part of the
+original finding was wrong. The real gap was narrower: `TrainPage.jsx`'s per-round conversational
+feedback (`generateFeedback`/`loadingFeedback`) only showed a bare spinner and one static label.
+**Fixed**: added a compact inline progress bar + rotating status text (4 steps, translated to all
+10 locales) scoped to that per-round card — not a full-screen takeover, since rounds happen
+frequently during a live session and a takeover would be disruptive there, unlike the one-time
+onboarding/scoring flows. Progress is simulated (caps at 90% until the real response lands), same
+technique as the existing `GeneratingScreen`/`AnalysisOverlay` patterns it's modeled on.
+Also fixed: `TrendingClipsPage.jsx`'s `handleLike` now updates optimistically (flips immediately,
+reconciles with the server response on success, reverts on error) instead of waiting on the
+round-trip before showing any change.
 
 ---
 
@@ -149,16 +152,17 @@ flip.
 | 2.1 | Touch targets | ✅ (actively maintained) | Keep in sweep |
 | 2.2 | Visual distinction | ✅ | — |
 | 3.1 | Skeleton screens | ✅ | — |
-| 3.2 | Blur-up images | 🔴 | Medium |
-| 3.3 | Progress/ETA, optimistic UI | 🟡 | Medium |
+| 3.2 | Blur-up images | ✅ (scoped) | Extend to remaining sites |
+| 3.3 | Progress/ETA, optimistic UI | 🟡 (TrainPage fixed) | — |
 | 4.1–4.3 | Habit/variable-reward mechanics | ⚠️ Flagged | Needs explicit decision |
 | 5.1 | IKEA effect / customization | ✅ | — |
 | 5.2 | Reciprocity/affirmation mechanics | 🟡 / ⚠️ | Needs explicit decision |
 | 5.3 | Default settings | ⚠️ One flagged | Needs explicit decision |
 
-**Bottom line**: sections 1–3 are mostly in good shape already — the codebase's own maintenance
-history has organically solved touch targets and skeleton loading, and the AI-partner customization
-flow already nails the investment principle. The two concrete, low-risk items worth picking up in a
-future maintenance pass are blur-up image loading (3.2) and progress/ETA on the core AI-feedback
-wait plus optimistic likes (3.3). Sections 4 and 5.2–5.3's engagement-mechanics items are
-deliberately left as-is pending a separate product conversation.
+**Bottom line**: sections 1–3 are in good shape — the codebase's own maintenance history had
+already organically solved touch targets and skeleton loading, and the AI-partner customization
+flow already nailed the investment principle. The two concrete gaps (3.2 blur-up images, 3.3
+progress/ETA + optimistic likes) were fixed 2026-07-29, scoped to the highest-traffic sites rather
+than exhaustively — see each section for what's covered and what's left as a follow-up. Sections 4
+and 5.2–5.3's engagement-mechanics items are deliberately left as-is pending a separate product
+conversation.
