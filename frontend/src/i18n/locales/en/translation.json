@@ -112,24 +112,6 @@
       "avgImprovement": "Avg Improvement",
       "cta": "Let's Build Your AI Training Partner"
     },
-    "why_downloaded": {
-      "question": "What made you download Victory AI today?",
-      "subtitle": "Be honest — we'll tailor everything to this",
-      "improve_technique": "I want to fix my technique",
-      "get_feedback": "I train alone and need feedback",
-      "stay_consistent": "I struggle with consistency",
-      "prepare_fight": "I'm preparing for a fight/sparring",
-      "just_curious": "Just curious to try it"
-    },
-    "heard_from": {
-      "question": "Where did you hear about us?",
-      "subtitle": "Helps us find more fighters like you",
-      "social_media": "Social media (TikTok, Instagram)",
-      "youtube": "YouTube",
-      "friend": "A friend or training partner",
-      "search": "Google search",
-      "other": "Somewhere else"
-    },
     "biggest_frustration": {
       "question": "What frustrates you most about training?",
       "subtitle": "This is what your partner will focus on fixing",
@@ -138,14 +120,6 @@
       "defense_weak": "My defense is weak",
       "no_power": "My punches lack power",
       "footwork": "My footwork is sloppy"
-    },
-    "training_frequency": {
-      "question": "How often do you train boxing?",
-      "daily": "Almost every day",
-      "3-4_week": "3-4 times a week",
-      "1-2_week": "1-2 times a week",
-      "inconsistent": "Whenever I can (inconsistent)",
-      "just_starting": "Just starting out"
     },
     "experience_level": {
       "question": "How long have you been boxing?",

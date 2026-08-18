@@ -32,13 +32,24 @@ edge-to-edge on a wide desktop browser window. Fixing this properly means a shar
 constraint, not a per-page patch — a good candidate for its own pass rather than folding into a
 text-content fix.
 
-### 1.3 Minimize form friction (decision fatigue) — 🟡 Partial
-The onboarding flow already uses the right pattern — one single-tap choice per screen, not a
-multi-field form — which is the correct mitigation for this goal. But the total sequence is long:
-birth-date gate → 8 single-choice questions (`OnboardingFlow.jsx` `questions` array) → 3 training-
-partner-creation steps → naming, all before reaching the app. No redundant re-asking of
-already-known data was found. Worth a future look at whether all 8 "why-hook" questions are load-
-bearing for personalization, or whether some could be cut/deferred post-onboarding.
+### 1.3 Minimize form friction (decision fatigue) — ✅ Fixed 2026-08-04
+The onboarding flow already used the right pattern — one single-tap choice per screen, not a
+multi-field form. What it hadn't done was question *whether every question earned its place*.
+Traced each of the 8 "why-hook" fields to its actual use: `why_downloaded`, `heard_from`, and
+`training_frequency` were collected into `onboarding_answers` and then never read again — not in
+the personalization/affirmation logic, not in any AI prompt, not surfaced on any admin or profile
+view. Pure write-only data with zero product payback. **Cut all three** — from the frontend
+`questions` array, the backend `OnboardingAnswers` model, and the now-orphaned i18n keys (all 10
+locales). The why-hook sequence goes from 8 questions to 5; total onboarding screens (birth-date
+gate → why-hook → partner creation → naming) drops from 13 to 10.
+Kept: `boxing_stance` (personalizes the next question's options), `biggest_frustration` and
+`favorite_counter` (both feed the post-quiz personalized-affirmation copy), `experience_level`
+(used pervasively — stats, feedback prompts, badge thresholds), `favorite_fighter` (feeds the AI
+avatar-generation prompt, and is correctly reused rather than re-asked at avatar-generation time).
+Also checked every other user-facing form (gym creation: 2 fields, already minimal; advertiser
+signup: 4 fields, reasonable for a B2B lead form and can't reuse app-user data since advertisers
+aren't necessarily logged in; go-live: no manual title/description fields at all) — no other gaps
+found. No redundant re-asking of already-known data anywhere.
 
 ### 1.4 Familiar mental models (Jakob's Law) — ✅ Already meets this
 Bottom nav, top search (`DiscoverPage`), standard back arrows, high-contrast primary CTAs — all
@@ -155,7 +166,7 @@ flip.
 |---|------|--------|---------------------|
 | 1.1 | Nav icon labels | ✅ | — |
 | 1.2 | Readability/chunking | ✅ | Wide-viewport max-width is a separate future item |
-| 1.3 | Form friction | 🟡 | Low |
+| 1.3 | Form friction | ✅ | — |
 | 1.4 | Familiar mental models | ✅ | — |
 | 2.1 | Touch targets | ✅ (actively maintained) | Keep in sweep |
 | 2.2 | Visual distinction | ✅ | — |

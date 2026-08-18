@@ -113,30 +113,6 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers }) => {
 
   const questions = [
     {
-      id: "why_downloaded",
-      question: t("onboarding.why_downloaded.question"),
-      subtitle: t("onboarding.why_downloaded.subtitle"),
-      options: [
-        { value: "improve_technique", label: t("onboarding.why_downloaded.improve_technique"), icon: "🎯" },
-        { value: "get_feedback", label: t("onboarding.why_downloaded.get_feedback"), icon: "👀" },
-        { value: "stay_consistent", label: t("onboarding.why_downloaded.stay_consistent"), icon: "📅" },
-        { value: "prepare_fight", label: t("onboarding.why_downloaded.prepare_fight"), icon: "🥊" },
-        { value: "just_curious", label: t("onboarding.why_downloaded.just_curious"), icon: "🤔" },
-      ],
-    },
-    {
-      id: "heard_from",
-      question: t("onboarding.heard_from.question"),
-      subtitle: t("onboarding.heard_from.subtitle"),
-      options: [
-        { value: "social_media", label: t("onboarding.heard_from.social_media"), icon: "📱" },
-        { value: "youtube", label: t("onboarding.heard_from.youtube"), icon: "▶️" },
-        { value: "friend", label: t("onboarding.heard_from.friend"), icon: "👥" },
-        { value: "search", label: t("onboarding.heard_from.search"), icon: "🔍" },
-        { value: "other", label: t("onboarding.heard_from.other"), icon: "🌐" },
-      ],
-    },
-    {
       id: "biggest_frustration",
       question: t("onboarding.biggest_frustration.question"),
       subtitle: t("onboarding.biggest_frustration.subtitle"),
@@ -146,17 +122,6 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers }) => {
         { value: "defense_weak", label: t("onboarding.biggest_frustration.defense_weak"), icon: "🛡️" },
         { value: "no_power", label: t("onboarding.biggest_frustration.no_power"), icon: "💪" },
         { value: "footwork", label: t("onboarding.biggest_frustration.footwork"), icon: "👣" },
-      ],
-    },
-    {
-      id: "training_frequency",
-      question: t("onboarding.training_frequency.question"),
-      options: [
-        { value: "daily", label: t("onboarding.training_frequency.daily"), icon: "🔥" },
-        { value: "3-4_week", label: t("onboarding.training_frequency.3-4_week"), icon: "💪" },
-        { value: "1-2_week", label: t("onboarding.training_frequency.1-2_week"), icon: "📅" },
-        { value: "inconsistent", label: t("onboarding.training_frequency.inconsistent"), icon: "🎲" },
-        { value: "just_starting", label: t("onboarding.training_frequency.just_starting"), icon: "🌱" },
       ],
     },
     {
@@ -690,7 +655,7 @@ export default function OnboardingFlow() {
     }
   };
 
-  const totalQuestions = 8;
+  const totalQuestions = 5;
   const totalPartnerSteps = 3;
 
   const getProgress = () => {

@@ -226,10 +226,7 @@ class UserUpdate(BaseModel):
 
 class OnboardingAnswers(BaseModel):
     birth_date: str  # ISO date "YYYY-MM-DD"
-    why_downloaded: str
-    heard_from: str
     biggest_frustration: str
-    training_frequency: str
     experience_level: str
     favorite_counter: str
     boxing_stance: Optional[str] = None

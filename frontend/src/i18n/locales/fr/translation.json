@@ -111,24 +111,6 @@
       "avgImprovement": "Amélioration moy.",
       "cta": "Créons ton partenaire d'entraînement IA"
     },
-    "why_downloaded": {
-      "question": "Qu'est-ce qui t'a poussé à télécharger Victory AI aujourd'hui ?",
-      "subtitle": "Sois honnête — nous adapterons tout à cela",
-      "improve_technique": "Je veux corriger ma technique",
-      "get_feedback": "Je m'entraîne seul et j'ai besoin de retours",
-      "stay_consistent": "J'ai du mal à être régulier",
-      "prepare_fight": "Je me prépare pour un combat/sparring",
-      "just_curious": "Juste curieux d'essayer"
-    },
-    "heard_from": {
-      "question": "Comment as-tu entendu parler de nous ?",
-      "subtitle": "Aide-nous à trouver plus de combattants comme toi",
-      "social_media": "Réseaux sociaux (TikTok, Instagram)",
-      "youtube": "YouTube",
-      "friend": "Un ami ou partenaire d'entraînement",
-      "search": "Recherche Google",
-      "other": "Ailleurs"
-    },
     "biggest_frustration": {
       "question": "Qu'est-ce qui te frustre le plus dans l'entraînement ?",
       "subtitle": "C'est sur quoi ton partenaire va se concentrer pour t'aider",
@@ -137,14 +119,6 @@
       "defense_weak": "Ma défense est faible",
       "no_power": "Mes coups manquent de puissance",
       "footwork": "Mon jeu de jambes est négligé"
-    },
-    "training_frequency": {
-      "question": "À quelle fréquence t'entraînes-tu à la boxe ?",
-      "daily": "Presque tous les jours",
-      "3-4_week": "3-4 fois par semaine",
-      "1-2_week": "1-2 fois par semaine",
-      "inconsistent": "Quand je peux (irrégulier)",
-      "just_starting": "Je commence tout juste"
     },
     "experience_level": {
       "question": "Depuis combien de temps fais-tu de la boxe ?",
