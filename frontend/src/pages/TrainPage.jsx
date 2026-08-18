@@ -9,6 +9,7 @@ import {
   Volume2, VolumeX, Lock, Radio, Zap,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Progress } from "@/components/ui/progress";
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
@@ -74,10 +75,25 @@ export default function TrainPage() {
   // ── AI Feedback state ────────────────────────────────────────────────────────
   const [feedback,        setFeedback]        = useState(null);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [feedbackProgress, setFeedbackProgress] = useState(0);
+  const [feedbackStep,     setFeedbackStep]     = useState(0);
 
   const audioRef    = useRef(null);
   const intervalRef = useRef(null);
   const hypeTimerRef = useRef(null);
+
+  // Simulated progress + rotating status while waiting on AI round feedback —
+  // caps at 90% so it never looks "done" before the response actually lands.
+  useEffect(() => {
+    if (!loadingFeedback) { setFeedbackProgress(0); setFeedbackStep(0); return; }
+    const progressTimer = setInterval(() => {
+      setFeedbackProgress((p) => (p >= 90 ? 90 : p + 6));
+    }, 200);
+    const stepTimer = setInterval(() => {
+      setFeedbackStep((s) => Math.min(s + 1, 3));
+    }, 900);
+    return () => { clearInterval(progressTimer); clearInterval(stepTimer); };
+  }, [loadingFeedback]);
 
   useEffect(() => {
     const saved = localStorage.getItem("victory_train_config");
@@ -618,9 +634,14 @@ export default function TrainPage() {
                   </div>
 
                   {loadingFeedback ? (
-                    <div className="flex items-center justify-center py-4 gap-2">
-                      <div className="w-6 h-6 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
-                      <span className="text-victory-muted text-sm">{t("train.generatingFeedback")}</span>
+                    <div className="py-2 space-y-2">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-6 h-6 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
+                        <span className="text-victory-muted text-sm">
+                          {t(`train.analyzing.step${feedbackStep}`, t("train.generatingFeedback"))}
+                        </span>
+                      </div>
+                      <Progress value={feedbackProgress} className="h-1.5" />
                     </div>
                   ) : feedback ? (
                     <div className="space-y-3">

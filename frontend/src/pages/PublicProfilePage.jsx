@@ -4,6 +4,7 @@ import axios from "axios";
 import { formatDistanceToNow, format, isPast } from "date-fns";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
+import { ProgressiveImage } from "@/components/ProgressiveImage";
 import { toast } from "sonner";
 import {
   ArrowLeft, Trophy, Swords, Target, Building2,
@@ -88,7 +89,7 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
               <div key={u.user_id} className="flex items-center gap-3 px-4 py-3 border-b border-victory-border last:border-0">
                 <button onClick={() => { onClose(); navigate(`/profile/${u.user_id}`); }} className="flex items-center gap-3 flex-1 min-w-0">
                   {u.avatar_url ? (
-                    <img src={u.avatar_url} alt={u.display_name} className="w-10 h-10 rounded-full object-cover border border-victory-border flex-shrink-0" />
+                    <ProgressiveImage src={u.avatar_url} alt={u.display_name} className="w-10 h-10 rounded-full border border-victory-border flex-shrink-0" />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-victory-lime/20 flex items-center justify-center text-victory-lime font-bold flex-shrink-0">
                       {(u.display_name || u.name || "F")[0].toUpperCase()}
@@ -612,8 +613,8 @@ export default function PublicProfilePage() {
         <div className="victory-card p-4">
           <div className="flex items-start gap-4">
             {profile.picture || profile.avatar_url ? (
-              <img src={profile.avatar_url || profile.picture} alt={displayName}
-                className="w-16 h-16 rounded-full object-cover border-2 border-victory-lime flex-shrink-0" />
+              <ProgressiveImage src={profile.avatar_url || profile.picture} alt={displayName}
+                className="w-16 h-16 rounded-full border-2 border-victory-lime flex-shrink-0" />
             ) : (
               <div className="w-16 h-16 rounded-full bg-victory-lime flex items-center justify-center flex-shrink-0">
                 <span className="text-victory-bg font-bold text-2xl">{displayName[0]?.toUpperCase()}</span>

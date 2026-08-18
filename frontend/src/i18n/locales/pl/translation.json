@@ -379,7 +379,12 @@
     "restLabel": "ODPOCZYNEK",
     "roundOf": "Runda {{current}} z {{total}}",
     "uploading": "Przesyłanie wideo...",
-    "analyzing": "Analiza techniki przez AI...",
+    "analyzing": {
+      "step0": "Analizowanie kombinacji…",
+      "step1": "Sprawdzanie gardy…",
+      "step2": "Analizowanie pracy nóg…",
+      "step3": "Finalizowanie opinii…"
+    },
     "generatingFeedback": "Generowanie informacji...",
     "analyzingForm": "Analiza Twojej formy...",
     "preparingFeedback": "Przygotowanie informacji...",

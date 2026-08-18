@@ -380,7 +380,12 @@
     "restLabel": "REST",
     "roundOf": "Round {{current}} of {{total}}",
     "uploading": "Uploading video...",
-    "analyzing": "Analyzing technique with AI...",
+    "analyzing": {
+      "step0": "Reviewing your combinations…",
+      "step1": "Checking your guard…",
+      "step2": "Analyzing footwork…",
+      "step3": "Finalizing feedback…"
+    },
     "generatingFeedback": "Generating feedback...",
     "analyzingForm": "Analyzing your form...",
     "preparingFeedback": "Preparing feedback...",

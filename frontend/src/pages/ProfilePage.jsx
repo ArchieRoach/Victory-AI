@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
+import { ProgressiveImage } from "@/components/ProgressiveImage";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { toast } from "sonner";
 import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2 } from "lucide-react";
@@ -387,7 +388,7 @@ export default function ProfilePage() {
             <div className="relative flex-shrink-0">
               <div className="w-20 h-20 rounded-full overflow-hidden bg-victory-lime/10 border-2 border-victory-border flex items-center justify-center">
                 {avatarSrc ? (
-                  <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
+                  <ProgressiveImage src={avatarSrc} alt="Profile" className="w-full h-full" />
                 ) : (
                   <User className="w-8 h-8 text-victory-lime" />
                 )}

@@ -379,7 +379,12 @@
     "restLabel": "REPOS",
     "roundOf": "Round {{current}} sur {{total}}",
     "uploading": "Envoi de la vidéo...",
-    "analyzing": "Analyse de la technique par IA...",
+    "analyzing": {
+      "step0": "Analyse de vos combinaisons…",
+      "step1": "Vérification de votre garde…",
+      "step2": "Analyse du jeu de jambes…",
+      "step3": "Finalisation du retour…"
+    },
     "generatingFeedback": "Génération du retour...",
     "analyzingForm": "Analyse de votre forme...",
     "preparingFeedback": "Préparation du retour...",
