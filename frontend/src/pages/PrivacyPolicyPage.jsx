@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
           <p>
             Victory AI ("we", "us") provides an AI-powered boxing training app. For the purposes of
             data protection law we are the data controller for the personal data described below.
-            Contact us at <span className="text-victory-text">privacy@victoryai.co.uk</span> for any
+            Contact us at <a href="mailto:privacy@victoryai.co.uk" className="text-victory-lime underline">privacy@victoryai.co.uk</a> for any
             privacy question or to exercise your rights.
           </p>
         </Section>

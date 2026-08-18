@@ -12,17 +12,25 @@ maintenance passes should check new/changed screens against this doc alongside `
 
 ### 1.1 Icon + text labels on navigation — ✅ Already meets this
 Every primary nav item (Live, Discover, Home, Train, Profile) pairs an icon with an explicit text
-label underneath (`BottomNav.jsx`). No gap.
+label underneath (`BottomNav.jsx`). Re-checked 2026-07-31 against every other tab-bar-style
+control in the app (`ProfilePage`, `PublicProfilePage`, `GymsPage`, `GymDetailPage`,
+`CompetitionsPage`, `HomePage`) — all either pair icon+label the same way or are plain-text tabs
+(inherently labeled). No gap anywhere in the app.
 
-### 1.2 Readability & chunking (Miller's Law) — 🟡 Partial
-Spacing and card-based segmentation are consistent app-wide (`victory-card` pattern), and skeleton
-loading states already break content into discernible blocks. Two things not found anywhere in the
-codebase:
-- No explicit line-length constraint on long-form text blocks (e.g. `PrivacyPolicyPage.jsx`'s
-  policy sections, AI feedback commentary) — containers are width-capped (`max-w-lg`, ~512px) but
-  that's a container width, not a measured line-length choice.
-- No underline/bold-keyword convention for inline text links — low priority, since this is a
-  mobile app UI with very few inline text links (mostly buttons), not a content site.
+### 1.2 Readability & chunking (Miller's Law) — ✅ Fixed 2026-07-31
+Re-audited the actual long-form content: AI feedback (`TrainPage`, `SessionResultsPage`) was
+already well-chunked — short icon-prefixed blocks in a `space-y-*` stack, not paragraphs — no
+change needed there. `PrivacyPolicyPage.jsx` already had headings (`Section` component), bold
+keywords (`<strong>` throughout), and a `max-w-lg` container. The one real gap: the page's contact
+email was styled as plain text, not an actual link. **Fixed** — it's now a proper underlined
+`mailto:` anchor. Confirmed via a full-codebase grep that this was genuinely the only link-shaped
+element in the entire app (zero `<a href>`/`mailto:` elsewhere), so no other link styling was
+needed.
+**Known follow-up, out of scope today**: most pages have no `max-w-*` wrapper on their content
+(only 8 of 35 do), so line length is bounded by mobile viewport width today but would run
+edge-to-edge on a wide desktop browser window. Fixing this properly means a shared layout
+constraint, not a per-page patch — a good candidate for its own pass rather than folding into a
+text-content fix.
 
 ### 1.3 Minimize form friction (decision fatigue) — 🟡 Partial
 The onboarding flow already uses the right pattern — one single-tap choice per screen, not a
@@ -146,7 +154,7 @@ flip.
 | # | Goal | Status | Priority if acting |
 |---|------|--------|---------------------|
 | 1.1 | Nav icon labels | ✅ | — |
-| 1.2 | Readability/chunking | 🟡 | Low |
+| 1.2 | Readability/chunking | ✅ | Wide-viewport max-width is a separate future item |
 | 1.3 | Form friction | 🟡 | Low |
 | 1.4 | Familiar mental models | ✅ | — |
 | 2.1 | Touch targets | ✅ (actively maintained) | Keep in sweep |
