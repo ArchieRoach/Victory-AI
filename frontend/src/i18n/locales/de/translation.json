@@ -475,7 +475,8 @@
     "noComments": "Noch keine Kommentare",
     "addComment": "Kommentar hinzufügen...",
     "postDeleted": "Beitrag gelöscht",
-    "unknownFighter": "Kämpfer"
+    "unknownFighter": "Kämpfer",
+    "deleteConfirm": "Diesen Beitrag löschen? Das kann nicht rückgängig gemacht werden."
   },
   "createPost": {
     "title": "Neuer Beitrag",

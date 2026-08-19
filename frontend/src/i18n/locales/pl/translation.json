@@ -475,7 +475,8 @@
     "noComments": "Brak komentarzy",
     "addComment": "Dodaj komentarz...",
     "postDeleted": "Post usunięty",
-    "unknownFighter": "Zawodnik"
+    "unknownFighter": "Zawodnik",
+    "deleteConfirm": "Usunąć ten post? Tej operacji nie można cofnąć."
   },
   "createPost": {
     "title": "Nowy post",

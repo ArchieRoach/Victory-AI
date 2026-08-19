@@ -475,7 +475,8 @@
     "noComments": "Sem comentários ainda",
     "addComment": "Adicione um comentário...",
     "postDeleted": "Post excluído",
-    "unknownFighter": "Lutador"
+    "unknownFighter": "Lutador",
+    "deleteConfirm": "Excluir esta publicação? Essa ação não pode ser desfeita."
   },
   "createPost": {
     "title": "Nova publicação",

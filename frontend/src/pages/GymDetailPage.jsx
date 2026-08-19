@@ -44,6 +44,7 @@ export default function GymDetailPage() {
   };
 
   const handleDelete = async () => {
+    if (!window.confirm(`Delete "${gym.name}"? This removes the gym for all ${gym.member_count} members and can't be undone.`)) return;
     try {
       await axios.delete(`${API}/gyms/${gymId}`);
       toast.success(t("gym.deleted"));

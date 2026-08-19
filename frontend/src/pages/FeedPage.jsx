@@ -249,6 +249,7 @@ export default function FeedPage() {
   };
 
   const handleDelete = async (postId) => {
+    if (!window.confirm(t("feed.deleteConfirm", "Delete this post? This can't be undone."))) return;
     try {
       await axios.delete(`${API}/posts/${postId}`);
       setPosts((prev) => prev.filter((p) => p.post_id !== postId));

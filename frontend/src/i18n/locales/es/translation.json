@@ -475,7 +475,8 @@
     "noComments": "Sin comentarios aún",
     "addComment": "Añade un comentario...",
     "postDeleted": "Publicación eliminada",
-    "unknownFighter": "Luchador"
+    "unknownFighter": "Luchador",
+    "deleteConfirm": "¿Eliminar esta publicación? No se puede deshacer."
   },
   "createPost": {
     "title": "Nueva publicación",
