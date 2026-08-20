@@ -379,18 +379,18 @@
     "restLabel": "DESCANSO",
     "roundOf": "Asalto {{current}} de {{total}}",
     "uploading": "Subiendo vídeo...",
-    "analyzing": {
-      "step0": "Revisando tus combinaciones…",
-      "step1": "Comprobando tu guardia…",
-      "step2": "Analizando el juego de pies…",
-      "step3": "Finalizando el feedback…"
-    },
     "generatingFeedback": "Generando retroalimentación...",
     "analyzingForm": "Analizando tu forma...",
     "preparingFeedback": "Preparando retroalimentación...",
     "says": "dice...",
     "finishStrong": "¡{{name}} está mirando — termina fuerte!",
-    "failedSave": "No se pudo guardar la sesión"
+    "failedSave": "No se pudo guardar la sesión",
+    "corner": {
+      "step0": "Aplicando hielo entre asaltos…",
+      "step1": "Enjuaga y escupe…",
+      "step2": "Sécate, respira…",
+      "step3": "Sale el cartel del asalto {{round}}…"
+    }
   },
   "timer": {
     "title": "Configura tus asaltos",

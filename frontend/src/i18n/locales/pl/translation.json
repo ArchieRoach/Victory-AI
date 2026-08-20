@@ -379,18 +379,18 @@
     "restLabel": "ODPOCZYNEK",
     "roundOf": "Runda {{current}} z {{total}}",
     "uploading": "Przesyłanie wideo...",
-    "analyzing": {
-      "step0": "Analizowanie kombinacji…",
-      "step1": "Sprawdzanie gardy…",
-      "step2": "Analizowanie pracy nóg…",
-      "step3": "Finalizowanie opinii…"
-    },
     "generatingFeedback": "Generowanie informacji...",
     "analyzingForm": "Analiza Twojej formy...",
     "preparingFeedback": "Przygotowanie informacji...",
     "says": "mówi...",
     "finishStrong": "{{name}} patrzy — zakończ mocno!",
-    "failedSave": "Nie udało się zapisać sesji"
+    "failedSave": "Nie udało się zapisać sesji",
+    "corner": {
+      "step0": "Lód między rundami…",
+      "step1": "Płukanie i spluwanie…",
+      "step2": "Wycieranie, oddech…",
+      "step3": "Karta rundy {{round}} już wychodzi…"
+    }
   },
   "timer": {
     "title": "Skonfiguruj rundy",

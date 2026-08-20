@@ -7,11 +7,16 @@ import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
   Volume2, VolumeX, Lock, Radio, Zap,
+  Snowflake, Droplet, Wind, Flag,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
+
+// Corner routine shown between rounds while AI feedback is generating —
+// ice, rinse, towel, then the next round card. Indices match train.corner.step0-3.
+const CORNER_ICONS = [Snowflake, Droplet, Wind, Flag];
 
 // Mid-round hype lines cycled during the Private AI Room session
 const HYPE_LINES = [
@@ -634,11 +639,18 @@ export default function TrainPage() {
                   </div>
 
                   {loadingFeedback ? (
-                    <div className="py-2 space-y-2">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-6 h-6 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
-                        <span className="text-victory-muted text-sm">
-                          {t(`train.analyzing.step${feedbackStep}`, t("train.generatingFeedback"))}
+                    <div className="py-3 space-y-3">
+                      <div key={feedbackStep} className="flex flex-col items-center justify-center gap-2 animate-scale-in">
+                        {(() => {
+                          const Icon = CORNER_ICONS[feedbackStep];
+                          return (
+                            <div className="w-12 h-12 rounded-full bg-victory-teal/15 flex items-center justify-center">
+                              <Icon className="w-6 h-6 text-victory-teal" />
+                            </div>
+                          );
+                        })()}
+                        <span className="text-victory-muted text-sm text-center">
+                          {t(`train.corner.step${feedbackStep}`, { round: currentRound + 1 })}
                         </span>
                       </div>
                       <Progress value={feedbackProgress} className="h-1.5" />
