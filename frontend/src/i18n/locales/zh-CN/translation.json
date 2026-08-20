@@ -353,18 +353,18 @@
     "restLabel": "休息",
     "roundOf": "第{{current}}回合，共{{total}}回合",
     "uploading": "正在上传视频...",
-    "analyzing": {
-      "step0": "正在回顾你的组合拳…",
-      "step1": "正在检查你的防守…",
-      "step2": "正在分析步法…",
-      "step3": "正在完成反馈…"
-    },
     "generatingFeedback": "正在生成反馈...",
     "analyzingForm": "正在分析您的姿态...",
     "preparingFeedback": "正在准备反馈...",
     "says": "说...",
     "finishStrong": "{{name}}正在看——强势结束！",
-    "failedSave": "保存会话失败"
+    "failedSave": "保存会话失败",
+    "corner": {
+      "step0": "回合间的冰敷…",
+      "step1": "漱口吐水…",
+      "step2": "擦干，深呼吸…",
+      "step3": "第{{round}}回合的举牌女郎马上出场…"
+    }
   },
   "timer": {
     "title": "设置回合",

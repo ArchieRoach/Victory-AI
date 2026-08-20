@@ -353,18 +353,18 @@
     "restLabel": "DESCANSO",
     "roundOf": "Assalto {{current}} de {{total}}",
     "uploading": "Enviando vídeo...",
-    "analyzing": {
-      "step0": "Revisando suas combinações…",
-      "step1": "Verificando sua guarda…",
-      "step2": "Analisando o jogo de pernas…",
-      "step3": "Finalizando o feedback…"
-    },
     "generatingFeedback": "Gerando feedback...",
     "analyzingForm": "Analisando sua forma...",
     "preparingFeedback": "Preparando feedback...",
     "says": "diz...",
     "finishStrong": "{{name}} está vendo — termine forte!",
-    "failedSave": "Falha ao salvar sessão"
+    "failedSave": "Falha ao salvar sessão",
+    "corner": {
+      "step0": "Gelo entre os rounds…",
+      "step1": "Enxágue e cuspa…",
+      "step2": "Enxugando, respire…",
+      "step3": "A placa do round {{round}} está saindo…"
+    }
   },
   "timer": {
     "title": "Configure os assaltos",

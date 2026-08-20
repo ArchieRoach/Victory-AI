@@ -353,18 +353,18 @@
     "restLabel": "PAUSE",
     "roundOf": "Runde {{current}} von {{total}}",
     "uploading": "Video wird hochgeladen...",
-    "analyzing": {
-      "step0": "Kombinationen werden geprüft…",
-      "step1": "Deckung wird überprüft…",
-      "step2": "Fußarbeit wird analysiert…",
-      "step3": "Feedback wird fertiggestellt…"
-    },
     "generatingFeedback": "Feedback wird generiert...",
     "analyzingForm": "Deine Form wird analysiert...",
     "preparingFeedback": "Feedback wird vorbereitet...",
     "says": "sagt...",
     "finishStrong": "{{name}} schaut zu — mach stark zu Ende!",
-    "failedSave": "Sitzung konnte nicht gespeichert werden"
+    "failedSave": "Sitzung konnte nicht gespeichert werden",
+    "corner": {
+      "step0": "Kühlung zwischen den Runden…",
+      "step1": "Ausspülen und ausspucken…",
+      "step2": "Abtrocknen, durchatmen…",
+      "step3": "Die Runde-{{round}}-Karte kommt raus…"
+    }
   },
   "timer": {
     "title": "Runden konfigurieren",

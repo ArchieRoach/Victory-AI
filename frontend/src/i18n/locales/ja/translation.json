@@ -353,18 +353,18 @@
     "restLabel": "休憩",
     "roundOf": "第{{current}}ラウンド / {{total}}",
     "uploading": "動画をアップロード中...",
-    "analyzing": {
-      "step0": "コンビネーションを確認中…",
-      "step1": "ガードを確認中…",
-      "step2": "フットワークを分析中…",
-      "step3": "フィードバックをまとめています…"
-    },
     "generatingFeedback": "フィードバックを生成中...",
     "analyzingForm": "フォームを分析中...",
     "preparingFeedback": "フィードバックを準備中...",
     "says": "が言います...",
     "finishStrong": "{{name}}が見ています——強く終えて！",
-    "failedSave": "セッションの保存に失敗しました"
+    "failedSave": "セッションの保存に失敗しました",
+    "corner": {
+      "step0": "ラウンド間のアイシング…",
+      "step1": "口をすすいで吐き出す…",
+      "step2": "タオルで拭いて、深呼吸…",
+      "step3": "ラウンド{{round}}のカードが出てきます…"
+    }
   },
   "timer": {
     "title": "ラウンド設定",

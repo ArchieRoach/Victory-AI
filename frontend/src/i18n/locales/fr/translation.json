@@ -353,18 +353,18 @@
     "restLabel": "REPOS",
     "roundOf": "Round {{current}} sur {{total}}",
     "uploading": "Envoi de la vidéo...",
-    "analyzing": {
-      "step0": "Analyse de vos combinaisons…",
-      "step1": "Vérification de votre garde…",
-      "step2": "Analyse du jeu de jambes…",
-      "step3": "Finalisation du retour…"
-    },
     "generatingFeedback": "Génération du retour...",
     "analyzingForm": "Analyse de votre forme...",
     "preparingFeedback": "Préparation du retour...",
     "says": "dit...",
     "finishStrong": "{{name}} vous observe — terminez en force !",
-    "failedSave": "Impossible de sauvegarder la session"
+    "failedSave": "Impossible de sauvegarder la session",
+    "corner": {
+      "step0": "Glace entre les rounds…",
+      "step1": "Rincez et crachez…",
+      "step2": "Essuyage, respirez…",
+      "step3": "La pancarte du round {{round}} arrive…"
+    }
   },
   "timer": {
     "title": "Configurer les rounds",
