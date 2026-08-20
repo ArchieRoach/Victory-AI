@@ -42,22 +42,41 @@ bearing for personalization, or whether some could be cut/deferred post-onboardi
 
 ### 1.4 Familiar mental models (Jakob's Law) — ✅ Already meets this
 Bottom nav, top search (`DiscoverPage`), standard back arrows, high-contrast primary CTAs — all
-conventional placements. No gap found.
+conventional placements. Re-checked 2026-08-04 against the specific banner-blindness risk this
+principle also covers: `SponsorBanner` (`StreamViewPage`) sits above the video player, which sits
+above the streamer info bar and Follow button — a large, unambiguous element separates the ad from
+the nearest real CTA, not immediate adjacency. No gap found.
 
 ---
 
 ## 2. Visual Hierarchy, Attention, & Fitts's Law
 
-### 2.1 Touch target size — ✅ Already meets this (actively maintained)
+### 2.1 Touch target size & spacing — ✅ Already meets this (actively maintained)
 This is the most thoroughly-addressed goal in the whole framework — eight consecutive daily
 maintenance passes (2026-07-22 through 07-29) have driven near-universal 44–48px touch targets
 (`touch-target` class = `min-h/w: 48px`) and `aria-label` coverage on icon-only buttons across the
-app. Keep this in the maintenance sweep's standing checklist — it's a solved problem that stays
-solved through repetition, not a one-time fix.
+app. Re-checked 2026-08-04 for the spacing and thumb-zone sub-points specifically: no cramped
+adjacent-touch-target clusters found (`gap-1`-or-tighter hits were all single-element icon+label
+badges, not multiple separate targets); primary CTAs (e.g. `TrainPage`'s "Start Training") sit at
+the natural end of their flow, which lands them in the lower half of the screen without needing a
+dedicated thumb-zone layout. Keep touch-target size in the maintenance sweep's standing checklist —
+it's a solved problem that stays solved through repetition, not a one-time fix.
 
-### 2.2 Visual distinction for primary vs. secondary actions — ✅ Already meets this
+### 2.2 Visual distinction for primary vs. secondary/destructive actions — ✅ Fixed 2026-08-04
 `victory-lime` (high-contrast) for primary actions vs. `victory-btn-ghost`/muted styling for
-secondary actions is applied consistently across the design system. No gap found.
+secondary actions is applied consistently — confirmed no destructive action anywhere uses the
+primary-CTA style. The real gap was a different angle on "preventing unintended actions": grepped
+every `axios.delete(...)` call in the frontend and checked each for a confirmation step. Three
+irreversible actions fired on a single tap with no confirmation at all — inconsistent with the
+pattern already established elsewhere in the same codebase (`EmoteCard`'s delete and account
+deletion both already gate on `window.confirm()`):
+- `GymDetailPage.jsx` deleting an entire gym (destroys it for every member) — a single tap on a
+  44px header icon button, most severe of the three.
+- `FeedPage.jsx` deleting a post.
+- `PublicProfilePage.jsx` cancelling a scheduled stream.
+**Fixed** — all three now confirm before firing, matching the existing pattern. Deliberately left
+every "unfollow" `axios.delete` call unguarded — that's a low-stakes, one-tap-reversible action,
+and no mainstream app confirms it either (Jakob's Law cuts the other way there).
 
 ---
 
@@ -158,7 +177,7 @@ flip.
 | 1.3 | Form friction | 🟡 | Low |
 | 1.4 | Familiar mental models | ✅ | — |
 | 2.1 | Touch targets | ✅ (actively maintained) | Keep in sweep |
-| 2.2 | Visual distinction | ✅ | — |
+| 2.2 | Visual distinction / unintended actions | ✅ | 3 unguarded deletes fixed |
 | 3.1 | Skeleton screens | ✅ | — |
 | 3.2 | Blur-up images | ✅ (scoped) | Extend to remaining sites |
 | 3.3 | Progress/ETA, optimistic UI | 🟡 (TrainPage fixed) | — |

@@ -461,7 +461,8 @@
     "noComments": "No comments yet",
     "addComment": "Add a comment...",
     "postDeleted": "Post deleted",
-    "unknownFighter": "Fighter"
+    "unknownFighter": "Fighter",
+    "deleteConfirm": "Delete this post? This can't be undone."
   },
   "createPost": {
     "title": "New Post",

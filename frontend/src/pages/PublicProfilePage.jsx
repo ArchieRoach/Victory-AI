@@ -287,6 +287,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Cancel this scheduled stream?")) return;
     try {
       await axios.delete(`${API}/streams/schedule/${id}`);
       setItems((prev) => prev.filter((i) => i.schedule_id !== id));

@@ -475,7 +475,8 @@
     "noComments": "Комментариев пока нет",
     "addComment": "Добавить комментарий...",
     "postDeleted": "Пост удалён",
-    "unknownFighter": "Боец"
+    "unknownFighter": "Боец",
+    "deleteConfirm": "Удалить эту публикацию? Это действие нельзя отменить."
   },
   "createPost": {
     "title": "Новый пост",

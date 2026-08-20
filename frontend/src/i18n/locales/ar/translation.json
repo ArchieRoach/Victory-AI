@@ -475,7 +475,8 @@
     "noComments": "لا تعليقات بعد",
     "addComment": "أضف تعليقاً...",
     "postDeleted": "تم حذف المنشور",
-    "unknownFighter": "مقاتل"
+    "unknownFighter": "مقاتل",
+    "deleteConfirm": "هل تريد حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء."
   },
   "createPost": {
     "title": "منشور جديد",

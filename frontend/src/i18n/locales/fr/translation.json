@@ -475,7 +475,8 @@
     "noComments": "Pas encore de commentaires",
     "addComment": "Ajouter un commentaire...",
     "postDeleted": "Publication supprimée",
-    "unknownFighter": "Combattant"
+    "unknownFighter": "Combattant",
+    "deleteConfirm": "Supprimer cette publication ? Cette action est irréversible."
   },
   "createPost": {
     "title": "Nouvelle publication",
