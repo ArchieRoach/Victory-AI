@@ -111,24 +111,6 @@
       "avgImprovement": "平均提升",
       "cta": "创建你的AI训练伙伴"
     },
-    "why_downloaded": {
-      "question": "今天是什么让你下载了Victory AI？",
-      "subtitle": "请诚实 — 我们将根据此定制一切",
-      "improve_technique": "我想改善我的技术",
-      "get_feedback": "我独自训练，需要反馈",
-      "stay_consistent": "我难以保持一致性",
-      "prepare_fight": "我正在备战比赛/对打",
-      "just_curious": "只是好奇试试"
-    },
-    "heard_from": {
-      "question": "你是怎么听说我们的？",
-      "subtitle": "帮助我们找到更多像你这样的拳手",
-      "social_media": "社交媒体（抖音、Instagram）",
-      "youtube": "YouTube",
-      "friend": "朋友或训练伙伴",
-      "search": "Google搜索",
-      "other": "其他地方"
-    },
     "biggest_frustration": {
       "question": "训练中什么让你最苦恼？",
       "subtitle": "这是你的伙伴将专注改善的方面",
@@ -137,14 +119,6 @@
       "defense_weak": "我的防御很弱",
       "no_power": "我的击打缺乏力量",
       "footwork": "我的步法不够扎实"
-    },
-    "training_frequency": {
-      "question": "你多久练一次拳击？",
-      "daily": "几乎每天",
-      "3-4_week": "每周3-4次",
-      "1-2_week": "每周1-2次",
-      "inconsistent": "随时（不规律）",
-      "just_starting": "刚刚开始"
     },
     "experience_level": {
       "question": "你练拳击多久了？",

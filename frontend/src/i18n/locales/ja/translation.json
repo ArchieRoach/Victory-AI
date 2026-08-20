@@ -111,24 +111,6 @@
       "avgImprovement": "平均改善率",
       "cta": "AIトレーニングパートナーを作りましょう"
     },
-    "why_downloaded": {
-      "question": "今日Victory AIをダウンロードした理由は？",
-      "subtitle": "正直に — それに合わせてすべてをカスタマイズします",
-      "improve_technique": "テクニックを改善したい",
-      "get_feedback": "一人で練習していてフィードバックが必要",
-      "stay_consistent": "継続が難しい",
-      "prepare_fight": "試合/スパーリングに向けて準備中",
-      "just_curious": "ただ試してみたかった"
-    },
-    "heard_from": {
-      "question": "どこで私たちを知りましたか？",
-      "subtitle": "あなたのようなファイターを見つけるのに役立ちます",
-      "social_media": "SNS（TikTok、Instagram）",
-      "youtube": "YouTube",
-      "friend": "友人またはトレーニングパートナー",
-      "search": "Google検索",
-      "other": "その他"
-    },
     "biggest_frustration": {
       "question": "トレーニングで最もイライラすることは？",
       "subtitle": "パートナーはここに集中して改善します",
@@ -137,14 +119,6 @@
       "defense_weak": "ディフェンスが弱い",
       "no_power": "パンチにパワーが足りない",
       "footwork": "フットワークがだらしない"
-    },
-    "training_frequency": {
-      "question": "ボクシングをどのくらいの頻度で練習しますか？",
-      "daily": "ほぼ毎日",
-      "3-4_week": "週3〜4回",
-      "1-2_week": "週1〜2回",
-      "inconsistent": "できるときに（不定期）",
-      "just_starting": "始めたばかり"
     },
     "experience_level": {
       "question": "ボクシングを始めてどのくらい経ちますか？",

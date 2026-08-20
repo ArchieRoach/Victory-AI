@@ -254,10 +254,8 @@ class TestAuthenticatedEndpoints:
     def test_onboarding_submit(self):
         """Test onboarding answers submission"""
         response = requests.post(f"{BASE_URL}/api/onboarding/submit", json={
-            "why_downloaded": "improve_technique",
-            "heard_from": "social_media",
+            "birth_date": "2000-01-01",
             "biggest_frustration": "no_feedback",
-            "training_frequency": "3-4_week",
             "experience_level": "6_18_months",
             "favorite_counter": "jab",
             "training_partner_style": "tough_love"
