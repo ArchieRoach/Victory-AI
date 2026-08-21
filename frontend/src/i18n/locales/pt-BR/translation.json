@@ -359,12 +359,7 @@
     "says": "diz...",
     "finishStrong": "{{name}} está vendo — termine forte!",
     "failedSave": "Falha ao salvar sessão",
-    "corner": {
-      "step0": "Gelo entre os rounds…",
-      "step1": "Enxágue e cuspa…",
-      "step2": "Enxugando, respire…",
-      "step3": "A placa do round {{round}} está saindo…"
-    }
+    "ringCardGirl": "Ring girl, round {{round}}…"
   },
   "timer": {
     "title": "Configure os assaltos",

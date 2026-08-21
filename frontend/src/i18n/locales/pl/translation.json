@@ -359,12 +359,7 @@
     "says": "mówi...",
     "finishStrong": "{{name}} patrzy — zakończ mocno!",
     "failedSave": "Nie udało się zapisać sesji",
-    "corner": {
-      "step0": "Lód między rundami…",
-      "step1": "Płukanie i spluwanie…",
-      "step2": "Wycieranie, oddech…",
-      "step3": "Karta rundy {{round}} już wychodzi…"
-    }
+    "ringCardGirl": "Dziewczyna z kartą rundy {{round}}…"
   },
   "timer": {
     "title": "Skonfiguruj rundy",

@@ -359,12 +359,7 @@
     "says": "dice...",
     "finishStrong": "¡{{name}} está mirando — termina fuerte!",
     "failedSave": "No se pudo guardar la sesión",
-    "corner": {
-      "step0": "Aplicando hielo entre asaltos…",
-      "step1": "Enjuaga y escupe…",
-      "step2": "Sécate, respira…",
-      "step3": "Sale el cartel del asalto {{round}}…"
-    }
+    "ringCardGirl": "Chica del cartel, asalto {{round}}…"
   },
   "timer": {
     "title": "Configura tus asaltos",

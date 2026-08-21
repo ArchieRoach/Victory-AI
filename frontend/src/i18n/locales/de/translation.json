@@ -359,12 +359,7 @@
     "says": "sagt...",
     "finishStrong": "{{name}} schaut zu — mach stark zu Ende!",
     "failedSave": "Sitzung konnte nicht gespeichert werden",
-    "corner": {
-      "step0": "Kühlung zwischen den Runden…",
-      "step1": "Ausspülen und ausspucken…",
-      "step2": "Abtrocknen, durchatmen…",
-      "step3": "Die Runde-{{round}}-Karte kommt raus…"
-    }
+    "ringCardGirl": "Ringcard-Girl, Runde {{round}}…"
   },
   "timer": {
     "title": "Runden konfigurieren",
