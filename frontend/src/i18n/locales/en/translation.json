@@ -360,12 +360,7 @@
     "says": "says...",
     "finishStrong": "{{name}} is watching — finish strong!",
     "failedSave": "Failed to save session",
-    "corner": {
-      "step0": "Icing you down between rounds…",
-      "step1": "Rinse and spit…",
-      "step2": "Towel off, breathe…",
-      "step3": "Round {{round}} card's coming out…"
-    }
+    "ringCardGirl": "Ring card girl, round {{round}}…"
   },
   "timer": {
     "title": "Set Your Rounds",

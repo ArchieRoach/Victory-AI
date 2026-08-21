@@ -7,16 +7,11 @@ import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
   Volume2, VolumeX, Lock, Radio, Zap,
-  Snowflake, Droplet, Wind, Flag,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
-
-// Corner routine shown between rounds while AI feedback is generating —
-// ice, rinse, towel, then the next round card. Indices match train.corner.step0-3.
-const CORNER_ICONS = [Snowflake, Droplet, Wind, Flag];
 
 // Mid-round hype lines cycled during the Private AI Room session
 const HYPE_LINES = [
@@ -81,23 +76,19 @@ export default function TrainPage() {
   const [feedback,        setFeedback]        = useState(null);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
   const [feedbackProgress, setFeedbackProgress] = useState(0);
-  const [feedbackStep,     setFeedbackStep]     = useState(0);
 
   const audioRef    = useRef(null);
   const intervalRef = useRef(null);
   const hypeTimerRef = useRef(null);
 
-  // Simulated progress + rotating status while waiting on AI round feedback —
-  // caps at 90% so it never looks "done" before the response actually lands.
+  // Simulated progress while waiting on AI round feedback — caps at 90% so
+  // it never looks "done" before the response actually lands.
   useEffect(() => {
-    if (!loadingFeedback) { setFeedbackProgress(0); setFeedbackStep(0); return; }
+    if (!loadingFeedback) { setFeedbackProgress(0); return; }
     const progressTimer = setInterval(() => {
       setFeedbackProgress((p) => (p >= 90 ? 90 : p + 6));
     }, 200);
-    const stepTimer = setInterval(() => {
-      setFeedbackStep((s) => Math.min(s + 1, 3));
-    }, 900);
-    return () => { clearInterval(progressTimer); clearInterval(stepTimer); };
+    return () => clearInterval(progressTimer);
   }, [loadingFeedback]);
 
   useEffect(() => {
@@ -640,19 +631,17 @@ export default function TrainPage() {
 
                   {loadingFeedback ? (
                     <div className="py-3 space-y-3">
-                      <div key={feedbackStep} className="flex flex-col items-center justify-center gap-2 animate-scale-in">
-                        {(() => {
-                          const Icon = CORNER_ICONS[feedbackStep];
-                          return (
-                            <div className="w-12 h-12 rounded-full bg-victory-teal/15 flex items-center justify-center">
-                              <Icon className="w-6 h-6 text-victory-teal" />
-                            </div>
-                          );
-                        })()}
-                        <span className="text-victory-muted text-sm text-center">
-                          {t(`train.corner.step${feedbackStep}`, { round: currentRound + 1 })}
-                        </span>
+                      <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+                        <img
+                          src="/images/ring-card-girl.jpg"
+                          alt="Ring card girl"
+                          className="absolute inset-0 w-full h-full object-cover animate-sway"
+                          style={{ transformOrigin: "50% 92%" }}
+                        />
                       </div>
+                      <p className="text-victory-muted text-sm text-center">
+                        {t("train.ringCardGirl", { round: currentRound + 1 })}
+                      </p>
                       <Progress value={feedbackProgress} className="h-1.5" />
                     </div>
                   ) : feedback ? (

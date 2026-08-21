@@ -359,12 +359,7 @@
     "says": "说...",
     "finishStrong": "{{name}}正在看——强势结束！",
     "failedSave": "保存会话失败",
-    "corner": {
-      "step0": "回合间的冰敷…",
-      "step1": "漱口吐水…",
-      "step2": "擦干，深呼吸…",
-      "step3": "第{{round}}回合的举牌女郎马上出场…"
-    }
+    "ringCardGirl": "举牌女郎，第{{round}}回合…"
   },
   "timer": {
     "title": "设置回合",

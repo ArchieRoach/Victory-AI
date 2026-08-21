@@ -359,12 +359,7 @@
     "says": "dit...",
     "finishStrong": "{{name}} vous observe — terminez en force !",
     "failedSave": "Impossible de sauvegarder la session",
-    "corner": {
-      "step0": "Glace entre les rounds…",
-      "step1": "Rincez et crachez…",
-      "step2": "Essuyage, respirez…",
-      "step3": "La pancarte du round {{round}} arrive…"
-    }
+    "ringCardGirl": "Ring girl, round {{round}}…"
   },
   "timer": {
     "title": "Configurer les rounds",
