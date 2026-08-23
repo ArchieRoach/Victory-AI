@@ -337,7 +337,8 @@
     "deleteAccount": "Delete Account",
     "deleteAccountConfirm": "This permanently deletes your account and personal data. This cannot be undone. Continue?",
     "deleteAccountFailed": "Couldn't delete your account — try again",
-    "exportDataFailed": "Couldn't export your data — try again"
+    "exportDataFailed": "Couldn't export your data — try again",
+    "streakActive": "🔥 {{count}}-day streak — keep it alive"
   },
   "train": {
     "title": "Set Your Training",
@@ -566,7 +567,10 @@
     "losses": "L",
     "draws": "D",
     "recentPosts": "Recent Clips",
-    "unknownFighter": "Fighter"
+    "unknownFighter": "Fighter",
+    "streakActive": "🔥 {{count}}-day streak",
+    "cheer": "Cheer",
+    "cheered": "Cheered"
   },
   "feedback": {
     "title": "Send Feedback",

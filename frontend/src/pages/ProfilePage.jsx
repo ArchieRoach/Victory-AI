@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { ProgressiveImage } from "@/components/ProgressiveImage";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2 } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
@@ -29,6 +29,8 @@ export default function ProfilePage() {
     total_sessions: 0,
     best_score: 0,
     most_improved_dimension: null,
+    current_streak: 0,
+    longest_streak: 0,
   });
   const [weeklyReminder, setWeeklyReminder] = useState(true);
   const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
@@ -347,6 +349,14 @@ export default function ProfilePage() {
             <Target className="w-5 h-5 text-victory-lime" />
             {t("profile.statsTitle")}
           </h2>
+          {stats.current_streak > 0 && (
+            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-400/30 rounded-lg px-3 py-2 mb-3">
+              <Flame className="w-5 h-5 text-orange-400 flex-shrink-0" />
+              <p className="text-victory-text text-sm">
+                {t("profile.streakActive", { count: stats.current_streak })}
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-3">
             <div className="stat-pill">
               <p className="font-mono text-2xl font-semibold text-victory-lime">{stats.total_sessions}</p>

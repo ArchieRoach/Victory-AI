@@ -336,7 +336,8 @@
     "deleteAccount": "Eliminar cuenta",
     "deleteAccountConfirm": "Esto elimina permanentemente tu cuenta y tus datos personales. No se puede deshacer. ¿Continuar?",
     "deleteAccountFailed": "No se pudo eliminar tu cuenta — inténtalo de nuevo",
-    "exportDataFailed": "No se pudieron exportar tus datos — inténtalo de nuevo"
+    "exportDataFailed": "No se pudieron exportar tus datos — inténtalo de nuevo",
+    "streakActive": "🔥 Racha de {{count}} días — no la rompas"
   },
   "train": {
     "title": "Configura tu entrenamiento",
@@ -580,6 +581,9 @@
     "losses": "D",
     "draws": "E",
     "recentPosts": "Clips recientes",
-    "unknownFighter": "Luchador"
+    "unknownFighter": "Luchador",
+    "streakActive": "🔥 Racha de {{count}} días",
+    "cheer": "Animar",
+    "cheered": "Animado"
   }
 }

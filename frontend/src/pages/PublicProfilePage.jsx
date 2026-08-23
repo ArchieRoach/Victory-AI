@@ -497,6 +497,8 @@ export default function PublicProfilePage() {
   const [followLoading, setFollowLoading] = useState(false);
   const [tab,           setTab]           = useState("home"); // "home" | "clips" | "schedule"
   const [followModal,   setFollowModal]   = useState(null);  // "followers" | "following" | null
+  const [cheering,      setCheering]      = useState(false);
+  const [cheered,       setCheered]       = useState(false);
 
   const isOwn = userId === currentUser?.user_id;
 
@@ -536,6 +538,19 @@ export default function PublicProfilePage() {
       }
     } catch { toast.error(t("common.error")); }
     finally { setFollowLoading(false); }
+  };
+
+  const cheerStreak = async () => {
+    setCheering(true);
+    try {
+      await axios.post(`${API}/users/${userId}/cheer-streak`);
+      setCheered(true);
+    } catch (err) {
+      if (err.response?.data?.detail === "Already cheered today") setCheered(true);
+      else toast.error(err.response?.data?.detail || t("common.error"));
+    } finally {
+      setCheering(false);
+    }
   };
 
   if (loading) {
@@ -686,6 +701,21 @@ export default function PublicProfilePage() {
               <Target className="w-5 h-5 text-victory-lime" />
               {t("publicProfile.appStats")}
             </h2>
+            {profile.current_streak > 0 && (
+              <div className="flex items-center justify-between gap-3 bg-orange-500/10 border border-orange-400/30 rounded-lg px-3 py-2 mb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Flame className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <p className="text-victory-text text-sm truncate">{t("publicProfile.streakActive", { count: profile.current_streak })}</p>
+                </div>
+                <button
+                  onClick={cheerStreak}
+                  disabled={cheering || cheered}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-full bg-orange-400/20 text-orange-300 disabled:opacity-50 flex-shrink-0"
+                >
+                  {cheered ? t("publicProfile.cheered") : t("publicProfile.cheer")}
+                </button>
+              </div>
+            )}
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center">
                 <p className="font-mono font-bold text-xl text-victory-lime">{profile.total_sessions}</p>

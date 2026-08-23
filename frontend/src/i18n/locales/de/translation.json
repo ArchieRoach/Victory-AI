@@ -336,7 +336,8 @@
     "deleteAccount": "Konto löschen",
     "deleteAccountConfirm": "Dies löscht dein Konto und deine persönlichen Daten dauerhaft. Das kann nicht rückgängig gemacht werden. Fortfahren?",
     "deleteAccountFailed": "Konto konnte nicht gelöscht werden — bitte erneut versuchen",
-    "exportDataFailed": "Daten konnten nicht exportiert werden — bitte erneut versuchen"
+    "exportDataFailed": "Daten konnten nicht exportiert werden — bitte erneut versuchen",
+    "streakActive": "🔥 {{count}} Tage in Folge — bleib dran"
   },
   "train": {
     "title": "Training konfigurieren",
@@ -580,6 +581,9 @@
     "losses": "N",
     "draws": "U",
     "recentPosts": "Aktuelle Clips",
-    "unknownFighter": "Kämpfer"
+    "unknownFighter": "Kämpfer",
+    "streakActive": "🔥 {{count}} Tage in Folge",
+    "cheer": "Anfeuern",
+    "cheered": "Angefeuert"
   }
 }

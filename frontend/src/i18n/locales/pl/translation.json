@@ -336,7 +336,8 @@
     "deleteAccount": "Usuń konto",
     "deleteAccountConfirm": "To trwale usunie Twoje konto i dane osobowe. Tej operacji nie można cofnąć. Kontynuować?",
     "deleteAccountFailed": "Nie udało się usunąć konta — spróbuj ponownie",
-    "exportDataFailed": "Nie udało się wyeksportować danych — spróbuj ponownie"
+    "exportDataFailed": "Nie udało się wyeksportować danych — spróbuj ponownie",
+    "streakActive": "🔥 Seria {{count}} dni — nie przerywaj"
   },
   "train": {
     "title": "Skonfiguruj trening",
@@ -580,6 +581,9 @@
     "losses": "P",
     "draws": "R",
     "recentPosts": "Ostatnie klipy",
-    "unknownFighter": "Zawodnik"
+    "unknownFighter": "Zawodnik",
+    "streakActive": "🔥 Seria {{count}} dni",
+    "cheer": "Dopinguj",
+    "cheered": "Dopingowano"
   }
 }
