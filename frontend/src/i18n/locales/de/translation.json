@@ -359,7 +359,14 @@
     "says": "sagt...",
     "finishStrong": "{{name}} schaut zu — mach stark zu Ende!",
     "failedSave": "Sitzung konnte nicht gespeichert werden",
-    "ringCardGirl": "Ringcard-Girl, Runde {{round}}…"
+    "ringCardGirl": {
+      "line0": "Die Halle steht — hol dir Runde {{round}}.",
+      "line1": "Runde {{round}}. Niemand hier zweifelt an dir — außer du selbst.",
+      "line2": "Sie hält Runde {{round}} in den Händen — hol sie dir.",
+      "line3": "Gib alles. Runde {{round}} beginnt jetzt.",
+      "line4": "Eine geschafft. Runde {{round}} — zeig ihnen, wer du bist.",
+      "line5": "Die Karte für Runde {{round}} ist oben. Zeit, sie zu verdienen."
+    }
   },
   "timer": {
     "title": "Runden konfigurieren",

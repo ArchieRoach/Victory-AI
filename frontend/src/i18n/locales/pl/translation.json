@@ -359,7 +359,14 @@
     "says": "mówi...",
     "finishStrong": "{{name}} patrzy — zakończ mocno!",
     "failedSave": "Nie udało się zapisać sesji",
-    "ringCardGirl": "Dziewczyna z kartą rundy {{round}}…"
+    "ringCardGirl": {
+      "line0": "Publiczność wstała — weź rundę {{round}}.",
+      "line1": "Runda {{round}}. Nikt tu w ciebie nie wątpi, tylko ty sam.",
+      "line2": "Trzyma rundę {{round}} w rękach — idź po nią.",
+      "line3": "Zostaw tam wszystko. Runda {{round}} zaczyna się teraz.",
+      "line4": "Jedna za tobą. Runda {{round}} — pokaż im, kim jesteś.",
+      "line5": "Karta rundy {{round}} w górze. Czas na nią zapracować."
+    }
   },
   "timer": {
     "title": "Skonfiguruj rundy",
