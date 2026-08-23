@@ -359,7 +359,14 @@
     "says": "dice...",
     "finishStrong": "¡{{name}} está mirando — termina fuerte!",
     "failedSave": "No se pudo guardar la sesión",
-    "ringCardGirl": "Chica del cartel, asalto {{round}}…"
+    "ringCardGirl": {
+      "line0": "El público está de pie — ve a por el asalto {{round}}.",
+      "line1": "Asalto {{round}}. Nadie aquí duda de ti, solo tú.",
+      "line2": "Ella tiene el asalto {{round}} en sus manos — ve a por él.",
+      "line3": "Déjalo todo ahí. El asalto {{round}} empieza ya.",
+      "line4": "Uno menos. Asalto {{round}} — muéstrales quién eres.",
+      "line5": "El cartel del asalto {{round}} está arriba. Hora de ganártelo."
+    }
   },
   "timer": {
     "title": "Configura tus asaltos",

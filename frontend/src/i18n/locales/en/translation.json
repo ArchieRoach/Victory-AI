@@ -360,7 +360,14 @@
     "says": "says...",
     "finishStrong": "{{name}} is watching — finish strong!",
     "failedSave": "Failed to save session",
-    "ringCardGirl": "Ring card girl, round {{round}}…"
+    "ringCardGirl": {
+      "line0": "The crowd's on their feet — bring it into round {{round}}.",
+      "line1": "Round {{round}}. Nobody in this room doubts you but you.",
+      "line2": "She's got round {{round}} in her hands — go take it.",
+      "line3": "Leave it all in there. Round {{round}} starts now.",
+      "line4": "That's one down. Round {{round}} — show them who you are.",
+      "line5": "Round {{round}} card's up. Time to earn it."
+    }
   },
   "timer": {
     "title": "Set Your Rounds",

@@ -359,7 +359,14 @@
     "says": "dit...",
     "finishStrong": "{{name}} vous observe — terminez en force !",
     "failedSave": "Impossible de sauvegarder la session",
-    "ringCardGirl": "Ring girl, round {{round}}…"
+    "ringCardGirl": {
+      "line0": "La salle est debout — va chercher le round {{round}}.",
+      "line1": "Round {{round}}. Personne ici ne doute de toi, à part toi.",
+      "line2": "Elle tient le round {{round}} entre ses mains — va le chercher.",
+      "line3": "Donne tout. Le round {{round}} commence maintenant.",
+      "line4": "Un de fait. Round {{round}} — montre-leur qui tu es.",
+      "line5": "La pancarte du round {{round}} est levée. Il est temps de la mériter."
+    }
   },
   "timer": {
     "title": "Configurer les rounds",

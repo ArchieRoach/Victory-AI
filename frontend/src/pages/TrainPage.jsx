@@ -640,7 +640,7 @@ export default function TrainPage() {
                         />
                       </div>
                       <p className="text-victory-muted text-sm text-center">
-                        {t("train.ringCardGirl", { round: currentRound + 1 })}
+                        {t(`train.ringCardGirl.line${(currentRound - 1) % 6}`, { round: currentRound + 1 })}
                       </p>
                       <Progress value={feedbackProgress} className="h-1.5" />
                     </div>

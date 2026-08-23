@@ -359,7 +359,14 @@
     "says": "说...",
     "finishStrong": "{{name}}正在看——强势结束！",
     "failedSave": "保存会话失败",
-    "ringCardGirl": "举牌女郎，第{{round}}回合…"
+    "ringCardGirl": {
+      "line0": "全场都站起来了——拿下第{{round}}回合。",
+      "line1": "第{{round}}回合。这里没人怀疑你，除了你自己。",
+      "line2": "她手里举着第{{round}}回合的牌——去拿下它。",
+      "line3": "把一切都留在场上。第{{round}}回合现在开始。",
+      "line4": "已经拿下一局。第{{round}}回合——让他们看看你是谁。",
+      "line5": "第{{round}}回合的牌已经举起。是时候赢得它了。"
+    }
   },
   "timer": {
     "title": "设置回合",
