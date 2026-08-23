@@ -336,7 +336,8 @@
     "deleteAccount": "حذف الحساب",
     "deleteAccountConfirm": "سيؤدي هذا إلى حذف حسابك وبياناتك الشخصية نهائيًا. لا يمكن التراجع عن هذا. هل تريد المتابعة؟",
     "deleteAccountFailed": "تعذر حذف حسابك — حاول مرة أخرى",
-    "exportDataFailed": "تعذر تصدير بياناتك — حاول مرة أخرى"
+    "exportDataFailed": "تعذر تصدير بياناتك — حاول مرة أخرى",
+    "streakActive": "🔥 سلسلة {{count}} يوم — حافظ عليها"
   },
   "train": {
     "title": "إعداد التدريب",
@@ -580,6 +581,9 @@
     "losses": "خ",
     "draws": "ت",
     "recentPosts": "المقاطع الأخيرة",
-    "unknownFighter": "مقاتل"
+    "unknownFighter": "مقاتل",
+    "streakActive": "🔥 سلسلة {{count}} يوم",
+    "cheer": "شجّع",
+    "cheered": "تم التشجيع"
   }
 }

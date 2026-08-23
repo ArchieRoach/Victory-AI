@@ -336,7 +336,8 @@
     "deleteAccount": "Supprimer le compte",
     "deleteAccountConfirm": "Cela supprime définitivement votre compte et vos données personnelles. Cette action est irréversible. Continuer ?",
     "deleteAccountFailed": "Impossible de supprimer votre compte — réessayez",
-    "exportDataFailed": "Impossible d'exporter vos données — réessayez"
+    "exportDataFailed": "Impossible d'exporter vos données — réessayez",
+    "streakActive": "🔥 Série de {{count}} jours — continue"
   },
   "train": {
     "title": "Configurer l'entraînement",
@@ -580,6 +581,9 @@
     "losses": "D",
     "draws": "N",
     "recentPosts": "Clips récents",
-    "unknownFighter": "Combattant"
+    "unknownFighter": "Combattant",
+    "streakActive": "🔥 Série de {{count}} jours",
+    "cheer": "Encourager",
+    "cheered": "Encouragé"
   }
 }

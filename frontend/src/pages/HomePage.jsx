@@ -39,6 +39,7 @@ const NOTIF_META = {
   comment: { icon: MessageCircle, color: "text-sky-400",    text: (n) => `${n.actor_name} commented: "${n.text?.slice(0, 60)}${n.text?.length > 60 ? "…" : ""}"` },
   tip:     { icon: Zap,     color: "text-victory-lime",     text: (n) => `${n.actor_name} tipped you ${n.amount?.toLocaleString()} tokens${n.message ? ` · "${n.message}"` : ""}` },
   gift_sub:{ icon: Gift,    color: "text-violet-400",       text: (n) => `${n.actor_name} gifted ${n.count || 1} sub${(n.count || 1) > 1 ? "s" : ""}` },
+  streak_cheer: { icon: Flame, color: "text-orange-400",    text: (n) => `${n.actor_name} cheered your streak` },
 };
 
 // ── Feed card: Live Stream ────────────────────────────────────────────────────

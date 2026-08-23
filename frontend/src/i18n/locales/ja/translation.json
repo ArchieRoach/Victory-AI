@@ -336,7 +336,8 @@
     "deleteAccount": "アカウントを削除",
     "deleteAccountConfirm": "アカウントと個人データが完全に削除されます。この操作は取り消せません。続行しますか？",
     "deleteAccountFailed": "アカウントを削除できませんでした。もう一度お試しください",
-    "exportDataFailed": "データをエクスポートできませんでした。もう一度お試しください"
+    "exportDataFailed": "データをエクスポートできませんでした。もう一度お試しください",
+    "streakActive": "🔥 {{count}}日連続 — 続けよう"
   },
   "train": {
     "title": "トレーニング設定",
@@ -580,6 +581,9 @@
     "losses": "敗",
     "draws": "分",
     "recentPosts": "最近のクリップ",
-    "unknownFighter": "ファイター"
+    "unknownFighter": "ファイター",
+    "streakActive": "🔥 {{count}}日連続",
+    "cheer": "応援する",
+    "cheered": "応援済み"
   }
 }

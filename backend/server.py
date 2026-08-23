@@ -1643,7 +1643,14 @@ async def export_my_data(user: dict = Depends(get_current_user)):
 @api_router.get("/users/stats")
 async def get_user_stats(user: dict = Depends(get_current_user)):
     sessions = await db.sessions.find({"user_id": user["user_id"]}, {"_id": 0}).to_list(1000)
-    return {"total_sessions": len(sessions), "best_score": max([s.get("overall_score", 0) for s in sessions]) if sessions else 0, "most_improved_dimension": None}
+    current_streak, longest_streak = _compute_streaks(sessions)
+    return {
+        "total_sessions": len(sessions),
+        "best_score": max([s.get("overall_score", 0) for s in sessions]) if sessions else 0,
+        "most_improved_dimension": None,
+        "current_streak": current_streak,
+        "longest_streak": longest_streak,
+    }
 
 @api_router.get("/dimensions")
 async def get_dimensions():
@@ -1934,16 +1941,44 @@ BELT_CATALOGUE = {
     "team_player":    {"name": "Team Player",      "emoji": "👥", "tier": "bronze", "desc": "Join a gym"},
     "gym_captain":    {"name": "Gym Captain",      "emoji": "🏟️", "tier": "gold",   "desc": "Create and own a gym"},
     "live_debut":     {"name": "Live Debut",       "emoji": "🔴", "tier": "silver", "desc": "Complete your first livestream"},
+    # Streaks (real, consecutive training days — never app-open based)
+    "on_a_roll":      {"name": "On a Roll",        "emoji": "🔥", "tier": "bronze", "desc": "7-day training streak"},
+    "unbreakable":    {"name": "Unbreakable",       "emoji": "🧱", "tier": "gold",   "desc": "30-day training streak"},
 }
+
+def _compute_streaks(sessions: list) -> tuple:
+    """Current/longest consecutive-day training streaks from real completed sessions."""
+    dates = sorted({s["date"] for s in sessions if s.get("date")}, reverse=True)
+    if not dates:
+        return 0, 0
+    parsed = [datetime.strptime(d, "%Y-%m-%d").date() for d in dates]
+    day = timedelta(days=1)
+
+    longest = run = 1
+    for i in range(1, len(parsed)):
+        run = run + 1 if parsed[i - 1] - parsed[i] == day else 1
+        longest = max(longest, run)
+
+    today = datetime.now(timezone.utc).date()
+    if parsed[0] not in (today, today - day):
+        current = 0
+    else:
+        current = 1
+        for i in range(1, len(parsed)):
+            if parsed[i - 1] - parsed[i] != day:
+                break
+            current += 1
+    return current, longest
 
 async def check_and_award_belts(user_id: str) -> list:
     user = await db.users.find_one({"user_id": user_id})
     if not user:
         return []
     already_earned = {b["belt_id"] for b in user.get("badges", [])}
-    sessions = await db.sessions.find({"user_id": user_id}, {"overall_score": 1}).to_list(None)
+    sessions = await db.sessions.find({"user_id": user_id}, {"overall_score": 1, "date": 1}).to_list(None)
     total = len(sessions)
     avg   = sum(s.get("overall_score", 0) for s in sessions) / total if sessions else 0
+    _, longest_streak = _compute_streaks(sessions)
     comp_wins    = user.get("competition_wins", 0)
     has_gym      = bool(user.get("gym_id"))
     is_owner     = bool(await db.gyms.find_one({"owner_id": user_id}))
@@ -1964,6 +1999,8 @@ async def check_and_award_belts(user_id: str) -> list:
         ("team_player",    has_gym),
         ("gym_captain",    is_owner),
         ("live_debut",     has_streamed),
+        ("on_a_roll",      longest_streak >= 7),
+        ("unbreakable",    longest_streak >= 30),
     ]
     now = datetime.now(timezone.utc).isoformat()
     new_badges = []
@@ -2151,6 +2188,7 @@ async def get_public_profile(user_id: str, current_user: dict = Depends(get_curr
     profile["total_sessions"] = len(sessions)
     profile["avg_score"] = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
     profile["best_score"] = max((s.get("overall_score", 0) for s in sessions), default=0)
+    profile["current_streak"], profile["longest_streak"] = _compute_streaks(sessions)
     follower_count = await db.follows.count_documents({"following_id": user_id})
     following_count = await db.follows.count_documents({"follower_id": user_id})
     is_following = await db.follows.find_one({"follower_id": current_user["user_id"], "following_id": user_id}) is not None
@@ -2171,6 +2209,45 @@ async def get_public_profile(user_id: str, current_user: dict = Depends(get_curr
         {"user_id": user_id, "scheduled_at": {"$gte": now_iso}}
     )
     return profile
+
+
+@api_router.post("/users/{user_id}/cheer-streak")
+async def cheer_streak(user_id: str, user: dict = Depends(get_current_user)):
+    if user_id == user["user_id"]:
+        raise HTTPException(status_code=400, detail="Can't cheer your own streak")
+    if _rate_limited(f"cheer_streak:{user['user_id']}", 30, 60):
+        raise HTTPException(status_code=429, detail="Too many requests")
+    target = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    sessions = await db.sessions.find({"user_id": user_id}, {"date": 1}).to_list(None)
+    current_streak, _ = _compute_streaks(sessions)
+    if current_streak < 1:
+        raise HTTPException(status_code=400, detail="No active streak to cheer")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    already = await db.streak_cheers.find_one({"actor_id": user["user_id"], "recipient_id": user_id, "date": today})
+    if already:
+        raise HTTPException(status_code=400, detail="Already cheered today")
+    await db.streak_cheers.insert_one({
+        "cheer_id": f"cheer_{uuid.uuid4().hex[:12]}",
+        "actor_id": user["user_id"], "recipient_id": user_id, "date": today,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    await db.notifications.insert_one({
+        "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+        "recipient_id": user_id, "actor_id": user["user_id"],
+        "type": "streak_cheer", "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    actor_name = user.get("display_name") or user.get("name", "Someone")
+    await _send_push(
+        user_id,
+        title=f"{actor_name} cheered your {current_streak}-day streak",
+        body="Keep it going",
+        url=f"/profile/{user['user_id']}",
+        tag=f"streak-cheer-{user['user_id']}-{today}",
+    )
+    return {"cheered": True, "streak": current_streak}
 
 
 # ── Clips ──────────────────────────────────────────────────────────────────────

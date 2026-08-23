@@ -336,7 +336,8 @@
     "deleteAccount": "删除账户",
     "deleteAccountConfirm": "此操作将永久删除您的账户和个人数据，且无法撤销。是否继续？",
     "deleteAccountFailed": "无法删除您的账户，请重试",
-    "exportDataFailed": "无法导出您的数据，请重试"
+    "exportDataFailed": "无法导出您的数据，请重试",
+    "streakActive": "🔥 连续{{count}}天 — 保持下去"
   },
   "train": {
     "title": "设置训练",
@@ -580,6 +581,9 @@
     "losses": "负",
     "draws": "平",
     "recentPosts": "最近视频",
-    "unknownFighter": "拳手"
+    "unknownFighter": "拳手",
+    "streakActive": "🔥 连续{{count}}天",
+    "cheer": "加油",
+    "cheered": "已加油"
   }
 }
