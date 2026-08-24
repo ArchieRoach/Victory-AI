@@ -278,7 +278,9 @@
     "scoreHigh": "Mocne — tak trzymaj.",
     "scoreMediumHigh": "Solidna baza — kilka poprawek.",
     "scoreMedium": "Jest pole do poprawy — wypróbuj to ćwiczenie.",
-    "scoreLow": "Punkt startowy. Oto jak budować."
+    "scoreLow": "Punkt startowy. Oto jak budować.",
+    "sessionLogged": "{{rounds}} rund zapisanych. To prawdziwa praca w statystykach.",
+    "streakLine": "🔥 Seria {{count}} dni"
   },
   "profile": {
     "title": "Profil i ustawienia",

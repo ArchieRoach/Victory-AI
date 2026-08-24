@@ -278,7 +278,9 @@
     "scoreHigh": "出色 — 继续保持。",
     "scoreMediumHigh": "基础扎实 — 这里稍作调整。",
     "scoreMedium": "还有提升空间 — 试试这个训练。",
-    "scoreLow": "起点。以下是如何进步。"
+    "scoreLow": "起点。以下是如何进步。",
+    "sessionLogged": "已记录{{rounds}}回合。这是实实在在的训练成果。",
+    "streakLine": "🔥 连续{{count}}天"
   },
   "profile": {
     "title": "个人资料与设置",

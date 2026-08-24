@@ -278,7 +278,9 @@
     "scoreHigh": "Fuerte — sigue así.",
     "scoreMediumHigh": "Base sólida — algunos ajustes aquí.",
     "scoreMedium": "Hay margen de mejora — prueba este ejercicio.",
-    "scoreLow": "Punto de partida. Aquí te mostramos cómo mejorar."
+    "scoreLow": "Punto de partida. Aquí te mostramos cómo mejorar.",
+    "sessionLogged": "{{rounds}} asaltos registrados. Trabajo real en el marcador.",
+    "streakLine": "🔥 Racha de {{count}} días"
   },
   "profile": {
     "title": "Perfil y configuración",

@@ -7,7 +7,7 @@ import { RadarChart } from "@/components/RadarChart";
 import { DrillCard } from "@/components/DrillCard";
 import { Confetti } from "@/components/Confetti";
 import { BeltCelebration } from "@/components/BeltCelebration";
-import { ArrowUp, ArrowDown, Share2, Home, Target, Star } from "lucide-react";
+import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -43,6 +43,7 @@ export default function SessionResultsPage() {
   const [sessions, setSessions] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [beltQueue, setBeltQueue] = useState([]);
+  const [currentStreak, setCurrentStreak] = useState(0);
 
   const session = location.state?.session;
 
@@ -57,7 +58,17 @@ export default function SessionResultsPage() {
     }
     fetchSessions();
     checkFirstSession();
+    fetchStreak();
   }, [session, navigate]);
+
+  const fetchStreak = async () => {
+    try {
+      const response = await axios.get(`${API}/users/stats`, { withCredentials: true });
+      setCurrentStreak(response.data.current_streak || 0);
+    } catch {
+      // streak line is supplementary — result page still works without it
+    }
+  };
 
   const fetchSessions = async () => {
     try {
@@ -426,6 +437,27 @@ export default function SessionResultsPage() {
             {lowestDimensions.map((dim) => (
               <DrillCard key={dim.dimension_name} dimension={dim.dimension_name} score={dim.score} />
             ))}
+          </div>
+        </section>
+
+        {/* Session Complete — closing affirmation. Peak-end rule: this is the last
+            content the fighter reads before leaving the results screen, so it
+            should land on genuine accomplishment, not the drill/homework list
+            above it. Grounded in real data only — rounds actually completed and
+            the real streak from /users/stats. */}
+        <section className="victory-card p-4 flex items-center gap-3 border-l-2 border-victory-lime">
+          <div className="w-10 h-10 rounded-full bg-victory-lime/15 flex items-center justify-center flex-shrink-0">
+            <Flame className="w-5 h-5 text-victory-lime" />
+          </div>
+          <div>
+            <p className="text-victory-text font-semibold text-sm">
+              {t("results.sessionLogged", { rounds: session.rounds?.length || session.training_config?.total_rounds || 0 })}
+            </p>
+            {currentStreak > 0 && (
+              <p className="text-victory-muted text-xs mt-0.5">
+                {t("results.streakLine", { count: currentStreak })}
+              </p>
+            )}
           </div>
         </section>
 

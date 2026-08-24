@@ -278,7 +278,9 @@
     "scoreHigh": "Solide — continue comme ça.",
     "scoreMediumHigh": "Base solide — quelques ajustements ici.",
     "scoreMedium": "Marge de progression — essaie cet exercice.",
-    "scoreLow": "Point de départ. Voici comment progresser."
+    "scoreLow": "Point de départ. Voici comment progresser.",
+    "sessionLogged": "{{rounds}} rounds enregistrés. Du vrai travail au compteur.",
+    "streakLine": "🔥 Série de {{count}} jours"
   },
   "profile": {
     "title": "Profil et paramètres",
