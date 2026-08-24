@@ -146,7 +146,7 @@ export default function GymDetailPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`touch-target px-4 rounded-full text-sm font-medium transition-colors flex items-center justify-center ${
                 activeTab === tab ? "bg-victory-lime text-victory-bg" : "bg-victory-card border border-victory-border text-victory-muted"
               }`}
             >
@@ -162,7 +162,7 @@ export default function GymDetailPage() {
                 <button
                   key={scope}
                   onClick={() => setLeaderboardScope(scope)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  className={`touch-target px-3 rounded-full text-xs font-medium transition-colors flex items-center justify-center ${
                     leaderboardScope === scope ? "bg-victory-lime text-victory-bg" : "bg-victory-card border border-victory-border text-victory-muted"
                   }`}
                 >
