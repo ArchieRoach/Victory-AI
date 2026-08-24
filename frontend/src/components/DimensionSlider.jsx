@@ -48,7 +48,7 @@ export const DimensionSlider = ({
       {isScored && (
         <button
           onClick={onSkip}
-          className="text-victory-muted text-sm hover:text-victory-text transition-colors"
+          className="text-victory-muted text-sm hover:text-victory-text transition-colors touch-target flex items-center"
           data-testid={`skip-${dimension}`}
         >
           Skip this dimension

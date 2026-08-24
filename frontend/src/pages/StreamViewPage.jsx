@@ -317,7 +317,7 @@ export default function StreamViewPage() {
               <button
                 onClick={handleFollow}
                 disabled={followBusy}
-                className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors disabled:opacity-50 ${
+                className={`flex items-center gap-1 touch-target px-3 rounded-xl border transition-colors disabled:opacity-50 text-xs font-bold ${
                   following
                     ? "border-victory-border text-victory-muted hover:border-red-500/40 hover:text-red-400"
                     : "border-victory-lime text-victory-lime hover:bg-victory-lime/10"
@@ -331,7 +331,7 @@ export default function StreamViewPage() {
             {/* Token balance chip — tap to top up */}
             <button
               onClick={() => setShowTopUp(true)}
-              className="flex items-center gap-1 bg-victory-lime/10 border border-victory-lime/30 text-victory-lime text-xs font-mono font-bold px-2.5 py-1 rounded-full hover:bg-victory-lime/20 transition-colors"
+              className="flex items-center gap-1 touch-target bg-victory-lime/10 border border-victory-lime/30 text-victory-lime text-xs font-mono font-bold px-2.5 rounded-full hover:bg-victory-lime/20 transition-colors"
             >
               <Zap className="w-3 h-3" />
               {tokenBalance.toLocaleString()}
@@ -340,7 +340,7 @@ export default function StreamViewPage() {
             {/* Emotes shop button */}
             <button
               onClick={() => setShowEmotes(true)}
-              className="flex items-center gap-1.5 border border-victory-border text-victory-text text-xs rounded-lg px-3 py-1.5 hover:border-victory-lime transition-colors"
+              className="flex items-center gap-1.5 touch-target border border-victory-border text-victory-text text-xs rounded-lg px-3 hover:border-victory-lime transition-colors"
             >
               <Smile className="w-3.5 h-3.5" />
               Emotes
@@ -350,7 +350,7 @@ export default function StreamViewPage() {
               <button
                 onClick={handleClip}
                 disabled={clipping}
-                className="flex items-center gap-1.5 border border-victory-border text-victory-text text-xs rounded-lg px-3 py-1.5 hover:border-victory-lime transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 touch-target border border-victory-border text-victory-text text-xs rounded-lg px-3 hover:border-victory-lime transition-colors disabled:opacity-50"
               >
                 <Scissors className="w-3.5 h-3.5" />
                 {clipping ? "Saving..." : "Clip 30s"}
@@ -381,7 +381,7 @@ export default function StreamViewPage() {
         {tokenBalance < 50 && (
           <button
             onClick={() => setShowTopUp(true)}
-            className="w-full py-2.5 rounded-xl border border-victory-lime/30 text-victory-lime text-xs font-semibold flex items-center justify-center gap-2 hover:bg-victory-lime/10 transition-colors"
+            className="w-full touch-target rounded-xl border border-victory-lime/30 text-victory-lime text-xs font-semibold flex items-center justify-center gap-2 hover:bg-victory-lime/10 transition-colors"
           >
             <Zap className="w-3.5 h-3.5" />
             Top up tokens to tip the streamer

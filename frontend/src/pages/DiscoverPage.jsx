@@ -136,7 +136,7 @@ function FighterCard({ fighter, onFollowChange, weightUnit }) {
       <button
         onClick={handleFollow}
         disabled={busy}
-        className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${
+        className={`flex-shrink-0 touch-target px-3 flex items-center justify-center rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${
           following
             ? "border-victory-border text-victory-muted hover:border-red-500/40 hover:text-red-400"
             : "border-victory-lime text-victory-lime hover:bg-victory-lime/10"
@@ -217,7 +217,7 @@ export default function DiscoverPage() {
           </div>
           <button
             onClick={() => setShowFilters((v) => !v)}
-            className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl border text-xs font-medium transition-colors flex-shrink-0 ${
+            className={`flex items-center gap-1.5 touch-target px-3 rounded-xl border text-xs font-medium transition-colors flex-shrink-0 ${
               activeFilters.length > 0 || showFilters
                 ? "border-victory-lime text-victory-lime bg-victory-lime/10"
                 : "border-victory-border text-victory-muted hover:border-victory-lime/40"
@@ -239,7 +239,7 @@ export default function DiscoverPage() {
             <button
               key={wc}
               onClick={() => setWeightClass(wc)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+              className={`flex-shrink-0 touch-target px-3 flex items-center justify-center rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
                 weightClass === wc
                   ? "bg-victory-lime text-victory-bg border-victory-lime"
                   : "border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-text"
@@ -261,7 +261,7 @@ export default function DiscoverPage() {
                   <button
                     key={s}
                     onClick={() => setStance(s)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    className={`flex-shrink-0 touch-target px-3 flex items-center justify-center rounded-full text-xs font-medium border transition-colors ${
                       stance === s
                         ? "bg-victory-lime text-victory-bg border-victory-lime"
                         : "border-victory-border text-victory-muted hover:border-victory-lime/40"
@@ -281,7 +281,7 @@ export default function DiscoverPage() {
                   <button
                     key={s.value}
                     onClick={() => setSort(s.value)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    className={`touch-target px-3 flex items-center justify-center rounded-full text-xs font-medium border transition-colors ${
                       sort === s.value
                         ? "bg-victory-lime text-victory-bg border-victory-lime"
                         : "border-victory-border text-victory-muted hover:border-victory-lime/40"
@@ -297,7 +297,7 @@ export default function DiscoverPage() {
             {activeFilters.length > 0 && (
               <button
                 onClick={() => { setWeightClass("All"); setStance("All"); }}
-                className="text-red-400 text-xs hover:text-red-300"
+                className="text-red-400 text-xs touch-target flex items-center hover:text-red-300"
               >
                 Clear filters
               </button>
@@ -361,7 +361,7 @@ export default function DiscoverPage() {
             {(activeFilters.length > 0 || q) && (
               <button
                 onClick={() => { setWeightClass("All"); setStance("All"); setQ(""); }}
-                className="mt-4 text-victory-lime text-sm font-semibold underline underline-offset-2"
+                className="mt-4 touch-target flex items-center justify-center text-victory-lime text-sm font-semibold underline underline-offset-2"
               >
                 Clear all filters
               </button>

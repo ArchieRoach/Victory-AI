@@ -350,7 +350,7 @@ export default function TrainPage() {
                   <button
                     key={val}
                     onClick={() => setRoundDuration(val)}
-                    className={`snap-center flex-shrink-0 px-4 py-2.5 rounded-full text-sm font-semibold border transition-all ${
+                    className={`snap-center flex-shrink-0 touch-target px-4 flex items-center justify-center rounded-full text-sm font-semibold border transition-all ${
                       roundDuration === val
                         ? "bg-victory-lime text-victory-bg border-victory-lime shadow-lg"
                         : "bg-victory-card text-victory-muted border-victory-border"
@@ -373,7 +373,7 @@ export default function TrainPage() {
                   <button
                     key={val}
                     onClick={() => setRestDuration(val)}
-                    className={`snap-center flex-shrink-0 px-4 py-2.5 rounded-full text-sm font-semibold border transition-all ${
+                    className={`snap-center flex-shrink-0 touch-target px-4 flex items-center justify-center rounded-full text-sm font-semibold border transition-all ${
                       restDuration === val
                         ? "bg-victory-teal text-victory-bg border-victory-teal shadow-lg"
                         : "bg-victory-card text-victory-muted border-victory-border"
@@ -706,7 +706,7 @@ export default function TrainPage() {
             </div>
 
             {/* Reset */}
-            <button onClick={resetTimer} className="mt-6 text-victory-muted text-xs hover:text-victory-text transition-colors tracking-wide">
+            <button onClick={resetTimer} className="mt-6 touch-target flex items-center justify-center text-victory-muted text-xs hover:text-victory-text transition-colors tracking-wide">
               ← Back to setup
             </button>
           </div>

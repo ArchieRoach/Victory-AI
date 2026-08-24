@@ -58,12 +58,12 @@ export function TopKnockouts({ streamId, refreshTrigger }) {
           <Trophy className="w-4 h-4 text-yellow-400" />
           <span className="text-victory-text text-sm font-semibold">Top Knockouts</span>
           {rows.length > 0 && !collapsed && (
-            <div className="flex gap-1 ml-1">
+            <div className="flex gap-2 ml-1">
               {["session", "lifetime"].map((s) => (
                 <button
                   key={s}
                   onClick={(e) => { e.stopPropagation(); setScope(s); }}
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize transition-colors ${
+                  className={`text-[10px] font-semibold px-2.5 py-1.5 rounded-full capitalize transition-colors ${
                     scope === s ? "bg-victory-lime text-victory-bg" : "text-victory-muted hover:text-victory-text"
                   }`}
                 >

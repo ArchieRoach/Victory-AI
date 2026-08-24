@@ -220,7 +220,7 @@ export default function FighterBuddyCreator() {
           <div className="space-y-4 animate-fade-in">
             <button
               onClick={() => setStep(1)}
-              className="text-victory-muted text-sm flex items-center gap-1 hover:text-victory-text mb-4"
+              className="text-victory-muted text-sm flex items-center gap-1 touch-target hover:text-victory-text mb-4"
             >
               ← Back to details
             </button>

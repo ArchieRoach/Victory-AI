@@ -114,7 +114,7 @@ export default function FeedbackWidget() {
                 <button
                   key={key}
                   onClick={() => setType(key)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  className={`flex-1 touch-target flex items-center justify-center gap-1.5 rounded-xl text-sm font-medium transition-colors ${
                     type === key ? "bg-victory-lime text-victory-bg" : "bg-victory-bg border border-victory-border text-victory-muted"
                   }`}
                 >
@@ -127,7 +127,7 @@ export default function FeedbackWidget() {
             {/* Star rating */}
             <div>
               <p className="text-victory-muted text-xs mb-1.5">{t("feedback.ratingLabel")}</p>
-              <div className="flex gap-1">
+              <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}

@@ -144,7 +144,7 @@ export default function SessionDetailPage() {
                   href={session.video_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-victory-lime hover:underline mt-1"
+                  className="flex items-center gap-2 touch-target text-victory-lime hover:underline mt-1"
                   data-testid="video-link"
                 >
                   <ExternalLink className="w-4 h-4" />
@@ -274,7 +274,7 @@ export default function SessionDetailPage() {
                             href={round.video_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-victory-lime text-sm hover:underline"
+                            className="flex items-center gap-2 touch-target text-victory-lime text-sm hover:underline"
                           >
                             <ExternalLink className="w-4 h-4" />
                             {t("sessionDetail.watchRound")}
