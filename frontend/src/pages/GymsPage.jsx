@@ -55,15 +55,15 @@ function CreateGymModal({ onClose, onCreated }) {
             <option value="fitness">{t("gyms.styleFitness")}</option>
           </select>
         </div>
-        <div className="flex items-center justify-between victory-card p-3">
+        <button
+          onClick={() => setIsPublic((v) => !v)}
+          className="w-full flex items-center justify-between victory-card p-3 touch-target"
+        >
           <span className="text-victory-text text-sm">{t("gyms.publicGym")}</span>
-          <button
-            onClick={() => setIsPublic((v) => !v)}
-            className={`w-12 h-6 rounded-full transition-colors ${isPublic ? "bg-victory-lime" : "bg-victory-border"}`}
-          >
+          <div className={`w-12 h-6 rounded-full transition-colors ${isPublic ? "bg-victory-lime" : "bg-victory-border"}`}>
             <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${isPublic ? "translate-x-6" : "translate-x-0.5"}`} />
-          </button>
-        </div>
+          </div>
+        </button>
         <button onClick={submit} disabled={loading} className="victory-btn-primary w-full">
           {loading ? t("common.saving") : t("gyms.createBtn")}
         </button>
@@ -184,7 +184,7 @@ export default function GymsPage() {
             ) : (
               <button
                 onClick={() => navigate("/paywall")}
-                className="flex items-center gap-1 text-xs text-victory-muted border border-victory-border rounded-full px-3 py-1.5"
+                className="flex items-center gap-1 touch-target text-xs text-victory-muted border border-victory-border rounded-full px-3"
               >
                 <Lock className="w-3 h-3" />
                 {t("gyms.proCreate")}
@@ -199,7 +199,7 @@ export default function GymsPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`touch-target px-4 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
                 activeTab === tab ? "bg-victory-lime text-victory-bg" : "bg-victory-card border border-victory-border text-victory-muted"
               }`}
             >
@@ -257,7 +257,7 @@ export default function GymsPage() {
                       </div>
                     </button>
                     {!gym.is_member && !myGym && (
-                      <button onClick={() => handleJoin(gym.gym_id)} className="text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 py-1">
+                      <button onClick={() => handleJoin(gym.gym_id)} className="touch-target flex items-center justify-center text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3">
                         {t("gyms.joinBtn")}
                       </button>
                     )}

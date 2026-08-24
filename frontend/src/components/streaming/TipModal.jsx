@@ -137,7 +137,7 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
+              className={`flex-1 touch-target flex items-center justify-center text-sm font-semibold transition-colors ${
                 tab === t
                   ? "text-victory-lime border-b-2 border-victory-lime"
                   : "text-victory-muted hover:text-victory-text"
@@ -157,7 +157,7 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
                   {/* Category header */}
                   <button
                     onClick={() => toggleCategory(cat.id)}
-                    className="w-full flex items-center justify-between py-2 px-1"
+                    className="w-full touch-target flex items-center justify-between px-1"
                   >
                     <span className={`text-[11px] font-bold tracking-widest ${cat.color}`}>
                       {cat.label}
@@ -237,7 +237,7 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
                   <button
                     key={a}
                     onClick={() => setCustom(String(a))}
-                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                    className={`text-xs font-semibold touch-target px-3 flex items-center justify-center rounded-full border transition-colors ${
                       custom === String(a)
                         ? "bg-victory-lime text-victory-bg border-victory-lime"
                         : "border-victory-border text-victory-muted hover:border-victory-lime/40"

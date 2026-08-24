@@ -229,7 +229,7 @@ export function ClipsTab({ userId }) {
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); setShareTarget(clip); }}
-                className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${(clip.share_count || 0) > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
+                className={`flex items-center gap-1.5 touch-target text-xs font-semibold transition-colors ${(clip.share_count || 0) > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
               >
                 <Share2 className="w-4 h-4" />
                 {clip.share_count > 0 ? clip.share_count : "Share"}
@@ -470,7 +470,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
                 {isOwn && (
                   <button
                     onClick={() => handleDelete(item.schedule_id)}
-                    className="flex-shrink-0 text-victory-muted hover:text-red-400 transition-colors text-xs py-1"
+                    className="flex-shrink-0 touch-target flex items-center justify-center text-victory-muted hover:text-red-400 transition-colors text-xs"
                   >
                     Remove
                   </button>
@@ -654,17 +654,17 @@ export default function PublicProfilePage() {
           </div>
           {/* Follower stats */}
           <div className="flex gap-6 mt-4 pt-4 border-t border-victory-border">
-            <button onClick={() => setFollowModal("followers")} className="text-center hover:opacity-70 transition-opacity">
+            <button onClick={() => setFollowModal("followers")} className="touch-target flex flex-col items-center justify-center hover:opacity-70 transition-opacity">
               <p className="font-mono font-bold text-victory-text">{profile.follower_count}</p>
               <p className="text-victory-muted text-xs">{t("publicProfile.followers")}</p>
             </button>
-            <button onClick={() => setFollowModal("following")} className="text-center hover:opacity-70 transition-opacity">
+            <button onClick={() => setFollowModal("following")} className="touch-target flex flex-col items-center justify-center hover:opacity-70 transition-opacity">
               <p className="font-mono font-bold text-victory-text">{profile.following_count}</p>
               <p className="text-victory-muted text-xs">{t("publicProfile.following")}</p>
             </button>
             {profile.gym && (
               <button onClick={() => navigate(`/gyms/${profile.gym.gym_id}`)}
-                className="flex items-center gap-1.5 text-victory-lime text-sm">
+                className="flex items-center gap-1.5 touch-target text-victory-lime text-sm">
                 <Building2 className="w-4 h-4" />
                 {profile.gym.name}
               </button>

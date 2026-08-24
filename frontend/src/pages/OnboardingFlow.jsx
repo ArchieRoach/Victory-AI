@@ -38,7 +38,7 @@ const BirthDatePhase = ({ onNext }) => {
         {t("onboarding.birth_date.cta")}
         <ChevronRight className="w-5 h-5" />
       </button>
-      <button onClick={() => navigate("/privacy")} className="w-full text-center text-victory-muted text-xs hover:underline">
+      <button onClick={() => navigate("/privacy")} className="w-full touch-target flex items-center justify-center text-victory-muted text-xs hover:underline">
         {t("profile.privacyPolicy")}
       </button>
     </div>
@@ -496,7 +496,7 @@ const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
             <button
               key={n}
               onClick={() => setName(n)}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${
+              className={`touch-target px-3 flex items-center justify-center rounded-full text-sm transition-colors ${
                 name === n ? "bg-victory-lime text-victory-bg" : "bg-victory-card border border-victory-border text-victory-text"
               }`}
             >

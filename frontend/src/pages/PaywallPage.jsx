@@ -337,7 +337,7 @@ export default function PaywallPage() {
         {/* Details Toggle */}
         <button
           onClick={() => setShowDetails(!showDetails)}
-          className="text-victory-muted text-sm mb-4 underline"
+          className="text-victory-muted text-sm mb-4 underline touch-target flex items-center"
         >
           {showDetails ? t("paywall.hideDetails") : t("paywall.viewDetails")}
         </button>

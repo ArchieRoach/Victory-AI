@@ -36,7 +36,7 @@ function UsageBanner({ usage, onUpgrade }) {
       </div>
       <button
         onClick={onUpgrade}
-        className="text-xs text-victory-lime font-semibold whitespace-nowrap border border-victory-lime/30 rounded-lg px-2.5 py-1 hover:bg-victory-lime/10 transition-colors"
+        className="text-xs text-victory-lime font-semibold whitespace-nowrap border border-victory-lime/30 rounded-lg px-2.5 touch-target flex items-center justify-center hover:bg-victory-lime/10 transition-colors"
       >
         Go Pro
       </button>
@@ -70,7 +70,7 @@ function QuotaExceededScreen({ feature }) {
       </button>
       <button
         onClick={() => navigate(-1)}
-        className="text-victory-muted text-sm py-2"
+        className="text-victory-muted text-sm touch-target flex items-center justify-center"
       >
         Go back
       </button>
@@ -111,7 +111,7 @@ function NoSubscriptionScreen({ feature }) {
         <Zap className="w-4 h-4" />
         Unlock Pro
       </button>
-      <button onClick={() => navigate(-1)} className="text-victory-muted text-sm mt-4 py-2">
+      <button onClick={() => navigate(-1)} className="text-victory-muted text-sm mt-4 touch-target flex items-center justify-center">
         Go back
       </button>
     </div>

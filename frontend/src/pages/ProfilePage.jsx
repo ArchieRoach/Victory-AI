@@ -391,7 +391,7 @@ export default function ProfilePage() {
             </h2>
             <button
               onClick={() => navigate(`/profile/${user?.user_id}`)}
-              className="text-xs text-victory-muted flex items-center gap-1 hover:text-victory-lime"
+              className="text-xs text-victory-muted flex items-center gap-1 touch-target hover:text-victory-lime"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               {t("profile.viewPublic")}
@@ -412,7 +412,7 @@ export default function ProfilePage() {
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={uploadingAvatar}
                 aria-label="Change photo"
-                className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-victory-lime flex items-center justify-center shadow-lg border-2 border-victory-bg"
+                className="absolute bottom-0 right-0 touch-target rounded-full bg-victory-lime flex items-center justify-center shadow-lg border-2 border-victory-bg"
               >
                 {uploadingAvatar
                   ? <div className="w-3 h-3 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
@@ -453,7 +453,7 @@ export default function ProfilePage() {
                   key={unit}
                   type="button"
                   onClick={() => setExtendedForm({ ...extendedForm, weight_unit: unit })}
-                  className={`px-5 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                  className={`touch-target px-5 flex items-center justify-center rounded-xl text-sm font-bold border transition-colors ${
                     extendedForm.weight_unit === unit
                       ? "bg-victory-lime text-victory-bg border-victory-lime"
                       : "border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-text"
@@ -556,7 +556,7 @@ export default function ProfilePage() {
                   {extendedForm.titles.map((title, i) => (
                     <span key={i} className="flex items-center gap-1.5 bg-victory-lime/15 border border-victory-lime/30 text-victory-lime text-xs font-medium px-3 py-1 rounded-full">
                       {title}
-                      <button onClick={() => removeTitle(i)} className="hover:text-red-400 transition-colors">
+                      <button onClick={() => removeTitle(i)} className="p-2 -m-1 hover:text-red-400 transition-colors rounded-full" aria-label="Remove title">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -575,7 +575,7 @@ export default function ProfilePage() {
                 <button
                   onClick={addTitle}
                   disabled={!titleInput.trim()}
-                  className="px-4 py-2 rounded-xl border border-victory-lime text-victory-lime text-sm font-semibold disabled:opacity-40 whitespace-nowrap"
+                  className="touch-target px-4 flex items-center justify-center rounded-xl border border-victory-lime text-victory-lime text-sm font-semibold disabled:opacity-40 whitespace-nowrap"
                 >
                   Add
                 </button>

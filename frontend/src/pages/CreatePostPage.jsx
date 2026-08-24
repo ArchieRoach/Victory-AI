@@ -160,7 +160,7 @@ export default function CreatePostPage() {
                 <button
                   key={key}
                   onClick={() => setPostType(key)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors flex-1 justify-center ${
+                  className={`flex items-center gap-1.5 touch-target px-3 rounded-xl text-sm font-medium transition-colors flex-1 justify-center ${
                     postType === key ? "bg-victory-lime text-victory-bg" : "bg-victory-card border border-victory-border text-victory-muted"
                   }`}
                 >
@@ -233,7 +233,7 @@ export default function CreatePostPage() {
                   <button
                     key={key}
                     onClick={() => setCompType(key)}
-                    className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    className={`flex-1 touch-target flex items-center justify-center rounded-xl text-sm font-medium transition-colors ${
                       compType === key ? "bg-victory-lime text-victory-bg" : "bg-victory-card border border-victory-border text-victory-muted"
                     }`}
                   >
@@ -284,7 +284,7 @@ export default function CreatePostPage() {
                 <button
                   key={tag}
                   onClick={() => toggleTag(tag)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  className={`touch-target px-3 flex items-center justify-center rounded-full text-xs font-medium transition-colors ${
                     tags.includes(tag)
                       ? "bg-victory-lime text-victory-bg"
                       : "bg-victory-card border border-victory-border text-victory-muted"

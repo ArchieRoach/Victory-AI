@@ -276,12 +276,12 @@ export default function FeedPage() {
         </div>
 
         {/* Feed type tabs */}
-        <div className="flex gap-1 px-4 pb-3">
+        <div className="flex gap-2 px-4 pb-3">
           {FEED_TABS.map(({ key, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setFeedType(key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 touch-target px-3 rounded-full text-sm font-medium transition-colors ${
                 feedType === key
                   ? "bg-victory-lime text-victory-bg"
                   : "bg-victory-card border border-victory-border text-victory-muted"

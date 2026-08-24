@@ -123,7 +123,7 @@ export default function CompetitionsPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`touch-target px-4 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
                 activeTab === tab ? "bg-victory-lime text-victory-bg" : "bg-victory-card border border-victory-border text-victory-muted"
               }`}
             >
@@ -139,7 +139,7 @@ export default function CompetitionsPage() {
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                className={`touch-target px-3 flex items-center justify-center rounded-full text-xs font-medium transition-colors ${
                   statusFilter === s ? "bg-victory-lime/20 text-victory-lime border border-victory-lime/40" : "text-victory-muted border border-victory-border"
                 }`}
               >
@@ -161,7 +161,7 @@ export default function CompetitionsPage() {
               <p className="text-victory-text text-sm font-semibold">{t("compete.aiJudgeBanner")}</p>
               <p className="text-victory-muted text-xs">{t("compete.aiJudgeBannerDesc")}</p>
             </div>
-            <button onClick={() => navigate("/paywall")} className="flex items-center gap-1 text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 py-1.5 flex-shrink-0">
+            <button onClick={() => navigate("/paywall")} className="flex items-center gap-1 touch-target text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 flex-shrink-0">
               <Lock className="w-3 h-3" />
               Pro
             </button>

@@ -225,12 +225,12 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
       {/* Actions */}
       <div className="flex items-center gap-5 px-4 py-3">
         <button onClick={() => onLike(post.post_id)}
-          className={`flex items-center gap-1.5 transition-colors ${post.liked_by_me ? "text-red-400" : "text-victory-muted hover:text-red-400"}`}>
+          className={`flex items-center gap-1.5 touch-target transition-colors ${post.liked_by_me ? "text-red-400" : "text-victory-muted hover:text-red-400"}`}>
           <Heart className={`w-5 h-5 ${post.liked_by_me ? "fill-current" : ""}`} />
           <span className="text-sm">{post.like_count || 0}</span>
         </button>
         <button onClick={toggleComments}
-          className="flex items-center gap-1.5 text-victory-muted hover:text-victory-text transition-colors">
+          className="flex items-center gap-1.5 touch-target text-victory-muted hover:text-victory-text transition-colors">
           <MessageCircle className="w-5 h-5" />
           <span className="text-sm">{post.comment_count || 0}</span>
           {showComments ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -238,7 +238,7 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
         {post.video_url && (
           <button
             onClick={() => setShareTarget(post)}
-            className={`flex items-center gap-1.5 transition-colors ${shareCount > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
+            className={`flex items-center gap-1.5 touch-target transition-colors ${shareCount > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
           >
             {isViral ? <Flame className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
             <span className="text-sm">{shareCount > 0 ? shareCount.toLocaleString() : ""}</span>
@@ -495,7 +495,7 @@ export default function HomePage() {
             {/* Trending clips link */}
             <button
               onClick={() => navigate("/clips")}
-              className="flex items-center gap-1 text-victory-orange text-xs font-bold px-2.5 py-1.5 rounded-full border border-victory-orange/30 bg-victory-orange/10 hover:bg-victory-orange/20 transition-colors"
+              className="flex items-center gap-1 touch-target text-victory-orange text-xs font-bold px-2.5 rounded-full border border-victory-orange/30 bg-victory-orange/10 hover:bg-victory-orange/20 transition-colors"
             >
               <Flame className="w-3.5 h-3.5" />
               Trending
@@ -528,7 +528,7 @@ export default function HomePage() {
         <div className="flex px-4 pt-3">
           <button
             onClick={() => setTab("foryou")}
-            className={`pb-3 pr-6 text-sm font-semibold border-b-2 transition-colors ${
+            className={`pb-3 pt-3 pr-6 text-sm font-semibold border-b-2 transition-colors ${
               tab === "foryou"
                 ? "border-victory-lime text-victory-lime"
                 : "border-transparent text-victory-muted hover:text-victory-text"
@@ -538,7 +538,7 @@ export default function HomePage() {
           </button>
           <button
             onClick={() => setTab("following")}
-            className={`pb-3 pr-6 text-sm font-semibold border-b-2 transition-colors ${
+            className={`pb-3 pt-3 pr-6 text-sm font-semibold border-b-2 transition-colors ${
               tab === "following"
                 ? "border-victory-lime text-victory-lime"
                 : "border-transparent text-victory-muted hover:text-victory-text"
@@ -548,7 +548,7 @@ export default function HomePage() {
           </button>
           <button
             onClick={() => setTab("notifications")}
-            className={`pb-3 pr-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+            className={`pb-3 pt-3 pr-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
               tab === "notifications"
                 ? "border-victory-lime text-victory-lime"
                 : "border-transparent text-victory-muted hover:text-victory-text"

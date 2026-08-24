@@ -79,7 +79,7 @@ function EmoteCard({ emote, onDelete }) {
       <button
         onClick={handleDelete}
         disabled={deleting}
-        className="mt-auto w-full flex items-center justify-center gap-1 py-1 rounded-lg border border-red-500/30 text-red-400 text-xs hover:bg-red-500/10 transition-colors disabled:opacity-40"
+        className="mt-auto w-full touch-target flex items-center justify-center gap-1 rounded-lg border border-red-500/30 text-red-400 text-xs hover:bg-red-500/10 transition-colors disabled:opacity-40"
       >
         <Trash2 className="w-3 h-3" /> Delete
       </button>
@@ -219,7 +219,7 @@ export default function EmoteStudioPage() {
             </div>
             <button
               onClick={openAppearance}
-              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-victory-bg border border-victory-border text-victory-muted text-xs hover:border-victory-lime/40 hover:text-victory-lime transition-colors"
+              className="flex-shrink-0 flex items-center gap-1.5 touch-target px-3 rounded-xl bg-victory-bg border border-victory-border text-victory-muted text-xs hover:border-victory-lime/40 hover:text-victory-lime transition-colors"
             >
               <Palette className="w-3.5 h-3.5" />
               Customize
@@ -229,7 +229,7 @@ export default function EmoteStudioPage() {
           <div className="bg-victory-card border border-victory-danger/30 rounded-2xl p-4 text-center">
             <p className="text-victory-danger text-sm font-medium">No training partner yet</p>
             <p className="text-victory-muted text-xs mt-1">Create your AI partner in the Train section first.</p>
-            <button onClick={() => navigate("/train")} className="mt-3 text-xs text-victory-lime underline">
+            <button onClick={() => navigate("/train")} className="mt-3 touch-target flex items-center justify-center mx-auto text-xs text-victory-lime underline">
               Go to Train
             </button>
           </div>
@@ -281,7 +281,7 @@ export default function EmoteStudioPage() {
                 <button
                   key={p.value}
                   onClick={() => setPrice(p.value)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs transition-colors ${
+                  className={`flex items-center gap-2 touch-target px-3 rounded-xl border text-xs transition-colors ${
                     price === p.value
                       ? "border-victory-lime bg-victory-lime/10 text-victory-lime"
                       : "border-victory-border text-victory-muted hover:border-victory-lime/40"
@@ -364,7 +364,7 @@ export default function EmoteStudioPage() {
                   <button
                     key={value}
                     onClick={() => setApGender(value)}
-                    className={`flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                    className={`flex-1 touch-target flex items-center justify-center rounded-xl border text-sm font-semibold transition-all ${
                       apGender === value
                         ? "bg-victory-lime text-victory-bg border-victory-lime"
                         : "bg-victory-bg border-victory-border text-victory-muted"

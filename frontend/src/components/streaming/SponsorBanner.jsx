@@ -80,7 +80,7 @@ export function SponsorBanner({ className = "", simulateAd = false }) {
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={handleLearnMore}
-            className="text-[10px] font-semibold text-victory-lime border border-victory-lime/40 rounded-lg px-2.5 py-1 hover:bg-victory-lime/10 transition-colors whitespace-nowrap"
+            className="text-[10px] font-semibold text-victory-lime border border-victory-lime/40 rounded-lg px-2.5 touch-target flex items-center justify-center hover:bg-victory-lime/10 transition-colors whitespace-nowrap"
           >
             {isLive ? "Learn More" : "Advertise Here"}
           </button>

@@ -97,12 +97,12 @@ export default function WelcomePage() {
 
         <p className="mt-6 text-victory-muted text-sm">
           {t("welcome.alreadyAccount")}{" "}
-          <button onClick={() => navigate("/login")} className="text-victory-lime hover:underline" data-testid="login-link">
+          <button onClick={() => navigate("/login")} className="text-victory-lime hover:underline inline-block p-2 -m-2" data-testid="login-link">
             {t("common.login")}
           </button>
         </p>
 
-        <button onClick={() => navigate("/privacy")} className="mt-3 text-victory-muted text-xs hover:underline" data-testid="welcome-privacy-link">
+        <button onClick={() => navigate("/privacy")} className="mt-3 text-victory-muted text-xs hover:underline touch-target flex items-center justify-center" data-testid="welcome-privacy-link">
           {t("profile.privacyPolicy")}
         </button>
       </div>

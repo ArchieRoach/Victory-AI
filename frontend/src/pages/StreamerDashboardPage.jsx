@@ -230,12 +230,12 @@ export default function StreamerDashboardPage() {
           <p className="text-victory-muted text-xs">Earnings · Viewers · Emotes</p>
         </div>
         {/* Period selector */}
-        <div className="flex items-center gap-1 bg-victory-card border border-victory-border rounded-xl p-1">
+        <div className="flex items-center gap-2 bg-victory-card border border-victory-border rounded-xl p-1">
           {PERIODS.map((p) => (
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+              className={`touch-target px-3 flex items-center justify-center rounded-lg text-xs font-medium transition-colors ${
                 period === p.value
                   ? "bg-victory-lime text-victory-bg"
                   : "text-victory-muted hover:text-victory-text"
@@ -322,7 +322,7 @@ export default function StreamerDashboardPage() {
               <h2 className="text-victory-text font-semibold text-sm">Stream history</h2>
               <button
                 onClick={() => navigate("/go-live")}
-                className="text-victory-lime text-xs flex items-center gap-0.5 hover:underline"
+                className="text-victory-lime text-xs flex items-center gap-0.5 touch-target hover:underline"
               >
                 Go Live <ChevronRight className="w-3 h-3" />
               </button>
@@ -346,7 +346,7 @@ export default function StreamerDashboardPage() {
               <h2 className="text-victory-text font-semibold text-sm">Emote performance</h2>
               <button
                 onClick={() => navigate("/emotes")}
-                className="text-victory-lime text-xs flex items-center gap-0.5 hover:underline"
+                className="text-victory-lime text-xs flex items-center gap-0.5 touch-target hover:underline"
               >
                 Studio <ChevronRight className="w-3 h-3" />
               </button>
@@ -360,7 +360,7 @@ export default function StreamerDashboardPage() {
                 <p className="text-victory-muted text-xs">Create emotes for your viewers to use in chat.</p>
                 <button
                   onClick={() => navigate("/emotes")}
-                  className="mt-1 text-victory-lime text-xs underline"
+                  className="mt-1 text-victory-lime text-xs underline touch-target flex items-center justify-center"
                 >
                   Create your first emote
                 </button>

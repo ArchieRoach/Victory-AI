@@ -117,7 +117,7 @@ function ClipCard({ clip, onLike, onShare }) {
       <div className="flex items-center gap-5 px-4 py-3">
         <button
           onClick={() => onLike(clip.post_id)}
-          className={`flex items-center gap-1.5 transition-colors ${clip.liked_by_me ? "text-red-400" : "text-victory-muted hover:text-red-400"}`}
+          className={`flex items-center gap-1.5 touch-target transition-colors ${clip.liked_by_me ? "text-red-400" : "text-victory-muted hover:text-red-400"}`}
         >
           <Heart className={`w-5 h-5 ${clip.liked_by_me ? "fill-current" : ""}`} />
           <span className="text-sm">{clip.like_count || 0}</span>
@@ -128,7 +128,7 @@ function ClipCard({ clip, onLike, onShare }) {
         </div>
         <button
           onClick={() => onShare(clip)}
-          className={`flex items-center gap-1.5 transition-colors ${shareCount > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
+          className={`flex items-center gap-1.5 touch-target transition-colors ${shareCount > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
         >
           <Share2 className="w-5 h-5" />
           <span className="text-sm">{shareCount.toLocaleString()}</span>
@@ -252,7 +252,7 @@ export default function TrendingClipsPage() {
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
-              className={`pb-3 pr-6 text-sm font-semibold border-b-2 transition-colors ${
+              className={`pb-3 pt-3 pr-6 text-sm font-semibold border-b-2 transition-colors ${
                 period === p.value
                   ? "border-victory-orange text-victory-orange"
                   : "border-transparent text-victory-muted hover:text-victory-text"
