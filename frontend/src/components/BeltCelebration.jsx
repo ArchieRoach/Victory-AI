@@ -45,7 +45,7 @@ export function BeltCelebration({ belts, onDone }) {
         <p className="text-white/70 text-sm text-center">{belt.desc}</p>
         <button
           onClick={advance}
-          className="mt-2 px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-semibold transition-colors"
+          className="mt-2 touch-target px-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-semibold transition-colors"
         >
           {belts.length > 1 ? t("belt.next") : t("belt.continue")}
         </button>

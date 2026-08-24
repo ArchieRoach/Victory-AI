@@ -104,7 +104,7 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
                 <button
                   onClick={() => handleFollow(u.user_id, isFollowing(u))}
                   disabled={followState[u.user_id] === "busy"}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${
+                  className={`flex-shrink-0 touch-target px-3 flex items-center justify-center rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${
                     isFollowing(u)
                       ? "border-victory-border text-victory-muted"
                       : "border-victory-lime text-victory-lime hover:bg-victory-lime/10"
@@ -615,7 +615,7 @@ export default function PublicProfilePage() {
         <button
           onClick={toggleFollow}
           disabled={followLoading}
-          className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+          className={`touch-target px-4 flex items-center justify-center rounded-full text-sm font-semibold transition-colors ${
             following
               ? "border border-victory-border text-victory-muted"
               : "bg-victory-lime text-victory-bg"
@@ -712,7 +712,7 @@ export default function PublicProfilePage() {
                   <button
                     onClick={cheerStreak}
                     disabled={cheering || cheered}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-full bg-orange-400/20 text-orange-300 disabled:opacity-50 flex-shrink-0"
+                    className="touch-target px-3 flex items-center justify-center text-xs font-semibold rounded-full bg-orange-400/20 text-orange-300 disabled:opacity-50 flex-shrink-0"
                   >
                     {cheered ? t("publicProfile.cheered") : t("publicProfile.cheer")}
                   </button>
