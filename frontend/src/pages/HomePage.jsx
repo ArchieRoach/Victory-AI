@@ -386,6 +386,7 @@ export default function HomePage() {
   const [loadingFeed,     setLoadingFeed]     = useState(true);
   const [loadingFollowing,setLoadingFollowing] = useState(false);
   const [loadingNotif,    setLoadingNotif]    = useState(false);
+  const [streakAtRisk,    setStreakAtRisk]    = useState(0); // days at risk of being lost today, 0 = none
   const markedReadRef = useRef(false);
   const followingFetchedRef = useRef(false);
 
@@ -417,7 +418,15 @@ export default function HomePage() {
     finally { setLoadingNotif(false); }
   }, []);
 
-  useEffect(() => { fetchFeed(); fetchNotifs(); }, [fetchFeed, fetchNotifs]);
+  const fetchStreakStatus = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/users/stats`);
+      const today = res.data.week_activity?.[res.data.week_activity.length - 1];
+      setStreakAtRisk(res.data.current_streak > 0 && today && !today.active ? res.data.current_streak : 0);
+    } catch {}
+  }, []);
+
+  useEffect(() => { fetchFeed(); fetchNotifs(); fetchStreakStatus(); }, [fetchFeed, fetchNotifs, fetchStreakStatus]);
 
   // Lazy-load the following feed the first time the tab is opened
   useEffect(() => {
@@ -563,6 +572,23 @@ export default function HomePage() {
           </button>
         </div>
       </header>
+
+      {/* Streak-break warning — loss aversion, honest: only shown when a real streak is actually at risk */}
+      {streakAtRisk > 0 && (
+        <button
+          onClick={() => navigate("/train")}
+          className="w-full flex items-center gap-3 bg-orange-500/10 border-y border-orange-400/30 px-4 py-3 text-left touch-target"
+        >
+          <Flame className="w-6 h-6 text-orange-400 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-victory-text text-sm font-semibold">
+              Don't lose your {streakAtRisk}-day streak
+            </p>
+            <p className="text-victory-muted text-xs">You haven't trained today yet — one session keeps it alive.</p>
+          </div>
+          <span className="text-orange-400 text-xs font-bold flex-shrink-0">Train now</span>
+        </button>
+      )}
 
       {/* ── For You feed ─────────────────────────────────────────────────── */}
       {tab === "foryou" && (
