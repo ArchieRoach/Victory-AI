@@ -534,7 +534,10 @@
     "noPosts": "还没有帖子",
     "owner": "馆主",
     "leftGym": "已退出道馆",
-    "deleted": "道馆已删除"
+    "deleted": "道馆已删除",
+    "scope_week": "本周",
+    "scope_allTime": "总榜",
+    "thisWeek": "本周"
   },
   "compete": {
     "title": "竞赛",
@@ -585,5 +588,10 @@
     "streakActive": "🔥 连续{{count}}天",
     "cheer": "加油",
     "cheered": "已加油"
+  },
+  "belt": {
+    "andTheNew": "新的冠军诞生...",
+    "next": "下一个",
+    "continue": "继续"
   }
 }

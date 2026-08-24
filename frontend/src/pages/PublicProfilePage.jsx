@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ShareSheet } from "@/components/ShareSheet";
+import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { formatWeightClass, getWeightUnit } from "@/utils/weightClasses";
 
 // ── Follow list modal (followers / following) ─────────────────────────────────
@@ -702,18 +703,21 @@ export default function PublicProfilePage() {
               {t("publicProfile.appStats")}
             </h2>
             {profile.current_streak > 0 && (
-              <div className="flex items-center justify-between gap-3 bg-orange-500/10 border border-orange-400/30 rounded-lg px-3 py-2 mb-3">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Flame className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                  <p className="text-victory-text text-sm truncate">{t("publicProfile.streakActive", { count: profile.current_streak })}</p>
+              <div className="bg-orange-500/10 border border-orange-400/30 rounded-lg px-3 py-3 mb-3 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Flame className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                    <p className="text-victory-text text-sm truncate">{t("publicProfile.streakActive", { count: profile.current_streak })}</p>
+                  </div>
+                  <button
+                    onClick={cheerStreak}
+                    disabled={cheering || cheered}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-full bg-orange-400/20 text-orange-300 disabled:opacity-50 flex-shrink-0"
+                  >
+                    {cheered ? t("publicProfile.cheered") : t("publicProfile.cheer")}
+                  </button>
                 </div>
-                <button
-                  onClick={cheerStreak}
-                  disabled={cheering || cheered}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-full bg-orange-400/20 text-orange-300 disabled:opacity-50 flex-shrink-0"
-                >
-                  {cheered ? t("publicProfile.cheered") : t("publicProfile.cheer")}
-                </button>
+                <StreakHeatmap days={profile.week_activity} />
               </div>
             )}
             <div className="grid grid-cols-3 gap-3">

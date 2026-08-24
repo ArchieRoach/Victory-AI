@@ -116,6 +116,12 @@ module.exports = {
           "0%, 100%": { transform: "rotate(-2.5deg) translateX(-3px)" },
           "50%":      { transform: "rotate(2.5deg) translateX(3px)" },
         },
+        "fly-across": {
+          "0%":   { transform: "translateX(110vw)",  opacity: "0" },
+          "8%":   { opacity: "1" },
+          "88%":  { opacity: "1" },
+          "100%": { transform: "translateX(-110vw)", opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -128,6 +134,7 @@ module.exports = {
         "scale-in": "scale-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both",
         "sway": "sway 3.2s ease-in-out infinite",
         "bounce-slow": "bounce-slow 1.4s ease-in-out infinite",
+        "fly-across": "fly-across 4s linear forwards",
       },
     },
   },

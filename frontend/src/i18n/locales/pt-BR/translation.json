@@ -534,7 +534,10 @@
     "noPosts": "Sem publicações ainda",
     "owner": "Proprietário",
     "leftGym": "Saiu da academia",
-    "deleted": "Academia excluída"
+    "deleted": "Academia excluída",
+    "scope_week": "Esta semana",
+    "scope_allTime": "Geral",
+    "thisWeek": "esta semana"
   },
   "compete": {
     "title": "Competições",
@@ -585,5 +588,10 @@
     "streakActive": "🔥 Sequência de {{count}} dias",
     "cheer": "Torcer",
     "cheered": "Torcida enviada"
+  },
+  "belt": {
+    "andTheNew": "E o novo...",
+    "next": "Próximo",
+    "continue": "Continuar"
   }
 }

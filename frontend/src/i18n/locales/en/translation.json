@@ -520,7 +520,10 @@
     "noPosts": "No posts yet",
     "owner": "Owner",
     "leftGym": "Left gym",
-    "deleted": "Gym deleted"
+    "deleted": "Gym deleted",
+    "scope_week": "This Week",
+    "scope_allTime": "All Time",
+    "thisWeek": "this week"
   },
   "compete": {
     "title": "Competitions",
@@ -646,5 +649,10 @@
     "goToApp": "Go to App",
     "timeoutToast": "Payment status check timed out. Please check your email for confirmation.",
     "successToast": "Welcome to Victory AI Pro!"
+  },
+  "belt": {
+    "andTheNew": "And the new...",
+    "next": "Next",
+    "continue": "Continue"
   }
 }

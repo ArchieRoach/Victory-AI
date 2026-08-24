@@ -534,7 +534,10 @@
     "noPosts": "Sin publicaciones aún",
     "owner": "Propietario",
     "leftGym": "Saliste del gimnasio",
-    "deleted": "Gimnasio eliminado"
+    "deleted": "Gimnasio eliminado",
+    "scope_week": "Esta semana",
+    "scope_allTime": "Histórico",
+    "thisWeek": "esta semana"
   },
   "compete": {
     "title": "Competiciones",
@@ -585,5 +588,10 @@
     "streakActive": "🔥 Racha de {{count}} días",
     "cheer": "Animar",
     "cheered": "Animado"
+  },
+  "belt": {
+    "andTheNew": "Y el nuevo...",
+    "next": "Siguiente",
+    "continue": "Continuar"
   }
 }

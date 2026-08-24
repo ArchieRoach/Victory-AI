@@ -534,7 +534,10 @@
     "noPosts": "Aucune publication pour l'instant",
     "owner": "Propriétaire",
     "leftGym": "Vous avez quitté la salle",
-    "deleted": "Salle supprimée"
+    "deleted": "Salle supprimée",
+    "scope_week": "Cette semaine",
+    "scope_allTime": "Total",
+    "thisWeek": "cette semaine"
   },
   "compete": {
     "title": "Compétitions",
@@ -585,5 +588,10 @@
     "streakActive": "🔥 Série de {{count}} jours",
     "cheer": "Encourager",
     "cheered": "Encouragé"
+  },
+  "belt": {
+    "andTheNew": "Et le nouveau...",
+    "next": "Suivant",
+    "continue": "Continuer"
   }
 }

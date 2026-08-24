@@ -22,8 +22,11 @@ function GiftSubBanner({ event, onDone }) {
   }, [onDone]);
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-slide-down pointer-events-none">
-      <div className="flex items-center gap-3 bg-victory-lime text-victory-bg px-5 py-3 rounded-2xl shadow-2xl font-bold text-sm">
+    <div className="fixed inset-x-0 top-1/4 z-50 overflow-hidden pointer-events-none">
+      <div
+        className="inline-flex items-center gap-3 bg-victory-lime text-victory-bg px-5 py-3 rounded-2xl shadow-2xl font-bold text-sm animate-fly-across"
+        style={{ animationDuration: "4000ms" }}
+      >
         <span className="text-xl">🎁</span>
         <span>{event.user_name} gifted <strong>{event.count}</strong> sub{event.count > 1 ? "s" : ""}!</span>
       </div>
@@ -128,10 +131,13 @@ function TipBanner({ event, onDone }) {
     );
   }
 
-  // Bronze / silver / gold — top banner
+  // Bronze / silver / gold — fly across the screen, TikTok/Twitch/IG-Live style
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-slide-down pointer-events-none">
-      <div className={`flex items-center gap-3 bg-gradient-to-r ${tier.bg} ring-1 ${tier.ring} px-5 py-3 rounded-2xl shadow-2xl max-w-xs`}>
+    <div className="fixed inset-x-0 top-1/4 z-50 overflow-hidden pointer-events-none">
+      <div
+        className={`inline-flex items-center gap-3 bg-gradient-to-r ${tier.bg} ring-1 ${tier.ring} px-5 py-3 rounded-2xl shadow-2xl max-w-xs animate-fly-across`}
+        style={{ animationDuration: `${tier.duration}ms` }}
+      >
         <span className="text-2xl">{event.punch_emoji}</span>
         <div className="min-w-0">
           <p className={`font-bold text-sm ${tier.text}`}>{event.user_name} · {event.amount?.toLocaleString()} tokens</p>
