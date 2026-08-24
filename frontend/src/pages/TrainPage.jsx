@@ -147,7 +147,9 @@ export default function TrainPage() {
       }, { withCredentials: true });
       setFeedback(res.data);
       if (voiceEnabled && res.data?.what_you_did_well) {
-        playVoiceFeedback(`${res.data.what_you_did_well} ${res.data.what_to_tighten}`);
+        // Recency effect: end on the affirming line, not the critique — that's
+        // what's still in the fighter's head when the next round starts.
+        playVoiceFeedback(`${res.data.what_to_tighten} ${res.data.what_you_did_well}`);
       }
     } catch {
       toast.error(t("train.feedbackFailed", "Couldn't generate feedback for this round."));
@@ -645,11 +647,9 @@ export default function TrainPage() {
                       <Progress value={feedbackProgress} className="h-1.5" />
                     </div>
                   ) : feedback ? (
+                    // Peak-end / recency: critique and homework first, affirmation last —
+                    // that's the line still fresh in the fighter's head at the bell.
                     <div className="space-y-3">
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-victory-lime mt-0.5 flex-shrink-0" />
-                        <p className="text-victory-text text-sm">{feedback.what_you_did_well}</p>
-                      </div>
                       <div className="flex items-start gap-2">
                         <Zap className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                         <p className="text-victory-text text-sm">{feedback.what_to_tighten}</p>
@@ -657,6 +657,10 @@ export default function TrainPage() {
                       <div className="flex items-start gap-2">
                         <span className="text-sky-400 mt-0.5 flex-shrink-0 text-sm">📋</span>
                         <p className="text-victory-text text-sm">{feedback.drill_focus}</p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-victory-lime mt-0.5 flex-shrink-0" />
+                        <p className="text-victory-text text-sm">{feedback.what_you_did_well}</p>
                       </div>
                       {feedback.accountability_check && (
                         <div className="mt-3 pt-3 border-t border-victory-border">

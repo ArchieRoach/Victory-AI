@@ -279,7 +279,9 @@
     "scoreHigh": "Strong — keep doing this.",
     "scoreMediumHigh": "Solid foundation — a few tweaks here.",
     "scoreMedium": "Room to grow — try this drill.",
-    "scoreLow": "Starting point. Here's how to build."
+    "scoreLow": "Starting point. Here's how to build.",
+    "sessionLogged": "{{rounds}} rounds logged. That's real work in the books.",
+    "streakLine": "🔥 {{count}}-day streak"
   },
   "profile": {
     "title": "Profile & Settings",

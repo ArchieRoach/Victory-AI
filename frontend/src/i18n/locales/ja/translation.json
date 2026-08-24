@@ -278,7 +278,9 @@
     "scoreHigh": "素晴らしい — 続けてください。",
     "scoreMediumHigh": "良い基礎 — 少し調整が必要。",
     "scoreMedium": "改善の余地あり — このドリルを試してください。",
-    "scoreLow": "スタート地点。ここから構築します。"
+    "scoreLow": "スタート地点。ここから構築します。",
+    "sessionLogged": "{{rounds}}ラウンドを記録。確かな積み重ねだ。",
+    "streakLine": "🔥 {{count}}日連続"
   },
   "profile": {
     "title": "プロフィールと設定",
