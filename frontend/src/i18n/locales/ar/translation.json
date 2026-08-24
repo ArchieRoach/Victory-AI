@@ -534,7 +534,10 @@
     "noPosts": "لا منشورات بعد",
     "owner": "المالك",
     "leftGym": "غادرت الصالة",
-    "deleted": "تم حذف الصالة"
+    "deleted": "تم حذف الصالة",
+    "scope_week": "هذا الأسبوع",
+    "scope_allTime": "كل الأوقات",
+    "thisWeek": "هذا الأسبوع"
   },
   "compete": {
     "title": "المنافسات",
@@ -585,5 +588,10 @@
     "streakActive": "🔥 سلسلة {{count}} يوم",
     "cheer": "شجّع",
     "cheered": "تم التشجيع"
+  },
+  "belt": {
+    "andTheNew": "والبطل الجديد...",
+    "next": "التالي",
+    "continue": "متابعة"
   }
 }

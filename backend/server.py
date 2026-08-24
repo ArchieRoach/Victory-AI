@@ -1650,6 +1650,7 @@ async def get_user_stats(user: dict = Depends(get_current_user)):
         "most_improved_dimension": None,
         "current_streak": current_streak,
         "longest_streak": longest_streak,
+        "week_activity": _week_activity(sessions),
     }
 
 @api_router.get("/dimensions")
@@ -1970,6 +1971,15 @@ def _compute_streaks(sessions: list) -> tuple:
             current += 1
     return current, longest
 
+def _week_activity(sessions: list) -> list:
+    """Last 7 days (oldest→newest), each {date, active} — real sessions only, for a Strava-style heatmap strip."""
+    trained_dates = {s["date"] for s in sessions if s.get("date")}
+    today = datetime.now(timezone.utc).date()
+    return [
+        {"date": (today - timedelta(days=i)).strftime("%Y-%m-%d"), "active": (today - timedelta(days=i)).strftime("%Y-%m-%d") in trained_dates}
+        for i in range(6, -1, -1)
+    ]
+
 async def check_and_award_belts(user_id: str) -> list:
     user = await db.users.find_one({"user_id": user_id})
     if not user:
@@ -2189,6 +2199,7 @@ async def get_public_profile(user_id: str, current_user: dict = Depends(get_curr
     profile["avg_score"] = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
     profile["best_score"] = max((s.get("overall_score", 0) for s in sessions), default=0)
     profile["current_streak"], profile["longest_streak"] = _compute_streaks(sessions)
+    profile["week_activity"] = _week_activity(sessions)
     follower_count = await db.follows.count_documents({"following_id": user_id})
     following_count = await db.follows.count_documents({"follower_id": user_id})
     is_following = await db.follows.find_one({"follower_id": current_user["user_id"], "following_id": user_id}) is not None
@@ -2588,13 +2599,15 @@ async def get_my_gym(user: dict = Depends(get_current_user)):
     gym = await db.gyms.find_one({"gym_id": user["gym_id"]}, {"_id": 0})
     if not gym:
         return None
+    week_cutoff = (datetime.now(timezone.utc).date() - timedelta(days=6)).strftime("%Y-%m-%d")
     members = []
     for uid in gym.get("members", []):
         u = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0})
         if u:
             sessions = await db.sessions.find({"user_id": uid}).to_list(10000)
             avg = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
-            members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions)})
+            weekly_sessions = len({s["date"] for s in sessions if s.get("date", "") >= week_cutoff})
+            members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions), "weekly_sessions": weekly_sessions})
     gym["members_detail"] = sorted(members, key=lambda m: m.get("avg_score", 0), reverse=True)
     return gym
 
@@ -2621,13 +2634,15 @@ async def get_gym(gym_id: str, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Gym not found")
     if not gym.get("is_public") and user["user_id"] not in gym.get("members", []):
         raise HTTPException(status_code=403, detail="Private gym")
+    week_cutoff = (datetime.now(timezone.utc).date() - timedelta(days=6)).strftime("%Y-%m-%d")
     members = []
     for uid in gym.get("members", []):
         u = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0})
         if u:
             sessions = await db.sessions.find({"user_id": uid}).to_list(10000)
             avg = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
-            members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions)})
+            weekly_sessions = len({s["date"] for s in sessions if s.get("date", "") >= week_cutoff})
+            members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions), "weekly_sessions": weekly_sessions})
     gym["members_detail"] = sorted(members, key=lambda m: m.get("avg_score", 0), reverse=True)
     gym["is_member"] = user["user_id"] in gym.get("members", [])
     gym["is_owner"] = gym["owner_id"] == user["user_id"]

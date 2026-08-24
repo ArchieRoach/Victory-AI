@@ -5,6 +5,7 @@ import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { ProgressiveImage } from "@/components/ProgressiveImage";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { toast } from "sonner";
 import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -31,6 +32,7 @@ export default function ProfilePage() {
     most_improved_dimension: null,
     current_streak: 0,
     longest_streak: 0,
+    week_activity: [],
   });
   const [weeklyReminder, setWeeklyReminder] = useState(true);
   const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
@@ -350,11 +352,14 @@ export default function ProfilePage() {
             {t("profile.statsTitle")}
           </h2>
           {stats.current_streak > 0 && (
-            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-400/30 rounded-lg px-3 py-2 mb-3">
-              <Flame className="w-5 h-5 text-orange-400 flex-shrink-0" />
-              <p className="text-victory-text text-sm">
-                {t("profile.streakActive", { count: stats.current_streak })}
-              </p>
+            <div className="bg-orange-500/10 border border-orange-400/30 rounded-lg px-3 py-3 mb-3 space-y-3">
+              <div className="flex items-center gap-2">
+                <Flame className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                <p className="text-victory-text text-sm">
+                  {t("profile.streakActive", { count: stats.current_streak })}
+                </p>
+              </div>
+              <StreakHeatmap days={stats.week_activity} />
             </div>
           )}
           <div className="grid grid-cols-3 gap-3">

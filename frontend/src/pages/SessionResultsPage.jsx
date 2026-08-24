@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { RadarChart } from "@/components/RadarChart";
 import { DrillCard } from "@/components/DrillCard";
 import { Confetti } from "@/components/Confetti";
+import { BeltCelebration } from "@/components/BeltCelebration";
 import { ArrowUp, ArrowDown, Share2, Home, Target, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -41,8 +42,13 @@ export default function SessionResultsPage() {
   const { t } = useTranslation();
   const [sessions, setSessions] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [beltQueue, setBeltQueue] = useState([]);
 
   const session = location.state?.session;
+
+  useEffect(() => {
+    if (session?.new_belts?.length) setBeltQueue(session.new_belts);
+  }, [session]);
 
   useEffect(() => {
     if (!session) {
@@ -291,6 +297,9 @@ export default function SessionResultsPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="session-results-page">
       {showConfetti && <Confetti />}
+      {beltQueue.length > 0 && (
+        <BeltCelebration belts={beltQueue} onDone={() => setBeltQueue((q) => q.slice(1))} />
+      )}
 
       <main className="p-4 space-y-6">
         {/* Header Message */}

@@ -534,7 +534,10 @@
     "noPosts": "Brak postów",
     "owner": "Właściciel",
     "leftGym": "Opuszczono siłownię",
-    "deleted": "Siłownia usunięta"
+    "deleted": "Siłownia usunięta",
+    "scope_week": "Ten tydzień",
+    "scope_allTime": "Cały czas",
+    "thisWeek": "w tym tygodniu"
   },
   "compete": {
     "title": "Zawody",
@@ -585,5 +588,10 @@
     "streakActive": "🔥 Seria {{count}} dni",
     "cheer": "Dopinguj",
     "cheered": "Dopingowano"
+  },
+  "belt": {
+    "andTheNew": "A nowym mistrzem...",
+    "next": "Dalej",
+    "continue": "Kontynuuj"
   }
 }

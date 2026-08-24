@@ -15,6 +15,7 @@ export default function GymDetailPage() {
   const [gym, setGym] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("members");
+  const [leaderboardScope, setLeaderboardScope] = useState("week"); // "week" | "allTime" — Strava-club style
 
   useEffect(() => {
     fetchGym();
@@ -155,9 +156,28 @@ export default function GymDetailPage() {
         </div>
 
         {activeTab === "members" ? (
-          <section>
+          <section className="space-y-3">
+            <div className="flex gap-2">
+              {["week", "allTime"].map((scope) => (
+                <button
+                  key={scope}
+                  onClick={() => setLeaderboardScope(scope)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    leaderboardScope === scope ? "bg-victory-lime text-victory-bg" : "bg-victory-card border border-victory-border text-victory-muted"
+                  }`}
+                >
+                  {t(`gym.scope_${scope}`)}
+                </button>
+              ))}
+            </div>
             <div className="victory-card divide-y divide-victory-border">
-              {gym.members_detail?.map((member, idx) => (
+              {[...(gym.members_detail || [])]
+                .sort((a, b) =>
+                  leaderboardScope === "week"
+                    ? (b.weekly_sessions || 0) - (a.weekly_sessions || 0)
+                    : (b.avg_score || 0) - (a.avg_score || 0)
+                )
+                .map((member, idx) => (
                 <button
                   key={member.user_id}
                   onClick={() => navigate(`/profile/${member.user_id}`)}
@@ -183,8 +203,17 @@ export default function GymDetailPage() {
                     <p className="text-victory-muted text-xs">{member.total_sessions} {t("gym.sessions")}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono font-bold text-victory-lime">{member.avg_score?.toFixed(1) || "—"}</p>
-                    <p className="text-victory-muted text-xs">{t("gym.avg")}</p>
+                    {leaderboardScope === "week" ? (
+                      <>
+                        <p className="font-mono font-bold text-victory-lime">{member.weekly_sessions || 0}</p>
+                        <p className="text-victory-muted text-xs">{t("gym.thisWeek")}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-mono font-bold text-victory-lime">{member.avg_score?.toFixed(1) || "—"}</p>
+                        <p className="text-victory-muted text-xs">{t("gym.avg")}</p>
+                      </>
+                    )}
                   </div>
                 </button>
               ))}

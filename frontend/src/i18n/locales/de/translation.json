@@ -534,7 +534,10 @@
     "noPosts": "Noch keine Beiträge",
     "owner": "Besitzer",
     "leftGym": "Gym verlassen",
-    "deleted": "Gym gelöscht"
+    "deleted": "Gym gelöscht",
+    "scope_week": "Diese Woche",
+    "scope_allTime": "Gesamt",
+    "thisWeek": "diese Woche"
   },
   "compete": {
     "title": "Wettkämpfe",
@@ -585,5 +588,10 @@
     "streakActive": "🔥 {{count}} Tage in Folge",
     "cheer": "Anfeuern",
     "cheered": "Angefeuert"
+  },
+  "belt": {
+    "andTheNew": "Und der Neue...",
+    "next": "Weiter",
+    "continue": "Weiter"
   }
 }

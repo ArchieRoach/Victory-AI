@@ -534,7 +534,10 @@
     "noPosts": "まだ投稿がありません",
     "owner": "オーナー",
     "leftGym": "ジムを退会しました",
-    "deleted": "ジムを削除しました"
+    "deleted": "ジムを削除しました",
+    "scope_week": "今週",
+    "scope_allTime": "累計",
+    "thisWeek": "今週"
   },
   "compete": {
     "title": "競技",
@@ -585,5 +588,10 @@
     "streakActive": "🔥 {{count}}日連続",
     "cheer": "応援する",
     "cheered": "応援済み"
+  },
+  "belt": {
+    "andTheNew": "新チャンピオン...",
+    "next": "次へ",
+    "continue": "続ける"
   }
 }
