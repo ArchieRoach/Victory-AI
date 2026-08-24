@@ -43,13 +43,30 @@ export default function SessionResultsPage() {
   const [sessions, setSessions] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [beltQueue, setBeltQueue] = useState([]);
+  const [beltsReady, setBeltsReady] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
+  const navButtonsRef = useRef(null);
 
   const session = location.state?.session;
 
   useEffect(() => {
     if (session?.new_belts?.length) setBeltQueue(session.new_belts);
   }, [session]);
+
+  // Peak-end rule: hold the belt celebration until the fighter actually reaches
+  // the end of the results (the nav buttons scroll into view), instead of
+  // interrupting the page the instant it loads. IntersectionObserver fires
+  // immediately if the target is already on-screen, so short pages that don't
+  // need scrolling still work with no extra fallback logic.
+  useEffect(() => {
+    if (beltQueue.length === 0 || !navButtonsRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setBeltsReady(true); observer.disconnect(); } },
+      { threshold: 0.4 }
+    );
+    observer.observe(navButtonsRef.current);
+    return () => observer.disconnect();
+  }, [beltQueue.length]);
 
   useEffect(() => {
     if (!session) {
@@ -308,7 +325,7 @@ export default function SessionResultsPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="session-results-page">
       {showConfetti && <Confetti />}
-      {beltQueue.length > 0 && (
+      {beltsReady && beltQueue.length > 0 && (
         <BeltCelebration belts={beltQueue} onDone={() => setBeltQueue((q) => q.slice(1))} />
       )}
 
@@ -472,7 +489,7 @@ export default function SessionResultsPage() {
         </button>
 
         {/* Navigation Buttons */}
-        <div className="grid grid-cols-2 gap-3">
+        <div ref={navButtonsRef} className="grid grid-cols-2 gap-3">
           <button
             onClick={() => navigate("/home")}
             className="victory-btn-ghost flex items-center justify-center gap-2"
