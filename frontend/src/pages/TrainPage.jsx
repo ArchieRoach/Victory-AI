@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
-  Volume2, VolumeX, Lock, Radio, Zap,
+  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
@@ -59,6 +59,9 @@ export default function TrainPage() {
   const [totalRounds,   setTotalRounds]   = useState(3);
   const [sessionMode,   setSessionMode]   = useState("private"); // "private" | "public"
   const [voiceEnabled,  setVoiceEnabled]  = useState(true);
+  const [recordVideo,   setRecordVideo]   = useState(false); // opt-in, off by default — privacy by default
+  const [cameraReady,   setCameraReady]   = useState(false);
+  const [cameraError,   setCameraError]   = useState(null);
 
   // ── Training state ───────────────────────────────────────────────────────────
   const [sessionId,         setSessionId]         = useState(null);
@@ -80,6 +83,10 @@ export default function TrainPage() {
   const audioRef    = useRef(null);
   const intervalRef = useRef(null);
   const hypeTimerRef = useRef(null);
+  const cameraStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
+  const videoPreviewRef = useRef(null);
 
   // Simulated progress while waiting on AI round feedback — caps at 90% so
   // it never looks "done" before the response actually lands.
@@ -105,8 +112,19 @@ export default function TrainPage() {
     return () => {
       if (intervalRef.current)  clearInterval(intervalRef.current);
       if (hypeTimerRef.current) clearInterval(hypeTimerRef.current);
+      // Release the camera if the user navigates away mid-session.
+      cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  // Attach the live stream once the preview <video> actually exists — it only
+  // mounts on the active-session screen, which appears after the stream is
+  // already obtained on the configuring screen.
+  useEffect(() => {
+    if (videoPreviewRef.current && cameraStreamRef.current) {
+      videoPreviewRef.current.srcObject = cameraStreamRef.current;
+    }
+  }, [cameraReady, isConfiguring]);
 
   const saveConfig = useCallback(() => {
     localStorage.setItem("victory_train_config", JSON.stringify({
@@ -136,14 +154,110 @@ export default function TrainPage() {
     } catch {}
   };
 
+  // ── Camera / round video capture ────────────────────────────────────────────
+  const requestCamera = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError(t("train.cameraUnsupported"));
+      return false;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      cameraStreamRef.current = stream;
+      setCameraReady(true);
+      setCameraError(null);
+      return true;
+    } catch {
+      setCameraError(t("train.cameraDenied"));
+      return false;
+    }
+  };
+
+  const stopCamera = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      try { mediaRecorderRef.current.stop(); } catch {}
+    }
+    mediaRecorderRef.current = null;
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
+    cameraStreamRef.current = null;
+    setCameraReady(false);
+  };
+
+  const startRoundRecording = () => {
+    const stream = cameraStreamRef.current;
+    if (!stream) return;
+    recordedChunksRef.current = [];
+    const mimeType = ["video/webm;codecs=vp9", "video/webm"].find((t) => window.MediaRecorder?.isTypeSupported?.(t));
+    try {
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunksRef.current.push(e.data); };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+    } catch {
+      mediaRecorderRef.current = null;
+    }
+  };
+
+  // Resolves the just-finished round's recording as a Blob, or null if nothing was recording.
+  const stopRoundRecording = () => new Promise((resolve) => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state === "inactive") { resolve(null); return; }
+    recorder.onstop = () => {
+      const blob = new Blob(recordedChunksRef.current, { type: recorder.mimeType || "video/webm" });
+      recordedChunksRef.current = [];
+      resolve(blob.size > 0 ? blob : null);
+    };
+    recorder.stop();
+  });
+
+  const uploadRoundVideo = async (blob) => {
+    const sigRes = await axios.get(`${API}/cloudinary/signature?resource_type=video&folder=victory_rounds`);
+    const { cloud_name, api_key, signature, timestamp, folder } = sigRes.data;
+    if (!cloud_name || !api_key) throw new Error("Cloudinary not configured");
+    const formData = new FormData();
+    formData.append("file", blob, "round.webm");
+    formData.append("api_key", api_key);
+    formData.append("timestamp", timestamp);
+    formData.append("signature", signature);
+    formData.append("folder", folder);
+    const uploadRes = await axios.post(
+      `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return { video_url: uploadRes.data.secure_url, public_id: uploadRes.data.public_id };
+  };
+
   // ── AI Feedback ──────────────────────────────────────────────────────────────
   const generateFeedback = async (roundNum) => {
     setLoadingFeedback(true);
+
+    // Video pipeline is best-effort — any failure here just means feedback falls
+    // back to the non-video path, never blocks the round from ending.
+    let videoAnalysis = null;
+    if (recordVideo && sessionId && mediaRecorderRef.current) {
+      try {
+        const blob = await stopRoundRecording();
+        if (blob) {
+          const { video_url, public_id } = await uploadRoundVideo(blob);
+          await axios.post(`${API}/videos/register`, {
+            session_id: sessionId, round_number: roundNum, video_url, public_id,
+          }, { withCredentials: true });
+          const analysisRes = await axios.post(`${API}/ai/analyze-video`, {
+            video_url, round_number: roundNum,
+          }, { withCredentials: true });
+          videoAnalysis = analysisRes.data.analysis;
+        }
+      } catch {
+        // AI quota exceeded, upload failure, etc. — silently continue without video.
+      }
+    }
+
     try {
       const res = await axios.post(`${API}/ai/generate-feedback`, {
         round_number:  roundNum,
         total_rounds:  totalRounds,
         session_mode:  "conversational",
+        ...(videoAnalysis ? { video_analysis: videoAnalysis } : {}),
       }, { withCredentials: true });
       setFeedback(res.data);
       if (voiceEnabled && res.data?.what_you_did_well) {
@@ -191,11 +305,16 @@ export default function TrainPage() {
         round_duration: roundDuration,
         rest_duration:  restDuration,
         total_rounds:   totalRounds,
-        record_video:   false,
+        record_video:   recordVideo,
       }, { withCredentials: true });
       setSessionId(res.data.session_id);
     } catch {
       toast.error(t("train.startOffline", "Couldn't reach the server — this session won't be saved."));
+    }
+
+    if (recordVideo) {
+      const granted = await requestCamera();
+      if (granted) startRoundRecording();
     }
 
     setIsConfiguring(false);
@@ -231,6 +350,7 @@ export default function TrainPage() {
               setIsResting(false);
               setFeedback(null);
               startHypeCycle();
+              if (recordVideo && cameraStreamRef.current) startRoundRecording();
               return roundDuration;
             } else {
               handleComplete();
@@ -260,6 +380,7 @@ export default function TrainPage() {
   const handleComplete = async () => {
     setIsComplete(true);
     stopHypeCycle();
+    stopCamera();
     if (sessionId) {
       try {
         const res = await axios.post(`${API}/training/${sessionId}/complete`, {}, { withCredentials: true });
@@ -291,6 +412,7 @@ export default function TrainPage() {
         setFeedback(null);
         setTimeLeft(roundDuration);
         startHypeCycle();
+        if (recordVideo && cameraStreamRef.current) startRoundRecording();
       } else { handleComplete(); }
     } else {
       flashScreen("rest");
@@ -306,6 +428,7 @@ export default function TrainPage() {
   const endTimer  = () => { setIsPaused(true); handleComplete(); };
   const resetTimer = () => {
     stopHypeCycle();
+    stopCamera();
     setIsConfiguring(true);
     setIsPaused(true);
     setIsComplete(false);
@@ -508,6 +631,28 @@ export default function TrainPage() {
               </div>
             )}
 
+            {/* Video recording toggle — opt-in, off by default. Enabling it is what
+                makes AI feedback based on your real technique instead of banter. */}
+            {sessionMode === "private" && (
+              <div className="victory-card p-4">
+                <button onClick={() => setRecordVideo(!recordVideo)} className="w-full flex items-center justify-between touch-target">
+                  <div className="flex items-center gap-3">
+                    {recordVideo ? <Video className="w-6 h-6 text-victory-lime" /> : <VideoOff className="w-6 h-6 text-victory-muted" />}
+                    <div className="text-left">
+                      <p className="text-victory-text font-medium">{t("train.recordVideo")}</p>
+                      <p className="text-victory-muted text-sm">{t("train.recordVideoDesc")}</p>
+                    </div>
+                  </div>
+                  <div className={`w-12 h-6 rounded-full transition-colors ${recordVideo ? "bg-victory-lime" : "bg-victory-border"}`}>
+                    <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${recordVideo ? "translate-x-6" : "translate-x-0.5"}`} />
+                  </div>
+                </button>
+                {cameraError && (
+                  <p className="text-victory-danger text-xs mt-2">{cameraError}</p>
+                )}
+              </div>
+            )}
+
             <div className="flex items-center justify-center gap-2 text-sm">
               <span className="text-victory-muted">{t("train.total")}</span>
               <span className="text-victory-lime font-bold font-mono">{getTotalWorkoutTime()}</span>
@@ -532,6 +677,28 @@ export default function TrainPage() {
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center p-6">
+
+            {/* Live camera preview — only when the fighter opted in on the config
+                screen. Mirrored like a gym mirror; visibly on so recording is never
+                a surprise. */}
+            {recordVideo && cameraReady && (
+              <div className="relative w-full max-w-sm aspect-video rounded-xl overflow-hidden bg-black mb-4">
+                <video
+                  ref={videoPreviewRef}
+                  autoPlay
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                  style={{ transform: "scaleX(-1)" }}
+                />
+                {!isResting && (
+                  <span className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                    {t("train.recording")}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Round dots */}
             <div className="flex items-center gap-2 mb-6">

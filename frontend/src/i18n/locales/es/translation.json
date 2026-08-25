@@ -371,7 +371,12 @@
       "line5": "El cartel del asalto {{round}} está arriba. Hora de ganártelo."
     },
     "reviewingRound": "{{partner}} está revisando el asalto {{round}}",
-    "yourCoach": "Tu entrenador"
+    "yourCoach": "Tu entrenador",
+    "recordVideo": "Grabar asaltos para el feedback de la IA",
+    "recordVideoDesc": "Usa tu cámara para que tu entrenador vea realmente tu técnica",
+    "cameraDenied": "Se denegó el acceso a la cámara — el entrenamiento continuará sin feedback de video.",
+    "cameraUnsupported": "La grabación por cámara no es compatible con este dispositivo o navegador.",
+    "recording": "Grabando"
   },
   "timer": {
     "title": "Configura tus asaltos",

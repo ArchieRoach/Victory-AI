@@ -371,7 +371,12 @@
       "line5": "第{{round}}回合的牌已经举起。是时候赢得它了。"
     },
     "reviewingRound": "{{partner}}正在回顾第{{round}}回合",
-    "yourCoach": "你的教练"
+    "yourCoach": "你的教练",
+    "recordVideo": "录制回合以获取AI反馈",
+    "recordVideoDesc": "使用你的摄像头，让教练真正看到你的技术",
+    "cameraDenied": "摄像头访问被拒绝——训练将在没有视频反馈的情况下继续。",
+    "cameraUnsupported": "此设备或浏览器不支持摄像头录制。",
+    "recording": "录制中"
   },
   "timer": {
     "title": "设置回合",

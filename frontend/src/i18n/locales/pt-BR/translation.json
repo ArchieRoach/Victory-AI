@@ -371,7 +371,12 @@
       "line5": "A placa do round {{round}} está no alto. Hora de merecer."
     },
     "reviewingRound": "{{partner}} está revisando o round {{round}}",
-    "yourCoach": "Seu treinador"
+    "yourCoach": "Seu treinador",
+    "recordVideo": "Gravar rounds para feedback da IA",
+    "recordVideoDesc": "Usa sua câmera para que seu treinador realmente veja sua técnica",
+    "cameraDenied": "O acesso à câmera foi negado — o treino continuará sem feedback em vídeo.",
+    "cameraUnsupported": "A gravação por câmera não é compatível com este dispositivo ou navegador.",
+    "recording": "Gravando"
   },
   "timer": {
     "title": "Configure os assaltos",
