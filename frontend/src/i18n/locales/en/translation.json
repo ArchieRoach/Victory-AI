@@ -370,7 +370,9 @@
       "line3": "Leave it all in there. Round {{round}} starts now.",
       "line4": "That's one down. Round {{round}} — show them who you are.",
       "line5": "Round {{round}} card's up. Time to earn it."
-    }
+    },
+    "reviewingRound": "{{partner}} is reviewing round {{round}}",
+    "yourCoach": "Your coach"
   },
   "timer": {
     "title": "Set Your Rounds",

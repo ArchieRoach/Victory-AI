@@ -369,7 +369,9 @@
       "line3": "Zostaw tam wszystko. Runda {{round}} zaczyna się teraz.",
       "line4": "Jedna za tobą. Runda {{round}} — pokaż im, kim jesteś.",
       "line5": "Karta rundy {{round}} w górze. Czas na nią zapracować."
-    }
+    },
+    "reviewingRound": "{{partner}} analizuje rundę {{round}}",
+    "yourCoach": "Twój trener"
   },
   "timer": {
     "title": "Skonfiguruj rundy",

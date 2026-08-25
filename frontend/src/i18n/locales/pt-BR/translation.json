@@ -369,7 +369,9 @@
       "line3": "Deixe tudo aí dentro. O round {{round}} começa agora.",
       "line4": "Um a menos. Round {{round}} — mostre a eles quem você é.",
       "line5": "A placa do round {{round}} está no alto. Hora de merecer."
-    }
+    },
+    "reviewingRound": "{{partner}} está revisando o round {{round}}",
+    "yourCoach": "Seu treinador"
   },
   "timer": {
     "title": "Configure os assaltos",
