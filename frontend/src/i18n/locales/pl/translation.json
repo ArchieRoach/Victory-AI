@@ -371,7 +371,12 @@
       "line5": "Karta rundy {{round}} w górze. Czas na nią zapracować."
     },
     "reviewingRound": "{{partner}} analizuje rundę {{round}}",
-    "yourCoach": "Twój trener"
+    "yourCoach": "Twój trener",
+    "recordVideo": "Nagrywaj rundy do analizy AI",
+    "recordVideoDesc": "Używa kamery, aby trener naprawdę widział twoją technikę",
+    "cameraDenied": "Odmówiono dostępu do kamery — trening będzie kontynuowany bez informacji zwrotnej wideo.",
+    "cameraUnsupported": "Nagrywanie kamerą nie jest obsługiwane na tym urządzeniu ani w tej przeglądarce.",
+    "recording": "Nagrywanie"
   },
   "timer": {
     "title": "Skonfiguruj rundy",

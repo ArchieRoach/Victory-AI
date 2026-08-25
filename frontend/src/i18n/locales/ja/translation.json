@@ -371,7 +371,12 @@
       "line5": "ラウンド{{round}}のカードが上がった。勝ち取る時だ。"
     },
     "reviewingRound": "{{partner}}がラウンド{{round}}を確認中",
-    "yourCoach": "あなたのコーチ"
+    "yourCoach": "あなたのコーチ",
+    "recordVideo": "AIフィードバック用にラウンドを録画",
+    "recordVideoDesc": "カメラを使って、コーチが実際のフォームを確認できるようにします",
+    "cameraDenied": "カメラへのアクセスが拒否されました — 動画フィードバックなしでトレーニングを続けます。",
+    "cameraUnsupported": "このデバイスまたはブラウザではカメラ録画に対応していません。",
+    "recording": "録画中"
   },
   "timer": {
     "title": "ラウンド設定",

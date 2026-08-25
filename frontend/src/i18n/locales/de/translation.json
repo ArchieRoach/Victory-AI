@@ -371,7 +371,12 @@
       "line5": "Die Karte für Runde {{round}} ist oben. Zeit, sie zu verdienen."
     },
     "reviewingRound": "{{partner}} wertet Runde {{round}} aus",
-    "yourCoach": "Dein Coach"
+    "yourCoach": "Dein Coach",
+    "recordVideo": "Runden für KI-Feedback aufnehmen",
+    "recordVideoDesc": "Nutzt deine Kamera, damit dein Coach deine Technik wirklich sieht",
+    "cameraDenied": "Kamerazugriff wurde verweigert — das Training läuft ohne Video-Feedback weiter.",
+    "cameraUnsupported": "Kameraaufnahme wird auf diesem Gerät oder Browser nicht unterstützt.",
+    "recording": "Aufnahme läuft"
   },
   "timer": {
     "title": "Runden konfigurieren",

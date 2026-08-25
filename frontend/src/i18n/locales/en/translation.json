@@ -372,7 +372,12 @@
       "line5": "Round {{round}} card's up. Time to earn it."
     },
     "reviewingRound": "{{partner}} is reviewing round {{round}}",
-    "yourCoach": "Your coach"
+    "yourCoach": "Your coach",
+    "recordVideo": "Record Rounds for AI Feedback",
+    "recordVideoDesc": "Uses your camera so your coach can actually see your technique",
+    "cameraDenied": "Camera access was denied — training will continue without video feedback.",
+    "cameraUnsupported": "Camera recording isn't supported on this device or browser.",
+    "recording": "Recording"
   },
   "timer": {
     "title": "Set Your Rounds",
