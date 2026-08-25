@@ -21,6 +21,7 @@ import random
 import time
 import json
 import cloudinary
+import cloudinary.api
 import cloudinary.uploader
 import cloudinary.utils
 import stripe as stripe_lib
@@ -784,6 +785,39 @@ async def get_ai_usage(user: dict = Depends(get_current_user)):
 
 # ============== GPT-4 VISION VIDEO ANALYSIS ==============
 
+async def _extract_video_frames(public_id: str, count: int = 3) -> list:
+    """Sample `count` still frames from a Cloudinary video via its frame-extraction
+    URL transform (so_<seconds>), fetch them, and base64-encode as data URLs GPT-4o
+    can actually see. Best-effort — returns [] on any failure rather than raising,
+    since the caller falls back to simulated analysis when frames aren't available.
+    """
+    try:
+        resource = await asyncio.to_thread(cloudinary.api.resource, public_id, resource_type="video")
+        duration = resource.get("duration") or 0
+    except Exception as e:
+        logger.warning(f"Could not fetch video duration for {public_id}: {e}")
+        duration = 0
+
+    if duration > 1:
+        offsets = [duration * frac for frac in (0.15, 0.5, 0.85)][:count]
+    else:
+        # Duration lookup failed — best-effort fixed offsets rather than giving up.
+        offsets = [0.5, 2.0, 4.0][:count]
+
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME", "")
+    frame_urls = [f"https://res.cloudinary.com/{cloud_name}/video/upload/so_{offset:.1f}/{public_id}.jpg" for offset in offsets]
+
+    data_urls = []
+    async with httpx.AsyncClient(timeout=15) as http_client:
+        for url in frame_urls:
+            try:
+                res = await http_client.get(url)
+                if res.status_code == 200 and res.content:
+                    data_urls.append(f"data:image/jpeg;base64,{base64.b64encode(res.content).decode()}")
+            except Exception:
+                continue
+    return data_urls
+
 @api_router.post("/ai/analyze-video")
 async def analyze_video_with_vision(request: Request, user: dict = Depends(get_current_user)):
     body = await request.json()
@@ -803,26 +837,35 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
     partner_name = training_partner.get("name", "Coach")
     feedback_tone = training_partner.get("feedback_tone", "encouraging")
     focus_areas = training_partner.get("focus_areas", ["Guard Position", "Head Movement"])
-    
+
     if not OPENAI_API_KEY:
         return generate_simulated_analysis(round_number, partner_name, focus_areas)
 
+    video_doc = await db.round_videos.find_one({"video_url": video_url, "user_id": user["user_id"]})
+    public_id = video_doc.get("public_id") if video_doc else None
+
     try:
+        frames = await _extract_video_frames(public_id) if public_id else []
+        if not frames:
+            raise ValueError("No frames could be extracted for vision analysis")
+
         import json as _json
-        prompt = (
+        prompt_text = (
             f"You are {partner_name}, an expert boxing technique analyst with a {feedback_tone} style. "
-            f"Analyze the boxing footage from round {round_number}. "
+            f"These are {len(frames)} frames sampled across round {round_number} of a boxing training session. "
             f"Focus especially on: {', '.join(focus_areas)}. "
-            f"Video URL: {video_url}. "
             f"Provide scores 1-10 for: Jab, Cross, Guard Position, Head Movement, Footwork, Combination Flow. "
             f'Respond in JSON with keys: dimension_scores (array of {{dimension_name, score}}), what_did_well, what_to_improve, drill_recommendation.'
         )
+        content = [{"type": "text", "text": prompt_text}] + [
+            {"type": "image_url", "image_url": {"url": frame}} for frame in frames
+        ]
         async with httpx.AsyncClient() as http_client:
             res = await http_client.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"},
-                json={"model": "gpt-4o", "messages": [{"role": "user", "content": prompt}], "response_format": {"type": "json_object"}},
-                timeout=30,
+                json={"model": "gpt-4o", "messages": [{"role": "user", "content": content}], "response_format": {"type": "json_object"}},
+                timeout=45,
             )
         if res.status_code != 200:
             raise ValueError(f"OpenAI error {res.status_code}")
