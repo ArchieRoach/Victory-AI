@@ -369,7 +369,9 @@
       "line3": "把一切都留在场上。第{{round}}回合现在开始。",
       "line4": "已经拿下一局。第{{round}}回合——让他们看看你是谁。",
       "line5": "第{{round}}回合的牌已经举起。是时候赢得它了。"
-    }
+    },
+    "reviewingRound": "{{partner}}正在回顾第{{round}}回合",
+    "yourCoach": "你的教练"
   },
   "timer": {
     "title": "设置回合",

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
@@ -211,6 +211,7 @@ export default function FeedPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const likingRef = useRef(new Set());
 
   const fetchFeed = useCallback(async (type, pageNum = 1, append = false) => {
     if (pageNum === 1) setLoading(true);
@@ -234,17 +235,31 @@ export default function FeedPage() {
   }, [feedType, fetchFeed]);
 
   const handleLike = async (postId) => {
+    if (likingRef.current.has(postId)) return; // ignore rapid double-taps
+    likingRef.current.add(postId);
+
+    // Optimistic toggle — flip immediately rather than waiting on the round-trip
+    // (Doherty threshold: perceived response should land well under 400ms).
+    const toggle = (p) =>
+      p.post_id === postId
+        ? { ...p, liked_by_me: !p.liked_by_me, like_count: p.like_count + (p.liked_by_me ? -1 : 1) }
+        : p;
+    setPosts((prev) => prev.map(toggle));
+
     try {
       const res = await axios.post(`${API}/posts/${postId}/like`);
       setPosts((prev) =>
         prev.map((p) =>
           p.post_id === postId
-            ? { ...p, liked_by_me: res.data.liked, like_count: p.like_count + (res.data.liked ? 1 : -1) }
+            ? { ...p, liked_by_me: res.data.liked, like_count: res.data.like_count ?? p.like_count }
             : p
         )
       );
     } catch {
+      setPosts((prev) => prev.map(toggle)); // revert the optimistic flip
       toast.error(t("common.error"));
+    } finally {
+      likingRef.current.delete(postId);
     }
   };
 

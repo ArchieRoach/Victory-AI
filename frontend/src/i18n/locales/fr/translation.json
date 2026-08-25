@@ -369,7 +369,9 @@
       "line3": "Donne tout. Le round {{round}} commence maintenant.",
       "line4": "Un de fait. Round {{round}} — montre-leur qui tu es.",
       "line5": "La pancarte du round {{round}} est levée. Il est temps de la mériter."
-    }
+    },
+    "reviewingRound": "{{partner}} analyse le round {{round}}",
+    "yourCoach": "Ton coach"
   },
   "timer": {
     "title": "Configurer les rounds",

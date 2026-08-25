@@ -389,6 +389,7 @@ export default function HomePage() {
   const [streakAtRisk,    setStreakAtRisk]    = useState(0); // days at risk of being lost today, 0 = none
   const markedReadRef = useRef(false);
   const followingFetchedRef = useRef(false);
+  const likingRef = useRef(new Set());
 
   const fetchFeed = useCallback(async () => {
     setLoadingFeed(true);
@@ -445,18 +446,32 @@ export default function HomePage() {
   }, [tab, unread]);
 
   const handleLike = async (postId) => {
+    if (likingRef.current.has(postId)) return; // ignore rapid double-taps
+    likingRef.current.add(postId);
+
+    // Optimistic toggle — flip immediately rather than waiting on the round-trip
+    // (Doherty threshold: perceived response should land well under 400ms).
+    const toggle = (item) =>
+      item.type === "post" && item.data.post_id === postId
+        ? { ...item, data: { ...item.data, liked_by_me: !item.data.liked_by_me, like_count: item.data.like_count + (item.data.liked_by_me ? -1 : 1) } }
+        : item;
+    setFeed((prev) => prev.map(toggle));
+    setFollowingFeed((prev) => prev.map(toggle));
+
     try {
       const res = await axios.post(`${API}/posts/${postId}/like`);
-      const update = (prev) =>
-        prev.map((item) =>
-          item.type === "post" && item.data.post_id === postId
-            ? { ...item, data: { ...item.data, liked_by_me: res.data.liked, like_count: item.data.like_count + (res.data.liked ? 1 : -1) } }
-            : item
-        );
-      setFeed(update);
-      setFollowingFeed(update);
+      const reconcile = (item) =>
+        item.type === "post" && item.data.post_id === postId
+          ? { ...item, data: { ...item.data, liked_by_me: res.data.liked, like_count: res.data.like_count ?? item.data.like_count } }
+          : item;
+      setFeed((prev) => prev.map(reconcile));
+      setFollowingFeed((prev) => prev.map(reconcile));
     } catch {
+      setFeed((prev) => prev.map(toggle)); // revert the optimistic flip
+      setFollowingFeed((prev) => prev.map(toggle));
       toast.error("Couldn't update like — try again.");
+    } finally {
+      likingRef.current.delete(postId);
     }
   };
 

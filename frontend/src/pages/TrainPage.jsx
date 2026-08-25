@@ -645,6 +645,13 @@ export default function TrainPage() {
                         {t(`train.ringCardGirl.line${(currentRound - 1) % 6}`, { round: currentRound + 1 })}
                       </p>
                       <Progress value={feedbackProgress} className="h-1.5" />
+                      {/* Operational transparency: names what's actually happening (your
+                          configured coach forming notes on this round) rather than fake
+                          "analyzing footwork..." stage theater — nothing here is literal
+                          computer-vision analysis of your live video. */}
+                      <p className="text-victory-muted text-xs text-center">
+                        {t("train.reviewingRound", { partner: partner?.name || t("train.yourCoach"), round: currentRound })}
+                      </p>
                     </div>
                   ) : feedback ? (
                     // Peak-end / recency: critique and homework first, affirmation last —

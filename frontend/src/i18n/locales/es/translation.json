@@ -369,7 +369,9 @@
       "line3": "Déjalo todo ahí. El asalto {{round}} empieza ya.",
       "line4": "Uno menos. Asalto {{round}} — muéstrales quién eres.",
       "line5": "El cartel del asalto {{round}} está arriba. Hora de ganártelo."
-    }
+    },
+    "reviewingRound": "{{partner}} está revisando el asalto {{round}}",
+    "yourCoach": "Tu entrenador"
   },
   "timer": {
     "title": "Configura tus asaltos",

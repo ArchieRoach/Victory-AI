@@ -369,7 +369,9 @@
       "line3": "Gib alles. Runde {{round}} beginnt jetzt.",
       "line4": "Eine geschafft. Runde {{round}} — zeig ihnen, wer du bist.",
       "line5": "Die Karte für Runde {{round}} ist oben. Zeit, sie zu verdienen."
-    }
+    },
+    "reviewingRound": "{{partner}} wertet Runde {{round}} aus",
+    "yourCoach": "Dein Coach"
   },
   "timer": {
     "title": "Runden konfigurieren",
