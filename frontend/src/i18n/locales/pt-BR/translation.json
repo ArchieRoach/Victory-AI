@@ -217,7 +217,10 @@
     "partnerReady": "{{name}} está pronto para treinar com você!",
     "failedPartner": "Falha ao criar parceiro",
     "failedSave": "Falha ao salvar — verifique sua conexão",
-    "settingUp": "Preparando tudo..."
+    "settingUp": "Preparando tudo...",
+    "questionOf": "Pergunta {{current}} de {{total}}",
+    "lastQuestion": "Última pergunta",
+    "almostThere": "Quase lá!"
   },
   "home": {
     "greetingMorning": "Bom dia",
@@ -340,7 +343,12 @@
     "deleteAccountConfirm": "Isso excluirá permanentemente sua conta e dados pessoais. Essa ação não pode ser desfeita. Continuar?",
     "deleteAccountFailed": "Não foi possível excluir sua conta — tente novamente",
     "exportDataFailed": "Não foi possível exportar seus dados — tente novamente",
-    "streakActive": "🔥 Sequência de {{count}} dias — mantenha"
+    "streakActive": "🔥 Sequência de {{count}} dias — mantenha",
+    "completeness": "Perfil {{done}}/{{total}} completo",
+    "almostDone": "Falta 1 coisa!",
+    "nextMilestone": "Próxima meta: sequência de {{days}} dias",
+    "daysLeft": "Faltam {{count}} dias",
+    "oneDayLeft": "Falta 1 dia!"
   },
   "train": {
     "title": "Configure seu treino",
@@ -377,7 +385,8 @@
     "recordVideoDesc": "Usa sua câmera para que seu treinador realmente veja sua técnica",
     "cameraDenied": "O acesso à câmera foi negado — o treino continuará sem feedback em vídeo.",
     "cameraUnsupported": "A gravação por câmera não é compatível com este dispositivo ou navegador.",
-    "recording": "Gravando"
+    "recording": "Gravando",
+    "finalRound": "Último round — dê tudo de você!"
   },
   "timer": {
     "title": "Configure os assaltos",

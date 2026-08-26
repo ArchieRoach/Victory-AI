@@ -217,7 +217,10 @@
     "partnerReady": "{{name}} jest gotowy, aby z Tobą trenować!",
     "failedPartner": "Nie udało się stworzyć partnera",
     "failedSave": "Błąd zapisu — sprawdź połączenie",
-    "settingUp": "Konfigurowanie..."
+    "settingUp": "Konfigurowanie...",
+    "questionOf": "Pytanie {{current}} z {{total}}",
+    "lastQuestion": "Ostatnie pytanie",
+    "almostThere": "Już prawie!"
   },
   "home": {
     "greetingMorning": "Dzień dobry",
@@ -340,7 +343,12 @@
     "deleteAccountConfirm": "To trwale usunie Twoje konto i dane osobowe. Tej operacji nie można cofnąć. Kontynuować?",
     "deleteAccountFailed": "Nie udało się usunąć konta — spróbuj ponownie",
     "exportDataFailed": "Nie udało się wyeksportować danych — spróbuj ponownie",
-    "streakActive": "🔥 Seria {{count}} dni — nie przerywaj"
+    "streakActive": "🔥 Seria {{count}} dni — nie przerywaj",
+    "completeness": "Profil ukończony {{done}}/{{total}}",
+    "almostDone": "Zostało 1!",
+    "nextMilestone": "Następny cel: seria {{days}} dni",
+    "daysLeft": "Zostało {{count}} dni",
+    "oneDayLeft": "Został 1 dzień!"
   },
   "train": {
     "title": "Skonfiguruj trening",
@@ -377,7 +385,8 @@
     "recordVideoDesc": "Używa kamery, aby trener naprawdę widział twoją technikę",
     "cameraDenied": "Odmówiono dostępu do kamery — trening będzie kontynuowany bez informacji zwrotnej wideo.",
     "cameraUnsupported": "Nagrywanie kamerą nie jest obsługiwane na tym urządzeniu ani w tej przeglądarce.",
-    "recording": "Nagrywanie"
+    "recording": "Nagrywanie",
+    "finalRound": "Ostatnia runda — zostaw tam wszystko!"
   },
   "timer": {
     "title": "Skonfiguruj rundy",

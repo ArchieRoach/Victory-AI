@@ -4,6 +4,7 @@ import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { ProgressiveImage } from "@/components/ProgressiveImage";
+import { Progress } from "@/components/ui/progress";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { toast } from "sonner";
@@ -236,6 +237,19 @@ export default function ProfilePage() {
   const showTitles = levelIndex >= 3 || extendedForm.titles.length > 0 || extendedForm.amateur_wins > 0;
   const avatarSrc = extendedForm.avatar_url || user?.picture || null;
 
+  // Profile completeness — real, user-controllable fields only. No field counts
+  // toward this unless the fighter has actually filled it in themselves.
+  const completenessChecklist = [
+    !!avatarSrc,
+    !!extendedForm.display_name?.trim(),
+    !!extendedForm.bio?.trim(),
+    !!extendedForm.weight_class,
+    !!extendedForm.stance,
+  ];
+  const completenessDone = completenessChecklist.filter(Boolean).length;
+  const completenessTotal = completenessChecklist.length;
+  const completenessPct = Math.round((completenessDone / completenessTotal) * 100);
+
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="profile-page">
       <header className="p-4 flex items-center gap-4">
@@ -371,6 +385,25 @@ export default function ProfilePage() {
                 </p>
               </div>
               <StreakHeatmap days={stats.week_activity} />
+              {/* Distance to the next real streak-belt threshold — goal gradient effect */}
+              {(() => {
+                const nextMilestone = [7, 30].find((m) => m > stats.current_streak);
+                if (!nextMilestone) return null;
+                const prevMilestone = nextMilestone === 7 ? 0 : 7;
+                const pct = Math.round(((stats.current_streak - prevMilestone) / (nextMilestone - prevMilestone)) * 100);
+                const daysLeft = nextMilestone - stats.current_streak;
+                return (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5 text-xs">
+                      <span className="text-victory-muted">{t("profile.nextMilestone", { days: nextMilestone })}</span>
+                      <span className={daysLeft === 1 ? "text-orange-400 font-bold" : "text-victory-muted"}>
+                        {daysLeft === 1 ? t("profile.oneDayLeft") : t("profile.daysLeft", { count: daysLeft })}
+                      </span>
+                    </div>
+                    <Progress value={pct} className="h-1.5" />
+                  </div>
+                );
+              })()}
             </div>
           )}
           <div className="grid grid-cols-3 gap-3">
@@ -408,6 +441,21 @@ export default function ProfilePage() {
               {t("profile.viewPublic")}
             </button>
           </div>
+
+          {/* Profile completeness — goal gradient: only real filled-in fields count */}
+          {completenessDone < completenessTotal && (
+            <div>
+              <div className="flex items-center justify-between mb-1.5 text-xs">
+                <span className="text-victory-muted">
+                  {t("profile.completeness", { done: completenessDone, total: completenessTotal })}
+                </span>
+                <span className={completenessDone === completenessTotal - 1 ? "text-victory-lime font-bold" : "text-victory-muted"}>
+                  {completenessDone === completenessTotal - 1 ? t("profile.almostDone") : `${completenessPct}%`}
+                </span>
+              </div>
+              <Progress value={completenessPct} className="h-1.5" />
+            </div>
+          )}
 
           {/* Photo + display name row */}
           <div className="flex items-center gap-4">

@@ -217,7 +217,10 @@
     "partnerReady": "{{name}}があなたとトレーニングする準備ができました！",
     "failedPartner": "パートナーの作成に失敗しました",
     "failedSave": "保存に失敗しました — 接続を確認してください",
-    "settingUp": "設定中..."
+    "settingUp": "設定中...",
+    "questionOf": "質問 {{current}}/{{total}}",
+    "lastQuestion": "最後の質問",
+    "almostThere": "あと少し！"
   },
   "home": {
     "greetingMorning": "おはようございます",
@@ -340,7 +343,12 @@
     "deleteAccountConfirm": "アカウントと個人データが完全に削除されます。この操作は取り消せません。続行しますか？",
     "deleteAccountFailed": "アカウントを削除できませんでした。もう一度お試しください",
     "exportDataFailed": "データをエクスポートできませんでした。もう一度お試しください",
-    "streakActive": "🔥 {{count}}日連続 — 続けよう"
+    "streakActive": "🔥 {{count}}日連続 — 続けよう",
+    "completeness": "プロフィール {{done}}/{{total}} 完了",
+    "almostDone": "あと1つ！",
+    "nextMilestone": "次の目標：{{days}}日連続",
+    "daysLeft": "あと{{count}}日",
+    "oneDayLeft": "あと1日！"
   },
   "train": {
     "title": "トレーニング設定",
@@ -377,7 +385,8 @@
     "recordVideoDesc": "カメラを使って、コーチが実際のフォームを確認できるようにします",
     "cameraDenied": "カメラへのアクセスが拒否されました — 動画フィードバックなしでトレーニングを続けます。",
     "cameraUnsupported": "このデバイスまたはブラウザではカメラ録画に対応していません。",
-    "recording": "録画中"
+    "recording": "録画中",
+    "finalRound": "最終ラウンド——全部出し切れ！"
   },
   "timer": {
     "title": "ラウンド設定",

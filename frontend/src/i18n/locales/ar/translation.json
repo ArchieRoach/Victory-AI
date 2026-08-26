@@ -217,7 +217,10 @@
     "partnerReady": "{{name}} جاهز للتدريب معك!",
     "failedPartner": "فشل إنشاء الشريك",
     "failedSave": "فشل الحفظ — تحقق من اتصالك",
-    "settingUp": "جارٍ الإعداد..."
+    "settingUp": "جارٍ الإعداد...",
+    "questionOf": "السؤال {{current}} من {{total}}",
+    "lastQuestion": "السؤال الأخير",
+    "almostThere": "اقتربت من الانتهاء!"
   },
   "home": {
     "greetingMorning": "صباح الخير",
@@ -340,7 +343,12 @@
     "deleteAccountConfirm": "سيؤدي هذا إلى حذف حسابك وبياناتك الشخصية نهائيًا. لا يمكن التراجع عن هذا. هل تريد المتابعة؟",
     "deleteAccountFailed": "تعذر حذف حسابك — حاول مرة أخرى",
     "exportDataFailed": "تعذر تصدير بياناتك — حاول مرة أخرى",
-    "streakActive": "🔥 سلسلة {{count}} يوم — حافظ عليها"
+    "streakActive": "🔥 سلسلة {{count}} يوم — حافظ عليها",
+    "completeness": "الملف الشخصي {{done}}/{{total}} مكتمل",
+    "almostDone": "بقي شيء واحد!",
+    "nextMilestone": "الهدف التالي: سلسلة {{days}} يوم",
+    "daysLeft": "بقي {{count}} يوم",
+    "oneDayLeft": "بقي يوم واحد!"
   },
   "train": {
     "title": "إعداد التدريب",
@@ -377,7 +385,8 @@
     "recordVideoDesc": "يستخدم كاميرتك ليتمكن مدربك من رؤية أسلوبك فعليًا",
     "cameraDenied": "تم رفض الوصول إلى الكاميرا — سيستمر التدريب دون ملاحظات الفيديو.",
     "cameraUnsupported": "تسجيل الكاميرا غير مدعوم على هذا الجهاز أو المتصفح.",
-    "recording": "جارٍ التسجيل"
+    "recording": "جارٍ التسجيل",
+    "finalRound": "الجولة الأخيرة — اترك كل شيء هناك!"
   },
   "timer": {
     "title": "إعداد الجولات",

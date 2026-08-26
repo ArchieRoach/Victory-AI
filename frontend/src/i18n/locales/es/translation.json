@@ -217,7 +217,10 @@
     "partnerReady": "¡{{name}} está listo para entrenar contigo!",
     "failedPartner": "Error al crear el compañero",
     "failedSave": "Error al guardar — revisa tu conexión",
-    "settingUp": "Preparando todo..."
+    "settingUp": "Preparando todo...",
+    "questionOf": "Pregunta {{current}} de {{total}}",
+    "lastQuestion": "Última pregunta",
+    "almostThere": "¡Ya casi!"
   },
   "home": {
     "greetingMorning": "Buenos días",
@@ -340,7 +343,12 @@
     "deleteAccountConfirm": "Esto elimina permanentemente tu cuenta y tus datos personales. No se puede deshacer. ¿Continuar?",
     "deleteAccountFailed": "No se pudo eliminar tu cuenta — inténtalo de nuevo",
     "exportDataFailed": "No se pudieron exportar tus datos — inténtalo de nuevo",
-    "streakActive": "🔥 Racha de {{count}} días — no la rompas"
+    "streakActive": "🔥 Racha de {{count}} días — no la rompas",
+    "completeness": "Perfil {{done}}/{{total}} completo",
+    "almostDone": "¡Falta 1 cosa!",
+    "nextMilestone": "Próxima meta: racha de {{days}} días",
+    "daysLeft": "Faltan {{count}} días",
+    "oneDayLeft": "¡Falta 1 día!"
   },
   "train": {
     "title": "Configura tu entrenamiento",
@@ -377,7 +385,8 @@
     "recordVideoDesc": "Usa tu cámara para que tu entrenador vea realmente tu técnica",
     "cameraDenied": "Se denegó el acceso a la cámara — el entrenamiento continuará sin feedback de video.",
     "cameraUnsupported": "La grabación por cámara no es compatible con este dispositivo o navegador.",
-    "recording": "Grabando"
+    "recording": "Grabando",
+    "finalRound": "Último asalto — ¡déjalo todo ahí!"
   },
   "timer": {
     "title": "Configura tus asaltos",

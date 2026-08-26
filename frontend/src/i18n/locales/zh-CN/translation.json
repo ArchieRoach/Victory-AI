@@ -217,7 +217,10 @@
     "partnerReady": "{{name}}已准备好与你一起训练！",
     "failedPartner": "创建伙伴失败",
     "failedSave": "保存失败 — 请检查您的网络连接",
-    "settingUp": "正在设置..."
+    "settingUp": "正在设置...",
+    "questionOf": "第{{current}}题，共{{total}}题",
+    "lastQuestion": "最后一题",
+    "almostThere": "就快好了！"
   },
   "home": {
     "greetingMorning": "早上好",
@@ -340,7 +343,12 @@
     "deleteAccountConfirm": "此操作将永久删除您的账户和个人数据，且无法撤销。是否继续？",
     "deleteAccountFailed": "无法删除您的账户，请重试",
     "exportDataFailed": "无法导出您的数据，请重试",
-    "streakActive": "🔥 连续{{count}}天 — 保持下去"
+    "streakActive": "🔥 连续{{count}}天 — 保持下去",
+    "completeness": "资料完成度 {{done}}/{{total}}",
+    "almostDone": "还差1项！",
+    "nextMilestone": "下一个目标：连续{{days}}天",
+    "daysLeft": "还差{{count}}天",
+    "oneDayLeft": "还差1天！"
   },
   "train": {
     "title": "设置训练",
@@ -377,7 +385,8 @@
     "recordVideoDesc": "使用你的摄像头，让教练真正看到你的技术",
     "cameraDenied": "摄像头访问被拒绝——训练将在没有视频反馈的情况下继续。",
     "cameraUnsupported": "此设备或浏览器不支持摄像头录制。",
-    "recording": "录制中"
+    "recording": "录制中",
+    "finalRound": "最后一回合——把一切都留在这里！"
   },
   "timer": {
     "title": "设置回合",
