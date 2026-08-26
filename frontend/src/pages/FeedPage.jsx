@@ -6,9 +6,10 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { Heart, MessageCircle, Plus, Globe, Users, Building2, ChevronDown, ChevronUp, Send, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { withMinDuration } from "@/utils/async";
 import { formatDistanceToNow } from "date-fns";
 
-function PostCard({ post, onLike, onDelete, currentUserId }) {
+function PostCard({ post, onLike, onDelete, currentUserId, isDeleting }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
@@ -89,9 +90,14 @@ function PostCard({ post, onLike, onDelete, currentUserId }) {
         {isOwn && (
           <button
             onClick={() => onDelete(post.post_id)}
-            className="text-victory-muted hover:text-victory-danger p-1 touch-target"
+            disabled={isDeleting}
+            className="text-victory-muted hover:text-victory-danger p-1 touch-target disabled:opacity-40"
           >
-            <Trash2 className="w-4 h-4" />
+            {isDeleting ? (
+              <span className="w-4 h-4 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
           </button>
         )}
       </div>
@@ -212,6 +218,7 @@ export default function FeedPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const likingRef = useRef(new Set());
+  const [deletingPostId, setDeletingPostId] = useState(null);
 
   const fetchFeed = useCallback(async (type, pageNum = 1, append = false) => {
     if (pageNum === 1) setLoading(true);
@@ -265,12 +272,16 @@ export default function FeedPage() {
 
   const handleDelete = async (postId) => {
     if (!window.confirm(t("feed.deleteConfirm", "Delete this post? This can't be undone."))) return;
+    if (deletingPostId) return; // ignore double-taps mid-request
+    setDeletingPostId(postId);
     try {
-      await axios.delete(`${API}/posts/${postId}`);
+      await withMinDuration(axios.delete(`${API}/posts/${postId}`));
       setPosts((prev) => prev.filter((p) => p.post_id !== postId));
       toast.success(t("feed.postDeleted"));
     } catch {
       toast.error(t("common.error"));
+    } finally {
+      setDeletingPostId(null);
     }
   };
 
@@ -335,6 +346,7 @@ export default function FeedPage() {
                 onLike={handleLike}
                 onDelete={handleDelete}
                 currentUserId={user?.user_id}
+                isDeleting={deletingPostId === post.post_id}
               />
             ))}
             {hasMore && (

@@ -11,6 +11,7 @@ import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Ca
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
+import { withMinDuration } from "@/utils/async";
 import {
   Select,
   SelectContent,
@@ -26,6 +27,9 @@ export default function ProfilePage() {
   const { user, setUser, logout, refreshUser } = useAuth();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [stats, setStats] = useState({
     total_sessions: 0,
     best_score: 0,
@@ -186,17 +190,20 @@ export default function ProfilePage() {
     setExtendedForm((prev) => ({ ...prev, titles: prev.titles.filter((_, idx) => idx !== i) }));
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     try {
-      await logout();
+      await withMinDuration(logout());
       navigate("/login", { replace: true });
     } catch {
       toast.error("Couldn't log out — try again");
+      setLoggingOut(false);
     }
   };
 
   const handleExportData = async () => {
+    setExportingData(true);
     try {
-      const res = await axios.get(`${API}/users/me/export`, { withCredentials: true });
+      const res = await withMinDuration(axios.get(`${API}/users/me/export`, { withCredentials: true }), 700);
       const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -206,17 +213,21 @@ export default function ProfilePage() {
       URL.revokeObjectURL(url);
     } catch {
       toast.error(t("profile.exportDataFailed"));
+    } finally {
+      setExportingData(false);
     }
   };
 
   const handleDeleteAccount = async () => {
     if (!window.confirm(t("profile.deleteAccountConfirm"))) return;
+    setDeletingAccount(true);
     try {
-      await axios.delete(`${API}/users/me`, { withCredentials: true });
+      await withMinDuration(axios.delete(`${API}/users/me`, { withCredentials: true }), 900);
       await logout();
       navigate("/login", { replace: true });
     } catch {
       toast.error(t("profile.deleteAccountFailed"));
+      setDeletingAccount(false);
     }
   };
 
@@ -750,11 +761,18 @@ export default function ProfilePage() {
         {/* Sign Out */}
         <button
           onClick={handleLogout}
-          className="victory-btn-ghost w-full flex items-center justify-center gap-2 text-victory-danger border-victory-danger"
+          disabled={loggingOut}
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2 text-victory-danger border-victory-danger disabled:opacity-60"
           data-testid="logout-btn"
         >
-          <LogOut className="w-5 h-5" />
-          {t("profile.signOut")}
+          {loggingOut ? (
+            <span className="w-5 h-5 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <LogOut className="w-5 h-5" />
+              {t("profile.signOut")}
+            </>
+          )}
         </button>
 
         {/* Privacy & data controls (GDPR Art. 13-15, 17, 20) */}
@@ -769,19 +787,33 @@ export default function ProfilePage() {
           </button>
           <button
             onClick={handleExportData}
-            className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+            disabled={exportingData}
+            className="victory-btn-ghost w-full flex items-center justify-center gap-2 disabled:opacity-60"
             data-testid="export-data-btn"
           >
-            <Download className="w-5 h-5" />
-            {t("profile.downloadMyData")}
+            {exportingData ? (
+              <span className="w-5 h-5 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                {t("profile.downloadMyData")}
+              </>
+            )}
           </button>
           <button
             onClick={handleDeleteAccount}
-            className="victory-btn-ghost w-full flex items-center justify-center gap-2 text-victory-danger border-victory-danger"
+            disabled={deletingAccount}
+            className="victory-btn-ghost w-full flex items-center justify-center gap-2 text-victory-danger border-victory-danger disabled:opacity-60"
             data-testid="delete-account-btn"
           >
-            <Trash2 className="w-5 h-5" />
-            {t("profile.deleteAccount")}
+            {deletingAccount ? (
+              <span className="w-5 h-5 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Trash2 className="w-5 h-5" />
+                {t("profile.deleteAccount")}
+              </>
+            )}
           </button>
         </div>
       </main>

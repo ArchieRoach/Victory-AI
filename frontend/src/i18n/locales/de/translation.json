@@ -216,7 +216,8 @@
     },
     "partnerReady": "{{name}} ist bereit, mit dir zu trainieren!",
     "failedPartner": "Partner konnte nicht erstellt werden",
-    "failedSave": "Speichern fehlgeschlagen — überprüfe deine Verbindung"
+    "failedSave": "Speichern fehlgeschlagen — überprüfe deine Verbindung",
+    "settingUp": "Wird eingerichtet..."
   },
   "home": {
     "greetingMorning": "Guten Morgen",

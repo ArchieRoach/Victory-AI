@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
+import { withMinDuration } from "@/utils/async";
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
@@ -62,6 +63,7 @@ export default function TrainPage() {
   const [recordVideo,   setRecordVideo]   = useState(false); // opt-in, off by default — privacy by default
   const [cameraReady,   setCameraReady]   = useState(false);
   const [cameraError,   setCameraError]   = useState(null);
+  const [startingSession, setStartingSession] = useState(false);
 
   // ── Training state ───────────────────────────────────────────────────────────
   const [sessionId,         setSessionId]         = useState(null);
@@ -300,13 +302,14 @@ export default function TrainPage() {
       return;
     }
 
+    setStartingSession(true);
     try {
-      const res = await axios.post(`${API}/training/start`, {
+      const res = await withMinDuration(axios.post(`${API}/training/start`, {
         round_duration: roundDuration,
         rest_duration:  restDuration,
         total_rounds:   totalRounds,
         record_video:   recordVideo,
-      }, { withCredentials: true });
+      }, { withCredentials: true }));
       setSessionId(res.data.session_id);
     } catch {
       toast.error(t("train.startOffline", "Couldn't reach the server — this session won't be saved."));
@@ -317,6 +320,7 @@ export default function TrainPage() {
       if (granted) startRoundRecording();
     }
 
+    setStartingSession(false);
     setIsConfiguring(false);
     setTimeLeft(roundDuration);
     setCurrentRound(1);
@@ -658,8 +662,12 @@ export default function TrainPage() {
               <span className="text-victory-lime font-bold font-mono">{getTotalWorkoutTime()}</span>
             </div>
 
-            <button onClick={startTraining} className="victory-btn-primary font-heading text-base tracking-wide" data-testid="start-training-btn">
-              {sessionMode === "public" ? "🔴 Go Live" : `🥊 ${t("train.startBtn")}`}
+            <button onClick={startTraining} disabled={startingSession} className="victory-btn-primary font-heading text-base tracking-wide disabled:opacity-60 flex items-center justify-center gap-2" data-testid="start-training-btn">
+              {startingSession ? (
+                <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
+              ) : (
+                sessionMode === "public" ? "🔴 Go Live" : `🥊 ${t("train.startBtn")}`
+              )}
             </button>
           </div>
         </div>
