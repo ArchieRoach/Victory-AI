@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { Building2, Plus, Trophy, Users, Star, Lock, ChevronRight, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { withMinDuration } from "@/utils/async";
 
 function CreateGymModal({ onClose, onCreated }) {
   const { t } = useTranslation();
@@ -151,7 +152,7 @@ export default function GymsPage() {
     if (joiningGymId) return; // ignore double-taps mid-request
     setJoiningGymId(gymId);
     try {
-      await axios.post(`${API}/gyms/${gymId}/join`);
+      await withMinDuration(axios.post(`${API}/gyms/${gymId}/join`));
       toast.success(t("gyms.joinedGym"));
       fetchAll();
     } catch (err) {
@@ -267,7 +268,9 @@ export default function GymsPage() {
                         disabled={joiningGymId === gym.gym_id}
                         className="touch-target flex items-center justify-center text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 disabled:opacity-50"
                       >
-                        {joiningGymId === gym.gym_id ? "…" : t("gyms.joinBtn")}
+                        {joiningGymId === gym.gym_id ? (
+                          <span className="w-3 h-3 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
+                        ) : t("gyms.joinBtn")}
                       </button>
                     )}
                     {gym.is_member && <span className="text-xs text-victory-lime">{t("gyms.member")}</span>}

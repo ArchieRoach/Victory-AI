@@ -11,6 +11,7 @@ import {
   Clapperboard, CalendarDays, Radio, Play, Clock, X, Share2, Flame, Users,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { withMinDuration } from "@/utils/async";
 import { ShareSheet } from "@/components/ShareSheet";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { formatWeightClass, getWeightUnit } from "@/utils/weightClasses";
@@ -293,7 +294,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
     if (deletingId) return; // ignore double-taps mid-request
     setDeletingId(id);
     try {
-      await axios.delete(`${API}/streams/schedule/${id}`);
+      await withMinDuration(axios.delete(`${API}/streams/schedule/${id}`));
       setItems((prev) => prev.filter((i) => i.schedule_id !== id));
       onScheduleChange?.();
     } catch {
@@ -478,7 +479,9 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
                     disabled={deletingId === item.schedule_id}
                     className="flex-shrink-0 touch-target flex items-center justify-center text-victory-muted hover:text-red-400 transition-colors text-xs disabled:opacity-40"
                   >
-                    {deletingId === item.schedule_id ? "…" : "Remove"}
+                    {deletingId === item.schedule_id ? (
+                      <span className="w-3 h-3 border-2 border-victory-muted border-t-transparent rounded-full animate-spin" />
+                    ) : "Remove"}
                   </button>
                 )}
               </div>

@@ -216,7 +216,8 @@
     },
     "partnerReady": "{{name}}があなたとトレーニングする準備ができました！",
     "failedPartner": "パートナーの作成に失敗しました",
-    "failedSave": "保存に失敗しました — 接続を確認してください"
+    "failedSave": "保存に失敗しました — 接続を確認してください",
+    "settingUp": "設定中..."
   },
   "home": {
     "greetingMorning": "おはようございます",

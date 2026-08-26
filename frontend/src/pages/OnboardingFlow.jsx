@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ChevronRight, Star, Users, Target, Zap, Check, Quote } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "react-i18next";
+import { withMinDuration } from "@/utils/async";
 
 // PHASE 0: BIRTH DATE (age gate — GDPR Art. 8 minimum digital-consent age)
 const BirthDatePhase = ({ onNext }) => {
@@ -194,6 +195,13 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers, submitting }) => {
           </button>
         ))}
       </div>
+
+      {submitting && (
+        <div className="flex items-center justify-center gap-2 mt-4 text-victory-muted text-sm animate-fade-in">
+          <span className="w-4 h-4 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
+          {t("onboarding.settingUp")}
+        </div>
+      )}
     </div>
   );
 };
@@ -684,7 +692,7 @@ export default function OnboardingFlow() {
     if (submittingAnswers) return; // ignore double-taps on the last question
     setSubmittingAnswers(true);
     try {
-      await axios.post(`${API}/onboarding/submit`, allAnswers, { withCredentials: true });
+      await withMinDuration(axios.post(`${API}/onboarding/submit`, allAnswers, { withCredentials: true }));
       setPhase("personalized");
     } catch (e) {
       const detail = e.response?.data?.detail;

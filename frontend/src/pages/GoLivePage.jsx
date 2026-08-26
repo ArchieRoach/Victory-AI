@@ -5,6 +5,7 @@ import { useAuth as useClerkHook } from "@clerk/clerk-react";
 import { API, useAuth } from "@/App";
 import { Radio, Users, AlertCircle, VideoOff } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { withMinDuration } from "@/utils/async";
 
 async function waitForIce(pc, timeout = 4000) {
   return new Promise((resolve) => {
@@ -219,12 +220,14 @@ export default function GoLivePage() {
     // Mark the stream ended server-side BEFORE leaving, so it doesn't linger as "live"
     // in the feeds. Best-effort retry, then navigate regardless.
     if (sid) {
-      for (let i = 0; i < 2; i++) {
-        try {
-          await axios.patch(`${API}/streams/${sid}`, { status: "ended" });
-          break;
-        } catch {}
-      }
+      await withMinDuration((async () => {
+        for (let i = 0; i < 2; i++) {
+          try {
+            await axios.patch(`${API}/streams/${sid}`, { status: "ended" });
+            break;
+          } catch {}
+        }
+      })());
     }
     navigate("/live");
   };
@@ -264,9 +267,11 @@ export default function GoLivePage() {
           <button
             onClick={handleEndStream}
             disabled={endingStream}
-            className="w-full py-4 rounded-2xl bg-victory-danger/20 border border-victory-danger/50 text-victory-danger font-bold text-base transition-colors active:bg-victory-danger/30 disabled:opacity-60"
+            className="w-full py-4 rounded-2xl bg-victory-danger/20 border border-victory-danger/50 text-victory-danger font-bold text-base transition-colors active:bg-victory-danger/30 disabled:opacity-60 flex items-center justify-center gap-2"
           >
-            {endingStream ? "Ending…" : "End Stream"}
+            {endingStream ? (
+              <span className="w-5 h-5 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
+            ) : "End Stream"}
           </button>
         </div>
       </div>

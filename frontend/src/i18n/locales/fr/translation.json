@@ -216,7 +216,8 @@
     },
     "partnerReady": "{{name}} est prêt à s'entraîner avec toi !",
     "failedPartner": "Échec de la création du partenaire",
-    "failedSave": "Échec de l'enregistrement — vérifiez votre connexion"
+    "failedSave": "Échec de l'enregistrement — vérifiez votre connexion",
+    "settingUp": "Configuration en cours..."
   },
   "home": {
     "greetingMorning": "Bonjour",

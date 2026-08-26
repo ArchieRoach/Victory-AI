@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2, MessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { withMinDuration } from "@/utils/async";
 
 export default function GymDetailPage() {
   const { t } = useTranslation();
@@ -39,7 +40,7 @@ export default function GymDetailPage() {
   const handleLeave = async () => {
     setLeaving(true);
     try {
-      await axios.post(`${API}/gyms/${gymId}/leave`);
+      await withMinDuration(axios.post(`${API}/gyms/${gymId}/leave`));
       toast.success(t("gym.leftGym"));
       navigate("/gyms");
     } catch (err) {
@@ -52,7 +53,7 @@ export default function GymDetailPage() {
     if (!window.confirm(`Delete "${gym.name}"? This removes the gym for all ${gym.member_count} members and can't be undone.`)) return;
     setDeleting(true);
     try {
-      await axios.delete(`${API}/gyms/${gymId}`);
+      await withMinDuration(axios.delete(`${API}/gyms/${gymId}`), 700);
       toast.success(t("gym.deleted"));
       navigate("/gyms");
     } catch (err) {
@@ -98,12 +99,20 @@ export default function GymDetailPage() {
         </div>
         {isMember && !isOwner && (
           <button onClick={handleLeave} disabled={leaving} aria-label="Leave gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger disabled:opacity-40">
-            <LogOut className="w-5 h-5" />
+            {leaving ? (
+              <span className="w-4 h-4 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <LogOut className="w-5 h-5" />
+            )}
           </button>
         )}
         {isOwner && (
           <button onClick={handleDelete} disabled={deleting} aria-label="Delete gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger disabled:opacity-40">
-            <Trash2 className="w-5 h-5" />
+            {deleting ? (
+              <span className="w-4 h-4 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Trash2 className="w-5 h-5" />
+            )}
           </button>
         )}
       </header>

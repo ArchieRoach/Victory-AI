@@ -216,7 +216,8 @@
     },
     "partnerReady": "{{name}} جاهز للتدريب معك!",
     "failedPartner": "فشل إنشاء الشريك",
-    "failedSave": "فشل الحفظ — تحقق من اتصالك"
+    "failedSave": "فشل الحفظ — تحقق من اتصالك",
+    "settingUp": "جارٍ الإعداد..."
   },
   "home": {
     "greetingMorning": "صباح الخير",

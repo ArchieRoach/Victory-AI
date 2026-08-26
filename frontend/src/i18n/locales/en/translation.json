@@ -217,7 +217,8 @@
     },
     "partnerReady": "{{name}} is ready to train with you!",
     "failedPartner": "Failed to create partner",
-    "failedSave": "Failed to save answers — check your connection"
+    "failedSave": "Failed to save answers — check your connection",
+    "settingUp": "Setting things up..."
   },
   "home": {
     "greetingMorning": "Good morning",

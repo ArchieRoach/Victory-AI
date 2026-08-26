@@ -216,7 +216,8 @@
     },
     "partnerReady": "¡{{name}} está listo para entrenar contigo!",
     "failedPartner": "Error al crear el compañero",
-    "failedSave": "Error al guardar — revisa tu conexión"
+    "failedSave": "Error al guardar — revisa tu conexión",
+    "settingUp": "Preparando todo..."
   },
   "home": {
     "greetingMorning": "Buenos días",

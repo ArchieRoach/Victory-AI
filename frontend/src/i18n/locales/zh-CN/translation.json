@@ -216,7 +216,8 @@
     },
     "partnerReady": "{{name}}已准备好与你一起训练！",
     "failedPartner": "创建伙伴失败",
-    "failedSave": "保存失败 — 请检查您的网络连接"
+    "failedSave": "保存失败 — 请检查您的网络连接",
+    "settingUp": "正在设置..."
   },
   "home": {
     "greetingMorning": "早上好",

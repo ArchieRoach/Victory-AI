@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { Heart, MessageCircle, Plus, Globe, Users, Building2, ChevronDown, ChevronUp, Send, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { withMinDuration } from "@/utils/async";
 import { formatDistanceToNow } from "date-fns";
 
 function PostCard({ post, onLike, onDelete, currentUserId, isDeleting }) {
@@ -92,7 +93,11 @@ function PostCard({ post, onLike, onDelete, currentUserId, isDeleting }) {
             disabled={isDeleting}
             className="text-victory-muted hover:text-victory-danger p-1 touch-target disabled:opacity-40"
           >
-            <Trash2 className="w-4 h-4" />
+            {isDeleting ? (
+              <span className="w-4 h-4 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
           </button>
         )}
       </div>
@@ -270,7 +275,7 @@ export default function FeedPage() {
     if (deletingPostId) return; // ignore double-taps mid-request
     setDeletingPostId(postId);
     try {
-      await axios.delete(`${API}/posts/${postId}`);
+      await withMinDuration(axios.delete(`${API}/posts/${postId}`));
       setPosts((prev) => prev.filter((p) => p.post_id !== postId));
       toast.success(t("feed.postDeleted"));
     } catch {
