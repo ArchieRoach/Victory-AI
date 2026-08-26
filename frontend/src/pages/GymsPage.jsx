@@ -125,6 +125,7 @@ export default function GymsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [showJoinCode, setShowJoinCode] = useState(false);
   const [activeTab, setActiveTab] = useState("browse"); // browse | leaderboard
+  const [joiningGymId, setJoiningGymId] = useState(null);
 
   useEffect(() => {
     fetchAll();
@@ -147,12 +148,16 @@ export default function GymsPage() {
   };
 
   const handleJoin = async (gymId) => {
+    if (joiningGymId) return; // ignore double-taps mid-request
+    setJoiningGymId(gymId);
     try {
       await axios.post(`${API}/gyms/${gymId}/join`);
       toast.success(t("gyms.joinedGym"));
       fetchAll();
     } catch (err) {
       toast.error(err.response?.data?.detail || t("common.error"));
+    } finally {
+      setJoiningGymId(null);
     }
   };
 
@@ -257,8 +262,12 @@ export default function GymsPage() {
                       </div>
                     </button>
                     {!gym.is_member && !myGym && (
-                      <button onClick={() => handleJoin(gym.gym_id)} className="touch-target flex items-center justify-center text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3">
-                        {t("gyms.joinBtn")}
+                      <button
+                        onClick={() => handleJoin(gym.gym_id)}
+                        disabled={joiningGymId === gym.gym_id}
+                        className="touch-target flex items-center justify-center text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 disabled:opacity-50"
+                      >
+                        {joiningGymId === gym.gym_id ? "…" : t("gyms.joinBtn")}
                       </button>
                     )}
                     {gym.is_member && <span className="text-xs text-victory-lime">{t("gyms.member")}</span>}

@@ -89,7 +89,7 @@ const AffirmationPhase = ({ stats, testimonials, onNext }) => {
 };
 
 // PHASE 2: WHY HOOK
-const WhyHookPhase = ({ onAnswer, currentQuestion, answers }) => {
+const WhyHookPhase = ({ onAnswer, currentQuestion, answers, submitting }) => {
   const { t } = useTranslation();
 
   const getCounterOptions = (stance) => {
@@ -185,7 +185,8 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers }) => {
           <button
             key={option.value}
             onClick={() => onAnswer(q.id, option.value)}
-            className="w-full p-4 rounded-lg border bg-victory-card border-victory-border text-left flex items-center gap-4 touch-target transition-all hover:border-victory-lime active:scale-[0.98]"
+            disabled={submitting}
+            className="w-full p-4 rounded-lg border bg-victory-card border-victory-border text-left flex items-center gap-4 touch-target transition-all hover:border-victory-lime active:scale-[0.98] disabled:opacity-50"
             data-testid={`option-${option.value}`}
           >
             <span className="text-2xl">{option.icon}</span>
@@ -628,6 +629,7 @@ export default function OnboardingFlow() {
   const [answers, setAnswers] = useState({});
   const [partnerData, setPartnerData] = useState({});
   const [createdPartnerName, setCreatedPartnerName] = useState("");
+  const [submittingAnswers, setSubmittingAnswers] = useState(false);
   const [socialProof, setSocialProof] = useState({ stats: {}, testimonials: [] });
   const [partnerStyles, setPartnerStyles] = useState({});
 
@@ -679,12 +681,16 @@ export default function OnboardingFlow() {
   };
 
   const submitAnswers = async (allAnswers) => {
+    if (submittingAnswers) return; // ignore double-taps on the last question
+    setSubmittingAnswers(true);
     try {
       await axios.post(`${API}/onboarding/submit`, allAnswers, { withCredentials: true });
       setPhase("personalized");
     } catch (e) {
       const detail = e.response?.data?.detail;
       toast.error(typeof detail === "string" ? detail : t("onboarding.failedSave"));
+    } finally {
+      setSubmittingAnswers(false);
     }
   };
 
@@ -765,6 +771,7 @@ export default function OnboardingFlow() {
             currentQuestion={currentQuestion}
             answers={answers}
             onAnswer={handleWhyAnswer}
+            submitting={submittingAnswers}
           />
         )}
 

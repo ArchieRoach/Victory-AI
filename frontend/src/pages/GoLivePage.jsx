@@ -29,6 +29,7 @@ export default function GoLivePage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [streamInfo, setStreamInfo] = useState(null);
   const [viewerCount, setViewerCount] = useState(0);
+  const [endingStream, setEndingStream] = useState(false);
 
   const videoRef = useRef(null);
   const mediaRef = useRef(null);
@@ -211,6 +212,8 @@ export default function GoLivePage() {
   };
 
   const handleEndStream = async () => {
+    if (endingStream) return; // ignore double-taps mid-request
+    setEndingStream(true);
     const sid = streamInfo?.stream_id;
     cleanup();
     // Mark the stream ended server-side BEFORE leaving, so it doesn't linger as "live"
@@ -260,9 +263,10 @@ export default function GoLivePage() {
           </p>
           <button
             onClick={handleEndStream}
-            className="w-full py-4 rounded-2xl bg-victory-danger/20 border border-victory-danger/50 text-victory-danger font-bold text-base transition-colors active:bg-victory-danger/30"
+            disabled={endingStream}
+            className="w-full py-4 rounded-2xl bg-victory-danger/20 border border-victory-danger/50 text-victory-danger font-bold text-base transition-colors active:bg-victory-danger/30 disabled:opacity-60"
           >
-            End Stream
+            {endingStream ? "Ending…" : "End Stream"}
           </button>
         </div>
       </div>

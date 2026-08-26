@@ -62,6 +62,7 @@ export default function TrainPage() {
   const [recordVideo,   setRecordVideo]   = useState(false); // opt-in, off by default — privacy by default
   const [cameraReady,   setCameraReady]   = useState(false);
   const [cameraError,   setCameraError]   = useState(null);
+  const [startingSession, setStartingSession] = useState(false);
 
   // ── Training state ───────────────────────────────────────────────────────────
   const [sessionId,         setSessionId]         = useState(null);
@@ -300,6 +301,7 @@ export default function TrainPage() {
       return;
     }
 
+    setStartingSession(true);
     try {
       const res = await axios.post(`${API}/training/start`, {
         round_duration: roundDuration,
@@ -317,6 +319,7 @@ export default function TrainPage() {
       if (granted) startRoundRecording();
     }
 
+    setStartingSession(false);
     setIsConfiguring(false);
     setTimeLeft(roundDuration);
     setCurrentRound(1);
@@ -658,8 +661,8 @@ export default function TrainPage() {
               <span className="text-victory-lime font-bold font-mono">{getTotalWorkoutTime()}</span>
             </div>
 
-            <button onClick={startTraining} className="victory-btn-primary font-heading text-base tracking-wide" data-testid="start-training-btn">
-              {sessionMode === "public" ? "🔴 Go Live" : `🥊 ${t("train.startBtn")}`}
+            <button onClick={startTraining} disabled={startingSession} className="victory-btn-primary font-heading text-base tracking-wide disabled:opacity-60" data-testid="start-training-btn">
+              {startingSession ? "…" : sessionMode === "public" ? "🔴 Go Live" : `🥊 ${t("train.startBtn")}`}
             </button>
           </div>
         </div>

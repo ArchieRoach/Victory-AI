@@ -16,6 +16,8 @@ export default function GymDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("members");
   const [leaderboardScope, setLeaderboardScope] = useState("week"); // "week" | "allTime" — Strava-club style
+  const [leaving, setLeaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchGym();
@@ -35,23 +37,27 @@ export default function GymDetailPage() {
   };
 
   const handleLeave = async () => {
+    setLeaving(true);
     try {
       await axios.post(`${API}/gyms/${gymId}/leave`);
       toast.success(t("gym.leftGym"));
       navigate("/gyms");
     } catch (err) {
       toast.error(err.response?.data?.detail || t("common.error"));
+      setLeaving(false);
     }
   };
 
   const handleDelete = async () => {
     if (!window.confirm(`Delete "${gym.name}"? This removes the gym for all ${gym.member_count} members and can't be undone.`)) return;
+    setDeleting(true);
     try {
       await axios.delete(`${API}/gyms/${gymId}`);
       toast.success(t("gym.deleted"));
       navigate("/gyms");
     } catch (err) {
       toast.error(err.response?.data?.detail || t("common.error"));
+      setDeleting(false);
     }
   };
 
@@ -91,12 +97,12 @@ export default function GymDetailPage() {
           <p className="text-victory-muted text-sm">{gym.style} · {gym.member_count} {t("gym.members")}</p>
         </div>
         {isMember && !isOwner && (
-          <button onClick={handleLeave} aria-label="Leave gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger">
+          <button onClick={handleLeave} disabled={leaving} aria-label="Leave gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger disabled:opacity-40">
             <LogOut className="w-5 h-5" />
           </button>
         )}
         {isOwner && (
-          <button onClick={handleDelete} aria-label="Delete gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger">
+          <button onClick={handleDelete} disabled={deleting} aria-label="Delete gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger disabled:opacity-40">
             <Trash2 className="w-5 h-5" />
           </button>
         )}

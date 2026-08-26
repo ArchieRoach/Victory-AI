@@ -252,6 +252,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
     title: "", description: "", scheduled_at: "", category: "", weight_class: "",
   });
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetch = useCallback(() => {
     setLoading(true);
@@ -289,12 +290,16 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
 
   const handleDelete = async (id) => {
     if (!window.confirm("Cancel this scheduled stream?")) return;
+    if (deletingId) return; // ignore double-taps mid-request
+    setDeletingId(id);
     try {
       await axios.delete(`${API}/streams/schedule/${id}`);
       setItems((prev) => prev.filter((i) => i.schedule_id !== id));
       onScheduleChange?.();
     } catch {
       toast.error("Could not remove scheduled stream");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -470,9 +475,10 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
                 {isOwn && (
                   <button
                     onClick={() => handleDelete(item.schedule_id)}
-                    className="flex-shrink-0 touch-target flex items-center justify-center text-victory-muted hover:text-red-400 transition-colors text-xs"
+                    disabled={deletingId === item.schedule_id}
+                    className="flex-shrink-0 touch-target flex items-center justify-center text-victory-muted hover:text-red-400 transition-colors text-xs disabled:opacity-40"
                   >
-                    Remove
+                    {deletingId === item.schedule_id ? "…" : "Remove"}
                   </button>
                 )}
               </div>
