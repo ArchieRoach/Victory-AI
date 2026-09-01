@@ -3,13 +3,20 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
-import { RadarChart } from "@/components/RadarChart";
 import { DrillCard } from "@/components/DrillCard";
 import { Confetti } from "@/components/Confetti";
 import { BeltCelebration } from "@/components/BeltCelebration";
-import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame } from "lucide-react";
+import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame, Swords, Shield, Footprints } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+
+// Real grouping already used server-side (see /dimensions) — reused here so the
+// scorecard's categories match the rest of the app, not an invented split.
+const CATEGORY_GROUPS = [
+  { key: "Offensive", label: "Offense",  icon: Swords,     color: "#E8FF47", dims: ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow", "Punch Balance", "Punch Accuracy"] },
+  { key: "Defensive", label: "Defense",  icon: Shield,     color: "#47E8C8", dims: ["Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement"] },
+  { key: "Movement",  label: "Movement", icon: Footprints, color: "#FF6B35", dims: ["Footwork", "Ring Generalship"] },
+];
 
 const POSITIVE_HIGHLIGHTS = {
   Jab: "Your jab is landing clean — opponents won't see it coming.",
@@ -108,14 +115,14 @@ export default function SessionResultsPage() {
     }
   };
 
-  const getScoreComment = (score) => {
-    if (score >= 8) return t("results.scoreHigh");
-    if (score >= 6) return t("results.scoreMediumHigh");
-    if (score >= 4) return t("results.scoreMedium");
-    return t("results.scoreLow");
-  };
-
   const previousSession = sessions.find((s) => s.session_id !== session?.session_id);
+
+  const getCategoryAverage = (dims) => {
+    if (!session) return null;
+    const scores = session.dimension_scores.filter((d) => dims.includes(d.dimension_name) && d.score !== null).map((d) => d.score);
+    if (!scores.length) return null;
+    return scores.reduce((a, b) => a + b, 0) / scores.length;
+  };
 
   const getScoreDifference = () => {
     if (!previousSession || !session) return null;
@@ -180,70 +187,53 @@ export default function SessionResultsPage() {
       ctx.textBaseline = "middle";
       ctx.fillText("My Boxing Scorecard", 300, 80);
 
-      const cx = 300, cy = 290, r = 170;
-      ctx.strokeStyle = "#2A2A3A";
-      ctx.lineWidth = 1;
-      for (let scale = 0.33; scale <= 1; scale += 0.33) {
-        ctx.beginPath();
-        const n = session.dimension_scores.length;
-        session.dimension_scores.forEach((_, i) => {
-          const angle = (i * (360 / n) - 90) * (Math.PI / 180);
-          const method = i === 0 ? "moveTo" : "lineTo";
-          ctx[method](cx + r * scale * Math.cos(angle), cy + r * scale * Math.sin(angle));
-        });
-        ctx.closePath();
-        ctx.stroke();
-      }
-
-      ctx.strokeStyle = "#1A1A2A";
-      ctx.lineWidth = 1;
-      session.dimension_scores.forEach((_, i) => {
-        const n = session.dimension_scores.length;
-        const angle = (i * (360 / n) - 90) * (Math.PI / 180);
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
-        ctx.stroke();
-      });
-
-      ctx.fillStyle = "rgba(232, 255, 71, 0.25)";
-      ctx.strokeStyle = "#E8FF47";
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      const n = session.dimension_scores.length;
-      session.dimension_scores.forEach((d, i) => {
-        const angle = (i * (360 / n) - 90) * (Math.PI / 180);
-        const pr = ((d.score || 0) / 10) * r;
-        const x = cx + pr * Math.cos(angle);
-        const y = cy + pr * Math.sin(angle);
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      });
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = "#12121A";
-      ctx.beginPath();
-      ctx.arc(cx, cy, 52, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#E8FF47";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
+      // Overall score — big and simple, no 16-point radar polygon to squint at
       ctx.fillStyle = "#E8FF47";
-      ctx.font = "bold 38px Arial";
+      ctx.font = "bold 56px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(session.overall_score.toFixed(1), cx, cy - 4);
+      ctx.fillText(session.overall_score.toFixed(1), 300, 150);
       ctx.fillStyle = "#8888A0";
-      ctx.font = "12px Arial";
-      ctx.fillText("/ 10", cx, cy + 20);
+      ctx.font = "bold 14px Arial";
+      ctx.fillText("OVERALL / 10", 300, 188);
+
+      // Three real category rings — same Offense/Defense/Movement grouping as the
+      // on-screen results page, not sixteen tiny unreadable spokes.
+      const ringR = 62;
+      const centers = [150, 300, 450];
+      CATEGORY_GROUPS.forEach(({ label, color, dims }, i) => {
+        const avg = getCategoryAverage(dims) || 0;
+        const rcx = centers[i], rcy = 320;
+
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.arc(rcx, rcy, ringR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 8;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.arc(rcx, rcy, ringR, -Math.PI / 2, -Math.PI / 2 + (avg / 10) * Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = "#F0F0F5";
+        ctx.font = "bold 26px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(avg.toFixed(1), rcx, rcy);
+
+        ctx.fillStyle = "#8888A0";
+        ctx.font = "bold 13px Arial";
+        ctx.fillText(label.toUpperCase(), rcx, rcy + ringR + 26);
+      });
 
       ctx.strokeStyle = "#2A2A3A";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(32, 480);
-      ctx.lineTo(568, 480);
+      ctx.moveTo(32, 440);
+      ctx.lineTo(568, 440);
       ctx.stroke();
 
       const scored = session.dimension_scores.filter(d => d.score !== null).sort((a, b) => b.score - a.score);
@@ -253,28 +243,30 @@ export default function SessionResultsPage() {
       ctx.font = "bold 13px Arial";
       ctx.textAlign = "left";
       ctx.fillStyle = "#8888A0";
-      ctx.fillText("STRENGTHS", 32, 504);
+      ctx.fillText("STRENGTHS", 32, 464);
       ctx.fillStyle = "#8888A0";
       ctx.textAlign = "right";
-      ctx.fillText("FOCUS AREAS", 568, 504);
+      ctx.fillText("FOCUS AREAS", 568, 464);
 
       top3.forEach((d, i) => {
-        const y = 528 + i * 26;
+        const y = 490 + i * 28;
         ctx.fillStyle = "#E8FF47";
         ctx.textAlign = "left";
-        ctx.font = "11px Arial";
+        ctx.font = "bold 13px Arial";
         ctx.fillText(`${d.score}/10`, 32, y);
         ctx.fillStyle = "#F0F0F5";
+        ctx.font = "13px Arial";
         ctx.fillText(d.dimension_name, 72, y);
       });
 
       bottom3.forEach((d, i) => {
-        const y = 528 + i * 26;
+        const y = 490 + i * 28;
         ctx.fillStyle = "#F0F0F5";
         ctx.textAlign = "right";
-        ctx.font = "11px Arial";
+        ctx.font = "13px Arial";
         ctx.fillText(d.dimension_name, 528, y);
         ctx.fillStyle = "#FF6B35";
+        ctx.font = "bold 13px Arial";
         ctx.fillText(`${d.score}/10`, 568, y);
       });
 
@@ -374,13 +366,31 @@ export default function SessionResultsPage() {
           )}
         </section>
 
-        {/* Radar Chart */}
-        <section className="victory-card p-4" data-testid="results-radar">
-          <RadarChart
-            currentScores={session.dimension_scores}
-            previousScores={previousSession?.dimension_scores}
-            overallScore={session.overall_score}
-          />
+        {/* Category scores — three real, meaningful numbers beat sixteen tiny
+            radar-chart spokes nobody can actually read on a phone. */}
+        <section className="grid grid-cols-3 gap-3" data-testid="results-categories">
+          {CATEGORY_GROUPS.map(({ key, label, icon: Icon, color, dims }) => {
+            const avg = getCategoryAverage(dims);
+            const circumference = 2 * Math.PI * 28;
+            return (
+              <div key={key} className="victory-card p-3 flex flex-col items-center text-center">
+                <div className="relative w-16 h-16 mb-2">
+                  <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5" />
+                    <circle
+                      cx="32" cy="32" r="28" fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
+                      strokeDasharray={`${((avg || 0) / 10) * circumference} ${circumference}`}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Icon className="w-6 h-6" style={{ color }} />
+                  </div>
+                </div>
+                <p className="font-mono font-bold text-xl text-victory-text">{avg?.toFixed(1) ?? "—"}</p>
+                <p className="text-victory-muted text-xs">{label}</p>
+              </div>
+            );
+          })}
         </section>
 
         {/* Top 3 Highlights */}
@@ -405,7 +415,7 @@ export default function SessionResultsPage() {
                       <p className="text-victory-text font-semibold text-sm">{dim.dimension_name}</p>
                       <span className="font-mono text-victory-lime font-bold text-sm">{dim.score}/10</span>
                     </div>
-                    <p className="text-victory-muted text-xs leading-relaxed">
+                    <p className="text-victory-muted text-sm leading-relaxed">
                       {getPositiveHighlight(dim.dimension_name, dim.score)}
                     </p>
                   </div>
@@ -415,36 +425,39 @@ export default function SessionResultsPage() {
           </section>
         )}
 
-        {/* Dimension Breakdown */}
-        <section>
-          <p className="section-label mb-3">{t("results.breakdown")}</p>
-          <div className="victory-card divide-y divide-victory-border">
-            {session.dimension_scores
-              .filter((d) => d.score !== null)
-              .map((dim) => {
-                const change = getDimensionChange(dim.dimension_name);
-                return (
-                  <div
-                    key={dim.dimension_name}
-                    className="p-4 flex items-center justify-between"
-                    data-testid={`dimension-${dim.dimension_name}`}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-victory-text font-medium">{dim.dimension_name}</span>
+        {/* Dimension Breakdown — bars, not sentences. Same real numbers, same real
+            week-over-week deltas, grouped under the same categories as the meters
+            above so the whole page reads as one system. */}
+        <section className="space-y-4">
+          <p className="section-label">{t("results.breakdown")}</p>
+          {CATEGORY_GROUPS.map(({ key, label, dims }) => {
+            const groupScores = session.dimension_scores.filter((d) => dims.includes(d.dimension_name) && d.score !== null);
+            if (!groupScores.length) return null;
+            return (
+              <div key={key} className="victory-card p-4">
+                <p className="text-victory-muted text-xs uppercase tracking-wider font-semibold mb-3">{label}</p>
+                <div className="space-y-3">
+                  {groupScores.map((dim) => {
+                    const change = getDimensionChange(dim.dimension_name);
+                    return (
+                      <div key={dim.dimension_name} className="flex items-center gap-3" data-testid={`dimension-${dim.dimension_name}`}>
+                        <span className="text-victory-text text-sm w-28 flex-shrink-0 truncate">{dim.dimension_name}</span>
+                        <div className="flex-1 h-2 bg-victory-border rounded-full overflow-hidden">
+                          <div className="h-full bg-victory-lime rounded-full" style={{ width: `${(dim.score / 10) * 100}%` }} />
+                        </div>
+                        <span className="font-mono text-sm font-semibold text-victory-lime w-5 text-right flex-shrink-0">{dim.score}</span>
                         {change !== null && change !== 0 && (
-                          <span className={`text-xs flex items-center ${change > 0 ? "text-victory-lime" : "text-victory-orange"}`}>
-                            {change > 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                          </span>
+                          change > 0
+                            ? <ArrowUp className="w-3.5 h-3.5 text-victory-lime flex-shrink-0" />
+                            : <ArrowDown className="w-3.5 h-3.5 text-victory-orange flex-shrink-0" />
                         )}
                       </div>
-                      <p className="text-victory-muted text-sm mt-1">{getScoreComment(dim.score)}</p>
-                    </div>
-                    <span className="font-mono text-xl font-semibold text-victory-lime">{dim.score}</span>
-                  </div>
-                );
-              })}
-          </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </section>
 
         {/* Drill Recommendations */}
