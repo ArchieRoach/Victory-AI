@@ -28,6 +28,7 @@ export default function ProfilePage() {
   const { user, setUser, logout, refreshUser } = useAuth();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const [pictureErrored, setPictureErrored] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [exportingData, setExportingData] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -297,8 +298,13 @@ export default function ProfilePage() {
         <section className="victory-card p-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-full bg-victory-lime flex items-center justify-center">
-              {user?.picture ? (
-                <img src={user.picture} alt={user.name} className="w-12 h-12 rounded-full object-cover" />
+              {user?.picture && !pictureErrored ? (
+                <img
+                  src={user.picture}
+                  alt={user.name}
+                  className="w-12 h-12 rounded-full object-cover"
+                  onError={() => setPictureErrored(true)}
+                />
               ) : (
                 <User className="w-6 h-6 text-victory-bg" />
               )}
@@ -806,15 +812,17 @@ export default function ProfilePage() {
           Emote Studio
         </button>
 
-        {/* Sign Out */}
+        {/* Sign Out — kept visually neutral, reversible in one tap. Danger styling
+            is reserved for Delete Account below, which is not (Von Restorff: the
+            two shouldn't carry the same visual weight). */}
         <button
           onClick={handleLogout}
           disabled={loggingOut}
-          className="victory-btn-ghost w-full flex items-center justify-center gap-2 text-victory-danger border-victory-danger disabled:opacity-60"
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2 disabled:opacity-60"
           data-testid="logout-btn"
         >
           {loggingOut ? (
-            <span className="w-5 h-5 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
+            <span className="w-5 h-5 border-2 border-victory-muted border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               <LogOut className="w-5 h-5" />
@@ -851,7 +859,7 @@ export default function ProfilePage() {
           <button
             onClick={handleDeleteAccount}
             disabled={deletingAccount}
-            className="victory-btn-ghost w-full flex items-center justify-center gap-2 text-victory-danger border-victory-danger disabled:opacity-60"
+            className="victory-btn-ghost w-full flex items-center justify-center gap-2 text-victory-danger border-victory-danger bg-victory-danger/10 disabled:opacity-60"
             data-testid="delete-account-btn"
           >
             {deletingAccount ? (

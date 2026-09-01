@@ -208,7 +208,7 @@ export default function EmoteStudioPage() {
         {partner ? (
           <div className="bg-victory-card border border-victory-border rounded-2xl p-4 flex items-center gap-4">
             {partner.avatar_url ? (
-              <img src={partner.avatar_url} alt={partner.name} className="w-16 h-16 rounded-full object-cover border-2 border-victory-lime flex-shrink-0" />
+              <img src={partner.avatar_url} alt={partner.name} className="w-16 h-16 rounded-full object-cover border-2 border-victory-lime flex-shrink-0" onError={(e) => { e.target.style.display = "none"; }} />
             ) : (
               <div className="w-16 h-16 rounded-full bg-victory-lime/20 flex items-center justify-center text-3xl flex-shrink-0">🥊</div>
             )}

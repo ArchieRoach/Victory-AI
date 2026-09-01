@@ -758,7 +758,8 @@ export default function TrainPage() {
                   {/* Partner avatar */}
                   {partner?.avatar_url ? (
                     <img src={partner.avatar_url} alt={partner.name}
-                      className="w-9 h-9 rounded-full object-cover border border-victory-lime flex-shrink-0" />
+                      className="w-9 h-9 rounded-full object-cover border border-victory-lime flex-shrink-0"
+                      onError={(e) => { e.target.style.display = "none"; }} />
                   ) : (
                     <div className="w-9 h-9 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold text-sm flex-shrink-0">
                       {partner?.name?.[0] || "C"}
@@ -796,7 +797,8 @@ export default function TrainPage() {
                   <div className="flex items-center gap-3 mb-4">
                     {partner?.avatar_url ? (
                       <img src={partner.avatar_url} alt={partner.name}
-                        className="w-10 h-10 rounded-full object-cover border border-victory-lime" />
+                        className="w-10 h-10 rounded-full object-cover border border-victory-lime"
+                        onError={(e) => { e.target.style.display = "none"; }} />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold">
                         {partner?.name?.[0] || "C"}

@@ -214,3 +214,17 @@ input[type="range"]::-moz-range-thumb {
 .section-label {
   @apply text-victory-lime text-[10px] font-bold uppercase tracking-[0.18em];
 }
+
+/* Respect prefers-reduced-motion app-wide — the app uses motion (animate-pulse,
+   animate-bounce-slow, animate-fly-across, sway, shimmer, etc.) as a real signal
+   in a lot of places, but never as the *only* signal, and it must never be forced
+   on users with motion sensitivity/vestibular disorders. One global rule covers
+   every current and future animation utility rather than auditing each site. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

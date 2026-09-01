@@ -7,8 +7,14 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 const RANK_COLORS = ["text-yellow-400", "text-slate-300", "text-amber-600"];
 
 function Avatar({ user, size = "w-7 h-7" }) {
-  return user.user_avatar ? (
-    <img src={user.user_avatar} alt={user.user_name} className={`${size} rounded-full object-cover border border-victory-border flex-shrink-0`} />
+  const [errored, setErrored] = useState(false);
+  return user.user_avatar && !errored ? (
+    <img
+      src={user.user_avatar}
+      alt={user.user_name}
+      className={`${size} rounded-full object-cover border border-victory-border flex-shrink-0`}
+      onError={() => setErrored(true)}
+    />
   ) : (
     <div className={`${size} rounded-full bg-victory-lime/20 flex items-center justify-center text-victory-lime text-[10px] font-bold flex-shrink-0`}>
       {(user.user_name || "?")[0].toUpperCase()}

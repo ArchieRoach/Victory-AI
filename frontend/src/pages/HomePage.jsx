@@ -65,7 +65,7 @@ function LiveStreamFeedCard({ stream }) {
         {/* Centre avatar */}
         <div className="absolute inset-0 flex items-center justify-center">
           {stream.user_avatar ? (
-            <img src={stream.user_avatar} alt={name} className="w-16 h-16 rounded-full object-cover border-2 border-white/30 shadow-xl" />
+            <img src={stream.user_avatar} alt={name} className="w-16 h-16 rounded-full object-cover border-2 border-white/30 shadow-xl" onError={(e) => { e.target.style.display = "none"; }} />
           ) : (
             <div className="w-16 h-16 rounded-full bg-victory-lime/20 flex items-center justify-center text-victory-lime text-2xl font-bold">
               {name[0].toUpperCase()}
@@ -108,7 +108,7 @@ function LiveStreamFeedCard({ stream }) {
       {/* Info row */}
       <div className="flex items-center gap-3 px-4 py-3 bg-victory-card border-b border-victory-border">
         {stream.user_avatar ? (
-          <img src={stream.user_avatar} alt={name} className="w-9 h-9 rounded-full object-cover border border-victory-border flex-shrink-0" />
+          <img src={stream.user_avatar} alt={name} className="w-9 h-9 rounded-full object-cover border border-victory-border flex-shrink-0" onError={(e) => { e.target.style.display = "none"; }} />
         ) : (
           <div className="w-9 h-9 rounded-full bg-victory-lime/20 flex items-center justify-center text-victory-lime text-sm font-bold flex-shrink-0">
             {name[0].toUpperCase()}
@@ -185,7 +185,7 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
       <div className="flex items-center gap-3 px-4 py-3">
         <button onClick={() => navigate(`/profile/${post.user_id}`)} className="flex items-center gap-3 flex-1 min-w-0">
           {post.author?.avatar_url ? (
-            <img src={post.author.avatar_url} alt={authorName} className="w-9 h-9 rounded-full object-cover border border-victory-border flex-shrink-0" />
+            <img src={post.author.avatar_url} alt={authorName} className="w-9 h-9 rounded-full object-cover border border-victory-border flex-shrink-0" onError={(e) => { e.target.style.display = "none"; }} />
           ) : (
             <div className="w-9 h-9 rounded-full bg-victory-lime/20 flex items-center justify-center flex-shrink-0">
               <span className="text-victory-lime font-bold text-sm">{authorName[0]?.toUpperCase()}</span>
@@ -316,7 +316,8 @@ function NotifItem({ notif }) {
       {/* Actor avatar */}
       {notif.actor_avatar ? (
         <img src={notif.actor_avatar} alt={notif.actor_name}
-          className="w-9 h-9 rounded-full object-cover flex-shrink-0 border border-victory-border" />
+          className="w-9 h-9 rounded-full object-cover flex-shrink-0 border border-victory-border"
+          onError={(e) => { e.target.style.display = "none"; }} />
       ) : (
         <div className="w-9 h-9 rounded-full bg-victory-card-highlight flex items-center justify-center flex-shrink-0 border border-victory-border">
           <span className="text-victory-text text-sm font-bold">
@@ -588,21 +589,26 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Streak-break warning — loss aversion, honest: only shown when a real streak is actually at risk */}
+      {/* Streak-break warning — loss aversion, honest: only shown when a real streak is
+          actually at risk. Styled as a native content card (like every other important
+          card in the app), not a full-bleed top strip — that shape reads as an ad slot
+          and trains users to skip it (banner blindness). */}
       {streakAtRisk > 0 && (
-        <button
-          onClick={() => navigate("/train")}
-          className="w-full flex items-center gap-3 bg-orange-500/10 border-y border-orange-400/30 px-4 py-3 text-left touch-target"
-        >
-          <Flame className="w-6 h-6 text-orange-400 flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-victory-text text-sm font-semibold">
-              Don't lose your {streakAtRisk}-day streak
-            </p>
-            <p className="text-victory-muted text-xs">You haven't trained today yet — one session keeps it alive.</p>
-          </div>
-          <span className="text-orange-400 text-xs font-bold flex-shrink-0">Train now</span>
-        </button>
+        <div className="px-4 pt-3">
+          <button
+            onClick={() => navigate("/train")}
+            className="victory-card border-l-2 border-orange-400 w-full flex items-center gap-3 p-3 text-left touch-target"
+          >
+            <Flame className="w-6 h-6 text-orange-400 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-victory-text text-sm font-semibold">
+                Don't lose your {streakAtRisk}-day streak
+              </p>
+              <p className="text-victory-muted text-xs">You haven't trained today yet — one session keeps it alive.</p>
+            </div>
+            <span className="text-orange-400 text-xs font-bold flex-shrink-0">Train now</span>
+          </button>
+        </div>
       )}
 
       {/* ── For You feed ─────────────────────────────────────────────────── */}
