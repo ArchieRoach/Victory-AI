@@ -539,7 +539,9 @@
     "sessions": "セッション",
     "member": "メンバー",
     "tab_browse": "ブラウズ",
-    "tab_leaderboard": "ランキング"
+    "tab_leaderboard": "ランキング",
+    "publicGymDescOn": "「探す」に表示——誰でも見つけて参加できます",
+    "publicGymDescOff": "「探す」に非表示——招待コードでのみ参加可能"
   },
   "gym": {
     "avgScore": "平均スコア",

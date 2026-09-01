@@ -539,7 +539,9 @@
     "sessions": "sesji",
     "member": "Członek",
     "tab_browse": "Przeglądaj",
-    "tab_leaderboard": "Ranking"
+    "tab_leaderboard": "Ranking",
+    "publicGymDescOn": "Widoczna w Przeglądaj — każdy może ją znaleźć i dołączyć",
+    "publicGymDescOff": "Ukryta w Przeglądaj — dołączenie tylko przez kod zaproszenia"
   },
   "gym": {
     "avgScore": "Średni wynik",

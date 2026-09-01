@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Swords, Star, CheckCircle, Clock, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
+import { DIMENSION_RUBRICS } from "@/pages/ScorePage";
 
 const JUDGE_DIMENSIONS = [
   "Jab", "Cross", "Left Hook", "Right Hook",
@@ -191,6 +192,12 @@ export default function CompetitionDetailPage() {
                     <label className="text-victory-muted text-sm">{dim}</label>
                     <span className="font-mono text-sm text-victory-lime">{scores[dim]}</span>
                   </div>
+                  {/* Rubric hint — a voter without judging experience previously had
+                      no idea what separates a 4 from an 8, despite this exact text
+                      already existing for ScorePage's self-assessment sliders. */}
+                  {DIMENSION_RUBRICS[dim] && (
+                    <p className="text-victory-muted text-xs mb-1.5 leading-snug">{DIMENSION_RUBRICS[dim]}</p>
+                  )}
                   <input
                     type="range"
                     min={1}

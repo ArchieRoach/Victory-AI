@@ -45,8 +45,8 @@ function PostCard({ post, onLike, onDelete, currentUserId, isDeleting }) {
       setComments((prev) => [...prev, res.data]);
       setCommentCount((c) => c + 1);
       setCommentText("");
-    } catch {
-      toast.error(t("common.error"));
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || t("common.error"));
     } finally {
       setSubmitting(false);
     }
@@ -229,8 +229,8 @@ export default function FeedPage() {
       setPosts((prev) => (append ? [...prev, ...newPosts] : newPosts));
       setHasMore(has_more);
       setPage(pageNum);
-    } catch {
-      toast.error(t("common.error"));
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || t("common.error"));
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -262,9 +262,9 @@ export default function FeedPage() {
             : p
         )
       );
-    } catch {
+    } catch (err) {
       setPosts((prev) => prev.map(toggle)); // revert the optimistic flip
-      toast.error(t("common.error"));
+      toast.error(err?.response?.data?.detail || t("common.error"));
     } finally {
       likingRef.current.delete(postId);
     }
@@ -278,8 +278,8 @@ export default function FeedPage() {
       await withMinDuration(axios.delete(`${API}/posts/${postId}`));
       setPosts((prev) => prev.filter((p) => p.post_id !== postId));
       toast.success(t("feed.postDeleted"));
-    } catch {
-      toast.error(t("common.error"));
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || t("common.error"));
     } finally {
       setDeletingPostId(null);
     }

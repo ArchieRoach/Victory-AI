@@ -86,8 +86,8 @@ export default function CompetitionsPage() {
       ]);
       setComps(allRes.data);
       setMyComps(mineRes.data);
-    } catch {
-      toast.error(t("common.error"));
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || t("common.error"));
     } finally {
       setLoading(false);
     }

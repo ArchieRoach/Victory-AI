@@ -25,7 +25,7 @@ const DIMENSION_GROUPS = {
   "Movement & Ring Craft": ["Footwork", "Ring Generalship"],
 };
 
-const DIMENSION_RUBRICS = {
+export const DIMENSION_RUBRICS = {
   Jab: "Extension, snap, and return speed — are you recovering guard after every jab?",
   Cross: "Hip rotation driving power — does your weight transfer fully?",
   "Left Hook": "Elbow parallel to floor, pivot from hips — not just an arm swing",

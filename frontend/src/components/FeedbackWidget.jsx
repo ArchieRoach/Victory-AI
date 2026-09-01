@@ -60,8 +60,8 @@ export default function FeedbackWidget() {
         page: location.pathname,
       });
       setDone(true);
-    } catch {
-      toast.error(t("common.error"));
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || t("common.error"));
     } finally {
       setSubmitting(false);
     }

@@ -539,7 +539,9 @@
     "sessions": "جلسات",
     "member": "عضو",
     "tab_browse": "استعراض",
-    "tab_leaderboard": "لوحة الصدارة"
+    "tab_leaderboard": "لوحة الصدارة",
+    "publicGymDescOn": "مُدرج في تصفح — يمكن لأي شخص العثور عليه والانضمام",
+    "publicGymDescOff": "مخفي من تصفح — الانضمام برمز الدعوة فقط"
   },
   "gym": {
     "avgScore": "متوسط الدرجات",
