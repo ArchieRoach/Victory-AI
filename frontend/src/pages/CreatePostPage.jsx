@@ -129,7 +129,10 @@ export default function CreatePostPage() {
         navigate("/feed");
       }
     } catch (err) {
-      toast.error(t("common.error"));
+      // Real failure modes here (validation, duplicate title, quota, network) are
+      // worth surfacing specifically, especially after a costly video upload —
+      // same detail-extraction this file already uses in uploadVideo()'s catch.
+      toast.error(err?.response?.data?.detail || t("common.error"));
     } finally {
       setUploading(false);
       setUploadProgress(0);

@@ -393,7 +393,7 @@ export default function TrainPage() {
     if (sessionId) {
       try {
         const res = await axios.post(`${API}/training/${sessionId}/complete`, {}, { withCredentials: true });
-        navigate("/score/results", { state: { session: res.data, fromTraining: true } });
+        navigate(`/score/results/${res.data.session_id}`, { state: { session: res.data, fromTraining: true } });
         return;
       } catch {
         toast.error(t("train.failedSave"));

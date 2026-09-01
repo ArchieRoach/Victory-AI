@@ -309,6 +309,11 @@ const AppRouter = () => {
         <Route path="/train" element={<ProtectedRoute><SubscriptionGate feature="AI training analysis"><TrainPage /></SubscriptionGate></ProtectedRoute>} />
         <Route path="/score" element={<ProtectedRoute><SubscriptionGate feature="AI session scoring"><ScorePage /></SubscriptionGate></ProtectedRoute>} />
         <Route path="/score/results" element={<ProtectedRoute><SubscriptionGate feature="AI session results"><SessionResultsPage /></SubscriptionGate></ProtectedRoute>} />
+        {/* Same page, reached with a real session_id in the URL so a reload/reopen
+            can refetch instead of silently bouncing home (Tesler's Law: the results
+            screen only worked for the idealized "never refresh, never get
+            backgrounded" user before). */}
+        <Route path="/score/results/:sessionId" element={<ProtectedRoute><SubscriptionGate feature="AI session results"><SessionResultsPage /></SubscriptionGate></ProtectedRoute>} />
 
         {/* Social / Network features — free tier */}
         <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />

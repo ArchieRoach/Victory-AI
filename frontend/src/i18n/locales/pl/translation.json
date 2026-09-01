@@ -284,7 +284,8 @@
     "scoreMedium": "Jest pole do poprawy — wypróbuj to ćwiczenie.",
     "scoreLow": "Punkt startowy. Oto jak budować.",
     "sessionLogged": "{{rounds}} rund zapisanych. To prawdziwa praca w statystykach.",
-    "streakLine": "🔥 Seria {{count}} dni"
+    "streakLine": "🔥 Seria {{count}} dni",
+    "sessionExpired": "Nie można znaleźć tej sesji — mogła wygasnąć."
   },
   "profile": {
     "title": "Profil i ustawienia",

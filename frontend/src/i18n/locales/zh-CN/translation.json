@@ -284,7 +284,8 @@
     "scoreMedium": "还有提升空间 — 试试这个训练。",
     "scoreLow": "起点。以下是如何进步。",
     "sessionLogged": "已记录{{rounds}}回合。这是实实在在的训练成果。",
-    "streakLine": "🔥 连续{{count}}天"
+    "streakLine": "🔥 连续{{count}}天",
+    "sessionExpired": "找不到该会话——可能已过期。"
   },
   "profile": {
     "title": "个人资料与设置",
