@@ -200,7 +200,7 @@ export default function GymDetailPage() {
                 >
                   <span className="font-mono text-sm text-victory-muted w-6">#{idx + 1}</span>
                   {member.picture || member.avatar_url ? (
-                    <img src={member.avatar_url || member.picture} alt={member.display_name} className="w-9 h-9 rounded-full object-cover border border-victory-border flex-shrink-0" />
+                    <img src={member.avatar_url || member.picture} alt={member.display_name} className="w-9 h-9 rounded-full object-cover border border-victory-border flex-shrink-0" onError={(e) => { e.target.style.display = "none"; }} />
                   ) : (
                     <div className="w-9 h-9 rounded-full bg-victory-lime/20 flex items-center justify-center flex-shrink-0">
                       <span className="text-victory-lime text-xs font-bold">{(member.display_name || member.name || "?")[0].toUpperCase()}</span>

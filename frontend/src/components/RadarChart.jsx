@@ -107,6 +107,21 @@ export const RadarChart = ({
           <span className="text-victory-muted text-sm block">/10</span>
         </div>
       </div>
+
+      {/* Legend — the two series are told apart by more than color alone (dots vs
+          no dots, solid vs faint fill), but that's not obvious without this. */}
+      {previousScores && previousScores.length > 0 && (
+        <div className="flex items-center justify-center gap-5 -mt-2 text-xs">
+          <span className="flex items-center gap-1.5 text-victory-text">
+            <span className="w-3 h-3 rounded-full border-2 border-victory-lime bg-victory-lime/30" />
+            This session
+          </span>
+          <span className="flex items-center gap-1.5 text-victory-muted">
+            <span className="w-3 h-3 rounded-full border border-dashed border-victory-teal" />
+            Last session
+          </span>
+        </div>
+      )}
     </div>
   );
 };

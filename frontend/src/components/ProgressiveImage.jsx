@@ -12,7 +12,17 @@ function cloudinaryBlurSrc(src) {
 // layout jump.
 export function ProgressiveImage({ src, alt, className = "", ...rest }) {
   const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
   const blurSrc = cloudinaryBlurSrc(src);
+
+  // A dead URL (404, expired signed URL, deleted upload) never fires onLoad, so
+  // without this the shimmer/blur placeholder would sit there forever, looking
+  // like the page is permanently loading rather than actually broken — worse
+  // than a plain broken-image icon, not better (aesthetic-usability effect: a
+  // polished loading state shouldn't mask a real failure).
+  if (errored) {
+    return <span className={`relative block overflow-hidden bg-victory-card-highlight ${className}`} />;
+  }
 
   return (
     <span className={`relative block overflow-hidden ${className}`}>
@@ -26,6 +36,7 @@ export function ProgressiveImage({ src, alt, className = "", ...rest }) {
         alt={alt}
         loading="lazy"
         onLoad={() => setLoaded(true)}
+        onError={() => setErrored(true)}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
         {...rest}
       />

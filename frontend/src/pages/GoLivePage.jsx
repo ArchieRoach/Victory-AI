@@ -254,7 +254,10 @@ export default function GoLivePage() {
             </span>
             <span className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full">
               <Users className="w-3 h-3" />
-              {viewerCount}
+              {/* key forces a remount on change so the pop-in actually replays —
+                  this is the streamer's own real-time signal, it shouldn't update
+                  silently (change blindness). */}
+              <span key={viewerCount} className="animate-scale-in">{viewerCount}</span>
             </span>
           </div>
         </div>

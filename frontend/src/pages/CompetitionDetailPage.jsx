@@ -115,7 +115,7 @@ export default function CompetitionDetailPage() {
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(`/profile/${comp.challenger_id}`)} className="flex items-center gap-3">
             {comp.challenger?.picture || comp.challenger?.avatar_url ? (
-              <img src={comp.challenger.avatar_url || comp.challenger.picture} alt={challengerName} className="w-10 h-10 rounded-full object-cover border border-victory-border" />
+              <img src={comp.challenger.avatar_url || comp.challenger.picture} alt={challengerName} className="w-10 h-10 rounded-full object-cover border border-victory-border" onError={(e) => { e.target.style.display = "none"; }} />
             ) : (
               <div className="w-10 h-10 rounded-full bg-victory-lime/20 flex items-center justify-center">
                 <span className="text-victory-lime font-bold">{challengerName[0]?.toUpperCase()}</span>

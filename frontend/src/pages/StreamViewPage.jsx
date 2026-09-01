@@ -271,7 +271,9 @@ export default function StreamViewPage() {
         </div>
         <div className="flex items-center gap-1 text-victory-muted text-xs flex-shrink-0">
           <Users className="w-3.5 h-3.5" />
-          {stream.viewer_count}
+          {/* key remounts on change so viewers can actually see the count move,
+              not just silently update on the 30s poll (change blindness). */}
+          <span key={stream.viewer_count} className="animate-scale-in">{stream.viewer_count}</span>
         </div>
         <button
           onClick={() => setShowReport(true)}
