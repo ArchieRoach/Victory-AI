@@ -15,22 +15,27 @@ import { withMinDuration } from "@/utils/async";
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
 // Mid-round hype lines cycled during the Private AI Room session
+// "validate" lines are generic encouragement, not claims about this user's specific
+// technique right now — nothing is actually watching them mid-round, so nothing here
+// should read as an observation (see the between-rounds feedback fix for the same rule).
+// None of these reference a specific time remaining — the real countdown warning is
+// handled separately by showTenSecWarning, driven by the actual timer.
 const HYPE_LINES = [
   { type: "motivate", text: "Hands UP — you're dropping the right again!" },
   { type: "joke",     text: "You're sweating like you've seen my jab. Good." },
   { type: "tip",      text: "Breathe out on each punch — keeps your core tight." },
-  { type: "validate", text: "That footwork right there? That's the move. Keep it." },
+  { type: "validate", text: "Stay light on your feet — footwork wins rounds." },
   { type: "motivate", text: "Stay in your stance, don't lean forward." },
   { type: "joke",     text: "I've seen slower footwork… on my nan. You're improving though." },
   { type: "tip",      text: "Double up that jab — don't just poke, commit." },
-  { type: "validate", text: "Your timing is way better than last session. Trust it." },
+  { type: "validate", text: "Trust your shots — don't rush them." },
   { type: "motivate", text: "Champions don't stop when it hurts — they stop when it's done." },
   { type: "tip",      text: "Turn your hip on the cross — get the full power transfer." },
   { type: "joke",     text: "You look tired. Good. That means you're working." },
-  { type: "validate", text: "That head movement was clean. Keep slipping left." },
-  { type: "motivate", text: "10 seconds — leave EVERYTHING in this round." },
+  { type: "validate", text: "Keep that head moving — don't be a stationary target." },
+  { type: "motivate", text: "Push the pace — make every second count." },
   { type: "tip",      text: "Return your hands to guard after every combination." },
-  { type: "validate", text: "Balance is looking solid. You've been working on that." },
+  { type: "validate", text: "Stay balanced through your combinations." },
   { type: "joke",     text: "My circuits are overheating just watching you. Push harder." },
 ];
 

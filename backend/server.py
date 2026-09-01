@@ -914,24 +914,26 @@ async def generate_round_feedback(request: Request, user: dict = Depends(get_cur
     phrases = training_partner.get("phrases", ["Keep it up!"])
     focus_areas = training_partner.get("focus_areas", [])
     
-    # Use video analysis if available, otherwise generate
+    # Use real video analysis if available. Otherwise — no video was recorded, since
+    # camera capture is opt-in and off by default — give honest generic coaching only.
+    # Never fabricate a specific technique claim ("great guard position!") about a round
+    # nothing actually watched; a random guess landing on real-sounding praise is worse
+    # than no praise, especially if the fighter wasn't even training when it fired.
     if video_analysis and "dimension_scores" in video_analysis:
         dimension_scores = video_analysis["dimension_scores"]
         what_did_well = video_analysis.get("what_did_well", "Good work!")
         what_to_improve = video_analysis.get("what_to_improve", "Keep pushing!")
         drill_rec = video_analysis.get("drill_recommendation", {})
     else:
-        # Generate simulated scores
-        key_dimensions = ["Jab", "Cross", "Guard Position", "Head Movement", "Footwork", "Combination Flow"]
-        dimension_scores = [{"dimension_name": dim, "score": random.randint(4, 9)} for dim in key_dimensions]
-        sorted_scores = sorted(dimension_scores, key=lambda x: x["score"])
-        
-        best = sorted_scores[-1]
-        worst = sorted_scores[0]
-        
-        what_did_well = f"Great {best['dimension_name'].lower()} this round! {random.choice(phrases)}"
-        what_to_improve = f"Your {worst['dimension_name'].lower()} needs attention. Let's tighten that up."
-        drill_rec = DRILLS.get(worst["dimension_name"], {"name": "Focus drill", "description": "Work on this area."})
+        dimension_scores = []
+        what_did_well = random.choice(phrases) if phrases else "Keep pushing — that's real work."
+        what_to_improve = random.choice([
+            "Keep your hands up and stay sharp through the round.",
+            "Keep breathing steady — don't hold your breath between shots.",
+            "Keep your feet moving — don't plant and stay still.",
+            "Keep your chin tucked and stay ready to move.",
+        ])
+        drill_rec = random.choice(list(DRILLS.values())) if DRILLS else {"name": "Fundamentals", "description": "Work on the basics."}
     
     # Check if any focus areas need special attention
     focus_feedback = ""
