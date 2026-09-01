@@ -184,10 +184,11 @@ function StreamCard({ stream, muted, onToggleMute }) {
           )}
         </button>
 
-        {/* Viewer count */}
+        {/* Viewer count — key remounts on change so a real move is actually
+            noticeable, not a silent re-render (same fix as GoLivePage/StreamViewPage). */}
         <div className="flex flex-col items-center gap-0.5">
           <Users className="w-7 h-7 text-white drop-shadow" />
-          <span className="text-white text-xs font-semibold drop-shadow">{fmtViewers(stream.viewer_count)}</span>
+          <span key={stream.viewer_count} className="text-white text-xs font-semibold drop-shadow animate-scale-in">{fmtViewers(stream.viewer_count)}</span>
         </div>
 
         {/* Mute toggle */}
