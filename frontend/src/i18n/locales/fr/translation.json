@@ -284,7 +284,8 @@
     "scoreMedium": "Marge de progression — essaie cet exercice.",
     "scoreLow": "Point de départ. Voici comment progresser.",
     "sessionLogged": "{{rounds}} rounds enregistrés. Du vrai travail au compteur.",
-    "streakLine": "🔥 Série de {{count}} jours"
+    "streakLine": "🔥 Série de {{count}} jours",
+    "sessionExpired": "Impossible de trouver cette session — elle a peut-être expiré."
   },
   "profile": {
     "title": "Profil et paramètres",

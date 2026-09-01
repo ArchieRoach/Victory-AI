@@ -285,7 +285,8 @@
     "scoreMedium": "Room to grow — try this drill.",
     "scoreLow": "Starting point. Here's how to build.",
     "sessionLogged": "{{rounds}} rounds logged. That's real work in the books.",
-    "streakLine": "🔥 {{count}}-day streak"
+    "streakLine": "🔥 {{count}}-day streak",
+    "sessionExpired": "Couldn't find that session — it may have expired."
   },
   "profile": {
     "title": "Profile & Settings",

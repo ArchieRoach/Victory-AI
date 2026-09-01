@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { ChevronRight, Star, Users, Target, Zap, Check, Quote } from "lucide-react";
+import { ChevronRight, ChevronLeft, Star, Users, Target, Zap, Check, Quote } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
@@ -90,7 +90,7 @@ const AffirmationPhase = ({ stats, testimonials, onNext }) => {
 };
 
 // PHASE 2: WHY HOOK
-const WhyHookPhase = ({ onAnswer, currentQuestion, answers, submitting }) => {
+const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }) => {
   const { t } = useTranslation();
 
   const getCounterOptions = (stance) => {
@@ -178,6 +178,14 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers, submitting }) => {
 
   return (
     <div className="animate-fade-in">
+      {currentQuestion > 0 && (
+        <button
+          onClick={onBack}
+          className="text-victory-muted text-sm flex items-center gap-1 touch-target -ml-2 mb-1 hover:text-victory-text"
+        >
+          <ChevronLeft className="w-4 h-4" /> {t("common.back", "Back")}
+        </button>
+      )}
       <div className="mb-6">
         <p className="text-victory-lime text-xs font-bold uppercase tracking-wider mb-2">
           {questionsLeft === 1
@@ -281,7 +289,7 @@ const PersonalizedAffirmation = ({ answers, onNext }) => {
 };
 
 // PHASE 4: PARTNER CREATION
-const PartnerCreationPhase = ({ styles, onAnswer, currentStep, partnerData }) => {
+const PartnerCreationPhase = ({ styles, onAnswer, onBack, currentStep, partnerData }) => {
   const { t } = useTranslation();
 
   const steps = [
@@ -343,6 +351,14 @@ const PartnerCreationPhase = ({ styles, onAnswer, currentStep, partnerData }) =>
 
   return (
     <div className="animate-fade-in">
+      {currentStep > 0 && (
+        <button
+          onClick={onBack}
+          className="text-victory-muted text-sm flex items-center gap-1 touch-target -ml-2 mb-1 hover:text-victory-text"
+        >
+          <ChevronLeft className="w-4 h-4" /> {t("common.back", "Back")}
+        </button>
+      )}
       <div className="mb-6">
         <h1 className="text-xl font-heading font-extrabold text-victory-text mb-1">{step.question}</h1>
         {step.subtitle && <p className="text-victory-muted text-sm">{step.subtitle}</p>}
@@ -632,6 +648,16 @@ const PlanBuildingScreen = ({ partnerName, answers, onComplete }) => {
   );
 };
 
+// A phone lock, backgrounding, or accidental refresh mid-onboarding used to restart
+// this whole multi-minute, multi-question flow from the birth-date screen with
+// everything lost (Tesler's Law: real people get interrupted, an idealized "never
+// backgrounds the tab" user doesn't exist). Mirrors the draft-persistence pattern
+// already used in ScorePage.jsx/TrainPage.jsx.
+const ONBOARDING_DRAFT_KEY = "victory_onboarding_draft";
+// Never resume directly into a transitional/async phase — land on the last stable
+// step instead so nothing (partner creation, avatar generation) double-fires.
+const RESUMABLE_PHASES = new Set(["why_hook", "personalized", "partner"]);
+
 // MAIN COMPONENT
 export default function OnboardingFlow() {
   const navigate = useNavigate();
@@ -649,9 +675,26 @@ export default function OnboardingFlow() {
   const [partnerStyles, setPartnerStyles] = useState({});
 
   useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(ONBOARDING_DRAFT_KEY) || "null");
+      if (saved && RESUMABLE_PHASES.has(saved.phase)) {
+        setPhase(saved.phase);
+        setCurrentQuestion(saved.currentQuestion || 0);
+        setCurrentPartnerStep(saved.currentPartnerStep || 0);
+        setAnswers(saved.answers || {});
+        setPartnerData(saved.partnerData || {});
+      }
+    } catch {}
     fetchSocialProof();
     fetchPartnerStyles();
   }, []);
+
+  // Debounced-by-nature (just a cheap sync write on every relevant change) — this
+  // is small draft data, no need for ScorePage's setTimeout debounce.
+  useEffect(() => {
+    if (!RESUMABLE_PHASES.has(phase)) return;
+    sessionStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify({ phase, currentQuestion, currentPartnerStep, answers, partnerData }));
+  }, [phase, currentQuestion, currentPartnerStep, answers, partnerData]);
 
   const fetchSocialProof = async () => {
     try {
@@ -695,6 +738,8 @@ export default function OnboardingFlow() {
     }
   };
 
+  const handleWhyBack = () => setCurrentQuestion((q) => Math.max(0, q - 1));
+
   const submitAnswers = async (allAnswers) => {
     if (submittingAnswers) return; // ignore double-taps on the last question
     setSubmittingAnswers(true);
@@ -720,6 +765,8 @@ export default function OnboardingFlow() {
     }
   };
 
+  const handlePartnerBack = () => setCurrentPartnerStep((s) => Math.max(0, s - 1));
+
   const handleGeneratingComplete = () => {
     setPhase("naming");
   };
@@ -739,6 +786,7 @@ export default function OnboardingFlow() {
 
       axios.post(`${API}/onboarding/generate-avatar`, { favorite_fighter: answers.favorite_fighter }, { withCredentials: true }).catch(() => {});
 
+      sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
       setCreatedPartnerName(name);
       setPhase("plan_building");
     } catch (e) {
@@ -793,6 +841,7 @@ export default function OnboardingFlow() {
             currentQuestion={currentQuestion}
             answers={answers}
             onAnswer={handleWhyAnswer}
+            onBack={handleWhyBack}
             submitting={submittingAnswers}
           />
         )}
@@ -807,6 +856,7 @@ export default function OnboardingFlow() {
             currentStep={currentPartnerStep}
             partnerData={partnerData}
             onAnswer={handlePartnerAnswer}
+            onBack={handlePartnerBack}
           />
         )}
 

@@ -284,7 +284,8 @@
     "scoreMedium": "Verbesserungspotenzial — probiere diese Übung.",
     "scoreLow": "Ausgangspunkt. So kannst du aufbauen.",
     "sessionLogged": "{{rounds}} Runden erfasst. Das ist echte Arbeit im Buch.",
-    "streakLine": "🔥 {{count}} Tage in Folge"
+    "streakLine": "🔥 {{count}} Tage in Folge",
+    "sessionExpired": "Diese Sitzung konnte nicht gefunden werden — sie ist möglicherweise abgelaufen."
   },
   "profile": {
     "title": "Profil & Einstellungen",

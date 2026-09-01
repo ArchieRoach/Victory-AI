@@ -284,7 +284,8 @@
     "scoreMedium": "Hay margen de mejora — prueba este ejercicio.",
     "scoreLow": "Punto de partida. Aquí te mostramos cómo mejorar.",
     "sessionLogged": "{{rounds}} asaltos registrados. Trabajo real en el marcador.",
-    "streakLine": "🔥 Racha de {{count}} días"
+    "streakLine": "🔥 Racha de {{count}} días",
+    "sessionExpired": "No se pudo encontrar esa sesión — puede que haya caducado."
   },
   "profile": {
     "title": "Perfil y configuración",

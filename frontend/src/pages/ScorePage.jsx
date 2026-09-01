@@ -172,7 +172,7 @@ export default function ScorePage() {
       await new Promise((r) => setTimeout(r, 500));
 
       localStorage.removeItem(STORAGE_KEY);
-      navigate("/score/results", { state: { session: response.data, isFirstSession: false } });
+      navigate(`/score/results/${response.data.session_id}`, { state: { session: response.data, isFirstSession: false } });
     } catch (error) {
       clearInterval(analysisIntervalRef.current);
       setLoading(false);

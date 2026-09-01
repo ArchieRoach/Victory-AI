@@ -284,7 +284,8 @@
     "scoreMedium": "Espaço para crescer — experimente este exercício.",
     "scoreLow": "Ponto de partida. Aqui está como melhorar.",
     "sessionLogged": "{{rounds}} rounds registrados. Trabalho de verdade no histórico.",
-    "streakLine": "🔥 Sequência de {{count}} dias"
+    "streakLine": "🔥 Sequência de {{count}} dias",
+    "sessionExpired": "Não foi possível encontrar essa sessão — ela pode ter expirado."
   },
   "profile": {
     "title": "Perfil e configurações",

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
@@ -46,6 +46,7 @@ const getPositiveHighlight = (dimensionName, score) => {
 export default function SessionResultsPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { sessionId: routeSessionId } = useParams();
   const { t } = useTranslation();
   const [sessions, setSessions] = useState([]);
   const [showBreakdown, setShowBreakdown] = useState(false);
@@ -53,9 +54,21 @@ export default function SessionResultsPage() {
   const [beltQueue, setBeltQueue] = useState([]);
   const [beltsReady, setBeltsReady] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [session, setSession] = useState(location.state?.session || null);
+  const [sessionNotFound, setSessionNotFound] = useState(false);
   const navButtonsRef = useRef(null);
 
-  const session = location.state?.session;
+  // Tesler's Law: the results screen only worked before for a fighter who never
+  // refreshes, backgrounds the tab, or reopens a saved link — real people do all
+  // three. If we didn't arrive with the session already in route state (the
+  // normal "just finished training" path), refetch the real, durable record by
+  // ID instead of silently bouncing home.
+  useEffect(() => {
+    if (session || !routeSessionId) return;
+    axios.get(`${API}/sessions/${routeSessionId}`, { withCredentials: true })
+      .then((res) => setSession(res.data))
+      .catch(() => setSessionNotFound(true));
+  }, [session, routeSessionId]);
 
   useEffect(() => {
     if (session?.new_belts?.length) setBeltQueue(session.new_belts);
@@ -77,14 +90,20 @@ export default function SessionResultsPage() {
   }, [beltQueue.length]);
 
   useEffect(() => {
+    if (sessionNotFound) {
+      toast.error(t("results.sessionExpired", "Couldn't find that session — it may have expired."));
+      navigate("/home", { replace: true });
+      return;
+    }
     if (!session) {
+      if (routeSessionId) return; // still fetching by ID, not actually missing
       navigate("/home", { replace: true });
       return;
     }
     fetchSessions();
     checkFirstSession();
     fetchStreak();
-  }, [session, navigate]);
+  }, [session, sessionNotFound, routeSessionId, navigate, t]);
 
   const fetchStreak = async () => {
     try {

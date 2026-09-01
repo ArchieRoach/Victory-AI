@@ -284,7 +284,8 @@
     "scoreMedium": "改善の余地あり — このドリルを試してください。",
     "scoreLow": "スタート地点。ここから構築します。",
     "sessionLogged": "{{rounds}}ラウンドを記録。確かな積み重ねだ。",
-    "streakLine": "🔥 {{count}}日連続"
+    "streakLine": "🔥 {{count}}日連続",
+    "sessionExpired": "セッションが見つかりませんでした——期限切れの可能性があります。"
   },
   "profile": {
     "title": "プロフィールと設定",
