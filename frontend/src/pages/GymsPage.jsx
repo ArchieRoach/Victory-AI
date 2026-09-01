@@ -60,8 +60,15 @@ function CreateGymModal({ onClose, onCreated }) {
           onClick={() => setIsPublic((v) => !v)}
           className="w-full flex items-center justify-between victory-card p-3 touch-target"
         >
-          <span className="text-victory-text text-sm">{t("gyms.publicGym")}</span>
-          <div className={`w-12 h-6 rounded-full transition-colors ${isPublic ? "bg-victory-lime" : "bg-victory-border"}`}>
+          <div className="text-left pr-3">
+            <p className="text-victory-text text-sm">{t("gyms.publicGym")}</p>
+            {/* Undocumented before — a real consequence (listed vs. hidden, anyone
+                vs. invite-code-only) with no explanation of what it actually does. */}
+            <p className="text-victory-muted text-xs mt-0.5">
+              {isPublic ? t("gyms.publicGymDescOn") : t("gyms.publicGymDescOff")}
+            </p>
+          </div>
+          <div className={`w-12 h-6 rounded-full flex-shrink-0 transition-colors ${isPublic ? "bg-victory-lime" : "bg-victory-border"}`}>
             <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${isPublic ? "translate-x-6" : "translate-x-0.5"}`} />
           </div>
         </button>
@@ -141,8 +148,8 @@ export default function GymsPage() {
       ]);
       setGyms(browseRes.data);
       setMyGym(myRes.data);
-    } catch {
-      toast.error(t("common.error"));
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || t("common.error"));
     } finally {
       setLoading(false);
     }

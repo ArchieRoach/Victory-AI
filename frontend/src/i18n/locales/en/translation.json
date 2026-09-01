@@ -525,7 +525,9 @@
     "sessions": "sessions",
     "member": "Member",
     "tab_browse": "Browse",
-    "tab_leaderboard": "Leaderboard"
+    "tab_leaderboard": "Leaderboard",
+    "publicGymDescOn": "Listed in Browse — anyone can find and join",
+    "publicGymDescOff": "Hidden from Browse — joinable by invite code only"
   },
   "gym": {
     "avgScore": "Avg Score",

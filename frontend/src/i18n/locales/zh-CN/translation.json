@@ -539,7 +539,9 @@
     "sessions": "训练",
     "member": "成员",
     "tab_browse": "浏览",
-    "tab_leaderboard": "排行榜"
+    "tab_leaderboard": "排行榜",
+    "publicGymDescOn": "会出现在浏览页中——任何人都能找到并加入",
+    "publicGymDescOff": "不会出现在浏览页中——仅可通过邀请码加入"
   },
   "gym": {
     "avgScore": "平均分",

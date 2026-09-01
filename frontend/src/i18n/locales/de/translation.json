@@ -539,7 +539,9 @@
     "sessions": "Einheiten",
     "member": "Mitglied",
     "tab_browse": "Durchsuchen",
-    "tab_leaderboard": "Rangliste"
+    "tab_leaderboard": "Rangliste",
+    "publicGymDescOn": "Im Browse-Tab gelistet — jeder kann sie finden und beitreten",
+    "publicGymDescOff": "Nicht im Browse-Tab sichtbar — Beitritt nur per Einladungscode"
   },
   "gym": {
     "avgScore": "Durchschnitt",

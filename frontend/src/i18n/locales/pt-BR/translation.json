@@ -539,7 +539,9 @@
     "sessions": "sessões",
     "member": "Membro",
     "tab_browse": "Explorar",
-    "tab_leaderboard": "Ranking"
+    "tab_leaderboard": "Ranking",
+    "publicGymDescOn": "Listada em Explorar — qualquer pessoa pode encontrar e entrar",
+    "publicGymDescOff": "Oculta em Explorar — entrada apenas por código de convite"
   },
   "gym": {
     "avgScore": "Pontuação média",
