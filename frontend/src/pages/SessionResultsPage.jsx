@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { DrillCard } from "@/components/DrillCard";
 import { Confetti } from "@/components/Confetti";
 import { BeltCelebration } from "@/components/BeltCelebration";
-import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame, Swords, Shield, Footprints } from "lucide-react";
+import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame, Swords, Shield, Footprints, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -48,6 +48,7 @@ export default function SessionResultsPage() {
   const location = useLocation();
   const { t } = useTranslation();
   const [sessions, setSessions] = useState([]);
+  const [showBreakdown, setShowBreakdown] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [beltQueue, setBeltQueue] = useState([]);
   const [beltsReady, setBeltsReady] = useState(false);
@@ -425,12 +426,22 @@ export default function SessionResultsPage() {
           </section>
         )}
 
-        {/* Dimension Breakdown — bars, not sentences. Same real numbers, same real
-            week-over-week deltas, grouped under the same categories as the meters
-            above so the whole page reads as one system. */}
+        {/* Dimension Breakdown — bars, not sentences, same real numbers/deltas as
+            before. Collapsed by default: Highlights above already surfaces the
+            same top dimensions, so showing the full 16-row breakdown unconditionally
+            was pure redundancy — real data stays one tap away, not force-scrolled
+            (Tesler's Law: the detail is real complexity that can't be deleted, so
+            it's the page's job to let people skip it by default, not the fighter's
+            job to scroll past it every time). */}
         <section className="space-y-4">
-          <p className="section-label">{t("results.breakdown")}</p>
-          {CATEGORY_GROUPS.map(({ key, label, dims }) => {
+          <button
+            onClick={() => setShowBreakdown((v) => !v)}
+            className="w-full flex items-center justify-between touch-target"
+          >
+            <span className="section-label">{t("results.breakdown")}</span>
+            {showBreakdown ? <ChevronUp className="w-4 h-4 text-victory-muted" /> : <ChevronDown className="w-4 h-4 text-victory-muted" />}
+          </button>
+          {showBreakdown && CATEGORY_GROUPS.map(({ key, label, dims }) => {
             const groupScores = session.dimension_scores.filter((d) => dims.includes(d.dimension_name) && d.score !== null);
             if (!groupScores.length) return null;
             return (
