@@ -174,9 +174,16 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers, submitting }) => {
   const q = questions[currentQuestion];
   if (!q) return null;
 
+  const questionsLeft = questions.length - currentQuestion;
+
   return (
     <div className="animate-fade-in">
       <div className="mb-6">
+        <p className="text-victory-lime text-xs font-bold uppercase tracking-wider mb-2">
+          {questionsLeft === 1
+            ? t("onboarding.lastQuestion")
+            : t("onboarding.questionOf", { current: currentQuestion + 1, total: questions.length })}
+        </p>
         <h1 className="text-xl font-heading font-extrabold text-victory-text mb-1">{q.question}</h1>
         {q.subtitle && <p className="text-victory-muted text-sm">{q.subtitle}</p>}
       </div>
@@ -753,6 +760,13 @@ export default function OnboardingFlow() {
       {phase !== "generating" && phase !== "plan_building" && (
         <header className="p-4 border-b border-victory-border">
           <Progress value={getProgress()} className="h-2" />
+          {/* Goal gradient effect: only nudge in the final stretch — motivation
+              from proximity matters most right before the finish, not throughout. */}
+          {getProgress() >= 85 && (
+            <p className="text-victory-lime text-xs font-semibold mt-2 text-center">
+              {t("onboarding.almostThere")}
+            </p>
+          )}
         </header>
       )}
 

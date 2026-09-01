@@ -217,7 +217,10 @@
     "partnerReady": "{{name}} ist bereit, mit dir zu trainieren!",
     "failedPartner": "Partner konnte nicht erstellt werden",
     "failedSave": "Speichern fehlgeschlagen — überprüfe deine Verbindung",
-    "settingUp": "Wird eingerichtet..."
+    "settingUp": "Wird eingerichtet...",
+    "questionOf": "Frage {{current}} von {{total}}",
+    "lastQuestion": "Letzte Frage",
+    "almostThere": "Fast geschafft!"
   },
   "home": {
     "greetingMorning": "Guten Morgen",
@@ -340,7 +343,12 @@
     "deleteAccountConfirm": "Dies löscht dein Konto und deine persönlichen Daten dauerhaft. Das kann nicht rückgängig gemacht werden. Fortfahren?",
     "deleteAccountFailed": "Konto konnte nicht gelöscht werden — bitte erneut versuchen",
     "exportDataFailed": "Daten konnten nicht exportiert werden — bitte erneut versuchen",
-    "streakActive": "🔥 {{count}} Tage in Folge — bleib dran"
+    "streakActive": "🔥 {{count}} Tage in Folge — bleib dran",
+    "completeness": "Profil {{done}}/{{total}} vollständig",
+    "almostDone": "Noch 1 Sache!",
+    "nextMilestone": "Nächstes Ziel: {{days}} Tage in Folge",
+    "daysLeft": "Noch {{count}} Tage",
+    "oneDayLeft": "Noch 1 Tag!"
   },
   "train": {
     "title": "Training konfigurieren",
@@ -377,7 +385,8 @@
     "recordVideoDesc": "Nutzt deine Kamera, damit dein Coach deine Technik wirklich sieht",
     "cameraDenied": "Kamerazugriff wurde verweigert — das Training läuft ohne Video-Feedback weiter.",
     "cameraUnsupported": "Kameraaufnahme wird auf diesem Gerät oder Browser nicht unterstützt.",
-    "recording": "Aufnahme läuft"
+    "recording": "Aufnahme läuft",
+    "finalRound": "Letzte Runde — gib jetzt alles!"
   },
   "timer": {
     "title": "Runden konfigurieren",

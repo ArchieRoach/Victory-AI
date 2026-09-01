@@ -738,8 +738,12 @@ export default function TrainPage() {
               {formatTime(timeLeft)}
             </div>
 
-            <p className="text-victory-muted text-sm mb-6">
-              {t("train.roundOf", { current: currentRound, total: totalRounds })}
+            {/* Goal gradient effect: proximity to the finish should read as more
+                urgent/motivating the closer the fighter actually is to it. */}
+            <p className={`text-sm mb-6 ${!isResting && currentRound === totalRounds ? "text-victory-lime font-bold" : "text-victory-muted"}`}>
+              {!isResting && currentRound === totalRounds
+                ? t("train.finalRound")
+                : t("train.roundOf", { current: currentRound, total: totalRounds })}
             </p>
 
             {/* ── Mid-round hype bubble (private mode, not resting) ──────────── */}

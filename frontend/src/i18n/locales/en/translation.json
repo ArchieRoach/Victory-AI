@@ -218,7 +218,10 @@
     "partnerReady": "{{name}} is ready to train with you!",
     "failedPartner": "Failed to create partner",
     "failedSave": "Failed to save answers — check your connection",
-    "settingUp": "Setting things up..."
+    "settingUp": "Setting things up...",
+    "questionOf": "Question {{current}} of {{total}}",
+    "lastQuestion": "Last question",
+    "almostThere": "Almost there!"
   },
   "home": {
     "greetingMorning": "Good morning",
@@ -341,7 +344,12 @@
     "deleteAccountConfirm": "This permanently deletes your account and personal data. This cannot be undone. Continue?",
     "deleteAccountFailed": "Couldn't delete your account — try again",
     "exportDataFailed": "Couldn't export your data — try again",
-    "streakActive": "🔥 {{count}}-day streak — keep it alive"
+    "streakActive": "🔥 {{count}}-day streak — keep it alive",
+    "completeness": "Profile {{done}}/{{total}} complete",
+    "almostDone": "1 thing left!",
+    "nextMilestone": "Next milestone: {{days}}-day streak",
+    "daysLeft": "{{count}} days left",
+    "oneDayLeft": "1 day left!"
   },
   "train": {
     "title": "Set Your Training",
@@ -378,7 +386,8 @@
     "recordVideoDesc": "Uses your camera so your coach can actually see your technique",
     "cameraDenied": "Camera access was denied — training will continue without video feedback.",
     "cameraUnsupported": "Camera recording isn't supported on this device or browser.",
-    "recording": "Recording"
+    "recording": "Recording",
+    "finalRound": "Final round — leave it all in there!"
   },
   "timer": {
     "title": "Set Your Rounds",

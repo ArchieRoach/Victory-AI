@@ -217,7 +217,10 @@
     "partnerReady": "{{name}} est prêt à s'entraîner avec toi !",
     "failedPartner": "Échec de la création du partenaire",
     "failedSave": "Échec de l'enregistrement — vérifiez votre connexion",
-    "settingUp": "Configuration en cours..."
+    "settingUp": "Configuration en cours...",
+    "questionOf": "Question {{current}} sur {{total}}",
+    "lastQuestion": "Dernière question",
+    "almostThere": "Presque terminé !"
   },
   "home": {
     "greetingMorning": "Bonjour",
@@ -340,7 +343,12 @@
     "deleteAccountConfirm": "Cela supprime définitivement votre compte et vos données personnelles. Cette action est irréversible. Continuer ?",
     "deleteAccountFailed": "Impossible de supprimer votre compte — réessayez",
     "exportDataFailed": "Impossible d'exporter vos données — réessayez",
-    "streakActive": "🔥 Série de {{count}} jours — continue"
+    "streakActive": "🔥 Série de {{count}} jours — continue",
+    "completeness": "Profil {{done}}/{{total}} complété",
+    "almostDone": "Plus qu'une chose !",
+    "nextMilestone": "Prochain objectif : série de {{days}} jours",
+    "daysLeft": "Encore {{count}} jours",
+    "oneDayLeft": "Encore 1 jour !"
   },
   "train": {
     "title": "Configurer l'entraînement",
@@ -377,7 +385,8 @@
     "recordVideoDesc": "Utilise ta caméra pour que ton coach voie vraiment ta technique",
     "cameraDenied": "Accès à la caméra refusé — l'entraînement continue sans feedback vidéo.",
     "cameraUnsupported": "L'enregistrement caméra n'est pas pris en charge sur cet appareil ou navigateur.",
-    "recording": "Enregistrement"
+    "recording": "Enregistrement",
+    "finalRound": "Dernier round — donne tout !"
   },
   "timer": {
     "title": "Configurer les rounds",
