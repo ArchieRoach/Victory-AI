@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
@@ -810,6 +810,16 @@ export default function ProfilePage() {
         >
           <Swords className="w-5 h-5" />
           Emote Studio
+        </button>
+
+        {/* Blocked Accounts — the only way to undo a block from the UI, since a blocked
+            profile 403s if you try to revisit it directly. */}
+        <button
+          onClick={() => navigate("/blocked-accounts")}
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+        >
+          <Ban className="w-5 h-5" />
+          Blocked Accounts
         </button>
 
         {/* Sign Out — kept visually neutral, reversible in one tap. Danger styling

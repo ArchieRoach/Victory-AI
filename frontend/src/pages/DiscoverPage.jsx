@@ -8,6 +8,7 @@ import {
   Search, X, Radio, Users, Dumbbell, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { WEIGHT_CLASS_DATA, formatWeightClass, weightBadge, getWeightUnit } from "@/utils/weightClasses";
+import { contactsSupported, pickContactEmailHashes } from "@/utils/contacts";
 
 const WEIGHT_CLASS_NAMES = [
   "All",
@@ -162,6 +163,26 @@ export default function DiscoverPage() {
   const [initialDone,    setInitialDone]   = useState(false);
   const [showFilters,    setShowFilters]   = useState(false);
 
+  // Contact sync — see utils/contacts.js for the privacy design (device picker + client-side
+  // hashing, nothing raw ever sent). Kept separate from the main search results below.
+  const [contactSyncDismissed, setContactSyncDismissed] = useState(false);
+  const [contactSyncLoading,   setContactSyncLoading]   = useState(false);
+  const [contactMatches,       setContactMatches]       = useState(null);
+
+  const handleFindContacts = async () => {
+    setContactSyncLoading(true);
+    try {
+      const hashes = await pickContactEmailHashes();
+      if (hashes.length === 0) return; // user cancelled the picker, or picked none with an email
+      const res = await axios.post(`${API}/contacts/find-matches`, { email_hashes: hashes });
+      setContactMatches(res.data.fighters);
+      if (res.data.fighters.length === 0) toast.success("No matches yet — invite them to join Victory AI!");
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Couldn't check your contacts. Try again.");
+    }
+    setContactSyncLoading(false);
+  };
+
   const debounceRef = useRef(null);
 
   const fetchFighters = useCallback(async (params, append = false) => {
@@ -308,6 +329,55 @@ export default function DiscoverPage() {
 
       {/* ── Results ── */}
       <div className="max-w-lg mx-auto px-4 py-4 space-y-3">
+
+        {/* Contact sync — only where the OS contact picker actually exists (Chromium
+            Android/desktop today; no iOS Safari/WKWebView support) so nothing broken
+            shows up for everyone else. */}
+        {contactsSupported() && !contactSyncDismissed && (
+          <div className="bg-victory-card border border-victory-border rounded-2xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-victory-lime/10 flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5 text-victory-lime" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-victory-text text-sm font-semibold">Find friends from your contacts</p>
+              <p className="text-victory-muted text-xs">You pick who to check — nothing is uploaded automatically.</p>
+            </div>
+            <button
+              onClick={handleFindContacts}
+              disabled={contactSyncLoading}
+              className="touch-target px-3 flex items-center justify-center rounded-xl text-xs font-bold border border-victory-lime text-victory-lime hover:bg-victory-lime/10 disabled:opacity-50 flex-shrink-0"
+            >
+              {contactSyncLoading
+                ? <span className="w-4 h-4 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
+                : "Find"}
+            </button>
+            <button
+              onClick={() => setContactSyncDismissed(true)}
+              aria-label="Dismiss"
+              className="w-8 h-8 flex items-center justify-center text-victory-muted hover:text-victory-text flex-shrink-0 touch-target"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {contactMatches !== null && contactMatches.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-victory-muted text-xs">From your contacts</p>
+            {contactMatches.map((f) => (
+              <FighterCard
+                key={f.user_id}
+                fighter={f}
+                weightUnit={weightUnit}
+                onFollowChange={(uid, nowFollowing) => {
+                  setContactMatches((prev) =>
+                    prev.map((x) => x.user_id === uid ? { ...x, is_following: nowFollowing, follower_count: x.follower_count + (nowFollowing ? 1 : -1) } : x)
+                  );
+                }}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Context label */}
         {initialDone && (

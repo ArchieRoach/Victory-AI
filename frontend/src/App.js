@@ -29,6 +29,7 @@ import TimerPage from "@/pages/TimerPage";
 import LibraryPage from "@/pages/LibraryPage";
 import SessionDetailPage from "@/pages/SessionDetailPage";
 import ProfilePage from "@/pages/ProfilePage";
+import BlockedAccountsPage from "@/pages/BlockedAccountsPage";
 import LoginPage from "@/pages/LoginPage";
 import LeaderboardPage from "@/pages/LeaderboardPage";
 import FeedPage from "@/pages/FeedPage";
@@ -303,6 +304,7 @@ const AppRouter = () => {
         <Route path="/library" element={<ProtectedRoute><LibraryPage /></ProtectedRoute>} />
         <Route path="/sessions/:sessionId" element={<ProtectedRoute><SessionDetailPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/blocked-accounts" element={<ProtectedRoute><BlockedAccountsPage /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
 
         {/* AI-heavy features — subscription required at point of use */}
