@@ -640,5 +640,16 @@
     "owner": "Inhaber",
     "you": "(du)",
     "memberCount": "{{count}}/{{max}} Mitglieder"
+  },
+  "schools": {
+    "title": "Schul-Rangliste",
+    "subtitle": "Vertritt deine Schule. Echtes Training, gerankt.",
+    "yourSchool": "Schule",
+    "namePlaceholder": "z. B. Goethe-Gymnasium",
+    "privacyHint": "Zählt nur zur Gesamtwertung deiner Schule – wird nie in deinem Profil oder einzeln bei anderen angezeigt.",
+    "setYourSchool": "Trage deine Schule ein, um in der Rangliste zu erscheinen",
+    "noSchools": "Noch keine Schulen – trage deine als Erste(r) in den Profileinstellungen ein",
+    "thisWeek": "diese Woche",
+    "yours": "(deine)"
   }
 }

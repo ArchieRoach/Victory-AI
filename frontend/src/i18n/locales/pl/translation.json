@@ -640,5 +640,16 @@
     "owner": "Właściciel",
     "you": "(ty)",
     "memberCount": "{{count}}/{{max}} członków"
+  },
+  "schools": {
+    "title": "Ranking szkół",
+    "subtitle": "Reprezentuj swoją szkołę. Prawdziwe treningi, w rankingu.",
+    "yourSchool": "Szkoła",
+    "namePlaceholder": "np. II Liceum Ogólnokształcące",
+    "privacyHint": "Liczy się tylko do wyniku twojej szkoły — nigdy nie jest pokazywane na twoim profilu ani indywidualnie innym osobom.",
+    "setYourSchool": "Podaj swoją szkołę, aby dołączyć do rankingu",
+    "noSchools": "Brak szkół — dodaj swoją jako pierwszy w ustawieniach profilu",
+    "thisWeek": "w tym tygodniu",
+    "yours": "(twoja)"
   }
 }

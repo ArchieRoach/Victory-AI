@@ -640,5 +640,16 @@
     "owner": "队长",
     "you": "(你)",
     "memberCount": "{{count}}/{{max}} 名成员"
+  },
+  "schools": {
+    "title": "学校排行榜",
+    "subtitle": "代表你的学校,真实训练,真实排名。",
+    "yourSchool": "学校",
+    "namePlaceholder": "例如:第一中学",
+    "privacyHint": "只计入你所在学校的总数——不会显示在你的个人资料中,也不会单独展示给其他人。",
+    "setYourSchool": "设置你的学校以加入排行榜",
+    "noSchools": "还没有学校上榜——在个人资料设置中第一个添加你的学校吧",
+    "thisWeek": "本周",
+    "yours": "(你的学校)"
   }
 }
