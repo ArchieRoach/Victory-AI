@@ -9,12 +9,14 @@ import { toast } from "sonner";
 import {
   ArrowLeft, Trophy, Swords, Target, Building2,
   Clapperboard, CalendarDays, Radio, Play, Clock, X, Share2, Flame, Users,
+  MoreVertical, Flag, Ban,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
 import { ShareSheet } from "@/components/ShareSheet";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { formatWeightClass, getWeightUnit } from "@/utils/weightClasses";
+import { ReportModal } from "@/components/ReportModal";
 
 // ── Follow list modal (followers / following) ─────────────────────────────────
 function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
@@ -509,6 +511,9 @@ export default function PublicProfilePage() {
   const [followModal,   setFollowModal]   = useState(null);  // "followers" | "following" | null
   const [cheering,      setCheering]      = useState(false);
   const [cheered,       setCheered]       = useState(false);
+  const [menuOpen,      setMenuOpen]      = useState(false);
+  const [showReport,    setShowReport]    = useState(false);
+  const [blocking,      setBlocking]      = useState(false);
 
   const isOwn = userId === currentUser?.user_id;
 
@@ -548,6 +553,21 @@ export default function PublicProfilePage() {
       }
     } catch { toast.error(t("common.error")); }
     finally { setFollowLoading(false); }
+  };
+
+  const handleBlock = async () => {
+    setMenuOpen(false);
+    if (!window.confirm(t("publicProfile.blockConfirm", "Block this fighter? They won't be able to follow, comment on, or message you, and you'll unfollow each other."))) return;
+    setBlocking(true);
+    try {
+      await axios.post(`${API}/users/${userId}/block`);
+      toast.success(t("publicProfile.blocked", "Blocked — they can no longer follow, message, or comment on you."));
+      navigate(-1);
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || t("common.error"));
+    } finally {
+      setBlocking(false);
+    }
   };
 
   const cheerStreak = async () => {
@@ -614,8 +634,12 @@ export default function PublicProfilePage() {
         />
       )}
 
+      {showReport && (
+        <ReportModal contentType="user" contentId={userId} onClose={() => setShowReport(false)} />
+      )}
+
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <header className="p-4 flex items-center gap-3">
+      <header className="p-4 flex items-center gap-3 relative">
         <button onClick={() => navigate(-1)} aria-label="Go back"
           className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
@@ -632,6 +656,33 @@ export default function PublicProfilePage() {
         >
           {followLoading ? "…" : following ? t("publicProfile.following") : t("publicProfile.follow")}
         </button>
+        <button
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label="More options"
+          className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target flex-shrink-0"
+        >
+          <MoreVertical className="w-5 h-5 text-victory-muted" />
+        </button>
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+            <div className="absolute right-4 top-16 z-40 bg-victory-card border border-victory-border rounded-xl overflow-hidden shadow-lg min-w-[160px]">
+              <button
+                onClick={() => { setMenuOpen(false); setShowReport(true); }}
+                className="w-full px-4 py-3 flex items-center gap-2 text-sm text-victory-text hover:bg-victory-card-highlight text-left"
+              >
+                <Flag className="w-4 h-4 text-victory-muted" /> {t("publicProfile.report", "Report")}
+              </button>
+              <button
+                onClick={handleBlock}
+                disabled={blocking}
+                className="w-full px-4 py-3 flex items-center gap-2 text-sm text-victory-danger hover:bg-victory-card-highlight text-left disabled:opacity-50"
+              >
+                <Ban className="w-4 h-4" /> {t("publicProfile.block", "Block")}
+              </button>
+            </div>
+          </>
+        )}
       </header>
 
       {/* ── Profile card (always visible) ────────────────────────────────── */}

@@ -12,6 +12,7 @@ from typing import List, Optional, Dict, Any, Literal
 import re
 import html
 import uuid
+import hashlib
 from datetime import datetime, timezone, timedelta, date
 import httpx
 import bcrypt
@@ -240,6 +241,11 @@ class TrainingPartnerCreate(BaseModel):
     focus_areas: List[str]
     accountability_level: str
 
+class ContactMatchRequest(BaseModel):
+    # Client-side SHA-256 hashes of selected contacts' emails — never raw emails/names.
+    # See _email_hash() for why this can't be salted per-user.
+    email_hashes: List[str] = Field(..., max_length=500)
+
 class CheckoutRequest(BaseModel):
     plan_id: str
     origin_url: str
@@ -396,6 +402,34 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
+async def _is_blocked(user_a: str, user_b: str) -> bool:
+    """True if either user has blocked the other — blocking is always mutual in effect."""
+    return await db.blocks.find_one({
+        "$or": [
+            {"blocker_id": user_a, "blocked_id": user_b},
+            {"blocker_id": user_b, "blocked_id": user_a},
+        ]
+    }) is not None
+
+async def _blocked_either_way(user_id: str) -> set:
+    """All user_ids blocking or blocked by `user_id` — for filtering someone out of
+    another user's search/discover/contact-match results."""
+    docs = await db.blocks.find(
+        {"$or": [{"blocker_id": user_id}, {"blocked_id": user_id}]},
+        {"blocker_id": 1, "blocked_id": 1},
+    ).to_list(None)
+    return {d["blocked_id"] if d["blocker_id"] == user_id else d["blocker_id"] for d in docs}
+
+def _email_hash(email: str) -> str:
+    # Deterministic, unsalted SHA-256 — this MUST match the hash the client computes
+    # from a device contact's email before contact-sync matching can work at all, so
+    # it can't use bcrypt/a per-user salt. Known, accepted limitation of hashed-contact
+    # matching (same approach WhatsApp/Signal use): an attacker who already suspects a
+    # specific email belongs to a user can confirm it by hashing that one guess and
+    # calling /contacts/find-matches — rate-limited below to make that impractical at
+    # scale, not eliminated. This is why raw contacts are never uploaded or stored.
+    return hashlib.sha256(email.strip().lower().encode()).hexdigest()
+
 def create_jwt_token(user_id: str) -> str:
     payload = {"user_id": user_id, "exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRATION_DAYS), "iat": datetime.now(timezone.utc)}
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
@@ -431,6 +465,12 @@ async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
     """Look up MongoDB user by Clerk ID, creating one on first login."""
     user = await db.users.find_one({"user_id": clerk_user_id}, {"_id": 0, "password": 0})
     if user:
+        # Self-healing backfill: contact-sync matching needs email_hash, but it didn't
+        # exist before that feature shipped — set it the first time an existing user is
+        # ever looked up again, instead of a one-off migration script.
+        if user.get("email") and not user.get("email_hash"):
+            user["email_hash"] = _email_hash(user["email"])
+            await db.users.update_one({"user_id": clerk_user_id}, {"$set": {"email_hash": user["email_hash"]}})
         return user
     email, name, picture = "", "", ""
     try:
@@ -450,6 +490,7 @@ async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
         logger.error(f"Failed to fetch Clerk user details: {e}")
     user_doc = {
         "user_id": clerk_user_id, "email": email, "name": name, "picture": picture,
+        "email_hash": _email_hash(email) if email else None,
         "experience_level": "beginner", "primary_goal": "",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "onboarding_completed": False, "training_partner": None, "onboarding_answers": None
@@ -1632,6 +1673,7 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.sessions.delete_many({"user_id": user_id})
     await db.round_videos.delete_many({"user_id": user_id})
     await db.follows.delete_many({"$or": [{"follower_id": user_id}, {"following_id": user_id}]})
+    await db.blocks.delete_many({"$or": [{"blocker_id": user_id}, {"blocked_id": user_id}]})
     await db.notifications.delete_many({"$or": [{"recipient_id": user_id}, {"actor_id": user_id}]})
     await db.scheduled_streams.delete_many({"user_id": user_id})
     await db.reports.delete_many({"reporter_id": user_id})
@@ -1674,6 +1716,7 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "sessions": await db.sessions.find({"user_id": user_id}, proj).to_list(10000),
         "round_videos": await db.round_videos.find({"user_id": user_id}, proj).to_list(10000),
         "follows": await db.follows.find({"$or": [{"follower_id": user_id}, {"following_id": user_id}]}, proj).to_list(10000),
+        "blocks": await db.blocks.find({"$or": [{"blocker_id": user_id}, {"blocked_id": user_id}]}, proj).to_list(10000),
         "notifications": await db.notifications.find({"$or": [{"recipient_id": user_id}, {"actor_id": user_id}]}, proj).to_list(10000),
         "scheduled_streams": await db.scheduled_streams.find({"user_id": user_id}, proj).to_list(10000),
         "streams_hosted": await db.streams.find({"user_id": user_id}, proj).to_list(10000),
@@ -2151,7 +2194,8 @@ async def search_fighters(
     limit:        int   = Query(20, ge=1, le=50),
     current_user: dict  = Depends(get_current_user),
 ):
-    query: dict = {"is_public": {"$ne": False}}
+    blocked_ids = await _blocked_either_way(current_user["user_id"])
+    query: dict = {"is_public": {"$ne": False}, "user_id": {"$nin": list(blocked_ids)}}
 
     if q.strip():
         pattern = {"$regex": re.escape(q.strip()), "$options": "i"}
@@ -2231,11 +2275,52 @@ async def search_fighters(
     }
 
 
+@api_router.post("/contacts/find-matches")
+async def find_contact_matches(body: ContactMatchRequest, current_user: dict = Depends(get_current_user)):
+    """Hashed contact-sync matching. The client already ran the device contact picker
+    and hashed each selected email with SHA-256 — raw contacts (names, real emails) are
+    never sent here and never stored; only the matches are returned, and nothing about
+    the non-matching hashes is persisted."""
+    if _rate_limited(f"contact_match:{current_user['user_id']}", 20, 60):
+        raise HTTPException(429, "Too many requests — try again in a minute")
+
+    hashes = [h for h in body.email_hashes if h][:500]
+    if not hashes:
+        return {"fighters": []}
+
+    blocked_ids = await _blocked_either_way(current_user["user_id"])
+    raw_users = await db.users.find(
+        {
+            "email_hash": {"$in": hashes},
+            "user_id": {"$nin": [current_user["user_id"], *blocked_ids]},
+            "is_public": {"$ne": False},
+        },
+        {"_id": 0, "password": 0, "stream_key": 0},
+    ).to_list(len(hashes))
+
+    following_ids = {
+        f["following_id"] for f in await db.follows.find(
+            {"follower_id": current_user["user_id"]}, {"following_id": 1}
+        ).to_list(None)
+    }
+
+    results = []
+    for u in raw_users:
+        base = safe_user(u)
+        base["follower_count"] = await db.follows.count_documents({"following_id": u["user_id"]})
+        base["is_following"] = u["user_id"] in following_ids
+        results.append(base)
+
+    return {"fighters": results}
+
+
 @api_router.get("/users/{user_id}/profile")
 async def get_public_profile(user_id: str, current_user: dict = Depends(get_current_user)):
     target = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
+    if target["user_id"] != current_user["user_id"] and await _is_blocked(current_user["user_id"], target["user_id"]):
+        raise HTTPException(status_code=403, detail="Profile is unavailable")
     if not target.get("is_public", True) and target["user_id"] != current_user["user_id"]:
         raise HTTPException(status_code=403, detail="Profile is private")
     profile = safe_user(target)
@@ -2963,6 +3048,8 @@ async def add_comment(request: Request, post_id: str, comment_data: CommentCreat
     post = await db.posts.find_one({"post_id": post_id})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+    if post["user_id"] != user["user_id"] and await _is_blocked(user["user_id"], post["user_id"]):
+        raise HTTPException(status_code=403, detail="Can't comment on this post")
     comment_doc = {
         "comment_id": f"cmt_{uuid.uuid4().hex[:12]}",
         "post_id": post_id,
@@ -3401,12 +3488,54 @@ async def vote_on_competition(comp_id: str, vote_data: VoteCreate, user: dict = 
 
 # ============== FOLLOW ENDPOINTS ==============
 
+@api_router.post("/users/{target_id}/block")
+async def block_user(target_id: str, user: dict = Depends(get_current_user)):
+    if target_id == user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot block yourself")
+    if not await db.users.find_one({"user_id": target_id}):
+        raise HTTPException(status_code=404, detail="User not found")
+    await db.blocks.update_one(
+        {"blocker_id": user["user_id"], "blocked_id": target_id},
+        {"$setOnInsert": {
+            "block_id": f"block_{uuid.uuid4().hex[:12]}",
+            "blocker_id": user["user_id"],
+            "blocked_id": target_id,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+    # A block that still leaves the two of you following each other isn't a block.
+    await db.follows.delete_many({"$or": [
+        {"follower_id": user["user_id"], "following_id": target_id},
+        {"follower_id": target_id, "following_id": user["user_id"]},
+    ]})
+    return {"blocked": True}
+
+@api_router.delete("/users/{target_id}/block")
+async def unblock_user(target_id: str, user: dict = Depends(get_current_user)):
+    result = await db.blocks.delete_one({"blocker_id": user["user_id"], "blocked_id": target_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not blocked")
+    return {"blocked": False}
+
+@api_router.get("/users/me/blocked")
+async def get_blocked_users(user: dict = Depends(get_current_user)):
+    blocks = await db.blocks.find({"blocker_id": user["user_id"]}, {"_id": 0}).to_list(1000)
+    users = []
+    for b in blocks:
+        u = await db.users.find_one({"user_id": b["blocked_id"]}, {"_id": 0, "password": 0})
+        if u:
+            users.append(safe_user(u))
+    return users
+
 @api_router.post("/follows/{target_id}")
 async def follow_user(target_id: str, user: dict = Depends(get_current_user)):
     if target_id == user["user_id"]:
         raise HTTPException(status_code=400, detail="Cannot follow yourself")
     if not await db.users.find_one({"user_id": target_id}):
         raise HTTPException(status_code=404, detail="User not found")
+    if await _is_blocked(user["user_id"], target_id):
+        raise HTTPException(status_code=403, detail="Can't follow this user")
     if await db.follows.find_one({"follower_id": user["user_id"], "following_id": target_id}):
         raise HTTPException(status_code=400, detail="Already following")
     await db.follows.insert_one({
@@ -4091,6 +4220,11 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
     server_user_id   = ws_user["user_id"]
     server_user_name = ws_user.get("display_name") or ws_user.get("name", "Fighter")
     server_user_avatar = ws_user.get("avatar_url", "")
+
+    if server_user_id != stream["user_id"] and await _is_blocked(server_user_id, stream["user_id"]):
+        ws_manager.disconnect(websocket, stream_id)
+        await websocket.close(code=4003)
+        return
 
     count = ws_manager.viewer_count(stream_id)
     await db.streams.update_one({"stream_id": stream_id}, {"$set": {"viewer_count": count}})
