@@ -615,5 +615,30 @@
     "andTheNew": "والبطل الجديد...",
     "next": "التالي",
     "continue": "متابعة"
+  },
+  "squads": {
+    "title": "الفرق",
+    "subtitle": "تدربوا معًا. نافسوا أصدقاءكم، لا الغرباء.",
+    "createBtn": "فريق جديد",
+    "createTitle": "فريق جديد",
+    "nameLabel": "اسم الفريق",
+    "namePlaceholder": "مثال: المنافسون",
+    "nameRequired": "اسم الفريق مطلوب",
+    "created": "تم إنشاء الفريق!",
+    "joinByCode": "انضم برمز",
+    "joined": "انضممت إلى {{name}}!",
+    "noSquads": "لست في أي فريق بعد",
+    "noSquadsHint": "أنشئ فريقًا أو انضم برمز دعوة من صديق",
+    "thisWeek": "هذا الأسبوع",
+    "inviteCode": "رمز الدعوة",
+    "copyCode": "نسخ",
+    "codeCopied": "تم النسخ!",
+    "leaveBtn": "مغادرة الفريق",
+    "leaveConfirm": "مغادرة هذا الفريق؟",
+    "deleteBtn": "حذف الفريق",
+    "deleteConfirm": "حذف هذا الفريق؟ لا يمكن التراجع عن هذا الإجراء.",
+    "owner": "المالك",
+    "you": "(أنت)",
+    "memberCount": "{{count}}/{{max}} أعضاء"
   }
 }

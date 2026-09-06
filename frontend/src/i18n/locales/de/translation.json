@@ -615,5 +615,30 @@
     "andTheNew": "Und der Neue...",
     "next": "Weiter",
     "continue": "Weiter"
+  },
+  "squads": {
+    "title": "Squads",
+    "subtitle": "Trainiert zusammen. Tretet gegen Freunde an, nicht gegen Fremde.",
+    "createBtn": "Neues Squad",
+    "createTitle": "Neues Squad",
+    "nameLabel": "Squad-Name",
+    "namePlaceholder": "z. B. Die Herausforderer",
+    "nameRequired": "Squad-Name ist erforderlich",
+    "created": "Squad erstellt!",
+    "joinByCode": "Mit Code beitreten",
+    "joined": "{{name}} beigetreten!",
+    "noSquads": "Du bist noch in keinem Squad",
+    "noSquadsHint": "Erstelle eins oder tritt mit dem Einladungscode eines Freundes bei",
+    "thisWeek": "Diese Woche",
+    "inviteCode": "Einladungscode",
+    "copyCode": "Kopieren",
+    "codeCopied": "Kopiert!",
+    "leaveBtn": "Squad verlassen",
+    "leaveConfirm": "Dieses Squad verlassen?",
+    "deleteBtn": "Squad löschen",
+    "deleteConfirm": "Dieses Squad löschen? Das kann nicht rückgängig gemacht werden.",
+    "owner": "Inhaber",
+    "you": "(du)",
+    "memberCount": "{{count}}/{{max}} Mitglieder"
   }
 }

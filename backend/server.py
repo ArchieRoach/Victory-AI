@@ -1684,6 +1684,15 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.round_videos.delete_many({"user_id": user_id})
     await db.follows.delete_many({"$or": [{"follower_id": user_id}, {"following_id": user_id}]})
     await db.blocks.delete_many({"$or": [{"blocker_id": user_id}, {"blocked_id": user_id}]})
+    # Squads: hand ownership to another member rather than deleting a group of people
+    # still training together just because one of them left; delete only if now empty.
+    async for sq in db.squads.find({"owner_id": user_id}):
+        remaining = [m for m in sq.get("members", []) if m != user_id]
+        if remaining:
+            await db.squads.update_one({"squad_id": sq["squad_id"]}, {"$set": {"owner_id": remaining[0]}, "$pull": {"members": user_id}})
+        else:
+            await db.squads.delete_one({"squad_id": sq["squad_id"]})
+    await db.squads.update_many({"owner_id": {"$ne": user_id}, "members": user_id}, {"$pull": {"members": user_id}})
     await db.notifications.delete_many({"$or": [{"recipient_id": user_id}, {"actor_id": user_id}]})
     await db.scheduled_streams.delete_many({"user_id": user_id})
     await db.reports.delete_many({"reporter_id": user_id})
@@ -1727,6 +1736,7 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "round_videos": await db.round_videos.find({"user_id": user_id}, proj).to_list(10000),
         "follows": await db.follows.find({"$or": [{"follower_id": user_id}, {"following_id": user_id}]}, proj).to_list(10000),
         "blocks": await db.blocks.find({"$or": [{"blocker_id": user_id}, {"blocked_id": user_id}]}, proj).to_list(10000),
+        "squads": await db.squads.find({"members": user_id}, proj).to_list(1000),
         "notifications": await db.notifications.find({"$or": [{"recipient_id": user_id}, {"actor_id": user_id}]}, proj).to_list(10000),
         "scheduled_streams": await db.scheduled_streams.find({"user_id": user_id}, proj).to_list(10000),
         "streams_hosted": await db.streams.find({"user_id": user_id}, proj).to_list(10000),
@@ -2872,6 +2882,131 @@ async def join_gym_by_code(request: Request, user: dict = Depends(get_current_us
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
     await _recalculate_gym_stats(gym_id)
     return {"message": "Joined gym", "gym_id": gym_id, "gym_name": gym["name"]}
+
+# ============== SQUAD CHALLENGES ==============
+# A squad is a lightweight, free friend group (max 8) with a real weekly leaderboard —
+# "sessions logged this week", nothing fabricated or pre-filled. Deliberately NOT gated
+# behind a Pro subscription like gyms are: this is the core free social/motivation loop,
+# and a mostly-teenage audience is much less likely to hold a paid subscription (usually
+# needs a parent's card) than an adult one. Unlike a gym, a user can be in several squads
+# at once — squads model casual friend groups, not a single home-training-facility.
+
+MAX_SQUAD_SIZE = 8
+MAX_SQUADS_PER_USER = 5
+
+class SquadCreate(BaseModel):
+    name: str = Field(..., max_length=40)
+
+@api_router.post("/squads")
+async def create_squad(squad_data: SquadCreate, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"squad_create:{user['user_id']}", 5, 3600):
+        raise HTTPException(429, "Too many squads created — try again later")
+    if await is_content_flagged(squad_data.name):
+        raise HTTPException(400, "Squad name violates community guidelines")
+    if await db.squads.count_documents({"members": user["user_id"]}) >= MAX_SQUADS_PER_USER:
+        raise HTTPException(400, f"You're already in {MAX_SQUADS_PER_USER} squads — leave one to create another")
+    squad_id = f"squad_{uuid.uuid4().hex[:12]}"
+    squad_doc = {
+        "squad_id": squad_id,
+        "name": squad_data.name,
+        "owner_id": user["user_id"],
+        "members": [user["user_id"]],
+        "invite_code": uuid.uuid4().hex[:8].upper(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.squads.insert_one(squad_doc)
+    squad_doc.pop("_id", None)
+    return squad_doc
+
+@api_router.post("/squads/join-by-code")
+async def join_squad_by_code(request: Request, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"squad_join_code:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many attempts — slow down")
+    body = await request.json()
+    invite_code = (body.get("invite_code") or "").upper().strip()
+    if not invite_code:
+        raise HTTPException(status_code=400, detail="invite_code required")
+    squad = await db.squads.find_one({"invite_code": invite_code})
+    if not squad:
+        raise HTTPException(status_code=404, detail="Invalid invite code")
+    if user["user_id"] in squad.get("members", []):
+        raise HTTPException(status_code=400, detail="Already a member")
+    if len(squad.get("members", [])) >= MAX_SQUAD_SIZE:
+        raise HTTPException(status_code=400, detail=f"Squad is full (max {MAX_SQUAD_SIZE})")
+    if await db.squads.count_documents({"members": user["user_id"]}) >= MAX_SQUADS_PER_USER:
+        raise HTTPException(status_code=400, detail=f"You're already in {MAX_SQUADS_PER_USER} squads — leave one to join another")
+    if await _is_blocked(user["user_id"], squad["owner_id"]):
+        raise HTTPException(status_code=403, detail="Can't join this squad")
+    joined = await db.squads.update_one(
+        {"squad_id": squad["squad_id"], "members": {"$ne": user["user_id"]}},
+        {"$addToSet": {"members": user["user_id"]}},
+    )
+    if joined.modified_count == 0:
+        raise HTTPException(status_code=400, detail="Already a member")
+    return {"message": "Joined squad", "squad_id": squad["squad_id"], "name": squad["name"]}
+
+@api_router.get("/squads/mine")
+async def get_my_squads(user: dict = Depends(get_current_user)):
+    squads = await db.squads.find({"members": user["user_id"]}, {"_id": 0}).to_list(MAX_SQUADS_PER_USER)
+    for sq in squads:
+        sq["member_count"] = len(sq.get("members", []))
+    return squads
+
+@api_router.get("/squads/{squad_id}")
+async def get_squad(squad_id: str, user: dict = Depends(get_current_user)):
+    squad = await db.squads.find_one({"squad_id": squad_id}, {"_id": 0})
+    if not squad:
+        raise HTTPException(status_code=404, detail="Squad not found")
+    if user["user_id"] not in squad.get("members", []):
+        raise HTTPException(status_code=403, detail="Not a member of this squad")
+
+    # Real "sessions logged this week" per member — same 7-day window and same
+    # sessions-collection ground truth as _week_activity()/the streak heatmap. No
+    # fabricated head start, no invented metric: whoever actually trained more this
+    # week is actually first.
+    week_ago = (datetime.now(timezone.utc).date() - timedelta(days=6)).strftime("%Y-%m-%d")
+    leaderboard = []
+    for uid in squad["members"]:
+        member = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0})
+        if not member:
+            continue
+        entry = safe_user(member)
+        entry["sessions_this_week"] = await db.sessions.count_documents({"user_id": uid, "date": {"$gte": week_ago}})
+        leaderboard.append(entry)
+    leaderboard.sort(key=lambda m: m["sessions_this_week"], reverse=True)
+
+    squad["leaderboard"] = leaderboard
+    squad["is_owner"] = squad["owner_id"] == user["user_id"]
+    return squad
+
+@api_router.post("/squads/{squad_id}/leave")
+async def leave_squad(squad_id: str, user: dict = Depends(get_current_user)):
+    squad = await db.squads.find_one({"squad_id": squad_id})
+    if not squad:
+        raise HTTPException(status_code=404, detail="Squad not found")
+    if squad["owner_id"] == user["user_id"]:
+        remaining = [m for m in squad.get("members", []) if m != user["user_id"]]
+        if remaining:
+            # Ownership passes to whoever's been in the squad longest (members[0] after
+            # the leaving owner is removed) rather than leaving it ownerless.
+            await db.squads.update_one({"squad_id": squad_id}, {"$set": {"owner_id": remaining[0]}, "$pull": {"members": user["user_id"]}})
+            return {"message": "Left squad — ownership transferred"}
+        await db.squads.delete_one({"squad_id": squad_id})
+        return {"message": "Squad deleted (you were the only member)"}
+    result = await db.squads.update_one({"squad_id": squad_id}, {"$pull": {"members": user["user_id"]}})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=400, detail="You're not a member of this squad")
+    return {"message": "Left squad"}
+
+@api_router.delete("/squads/{squad_id}")
+async def delete_squad(squad_id: str, user: dict = Depends(get_current_user)):
+    squad = await db.squads.find_one({"squad_id": squad_id})
+    if not squad:
+        raise HTTPException(status_code=404, detail="Squad not found")
+    if squad["owner_id"] != user["user_id"]:
+        raise HTTPException(status_code=403, detail="Only the squad creator can delete this squad")
+    await db.squads.delete_one({"squad_id": squad_id})
+    return {"message": "Squad deleted"}
 
 # ============== FEED / POSTS ENDPOINTS ==============
 

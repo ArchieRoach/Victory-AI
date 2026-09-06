@@ -615,5 +615,30 @@
     "andTheNew": "Et le nouveau...",
     "next": "Suivant",
     "continue": "Continuer"
+  },
+  "squads": {
+    "title": "Squads",
+    "subtitle": "Entraînez-vous ensemble. Affrontez des amis, pas des inconnus.",
+    "createBtn": "Nouveau Squad",
+    "createTitle": "Nouveau Squad",
+    "nameLabel": "Nom du squad",
+    "namePlaceholder": "ex. Les Prétendants",
+    "nameRequired": "Le nom du squad est requis",
+    "created": "Squad créé !",
+    "joinByCode": "Rejoindre avec un code",
+    "joined": "Vous avez rejoint {{name}} !",
+    "noSquads": "Vous n'êtes dans aucun squad pour l'instant",
+    "noSquadsHint": "Créez-en un ou rejoignez-en un avec le code d'invitation d'un ami",
+    "thisWeek": "Cette semaine",
+    "inviteCode": "Code d'invitation",
+    "copyCode": "Copier",
+    "codeCopied": "Copié !",
+    "leaveBtn": "Quitter le squad",
+    "leaveConfirm": "Quitter ce squad ?",
+    "deleteBtn": "Supprimer le squad",
+    "deleteConfirm": "Supprimer ce squad ? Cette action est irréversible.",
+    "owner": "Propriétaire",
+    "you": "(vous)",
+    "memberCount": "{{count}}/{{max}} membres"
   }
 }

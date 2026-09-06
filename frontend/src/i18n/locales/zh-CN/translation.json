@@ -615,5 +615,30 @@
     "andTheNew": "新的冠军诞生...",
     "next": "下一个",
     "continue": "继续"
+  },
+  "squads": {
+    "title": "小队",
+    "subtitle": "一起训练,和朋友较量,而不是陌生人。",
+    "createBtn": "创建小队",
+    "createTitle": "新建小队",
+    "nameLabel": "小队名称",
+    "namePlaceholder": "例如:挑战者联盟",
+    "nameRequired": "请输入小队名称",
+    "created": "小队创建成功!",
+    "joinByCode": "使用邀请码加入",
+    "joined": "已加入 {{name}}!",
+    "noSquads": "你还没有加入任何小队",
+    "noSquadsHint": "创建一个小队,或使用好友的邀请码加入",
+    "thisWeek": "本周",
+    "inviteCode": "邀请码",
+    "copyCode": "复制",
+    "codeCopied": "已复制!",
+    "leaveBtn": "退出小队",
+    "leaveConfirm": "确定要退出这个小队吗?",
+    "deleteBtn": "解散小队",
+    "deleteConfirm": "确定要解散这个小队吗?此操作无法撤销。",
+    "owner": "队长",
+    "you": "(你)",
+    "memberCount": "{{count}}/{{max}} 名成员"
   }
 }

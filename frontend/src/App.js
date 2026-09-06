@@ -30,6 +30,8 @@ import LibraryPage from "@/pages/LibraryPage";
 import SessionDetailPage from "@/pages/SessionDetailPage";
 import ProfilePage from "@/pages/ProfilePage";
 import BlockedAccountsPage from "@/pages/BlockedAccountsPage";
+import SquadsPage from "@/pages/SquadsPage";
+import SquadDetailPage from "@/pages/SquadDetailPage";
 import LoginPage from "@/pages/LoginPage";
 import LeaderboardPage from "@/pages/LeaderboardPage";
 import FeedPage from "@/pages/FeedPage";
@@ -305,6 +307,8 @@ const AppRouter = () => {
         <Route path="/sessions/:sessionId" element={<ProtectedRoute><SessionDetailPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/blocked-accounts" element={<ProtectedRoute><BlockedAccountsPage /></ProtectedRoute>} />
+        <Route path="/squads" element={<ProtectedRoute><SquadsPage /></ProtectedRoute>} />
+        <Route path="/squads/:squadId" element={<ProtectedRoute><SquadDetailPage /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
 
         {/* AI-heavy features — subscription required at point of use */}

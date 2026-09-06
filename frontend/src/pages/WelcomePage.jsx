@@ -1,14 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Swords, Shield, Footprints } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-const PLACEHOLDER_DIMENSIONS = [
-  { name: "Jab", value: 7 },
-  { name: "Cross", value: 6 },
-  { name: "Head Movement", value: 5 },
-  { name: "Footwork", value: 8 },
-  { name: "Guard", value: 6 },
-  { name: "Combinations", value: 7 },
+// Same 3-ring category pattern SessionResultsPage.jsx actually shows after a real
+// session — a real user complained the old 16-spoke radar chart here "doesn't really
+// mean anything" and was too small to read, so that page was rebuilt around this.
+// This preview was still showing the old radar chart, which is both stale UI and a
+// dishonest preview: it no longer represents what the product actually looks like.
+const PREVIEW_CATEGORIES = [
+  { key: "Offense", icon: Swords, color: "#E8FF47", value: 7.5 },
+  { key: "Defense", icon: Shield, color: "#47E8C8", value: 6.0 },
+  { key: "Movement", icon: Footprints, color: "#FF6B35", value: 8.0 },
 ];
 
 export default function WelcomePage() {
@@ -36,37 +38,31 @@ export default function WelcomePage() {
           {t("welcome.subheadline")}
         </p>
 
-        {/* Placeholder Radar Preview */}
+        {/* Category ring preview — matches the real post-session results screen */}
         <div className="victory-card p-6 mb-8">
-          <svg viewBox="0 0 200 200" className="w-full max-w-[200px] mx-auto" data-testid="radar-preview">
-            {[0.33, 0.66, 1].map((scale, i) => (
-              <polygon
-                key={i}
-                points={PLACEHOLDER_DIMENSIONS.map((_, idx) => {
-                  const angle = (idx * 60 - 90) * (Math.PI / 180);
-                  const r = 80 * scale;
-                  return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`;
-                }).join(" ")}
-                fill="none"
-                stroke="#2A2A3A"
-                strokeWidth="1"
-              />
-            ))}
-            <polygon
-              points={PLACEHOLDER_DIMENSIONS.map((d, idx) => {
-                const angle = (idx * 60 - 90) * (Math.PI / 180);
-                const r = (d.value / 10) * 80;
-                return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`;
-              }).join(" ")}
-              fill="#E8FF47"
-              fillOpacity="0.3"
-              stroke="#E8FF47"
-              strokeWidth="2"
-            />
-            <text x="100" y="100" textAnchor="middle" dominantBaseline="middle" className="fill-victory-lime font-heading text-2xl font-extrabold">
-              6.5
-            </text>
-          </svg>
+          <div className="grid grid-cols-3 gap-3" data-testid="radar-preview">
+            {PREVIEW_CATEGORIES.map(({ key, icon: Icon, color, value }) => {
+              const circumference = 2 * Math.PI * 28;
+              return (
+                <div key={key} className="flex flex-col items-center text-center">
+                  <div className="relative w-16 h-16 mb-2">
+                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 64 64">
+                      <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5" />
+                      <circle
+                        cx="32" cy="32" r="28" fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
+                        strokeDasharray={`${(value / 10) * circumference} ${circumference}`}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Icon className="w-6 h-6" style={{ color }} />
+                    </div>
+                  </div>
+                  <p className="font-mono font-bold text-lg text-victory-text">{value.toFixed(1)}</p>
+                  <p className="text-victory-muted text-xs">{key}</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Bullet Points */}
