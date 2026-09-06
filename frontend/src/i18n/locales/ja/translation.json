@@ -615,5 +615,30 @@
     "andTheNew": "新チャンピオン...",
     "next": "次へ",
     "continue": "続ける"
+  },
+  "squads": {
+    "title": "スクワッド",
+    "subtitle": "仲間と一緒に練習しよう。知らない人じゃなく、友達と競い合おう。",
+    "createBtn": "スクワッドを作成",
+    "createTitle": "新しいスクワッド",
+    "nameLabel": "スクワッド名",
+    "namePlaceholder": "例: ザ・コンテンダーズ",
+    "nameRequired": "スクワッド名を入力してください",
+    "created": "スクワッドを作成しました!",
+    "joinByCode": "コードで参加",
+    "joined": "{{name}}に参加しました!",
+    "noSquads": "まだどのスクワッドにも参加していません",
+    "noSquadsHint": "新しく作成するか、友達の招待コードで参加しよう",
+    "thisWeek": "今週",
+    "inviteCode": "招待コード",
+    "copyCode": "コピー",
+    "codeCopied": "コピーしました!",
+    "leaveBtn": "スクワッドを脱退",
+    "leaveConfirm": "このスクワッドを脱退しますか?",
+    "deleteBtn": "スクワッドを削除",
+    "deleteConfirm": "このスクワッドを削除しますか?元に戻せません。",
+    "owner": "オーナー",
+    "you": "(あなた)",
+    "memberCount": "{{count}}/{{max}}人"
   }
 }

@@ -676,5 +676,30 @@
     "andTheNew": "And the new...",
     "next": "Next",
     "continue": "Continue"
+  },
+  "squads": {
+    "title": "Squads",
+    "subtitle": "Train together. Compete with friends, not strangers.",
+    "createBtn": "New Squad",
+    "createTitle": "New Squad",
+    "nameLabel": "Squad name",
+    "namePlaceholder": "e.g. The Contenders",
+    "nameRequired": "Squad name is required",
+    "created": "Squad created!",
+    "joinByCode": "Join with code",
+    "joined": "Joined {{name}}!",
+    "noSquads": "You're not in a squad yet",
+    "noSquadsHint": "Create one or join with a friend's invite code",
+    "thisWeek": "This week",
+    "inviteCode": "Invite code",
+    "copyCode": "Copy",
+    "codeCopied": "Copied!",
+    "leaveBtn": "Leave Squad",
+    "leaveConfirm": "Leave this squad?",
+    "deleteBtn": "Delete Squad",
+    "deleteConfirm": "Delete this squad? This can't be undone.",
+    "owner": "Owner",
+    "you": "(you)",
+    "memberCount": "{{count}}/{{max}} members"
   }
 }

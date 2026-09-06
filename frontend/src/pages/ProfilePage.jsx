@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban, Users } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
@@ -794,6 +794,16 @@ export default function ProfilePage() {
         >
           <Zap className="w-5 h-5" />
           Buy Tokens
+        </button>
+
+        {/* Squads — free, no subscription gate (unlike Gyms) since this is the core
+            free social/motivation loop for an audience unlikely to hold a paid plan. */}
+        <button
+          onClick={() => navigate("/squads")}
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+        >
+          <Users className="w-5 h-5" />
+          {t("squads.title")}
         </button>
 
         {/* Streamer tools */}

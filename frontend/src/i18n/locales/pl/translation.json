@@ -615,5 +615,30 @@
     "andTheNew": "A nowym mistrzem...",
     "next": "Dalej",
     "continue": "Kontynuuj"
+  },
+  "squads": {
+    "title": "Ekipy",
+    "subtitle": "Trenujcie razem. Rywalizujcie ze znajomymi, nie z obcymi.",
+    "createBtn": "Nowa ekipa",
+    "createTitle": "Nowa ekipa",
+    "nameLabel": "Nazwa ekipy",
+    "namePlaceholder": "np. Pretendenci",
+    "nameRequired": "Nazwa ekipy jest wymagana",
+    "created": "Ekipa utworzona!",
+    "joinByCode": "Dołącz kodem",
+    "joined": "Dołączono do {{name}}!",
+    "noSquads": "Nie należysz jeszcze do żadnej ekipy",
+    "noSquadsHint": "Utwórz jedną lub dołącz kodem zaproszenia od znajomego",
+    "thisWeek": "W tym tygodniu",
+    "inviteCode": "Kod zaproszenia",
+    "copyCode": "Kopiuj",
+    "codeCopied": "Skopiowano!",
+    "leaveBtn": "Opuść ekipę",
+    "leaveConfirm": "Opuścić tę ekipę?",
+    "deleteBtn": "Usuń ekipę",
+    "deleteConfirm": "Usunąć tę ekipę? Tej operacji nie można cofnąć.",
+    "owner": "Właściciel",
+    "you": "(ty)",
+    "memberCount": "{{count}}/{{max}} członków"
   }
 }

@@ -615,5 +615,30 @@
     "andTheNew": "E o novo...",
     "next": "Próximo",
     "continue": "Continuar"
+  },
+  "squads": {
+    "title": "Esquadrões",
+    "subtitle": "Treinem juntos. Compitam com amigos, não com estranhos.",
+    "createBtn": "Novo Esquadrão",
+    "createTitle": "Novo Esquadrão",
+    "nameLabel": "Nome do esquadrão",
+    "namePlaceholder": "ex. Os Concorrentes",
+    "nameRequired": "O nome do esquadrão é obrigatório",
+    "created": "Esquadrão criado!",
+    "joinByCode": "Entrar com código",
+    "joined": "Você entrou em {{name}}!",
+    "noSquads": "Você ainda não está em nenhum esquadrão",
+    "noSquadsHint": "Crie um ou entre com o código de convite de um amigo",
+    "thisWeek": "Esta semana",
+    "inviteCode": "Código de convite",
+    "copyCode": "Copiar",
+    "codeCopied": "Copiado!",
+    "leaveBtn": "Sair do esquadrão",
+    "leaveConfirm": "Sair deste esquadrão?",
+    "deleteBtn": "Excluir esquadrão",
+    "deleteConfirm": "Excluir este esquadrão? Isso não pode ser desfeito.",
+    "owner": "Dono",
+    "you": "(você)",
+    "memberCount": "{{count}}/{{max}} membros"
   }
 }
