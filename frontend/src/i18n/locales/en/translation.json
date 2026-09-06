@@ -701,5 +701,16 @@
     "owner": "Owner",
     "you": "(you)",
     "memberCount": "{{count}}/{{max}} members"
+  },
+  "schools": {
+    "title": "School Leaderboard",
+    "subtitle": "Represent your school. Real training, ranked.",
+    "yourSchool": "School",
+    "namePlaceholder": "e.g. Lincoln High School",
+    "privacyHint": "Only counted toward your school's total — never shown on your profile or to other people individually.",
+    "setYourSchool": "Set your school to join the leaderboard",
+    "noSchools": "No schools yet — be the first to add yours in Profile settings",
+    "thisWeek": "this week",
+    "yours": "(yours)"
   }
 }

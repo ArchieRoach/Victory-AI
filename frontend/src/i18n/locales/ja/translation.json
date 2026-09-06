@@ -640,5 +640,16 @@
     "owner": "オーナー",
     "you": "(あなた)",
     "memberCount": "{{count}}/{{max}}人"
+  },
+  "schools": {
+    "title": "学校ランキング",
+    "subtitle": "学校の代表として。リアルなトレーニングをランキング化。",
+    "yourSchool": "学校",
+    "namePlaceholder": "例: 〇〇高等学校",
+    "privacyHint": "学校の合計にのみ加算されます。プロフィールや個人として他の人に表示されることはありません。",
+    "setYourSchool": "ランキングに参加するには学校を設定しよう",
+    "noSchools": "まだ学校がありません。プロフィール設定で最初に登録してみよう",
+    "thisWeek": "今週",
+    "yours": "(あなたの学校)"
   }
 }

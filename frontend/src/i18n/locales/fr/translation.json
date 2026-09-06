@@ -640,5 +640,16 @@
     "owner": "Propriétaire",
     "you": "(vous)",
     "memberCount": "{{count}}/{{max}} membres"
+  },
+  "schools": {
+    "title": "Classement des écoles",
+    "subtitle": "Représente ton école. De l'entraînement réel, classé.",
+    "yourSchool": "École",
+    "namePlaceholder": "ex. Lycée Victor Hugo",
+    "privacyHint": "Compte uniquement dans le total de ton école — jamais affiché sur ton profil ni individuellement à d'autres personnes.",
+    "setYourSchool": "Indique ton école pour apparaître dans le classement",
+    "noSchools": "Aucune école pour l'instant — sois le premier à ajouter la tienne dans les paramètres du profil",
+    "thisWeek": "cette semaine",
+    "yours": "(la tienne)"
   }
 }

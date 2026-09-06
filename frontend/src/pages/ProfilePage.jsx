@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban, Users } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban, Users, GraduationCap } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
@@ -66,6 +66,7 @@ export default function ProfilePage() {
   const [extendedForm, setExtendedForm] = useState({
     display_name: user?.display_name || "",
     bio: user?.bio || "",
+    school_name: user?.school_name || "",
     weight_class: user?.weight_class || "",
     weight_unit: user?.weight_unit || "kg",
     stance: user?.stance || "",
@@ -509,6 +510,21 @@ export default function ProfilePage() {
             />
           </div>
 
+          <div>
+            <label className="victory-label">{t("schools.yourSchool")}</label>
+            <input
+              value={extendedForm.school_name}
+              onChange={(e) => setExtendedForm({ ...extendedForm, school_name: e.target.value })}
+              className="victory-input"
+              placeholder={t("schools.namePlaceholder")}
+              maxLength={100}
+            />
+            {/* Never shown on your public profile or to other users individually — only
+                counted into the aggregate school leaderboard. Real privacy boundary, not
+                just copy: see /schools/leaderboard in server.py. */}
+            <p className="text-victory-muted text-xs mt-1">{t("schools.privacyHint")}</p>
+          </div>
+
           {/* Weight unit preference toggle */}
           <div>
             <label className="victory-label">Weight unit preference</label>
@@ -804,6 +820,16 @@ export default function ProfilePage() {
         >
           <Users className="w-5 h-5" />
           {t("squads.title")}
+        </button>
+
+        {/* School leaderboard — aggregate-only, see the privacy note on the school-name
+            field above and the endpoint's own docstring for why. */}
+        <button
+          onClick={() => navigate("/schools")}
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+        >
+          <GraduationCap className="w-5 h-5" />
+          {t("schools.title")}
         </button>
 
         {/* Streamer tools */}

@@ -1980,6 +1980,7 @@ _AVATAR_PREFIXES = (
 
 class UserProfileExtend(BaseModel):
     bio: Optional[str] = Field(None, max_length=500)
+    school_name: Optional[str] = Field(None, max_length=100)
     weight_class: Optional[str] = Field(None, max_length=50)
     stance: Optional[str] = Field(None, max_length=20)
     amateur_wins: Optional[int] = None
@@ -2181,7 +2182,7 @@ async def _recalculate_gym_stats(gym_id: str):
 
 @api_router.put("/users/profile")
 async def update_extended_profile(data: UserProfileExtend, user: dict = Depends(get_current_user)):
-    for field in ("display_name", "bio", "weight_class", "stance"):
+    for field in ("display_name", "bio", "weight_class", "stance", "school_name"):
         value = getattr(data, field)
         if value and await is_content_flagged(value):
             raise HTTPException(400, f"{field.replace('_', ' ').title()} violates community guidelines")
@@ -2191,7 +2192,12 @@ async def update_extended_profile(data: UserProfileExtend, user: dict = Depends(
     if update:
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0})
-    return safe_user(updated)
+    # school_name is intentionally excluded from safe_user() (never shown on another
+    # user's public profile — see /schools/leaderboard for why) but the owner still
+    # needs to see their own value back immediately after saving it.
+    result = safe_user(updated)
+    result["school_name"] = updated.get("school_name")
+    return result
 
 
 # ============== FIGHTER SEARCH / DISCOVER ==============
@@ -2760,6 +2766,40 @@ async def get_my_gym(user: dict = Depends(get_current_user)):
             members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions), "weekly_sessions": weekly_sessions})
     gym["members_detail"] = sorted(members, key=lambda m: m.get("avg_score", 0), reverse=True)
     return gym
+
+@api_router.get("/schools/leaderboard")
+async def get_school_leaderboard(user: dict = Depends(get_current_user)):
+    """Real school-vs-school competition — the school-specific version of phase 3's
+    "school-based leaderboards". Deliberately aggregate-only: this returns a school's
+    name, member count, and real training totals, never which individual users belong
+    to it. A stranger being able to look up which specific named users attend a given
+    school is a real safety risk for a mostly-teenage user base (the same concern that's
+    driven "school tag" controversies on other apps), so unlike Gyms/Squads there is no
+    per-school member list or join mechanism here at all — school_name is just a
+    self-reported profile field (like weight_class or stance), set once in Profile
+    settings, and this endpoint only ever aggregates over it.
+    """
+    week_ago = (datetime.now(timezone.utc).date() - timedelta(days=6)).strftime("%Y-%m-%d")
+    pipeline = [
+        {"$match": {"school_name": {"$nin": [None, ""]}}},
+        {"$group": {"_id": "$school_name", "member_count": {"$sum": 1}, "user_ids": {"$push": "$user_id"}}},
+    ]
+    grouped = await db.users.aggregate(pipeline).to_list(500)
+
+    results = []
+    for g in grouped:
+        sessions_this_week = await db.sessions.count_documents({"user_id": {"$in": g["user_ids"]}, "date": {"$gte": week_ago}})
+        results.append({
+            "school_name": g["_id"],
+            "member_count": g["member_count"],
+            "sessions_this_week": sessions_this_week,
+            "is_my_school": g["_id"] == user.get("school_name"),
+        })
+    # ponytail: recomputes every school's weekly session count on every request — fine
+    # at current scale (a handful of count_documents calls per request), revisit with a
+    # cached/precomputed tally if this list gets long enough to matter.
+    results.sort(key=lambda r: r["sessions_this_week"], reverse=True)
+    return results[:100]
 
 @api_router.get("/gyms/leaderboard")
 async def get_gym_leaderboard(user: dict = Depends(get_current_user)):

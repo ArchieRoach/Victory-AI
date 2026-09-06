@@ -640,5 +640,16 @@
     "owner": "Dono",
     "you": "(você)",
     "memberCount": "{{count}}/{{max}} membros"
+  },
+  "schools": {
+    "title": "Ranking de Escolas",
+    "subtitle": "Represente sua escola. Treino real, ranqueado.",
+    "yourSchool": "Escola",
+    "namePlaceholder": "ex. Colégio Dom Bosco",
+    "privacyHint": "Conta apenas para o total da sua escola — nunca aparece no seu perfil nem individualmente para outras pessoas.",
+    "setYourSchool": "Defina sua escola para entrar no ranking",
+    "noSchools": "Ainda não há escolas — seja o primeiro a adicionar a sua nas configurações de perfil",
+    "thisWeek": "esta semana",
+    "yours": "(sua)"
   }
 }

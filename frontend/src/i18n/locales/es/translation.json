@@ -640,5 +640,16 @@
     "owner": "Propietario",
     "you": "(tú)",
     "memberCount": "{{count}}/{{max}} miembros"
+  },
+  "schools": {
+    "title": "Ranking de Escuelas",
+    "subtitle": "Representa a tu escuela. Entrenamiento real, clasificado.",
+    "yourSchool": "Escuela",
+    "namePlaceholder": "p. ej. Instituto Cervantes",
+    "privacyHint": "Solo cuenta para el total de tu escuela — nunca se muestra en tu perfil ni de forma individual a otras personas.",
+    "setYourSchool": "Indica tu escuela para aparecer en el ranking",
+    "noSchools": "Todavía no hay escuelas — sé el primero en añadir la tuya en Ajustes de perfil",
+    "thisWeek": "esta semana",
+    "yours": "(la tuya)"
   }
 }
