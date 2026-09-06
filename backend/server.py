@@ -288,32 +288,41 @@ TRAINING_PARTNER_STYLES = {
     "tough_love": {
         "name": "Tough Love Coach",
         "personality": "Direct, no-nonsense, pushes you hard but celebrates your wins. Won't let you make excuses.",
+        # First-person, in-character intro — shown once, at the moment the fighter names
+        # their partner. First-person narration is what the experience-taking research
+        # this line is designed around actually measures, so it's written as the partner
+        # speaking, not a third-person style blurb like `personality` above.
+        "intro_line": "I don't do easy — I've turned excuses into podium finishes for a decade, and yours are next.",
         "feedback_tone": "direct",
-        "phrases": ["No excuses!", "You've got more in the tank!", "That's the stuff!", "Again!"]
+        "phrases": ["No excuses!", "You've got more in the tank!", "That's the stuff!", "Again!", "I know you've got more in there."]
     },
     "supportive_mentor": {
         "name": "Supportive Mentor",
         "personality": "Encouraging, patient, builds you up. Focuses on progress over perfection.",
+        "intro_line": "I remember what it's like to feel behind. I'm here for every rep of your progress, not just your best days.",
         "feedback_tone": "encouraging",
-        "phrases": ["You're getting better every day!", "Progress, not perfection!", "I see you improving!", "Keep it up!"]
+        "phrases": ["You're getting better every day!", "Progress, not perfection!", "I see you improving!", "Keep it up!", "I'm proud of how far you've come."]
     },
     "analytical_technician": {
         "name": "Technical Analyst",
         "personality": "Detailed, precise, loves the science of boxing. Breaks down every movement.",
+        "intro_line": "I see boxing as physics in motion — angles, timing, leverage. Show me your jab and I'll show you what it's really doing.",
         "feedback_tone": "analytical",
-        "phrases": ["Let's analyze that.", "The data shows...", "Technically speaking...", "Notice the angle here."]
+        "phrases": ["Let's analyze that.", "The data shows...", "Technically speaking...", "Notice the angle here.", "I'm seeing real improvement in your data."]
     },
     "hype_man": {
         "name": "Hype Man",
         "personality": "Energetic, motivational, makes every session feel like fight night.",
+        "intro_line": "I bring the energy of fight night to every single round — because that's exactly how hard you're about to work.",
         "feedback_tone": "hype",
-        "phrases": ["LET'S GO!", "You're a BEAST!", "THAT'S MY FIGHTER!", "FIRE!"]
+        "phrases": ["LET'S GO!", "You're a BEAST!", "THAT'S MY FIGHTER!", "FIRE!", "I love this energy from you!"]
     },
     "old_school_trainer": {
         "name": "Old School Trainer",
         "personality": "Wise, experienced, shares stories from the greats. Classic boxing wisdom.",
+        "intro_line": "I've spent my life in gyms that smell like leather and sweat, learning from trainers who learned from the greats. Let me pass some of that down to you.",
         "feedback_tone": "wise",
-        "phrases": ["In my day...", "The greats always...", "Boxing is an art.", "Patience, young fighter."]
+        "phrases": ["In my day...", "The greats always...", "Boxing is an art.", "Patience, young fighter.", "I've trained a lot of fighters, and you've got something."]
     }
 }
 
@@ -606,6 +615,7 @@ async def create_training_partner(partner_data: TrainingPartnerCreate, user: dic
         "style": partner_data.style,
         "style_name": style_info["name"],
         "personality": style_info["personality"],
+        "intro_line": style_info.get("intro_line", ""),
         "feedback_tone": style_info["feedback_tone"],
         "phrases": style_info["phrases"],
         "focus_areas": partner_data.focus_areas,

@@ -479,7 +479,13 @@ const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
   const [loading, setLoading] = useState(false);
 
   const styleName = styles?.[partnerData.training_partner_style]?.name || "Training Partner";
-  const personality = styles?.[partnerData.training_partner_style]?.personality || "";
+  // First-person, in-character line (not the third-person `personality` blurb used earlier
+  // in the flow) — shown right as the fighter is about to name their partner, the one real
+  // bonding moment in this flow. First-person narration is what makes a reader/user
+  // identify with a character (experience-taking), so the partner introduces itself here
+  // rather than being described.
+  const introLine = styles?.[partnerData.training_partner_style]?.intro_line
+    || styles?.[partnerData.training_partner_style]?.personality || "";
 
   const suggestedNames = ["Rocky", "Coach", "Champ", "Ace", "Iron", "Flash", "Duke", "Max"];
 
@@ -506,7 +512,7 @@ const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
         <h1 className="text-xl font-heading font-extrabold text-victory-text mb-2">
           {t("onboarding.naming.title", { style: styleName })}
         </h1>
-        <p className="text-victory-muted text-sm">{personality}</p>
+        <p className="text-victory-muted text-sm italic">"{introLine}"</p>
       </div>
 
       <div>
