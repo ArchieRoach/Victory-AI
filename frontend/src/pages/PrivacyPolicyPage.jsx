@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
         </button>
         <div>
           <h1 className="text-victory-text font-heading font-extrabold text-base leading-tight">Privacy Policy</h1>
-          <p className="text-victory-muted text-xs">Last updated 6 September 2026</p>
+          <p className="text-victory-muted text-xs">Last updated 8 September 2026</p>
         </div>
       </div>
 
@@ -39,14 +39,14 @@ export default function PrivacyPolicyPage() {
           <p><strong className="text-victory-text">Training data:</strong> session recordings, round videos, AI feedback scores, and your onboarding answers (including date of birth, to verify you meet our minimum age).</p>
           <p><strong className="text-victory-text">Content:</strong> posts, comments, live-stream chat messages, and gym/competition activity you choose to share.</p>
           <p><strong className="text-victory-text">Payment data:</strong> handled directly by Stripe — we never see or store your card details.</p>
-          <p><strong className="text-victory-text">Device data:</strong> push-notification tokens and basic technical/log data (IP address, request metadata) for security and abuse prevention.</p>
+          <p><strong className="text-victory-text">Device data:</strong> push-notification tokens and basic technical/log data (IP address, request metadata) for security and abuse prevention. We also record when you last opened the app, used only to time reminder notifications (see below) and never shown to other users.</p>
           <p><strong className="text-victory-text">Contact sync (optional):</strong> if you use "Find friends from your contacts", your device's contact picker lets you choose which contacts to check — we only ever receive an irreversible SHA-256 hash of each selected email, never the real email address, name, or any other contact detail. Non-matching hashes are discarded immediately and never stored.</p>
         </Section>
 
         <Section title="Why we process it, and our legal basis">
           <p><strong className="text-victory-text">Contract (Art. 6(1)(b)):</strong> core app functionality — training sessions, AI feedback, social features, subscriptions.</p>
           <p><strong className="text-victory-text">Legitimate interests (Art. 6(1)(f)):</strong> content moderation, fraud/abuse prevention, and service security.</p>
-          <p><strong className="text-victory-text">Consent (Art. 6(1)(a)):</strong> push notifications, which you can withdraw any time in Profile settings, and contact sync, which only ever runs when you tap "Find" and pick contacts yourself — nothing is checked automatically or in the background.</p>
+          <p><strong className="text-victory-text">Consent (Art. 6(1)(a)):</strong> push notifications — including reminders if you've been away a few days or your trial is ending soon, always based on your own real activity, never a scheduled blast to everyone — which you can withdraw any time in Profile settings; and contact sync, which only ever runs when you tap "Find" and pick contacts yourself — nothing is checked automatically or in the background.</p>
         </Section>
 
         <Section title="Who we share it with">

@@ -590,6 +590,10 @@ async def login(request: Request, user_data: UserLogin, response: Response):
 async def get_me(user: dict = Depends(get_current_user_with_subscription)):
     if isinstance(user.get("created_at"), datetime):
         user["created_at"] = user["created_at"].isoformat()
+    # Real "the app was actually opened" signal — this endpoint is hit on every app
+    # load. The win-back campaign's "3+ days quiet" check reads this field, so it has
+    # to reflect genuine usage, not a guess.
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"last_active_at": datetime.now(timezone.utc).isoformat()}})
     return user
 
 @api_router.post("/auth/logout")
@@ -4731,6 +4735,91 @@ async def _scheduled_stream_reminder_loop():
             logger.warning(f"Scheduled stream reminder loop error: {exc}")
 
 
+# ============== RE-ENGAGEMENT (win-back + trial-ending) ==============
+# Both branches below are deliberately targeted, not a scheduled blast to the whole user
+# base: each query only matches users in a real, specific state (genuinely quiet 3+ days,
+# or a real trial genuinely about to end), and each message is built from that same
+# user's own real training data — never a generic "come back!" with nothing behind it.
+# See victory_ai_ethical_engagement_design memory: engagement must be tied to real user
+# data/actions, never fabricated.
+
+WINBACK_INACTIVITY_DAYS = 3
+WINBACK_RESEND_COOLDOWN_DAYS = 7  # don't re-nag someone who's been gone a month every loop
+TRIAL_REMINDER_WINDOW_DAYS = 3
+
+async def _build_winback_message(user: dict) -> tuple:
+    partner_name = (user.get("training_partner") or {}).get("name", "your coach")
+    sessions = await db.sessions.find({"user_id": user["user_id"]}, {"date": 1}).to_list(1000)
+    if not sessions:
+        return ("Ready for your first round?", f"{partner_name} is ready whenever you are.")
+    _current_streak, longest_streak = _compute_streaks(sessions)
+    if longest_streak >= 3:
+        # current_streak is already 0 by definition (they've been gone 3+ days) — cite the
+        # real longest streak they actually built, not a currently-active one that no
+        # longer exists. Honest, not "your streak is still alive!" when it isn't.
+        return (f"Your {longest_streak}-day streak is waiting", "Jump back in and start building the next one.")
+    return (f"You've logged {len(sessions)} real training sessions", f"{partner_name} is ready for the next one.")
+
+async def _reengagement_loop():
+    """Every 6 hours: targeted win-back pushes for genuinely quiet users, and a one-shot
+    reminder for accounts whose real trial is genuinely about to end. Never a periodic
+    blast to everyone — every candidate is matched on real per-user state."""
+    import asyncio as _aio
+    while True:
+        await _aio.sleep(6 * 3600)
+        now = datetime.now(timezone.utc)
+        try:
+            inactive_cutoff = (now - timedelta(days=WINBACK_INACTIVITY_DAYS)).isoformat()
+            resend_cutoff = (now - timedelta(days=WINBACK_RESEND_COOLDOWN_DAYS)).isoformat()
+            candidates = await db.users.find({
+                "last_active_at": {"$lt": inactive_cutoff},
+                "$or": [
+                    {"last_winback_push_at": {"$exists": False}},
+                    {"last_winback_push_at": {"$lt": resend_cutoff}},
+                ],
+            }, {"_id": 0}).to_list(500)
+            for u in candidates:
+                title, body = await _build_winback_message(u)
+                await _send_push(u["user_id"], title, body, url="/home", tag="winback")
+                await db.users.update_one({"user_id": u["user_id"]}, {"$set": {"last_winback_push_at": now.isoformat()}})
+        except Exception as exc:
+            logger.warning(f"Win-back loop error: {exc}")
+
+        try:
+            trials = await db.subscriptions.find({
+                "status": "trialing",
+                "trial_reminder_sent": {"$ne": True},
+            }, {"_id": 0}).to_list(500)
+            for sub in trials:
+                trial_end = sub.get("trial_end")
+                if not trial_end:
+                    continue
+                trial_end_dt = datetime.fromisoformat(trial_end) if isinstance(trial_end, str) else trial_end
+                if trial_end_dt.tzinfo is None:
+                    trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
+                days_remaining = (trial_end_dt - now).total_seconds() / 86400
+                if not (0 < days_remaining <= TRIAL_REMINDER_WINDOW_DAYS):
+                    continue
+                uid = sub["user_id"]
+                real_sessions = await db.sessions.count_documents({"user_id": uid})
+                day_word = "day" if round(days_remaining) == 1 else "days"
+                body = (
+                    f"You've completed {real_sessions} real sessions so far — keep your progress going."
+                    if real_sessions > 0 else
+                    "Subscribe to keep your AI coaching and full training history."
+                )
+                await _send_push(
+                    uid,
+                    f"Your trial ends in {round(days_remaining)} {day_word}",
+                    body,
+                    url="/paywall",
+                    tag="trial-ending",
+                )
+                await db.subscriptions.update_one({"user_id": uid}, {"$set": {"trial_reminder_sent": True}})
+        except Exception as exc:
+            logger.warning(f"Trial-ending loop error: {exc}")
+
+
 # GDPR Art. 5(1)(e) storage limitation: ephemeral collections with a bounded retention
 # window. Excludes `sessions` (training history — the core product value, kept indefinitely
 # per the account's own lifetime) and `posts`/`comments` (user content, not time-bound).
@@ -4771,6 +4860,7 @@ async def startup():
         logger.info(f"Migration: backfilled access_granted=True on {result.modified_count} users")
     _aio.create_task(_scheduled_stream_reminder_loop())
     _aio.create_task(_retention_cleanup_loop())
+    _aio.create_task(_reengagement_loop())
 
 @app.on_event("shutdown")
 async def shutdown():
