@@ -590,7 +590,9 @@
     "yourChallengeDesc": "En attente des notes des juges",
     "judgeComments": "Commentaires des juges",
     "currentScores": "Scores actuels",
-    "aiVerdict": "Verdict IA"
+    "aiVerdict": "Verdict IA",
+    "youWon": "Tu as remporté ce défi !",
+    "youWonDesc": "Les juges t'ont donné la victoire. Bien joué."
   },
   "publicProfile": {
     "follow": "Suivre",
@@ -651,5 +653,11 @@
     "noSchools": "Aucune école pour l'instant — sois le premier à ajouter la tienne dans les paramètres du profil",
     "thisWeek": "cette semaine",
     "yours": "(la tienne)"
+  },
+  "review": {
+    "title": "Tu as gagné ! 🏆",
+    "body": "Content de t'avoir parmi nous. Une évaluation rapide aide d'autres boxeurs à découvrir Victory AI.",
+    "rateBtn": "Évaluer Victory AI",
+    "notNow": "Pas maintenant"
   }
 }

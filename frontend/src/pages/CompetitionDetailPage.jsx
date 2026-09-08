@@ -4,10 +4,11 @@ import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { ArrowLeft, Swords, Star, CheckCircle, Clock, Send } from "lucide-react";
+import { ArrowLeft, Swords, Star, CheckCircle, Clock, Send, Trophy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { DIMENSION_RUBRICS } from "@/pages/ScorePage";
+import { ReviewPromptModal, REVIEW_PROMPT_STORAGE_KEY, reviewPromptAvailable } from "@/components/ReviewPromptModal";
 
 const JUDGE_DIMENSIONS = [
   "Jab", "Cross", "Left Hook", "Right Hook",
@@ -27,6 +28,7 @@ export default function CompetitionDetailPage() {
   );
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showReview, setShowReview] = useState(false);
 
   useEffect(() => {
     fetchComp();
@@ -37,6 +39,14 @@ export default function CompetitionDetailPage() {
     try {
       const res = await axios.get(`${API}/competitions/${compId}`);
       setComp(res.data);
+      // Real, verified win only — voting closed and this account is the actual
+      // winner_id the backend awarded, not a guess or an open/pending competition.
+      // Asked at most once ever (REVIEW_PROMPT_STORAGE_KEY), regardless of how many
+      // more wins follow, so this never turns into nagging.
+      const justWon = res.data.status === "closed" && res.data.winner_id === user?.user_id;
+      if (justWon && reviewPromptAvailable() && !localStorage.getItem(REVIEW_PROMPT_STORAGE_KEY)) {
+        setShowReview(true);
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || t("common.error"));
       navigate("/compete");
@@ -76,6 +86,7 @@ export default function CompetitionDetailPage() {
   const isOpen = comp.status === "open";
   const isAI = comp.competition_type === "ai_judge";
   const isMine = comp.challenger_id === user?.user_id;
+  const didWin = !isOpen && comp.winner_id === user?.user_id;
   const canVote = isOpen && !isMine && !comp.has_voted;
   const challengerName = comp.challenger?.display_name || comp.challenger?.name || t("compete.unknownFighter");
 
@@ -246,6 +257,18 @@ export default function CompetitionDetailPage() {
           </div>
         )}
 
+        {/* Real win, not just any closed competition — winner_id is only ever set by
+            the backend when the crowd/AI actually scored it a win. */}
+        {didWin && (
+          <div className="victory-card p-4 flex items-center gap-3 border border-victory-lime/40 bg-victory-lime/5">
+            <Trophy className="w-6 h-6 text-victory-lime flex-shrink-0" />
+            <div>
+              <p className="text-victory-text text-sm font-bold">{t("compete.youWon")}</p>
+              <p className="text-victory-muted text-xs">{t("compete.youWonDesc")}</p>
+            </div>
+          </div>
+        )}
+
         {/* Own competition */}
         {isMine && isOpen && (
           <div className="victory-card p-4 flex items-center gap-3 border border-victory-lime/20">
@@ -277,6 +300,8 @@ export default function CompetitionDetailPage() {
           </div>
         )}
       </main>
+
+      {showReview && <ReviewPromptModal onClose={() => setShowReview(false)} />}
 
       <BottomNav />
     </div>

@@ -590,7 +590,9 @@
     "yourChallengeDesc": "Aguardando avaliações dos juízes",
     "judgeComments": "Comentários dos juízes",
     "currentScores": "Pontuações atuais",
-    "aiVerdict": "Veredicto IA"
+    "aiVerdict": "Veredicto IA",
+    "youWon": "Você venceu este desafio!",
+    "youWonDesc": "Os jurados deram a vitória a você. Bom trabalho."
   },
   "publicProfile": {
     "follow": "Seguir",
@@ -651,5 +653,11 @@
     "noSchools": "Ainda não há escolas — seja o primeiro a adicionar a sua nas configurações de perfil",
     "thisWeek": "esta semana",
     "yours": "(sua)"
+  },
+  "review": {
+    "title": "Você venceu! 🏆",
+    "body": "Que bom te ter aqui. Uma avaliação rápida ajuda outros lutadores a encontrar o Victory AI.",
+    "rateBtn": "Avaliar Victory AI",
+    "notNow": "Agora não"
   }
 }

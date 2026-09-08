@@ -590,7 +590,9 @@
     "yourChallengeDesc": "Esperando que los jueces te puntúen",
     "judgeComments": "Comentarios del jurado",
     "currentScores": "Puntuaciones actuales",
-    "aiVerdict": "Veredicto IA"
+    "aiVerdict": "Veredicto IA",
+    "youWon": "¡Ganaste este desafío!",
+    "youWonDesc": "Los jueces te dieron la victoria. Buen trabajo."
   },
   "publicProfile": {
     "follow": "Seguir",
@@ -651,5 +653,11 @@
     "noSchools": "Todavía no hay escuelas — sé el primero en añadir la tuya en Ajustes de perfil",
     "thisWeek": "esta semana",
     "yours": "(la tuya)"
+  },
+  "review": {
+    "title": "¡Ganaste! 🏆",
+    "body": "Nos alegra tenerte aquí. Una valoración rápida ayuda a que otros boxeadores encuentren Victory AI.",
+    "rateBtn": "Valorar Victory AI",
+    "notNow": "Ahora no"
   }
 }

@@ -590,7 +590,9 @@
     "yourChallengeDesc": "等待裁判打分",
     "judgeComments": "裁判评论",
     "currentScores": "当前分数",
-    "aiVerdict": "AI评判"
+    "aiVerdict": "AI评判",
+    "youWon": "你赢得了这场挑战！",
+    "youWonDesc": "评委判定你获胜，干得漂亮。"
   },
   "publicProfile": {
     "follow": "关注",
@@ -651,5 +653,11 @@
     "noSchools": "还没有学校上榜——在个人资料设置中第一个添加你的学校吧",
     "thisWeek": "本周",
     "yours": "(你的学校)"
+  },
+  "review": {
+    "title": "你赢了！🏆",
+    "body": "很高兴你在这里。快速评分能帮助更多拳手发现 Victory AI。",
+    "rateBtn": "评价 Victory AI",
+    "notNow": "暂不"
   }
 }
