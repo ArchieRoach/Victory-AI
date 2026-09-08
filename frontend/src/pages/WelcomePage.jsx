@@ -20,10 +20,10 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6" data-testid="welcome-page">
       <div className="w-full max-w-md text-center animate-fade-in">
-        {/* Logo */}
+        {/* Mascot */}
         <div className="mb-8">
           <img
-            src="/victory-logo.png"
+            src="/mascot.svg"
             alt="Victory AI"
             className="w-48 h-48 mx-auto object-contain"
             data-testid="app-logo"

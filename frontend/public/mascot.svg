@@ -1,0 +1,142 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="badgeGrad" cx="42%" cy="36%" r="72%">
+      <stop offset="0%" stop-color="#FF6672"/>
+      <stop offset="60%" stop-color="#E63946"/>
+      <stop offset="100%" stop-color="#9E1B2B"/>
+    </radialGradient>
+    <radialGradient id="headGrad" cx="38%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#EAB884"/>
+      <stop offset="55%" stop-color="#D9A066"/>
+      <stop offset="100%" stop-color="#A3703A"/>
+    </radialGradient>
+    <linearGradient id="earGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C9915A"/>
+      <stop offset="100%" stop-color="#8C5A2E"/>
+    </linearGradient>
+    <radialGradient id="muzzleGrad" cx="42%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#FFFBF3"/>
+      <stop offset="100%" stop-color="#E4D3B8"/>
+    </radialGradient>
+    <linearGradient id="gloveGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#FF9A66"/>
+      <stop offset="50%" stop-color="#FF6B35"/>
+      <stop offset="100%" stop-color="#C2501F"/>
+    </linearGradient>
+    <radialGradient id="eyeGrad" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#F0803A"/>
+      <stop offset="100%" stop-color="#B33A15"/>
+    </radialGradient>
+    <linearGradient id="shoulderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5C3B20"/>
+      <stop offset="100%" stop-color="#3E2713"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer badge ring -->
+  <circle cx="200" cy="200" r="196" fill="#0A0A0F"/>
+  <circle cx="200" cy="200" r="178" fill="#12121A" stroke="#E8FF47" stroke-width="4"/>
+  <circle cx="200" cy="200" r="168" fill="url(#badgeGrad)"/>
+
+  <!-- Shoulders / chest — tapered torso silhouette, more body visible, rounded base
+       instead of a flat cut so it reads as cropped by the badge, not clipped by mistake -->
+  <path d="M 122 378 Q 94 300 140 260 Q 200 236 260 260 Q 306 300 278 378 Q 200 392 122 378 Z" fill="url(#shoulderGrad)"/>
+  <path d="M 200 316 L 200 372" stroke="#2E1C0E" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 156 332 Q 176 342 198 338" stroke="#2E1C0E" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.45"/>
+  <path d="M 244 332 Q 224 342 202 338" stroke="#2E1C0E" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.45"/>
+  <path d="M 116 296 Q 104 330 120 366" stroke="#2E1C0E" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 284 296 Q 296 330 280 366" stroke="#2E1C0E" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Ears — pinned forward, layered inner/outer with gradient and inner-ear detail -->
+  <path d="M 126 162 L 118 96 Q 116 86 126 90 L 180 138 Q 190 148 178 158 Z" fill="url(#earGrad)"/>
+  <path d="M 274 162 L 282 96 Q 284 86 274 90 L 220 138 Q 210 148 222 158 Z" fill="url(#earGrad)"/>
+  <path d="M 133 156 L 128 108 Q 127 100 133 104 L 170 138 Q 177 145 168 153 Z" fill="#7A4B27"/>
+  <path d="M 267 156 L 272 108 Q 273 100 267 104 L 230 138 Q 223 145 232 153 Z" fill="#7A4B27"/>
+
+  <!-- Head, blocky pitbull silhouette (wide cheeks, strong jaw) with volumetric shading -->
+  <path d="M 200 118
+           C 150 118 118 148 112 196
+           C 108 226 116 252 134 274
+           C 122 292 124 312 140 322
+           C 158 332 178 320 188 306
+           C 196 310 204 310 212 306
+           C 222 320 242 332 260 322
+           C 276 312 278 292 266 274
+           C 284 252 292 226 288 196
+           C 282 148 250 118 200 118 Z" fill="url(#headGrad)"/>
+
+  <!-- Cheek muscle shading -->
+  <path d="M 118 210 Q 108 250 138 282" stroke="#8A5C30" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.55"/>
+  <path d="M 282 210 Q 292 250 262 282" stroke="#8A5C30" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- Brow ridge -->
+  <path d="M 130 176 Q 165 158 200 168 Q 235 158 270 176" stroke="#8C5A2E" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Muzzle -->
+  <ellipse cx="200" cy="262" rx="66" ry="50" fill="url(#muzzleGrad)"/>
+  <path d="M 148 250 Q 200 236 252 250" stroke="#D8C4A2" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Jowls hanging at the sides of the snarl -->
+  <path d="M 148 268 Q 132 300 148 326 Q 168 320 172 292 Z" fill="url(#muzzleGrad)"/>
+  <path d="M 252 268 Q 268 300 252 326 Q 232 320 228 292 Z" fill="url(#muzzleGrad)"/>
+
+  <!-- Furrowed, angry brows -->
+  <path d="M 126 158 L 182 172 L 178 186 L 130 174 Z" fill="#12121A"/>
+  <path d="M 274 158 L 218 172 L 222 186 L 270 174 Z" fill="#12121A"/>
+  <path d="M 126 158 L 182 172 L 180 178 L 128 165 Z" fill="#2A2A2A" opacity="0.6"/>
+
+  <!-- Snout scrunch wrinkles -->
+  <path d="M 180 212 Q 200 204 220 212" stroke="#8C5A2E" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M 184 224 Q 200 218 216 224" stroke="#8C5A2E" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Eyes — narrowed, intense, amber-red with glint -->
+  <path d="M 134 196 Q 160 180 186 198 Q 160 216 134 196 Z" fill="#12121A"/>
+  <path d="M 214 198 Q 240 180 266 196 Q 240 216 214 198 Z" fill="#12121A"/>
+  <circle cx="160" cy="197" r="13" fill="url(#eyeGrad)"/>
+  <circle cx="240" cy="197" r="13" fill="url(#eyeGrad)"/>
+  <circle cx="160" cy="197" r="6" fill="#0A0A0A"/>
+  <circle cx="240" cy="197" r="6" fill="#0A0A0A"/>
+  <circle cx="156" cy="192" r="2.5" fill="#FFFFFF"/>
+  <circle cx="236" cy="192" r="2.5" fill="#FFFFFF"/>
+
+  <!-- Nose with highlight and nostrils -->
+  <ellipse cx="200" cy="240" rx="18" ry="13" fill="#12121A"/>
+  <ellipse cx="194" cy="235" rx="4" ry="3" fill="#3A3A3A"/>
+  <ellipse cx="191" cy="242" rx="3" ry="4" fill="#000000"/>
+  <ellipse cx="209" cy="242" rx="3" ry="4" fill="#000000"/>
+
+  <!-- Open snarl, gum + fanged teeth -->
+  <path d="M 154 266 Q 200 328 246 266 Q 238 308 200 308 Q 162 308 154 266 Z" fill="#7A1F1F"/>
+  <path d="M 154 266 Q 200 288 246 266
+           L 240 268 L 228 282 L 216 268 L 206 284 L 200 268
+           L 194 284 L 184 268 L 172 282 L 160 268 Z" fill="#FFFDF7"/>
+  <path d="M 168 270 L 160 268 L 163 292 Z" fill="#FFFDF7"/>
+  <path d="M 232 270 L 240 268 L 237 292 Z" fill="#FFFDF7"/>
+  <path d="M 160 268 Q 200 296 240 268" stroke="#5A1414" stroke-width="3" fill="none" opacity="0.6"/>
+
+  <!-- Arms — shorter/tucked, guard held low near the chin -->
+  <path d="M 150 328 Q 98 324 82 298 Q 70 272 80 248 Q 90 236 108 244 Q 120 252 120 268 Q 116 292 126 312 Q 132 322 148 328 Z" fill="url(#earGrad)"/>
+  <path d="M 250 328 Q 302 324 318 298 Q 330 272 320 248 Q 310 236 292 244 Q 280 252 280 268 Q 284 292 274 312 Q 268 322 252 328 Z" fill="url(#earGrad)"/>
+  <path d="M 96 254 Q 86 280 98 304" stroke="#5C3A1E" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 304 254 Q 314 280 302 304" stroke="#5C3A1E" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Left glove, guard held low near the chin -->
+  <g>
+    <rect x="82" y="284" width="34" height="30" rx="13" fill="url(#gloveGrad)"/>
+    <ellipse cx="101" cy="266" rx="34" ry="33" fill="url(#gloveGrad)"/>
+    <ellipse cx="126" cy="274" rx="11" ry="15" fill="url(#gloveGrad)"/>
+    <path d="M 80 248 Q 101 238 122 252" stroke="#FFC7A3" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 80 318 Q 99 330 118 318" stroke="#8A3510" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M 86 324 L 86 332 M 96 326 L 96 334 M 106 326 L 106 334" stroke="#8A3510" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- Right glove, guard held low near the chin -->
+  <g>
+    <rect x="284" y="284" width="34" height="30" rx="13" fill="url(#gloveGrad)"/>
+    <ellipse cx="299" cy="266" rx="34" ry="33" fill="url(#gloveGrad)"/>
+    <ellipse cx="274" cy="274" rx="11" ry="15" fill="url(#gloveGrad)"/>
+    <path d="M 320 248 Q 299 238 278 252" stroke="#FFC7A3" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 320 318 Q 301 330 282 318" stroke="#8A3510" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M 314 324 L 314 332 M 304 326 L 304 334 M 294 326 L 294 334" stroke="#8A3510" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>
