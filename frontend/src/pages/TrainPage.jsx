@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
 import { withMinDuration } from "@/utils/async";
+import { FirstUseTip } from "@/components/FirstUseTip";
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
@@ -810,11 +811,13 @@ export default function TrainPage() {
                       </p>
                       <p className="text-victory-muted text-xs">Round {currentRound} debrief</p>
                     </div>
-                    <button onClick={() => setVoiceEnabled((v) => !v)}
-                      aria-label={voiceEnabled ? "Disable voice" : "Enable voice"}
-                      className="w-11 h-11 flex items-center justify-center text-victory-muted hover:text-victory-text">
-                      {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                    </button>
+                    <FirstUseTip id="train_voice_toggle" tip="Tap to mute or unmute your coach's spoken feedback." position="top">
+                      <button onClick={() => setVoiceEnabled((v) => !v)}
+                        aria-label={voiceEnabled ? "Disable voice" : "Enable voice"}
+                        className="w-11 h-11 flex items-center justify-center text-victory-muted hover:text-victory-text">
+                        {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                      </button>
+                    </FirstUseTip>
                   </div>
 
                   {loadingFeedback ? (
@@ -871,13 +874,15 @@ export default function TrainPage() {
             {/* Controls */}
             <div className="flex items-center justify-center gap-5 mt-6">
               {/* Skip — secondary */}
-              <button
-                onClick={skipToNext}
-                className="w-14 h-14 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-muted hover:text-victory-text touch-target transition-all active:scale-90"
-                aria-label="Skip"
-              >
-                <SkipForward className="w-6 h-6" />
-              </button>
+              <FirstUseTip id="train_skip_btn" tip="Skips ahead to the next round or rest period." position="top">
+                <button
+                  onClick={skipToNext}
+                  className="w-14 h-14 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-muted hover:text-victory-text touch-target transition-all active:scale-90"
+                  aria-label="Skip"
+                >
+                  <SkipForward className="w-6 h-6" />
+                </button>
+              </FirstUseTip>
 
               {/* Play/Pause — primary dominant CTA */}
               <button
@@ -893,13 +898,15 @@ export default function TrainPage() {
               </button>
 
               {/* End session — danger */}
-              <button
-                onClick={endTimer}
-                className="w-14 h-14 rounded-full bg-victory-card border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/10 touch-target transition-all active:scale-90"
-                aria-label="End session"
-              >
-                <Square className="w-6 h-6" />
-              </button>
+              <FirstUseTip id="train_end_btn" tip="Ends the session now and saves whatever rounds you've completed." position="top">
+                <button
+                  onClick={endTimer}
+                  className="w-14 h-14 rounded-full bg-victory-card border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/10 touch-target transition-all active:scale-90"
+                  aria-label="End session"
+                >
+                  <Square className="w-6 h-6" />
+                </button>
+              </FirstUseTip>
             </div>
 
             {/* Reset */}
