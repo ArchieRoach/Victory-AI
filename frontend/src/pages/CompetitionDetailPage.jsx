@@ -8,7 +8,7 @@ import { ArrowLeft, Swords, Star, CheckCircle, Clock, Send, Trophy } from "lucid
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { DIMENSION_RUBRICS } from "@/pages/ScorePage";
-import { ReviewPromptModal, REVIEW_PROMPT_STORAGE_KEY, reviewPromptAvailable } from "@/components/ReviewPromptModal";
+import { ReviewPromptModal, canShowReviewPrompt, reviewPromptAvailable } from "@/components/ReviewPromptModal";
 
 const JUDGE_DIMENSIONS = [
   "Jab", "Cross", "Left Hook", "Right Hook",
@@ -41,10 +41,10 @@ export default function CompetitionDetailPage() {
       setComp(res.data);
       // Real, verified win only — voting closed and this account is the actual
       // winner_id the backend awarded, not a guess or an open/pending competition.
-      // Asked at most once ever (REVIEW_PROMPT_STORAGE_KEY), regardless of how many
-      // more wins follow, so this never turns into nagging.
+      // A declined prompt is eligible again after a month (canShowReviewPrompt); a
+      // rated one never re-asks.
       const justWon = res.data.status === "closed" && res.data.winner_id === user?.user_id;
-      if (justWon && reviewPromptAvailable() && !localStorage.getItem(REVIEW_PROMPT_STORAGE_KEY)) {
+      if (justWon && reviewPromptAvailable() && canShowReviewPrompt()) {
         setShowReview(true);
       }
     } catch (err) {

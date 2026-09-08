@@ -8,24 +8,41 @@ const APP_STORE_URL = process.env.REACT_APP_APP_STORE_URL || "";
 const PLAY_STORE_URL = process.env.REACT_APP_PLAY_STORE_URL || "";
 
 export const REVIEW_PROMPT_STORAGE_KEY = "victory_review_prompt_status";
+const DECLINE_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // 1 month
 
 // Neither store URL configured yet (app not live on a store) — nothing to send someone
 // to, so the caller should not show this at all rather than dead-ending a real fan.
 export const reviewPromptAvailable = () => !!(APP_STORE_URL || PLAY_STORE_URL);
+
+// Once actually rated: never ask again — that's a settled, permanent answer. Once
+// declined: respected for a month, then eligible again on the next real win, rather than
+// silenced forever over one "not now" that might've just been bad timing.
+export const canShowReviewPrompt = () => {
+  let stored;
+  try {
+    stored = JSON.parse(localStorage.getItem(REVIEW_PROMPT_STORAGE_KEY) || "null");
+  } catch {
+    return true;
+  }
+  if (!stored) return true;
+  if (stored.status === "rated") return false;
+  if (stored.status === "declined") return Date.now() - stored.at >= DECLINE_COOLDOWN_MS;
+  return true;
+};
 
 export function ReviewPromptModal({ onClose }) {
   const { t } = useTranslation();
 
   const handleRate = () => {
     window.open(APP_STORE_URL || PLAY_STORE_URL, "_blank", "noopener,noreferrer");
-    localStorage.setItem(REVIEW_PROMPT_STORAGE_KEY, "rated");
+    localStorage.setItem(REVIEW_PROMPT_STORAGE_KEY, JSON.stringify({ status: "rated", at: Date.now() }));
     onClose();
   };
 
   const handleDecline = () => {
-    // Asked once, respected the answer either way — never re-prompt after this,
-    // regardless of how many more real wins follow.
-    localStorage.setItem(REVIEW_PROMPT_STORAGE_KEY, "declined");
+    // Not a permanent no — just "not this win". Eligible again in a month if another
+    // real win comes in; see canShowReviewPrompt().
+    localStorage.setItem(REVIEW_PROMPT_STORAGE_KEY, JSON.stringify({ status: "declined", at: Date.now() }));
     onClose();
   };
 
