@@ -590,7 +590,9 @@
     "yourChallengeDesc": "Czekam na oceny sędziów",
     "judgeComments": "Komentarze sędziów",
     "currentScores": "Aktualne wyniki",
-    "aiVerdict": "Werdykt AI"
+    "aiVerdict": "Werdykt AI",
+    "youWon": "Wygrałeś to wyzwanie!",
+    "youWonDesc": "Sędziowie przyznali ci zwycięstwo. Dobra robota."
   },
   "publicProfile": {
     "follow": "Obserwuj",
@@ -651,5 +653,11 @@
     "noSchools": "Brak szkół — dodaj swoją jako pierwszy w ustawieniach profilu",
     "thisWeek": "w tym tygodniu",
     "yours": "(twoja)"
+  },
+  "review": {
+    "title": "Wygrałeś! 🏆",
+    "body": "Cieszymy się, że tu jesteś. Krótka ocena pomoże innym zawodnikom znaleźć Victory AI.",
+    "rateBtn": "Oceń Victory AI",
+    "notNow": "Nie teraz"
   }
 }

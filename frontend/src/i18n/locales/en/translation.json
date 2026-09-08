@@ -576,7 +576,9 @@
     "yourChallengeDesc": "Waiting for judges to score you",
     "judgeComments": "Judge Comments",
     "currentScores": "Current Scores",
-    "aiVerdict": "AI Verdict"
+    "aiVerdict": "AI Verdict",
+    "youWon": "You won this challenge!",
+    "youWonDesc": "The judges scored you a win. Nice work."
   },
   "publicProfile": {
     "follow": "Follow",
@@ -712,5 +714,11 @@
     "noSchools": "No schools yet — be the first to add yours in Profile settings",
     "thisWeek": "this week",
     "yours": "(yours)"
+  },
+  "review": {
+    "title": "You won! 🏆",
+    "body": "Glad you're here. A quick rating helps other fighters find Victory AI.",
+    "rateBtn": "Rate Victory AI",
+    "notNow": "Not now"
   }
 }

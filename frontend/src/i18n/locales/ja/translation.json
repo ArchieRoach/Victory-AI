@@ -590,7 +590,9 @@
     "yourChallengeDesc": "ジャッジのスコアを待っています",
     "judgeComments": "ジャッジのコメント",
     "currentScores": "現在のスコア",
-    "aiVerdict": "AI審査結果"
+    "aiVerdict": "AI審査結果",
+    "youWon": "このチャレンジに勝利しました！",
+    "youWonDesc": "審査員があなたの勝利と判定しました。お見事です。"
   },
   "publicProfile": {
     "follow": "フォロー",
@@ -651,5 +653,11 @@
     "noSchools": "まだ学校がありません。プロフィール設定で最初に登録してみよう",
     "thisWeek": "今週",
     "yours": "(あなたの学校)"
+  },
+  "review": {
+    "title": "勝利しました！🏆",
+    "body": "ご利用ありがとうございます。評価をいただけると、他のファイターがVictory AIを見つけやすくなります。",
+    "rateBtn": "Victory AIを評価する",
+    "notNow": "後で"
   }
 }

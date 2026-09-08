@@ -590,7 +590,9 @@
     "yourChallengeDesc": "Warte auf Bewertungen der Richter",
     "judgeComments": "Richterkommentare",
     "currentScores": "Aktuelle Punktzahlen",
-    "aiVerdict": "KI-Urteil"
+    "aiVerdict": "KI-Urteil",
+    "youWon": "Du hast diese Challenge gewonnen!",
+    "youWonDesc": "Die Jury hat dich zum Sieger gekürt. Starke Leistung."
   },
   "publicProfile": {
     "follow": "Folgen",
@@ -651,5 +653,11 @@
     "noSchools": "Noch keine Schulen – trage deine als Erste(r) in den Profileinstellungen ein",
     "thisWeek": "diese Woche",
     "yours": "(deine)"
+  },
+  "review": {
+    "title": "Du hast gewonnen! 🏆",
+    "body": "Schön, dass du dabei bist. Eine kurze Bewertung hilft anderen Kämpfern, Victory AI zu finden.",
+    "rateBtn": "Victory AI bewerten",
+    "notNow": "Jetzt nicht"
   }
 }
