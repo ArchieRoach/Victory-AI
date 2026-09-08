@@ -20,19 +20,15 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6" data-testid="welcome-page">
       <div className="w-full max-w-md text-center animate-fade-in">
-        {/* Mascot + championship belt, as one unit — the mascot "wears" the belt rather
-            than one replacing the other. */}
-        <div className="mb-8 flex flex-col items-center">
+        {/* Mascot, wearing the actual belt design baked into the render itself (built
+            with Nano Banana from the real victory-logo.png as a reference) — one image,
+            not a layered composite. */}
+        <div className="mb-8">
           <img
-            src="/mascot.svg"
+            src="/mascot-render.png"
             alt="Victory AI"
-            className="w-40 h-40 -mb-7 relative z-10 object-contain drop-shadow-lg"
+            className="w-64 mx-auto object-contain rounded-2xl"
             data-testid="app-logo"
-          />
-          <img
-            src="/victory-logo.png"
-            alt="Victory AI Championship Belt"
-            className="w-56 relative z-0 object-contain"
           />
         </div>
 
