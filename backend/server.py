@@ -1721,6 +1721,7 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.notifications.delete_many({"$or": [{"recipient_id": user_id}, {"actor_id": user_id}]})
     await db.scheduled_streams.delete_many({"user_id": user_id})
     await db.reports.delete_many({"reporter_id": user_id})
+    await db.crash_reports.delete_many({"user_id": user_id})
 
     stream_ids = await db.streams.distinct("stream_id", {"user_id": user_id})
     if stream_ids:
@@ -1768,6 +1769,7 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "chat_messages_sent": await db.chat_messages.find({"user_id": user_id}, proj).to_list(10000),
         "chat_messages_in_own_streams": chat_in_own_streams,
         "reports_filed": await db.reports.find({"reporter_id": user_id}, proj).to_list(10000),
+        "crash_reports": await db.crash_reports.find({"user_id": user_id}, proj).to_list(1000),
         "feedback_submitted": await db.feedback.find({"user_id": user_id}, proj).to_list(10000),
         "push_subscriptions": await db.push_subscriptions.find({"user_id": user_id}, proj).to_list(1000),
     }
@@ -3882,6 +3884,80 @@ async def get_feedback(user: dict = Depends(get_current_user)):
     items = await db.feedback.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
     return items
 
+# ============== CRASH REPORTS ==============
+# "Early" means finding out fast, not just logging into a DB nobody checks — so this
+# emails the admin immediately, same as /feedback does. Deliberately public/unauthenticated:
+# the crashes most worth catching (a provider throwing during its own first render, an
+# error before auth has resolved) have no valid session to attach a token to at all.
+# Rate-limited per IP so a page stuck crash-looping can't turn into an email flood.
+
+class CrashReportCreate(BaseModel):
+    message: str = Field(..., max_length=2000)
+    stack: Optional[str] = Field(None, max_length=8000)
+    component_stack: Optional[str] = Field(None, max_length=8000)
+    url: Optional[str] = Field(None, max_length=500)
+    user_agent: Optional[str] = Field(None, max_length=500)
+    source: str = Field("window", max_length=50)  # "boundary" | "window" | "promise"
+
+@api_router.post("/crash-reports")
+async def report_crash(data: CrashReportCreate, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"crash_report:{client_ip}", 20, 300):
+        raise HTTPException(429, "Too many reports")
+
+    # Best-effort identify — most real crashes (pre-auth, a broken session) genuinely
+    # won't have one, and that's fine; never block a crash report on being logged in.
+    user_id = None
+    try:
+        identified = await get_current_user(request)
+        user_id = identified["user_id"]
+    except Exception:
+        pass
+
+    doc = {
+        "crash_id": f"crash_{uuid.uuid4().hex[:12]}",
+        "message": data.message,
+        "stack": data.stack,
+        "component_stack": data.component_stack,
+        "url": data.url,
+        "user_agent": data.user_agent,
+        "source": data.source,
+        "user_id": user_id,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.crash_reports.insert_one(doc)
+
+    if RESEND_API_KEY:
+        stack_html = f'<pre style="white-space:pre-wrap;background:#1A1A2E;padding:12px;border-radius:8px;font-size:11px;overflow-x:auto;">{html.escape(data.stack)}</pre>' if data.stack else ""
+        email_html = f"""
+        <div style="font-family:monospace;max-width:700px;margin:0 auto;background:#12121A;color:#F0F0F5;padding:24px;border-radius:12px;">
+          <h2 style="color:#FF6B35;margin-top:0;">🔥 Crash Report</h2>
+          <p><strong>Message:</strong> {html.escape(data.message)}</p>
+          <p><strong>Page:</strong> {html.escape(data.url or 'unknown')}</p>
+          <p><strong>User:</strong> {html.escape(user_id or 'anonymous / not signed in')}</p>
+          <p><strong>Source:</strong> {html.escape(data.source)}</p>
+          {stack_html}
+        </div>"""
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    "https://api.resend.com/emails",
+                    headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+                    json={"from": RESEND_FROM, "to": [ADMIN_EMAIL], "subject": f"[Victory AI] Crash: {data.message[:100]}", "html": email_html},
+                    timeout=5,
+                )
+        except Exception:
+            pass
+
+    return {"crash_id": doc["crash_id"]}
+
+@api_router.get("/crash-reports")
+async def get_crash_reports(user: dict = Depends(get_current_user)):
+    if user.get("email") != ADMIN_EMAIL:
+        raise HTTPException(status_code=403, detail="Admin only")
+    items = await db.crash_reports.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return items
+
 # ============== CONTENT REPORTING ==============
 
 REPORT_HIDE_THRESHOLD = 3  # unique reporters before content auto-hides pending review
@@ -4850,6 +4926,7 @@ _RETENTION_POLICIES = {
     "chat_messages":  ("created_at", 90),    # live-stream chat, ephemeral
     "waitlist":       ("created_at", 365),   # pre-signup leads that never converted
     "reports":        ("created_at", 730),   # trust & safety records, kept 2y for disputes
+    "crash_reports":  ("created_at", 90),    # diagnostic data, not core product data
 }
 
 async def _run_retention_cleanup():
