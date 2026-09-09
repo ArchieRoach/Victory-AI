@@ -76,6 +76,13 @@ AI_TOKEN_COSTS = {
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 RESEND_FROM = os.environ.get('RESEND_FROM', 'Victory AI <onboarding@resend.dev>')
 
+# Featurebase (feedback & support) — identity JWT secret, from that workspace's own
+# Settings → Access & Security → Security, per https://help.featurebase.app/articles/5257986.
+# Server-side only, never sent to the browser. Unset means /auth/me just omits
+# featurebaseJwt and the widget runs anonymous, same graceful-degradation pattern as
+# every other optional integration in this file.
+FEATUREBASE_JWT_SECRET = os.environ.get('FEATUREBASE_JWT_SECRET', '')
+
 # Clerk Settings
 CLERK_SECRET_KEY = os.environ.get('CLERK_SECRET_KEY', '')
 CLERK_JWKS_URL = "https://allowing-dragon-5.clerk.accounts.dev/.well-known/jwks.json"
@@ -594,6 +601,20 @@ async def get_me(user: dict = Depends(get_current_user_with_subscription)):
     # load. The win-back campaign's "3+ days quiet" check reads this field, so it has
     # to reflect genuine usage, not a guess.
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"last_active_at": datetime.now(timezone.utc).isoformat()}})
+    if FEATUREBASE_JWT_SECRET:
+        # Short-lived proof of identity for the Featurebase widget — minted fresh on
+        # every /auth/me call rather than cached, so it can't outlive the session it
+        # was issued for by much.
+        user["featurebaseJwt"] = jwt.encode(
+            {
+                "userId": user["user_id"],
+                "email": user.get("email", ""),
+                "name": user.get("display_name") or user.get("name", "Fighter"),
+                "exp": datetime.now(timezone.utc) + timedelta(hours=24),
+            },
+            FEATUREBASE_JWT_SECRET,
+            algorithm="HS256",
+        )
     return user
 
 @api_router.post("/auth/logout")
