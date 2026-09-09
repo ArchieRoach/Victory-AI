@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
         </button>
         <div>
           <h1 className="text-victory-text font-heading font-extrabold text-base leading-tight">Privacy Policy</h1>
-          <p className="text-victory-muted text-xs">Last updated 8 September 2026</p>
+          <p className="text-victory-muted text-xs">Last updated 9 September 2026</p>
         </div>
       </div>
 
@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
 
         <Section title="Who we share it with">
           <p>We use the following processors to run the service. Each only receives the data it needs to perform its function:</p>
-          <p>Clerk (authentication), Stripe (payments), Cloudinary (media storage), Livepeer (live streaming), ElevenLabs (voice/TTS feedback), OpenAI (AI training feedback and content moderation), Resend (transactional email), MongoDB Atlas (database hosting).</p>
+          <p>Clerk (authentication), Stripe (payments), Cloudinary (media storage), Livepeer (live streaming), ElevenLabs (voice/TTS feedback), OpenAI (AI training feedback and content moderation), Resend (transactional email), MongoDB Atlas (database hosting), Featurebase (feedback &amp; support — your name and email, so any feedback, votes, or messages you send there are attributed to your real account rather than showing up anonymous).</p>
           <p>Most of these providers are based in the United States. Transfers rely on the EU-US Data Privacy Framework and/or Standard Contractual Clauses as the transfer safeguard.</p>
           <p>We do not sell your personal data.</p>
         </Section>

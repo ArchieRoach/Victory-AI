@@ -15,12 +15,13 @@ if (storedLang === "ar") {
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
-import { FeaturebaseProvider } from "featurebase-js/react";
+import { FeaturebaseProvider, useFeaturebase } from "featurebase-js/react";
 
-// Phase 1 (anonymous install) — the workspace's General → Manage modules toggles decide
-// server-side which surfaces (messenger/changelog/feedback) actually boot; nothing here
-// forces one on. Identity (featurebaseJwt) is Phase 3, opt-in, not wired yet.
-const FEATUREBASE_APP_ID = "6aa0ef5d9fdd78cfef02790e";
+// The workspace's General → Manage modules toggles decide server-side which surfaces
+// (messenger/changelog/feedback) actually boot; nothing here forces one on.
+// REACT_APP_FEATUREBASE_APP_ID is the real source of truth (set on Vercel) — the literal
+// is only a local-dev fallback so this still works without pulling Vercel's env down.
+const FEATUREBASE_APP_ID = process.env.REACT_APP_FEATUREBASE_APP_ID || "6aa0ef5d9fdd78cfef02790e";
 
 // Pages
 import WelcomePage from "@/pages/WelcomePage";
@@ -364,21 +365,52 @@ const AppRouter = () => {
   );
 };
 
+// Sits inside AuthProvider (so it can read the real user) and wraps FeaturebaseProvider
+// (so identity flows in as a prop) — Phase 3. FeaturebaseProvider stays mounted the whole
+// time regardless of auth state (anonymous visitors on /welcome, /login etc. still get
+// Outbound messages), it just re-identifies when featurebaseJwt changes rather than being
+// unmounted/remounted on login or logout.
+function FeaturebaseRoot({ children }) {
+  const { user } = useAuth();
+  return (
+    <FeaturebaseProvider appId={FEATUREBASE_APP_ID} featurebaseJwt={user?.featurebaseJwt}>
+      <FeaturebaseLogoutSync />
+      {children}
+    </FeaturebaseProvider>
+  );
+}
+
+// Phase 4 — explicit shutdown() on sign-out (not just letting featurebaseJwt go back to
+// undefined), so the messenger/widget identity and unread count are actually torn down
+// rather than just left stale. Reacts to isAuthenticated rather than hooking each logout()
+// call site directly, so it also covers the native-mobile-bridge token-clear path in
+// window.__clearMobileAuthToken, which never calls the context's logout() function at all.
+function FeaturebaseLogoutSync() {
+  const { isAuthenticated } = useAuth();
+  const { shutdown } = useFeaturebase();
+  const wasAuthenticated = useRef(false);
+  useEffect(() => {
+    if (wasAuthenticated.current && !isAuthenticated) shutdown();
+    wasAuthenticated.current = isAuthenticated;
+  }, [isAuthenticated, shutdown]);
+  return null;
+}
+
 function App() {
   return (
-    <FeaturebaseProvider appId={FEATUREBASE_APP_ID}>
-      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-        <div className="App min-h-screen bg-victory-bg">
-          <BrowserRouter>
-            <AuthProvider>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <div className="App min-h-screen bg-victory-bg">
+        <BrowserRouter>
+          <AuthProvider>
+            <FeaturebaseRoot>
               <AppRouter />
               <FeedbackWidget />
               <Toaster position="top-center" toastOptions={{ style: { background: "#12121A", border: "1px solid #2A2A3A", color: "#F0F0F5" } }} />
-            </AuthProvider>
-          </BrowserRouter>
-        </div>
-      </ClerkProvider>
-    </FeaturebaseProvider>
+            </FeaturebaseRoot>
+          </AuthProvider>
+        </BrowserRouter>
+      </div>
+    </ClerkProvider>
   );
 }
 
