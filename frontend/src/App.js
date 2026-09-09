@@ -15,6 +15,12 @@ if (storedLang === "ar") {
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
+import { FeaturebaseProvider } from "featurebase-js/react";
+
+// Phase 1 (anonymous install) — the workspace's General → Manage modules toggles decide
+// server-side which surfaces (messenger/changelog/feedback) actually boot; nothing here
+// forces one on. Identity (featurebaseJwt) is Phase 3, opt-in, not wired yet.
+const FEATUREBASE_APP_ID = "6aa0ef5d9fdd78cfef02790e";
 
 // Pages
 import WelcomePage from "@/pages/WelcomePage";
@@ -360,17 +366,19 @@ const AppRouter = () => {
 
 function App() {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <div className="App min-h-screen bg-victory-bg">
-        <BrowserRouter>
-          <AuthProvider>
-            <AppRouter />
-            <FeedbackWidget />
-            <Toaster position="top-center" toastOptions={{ style: { background: "#12121A", border: "1px solid #2A2A3A", color: "#F0F0F5" } }} />
-          </AuthProvider>
-        </BrowserRouter>
-      </div>
-    </ClerkProvider>
+    <FeaturebaseProvider appId={FEATUREBASE_APP_ID}>
+      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+        <div className="App min-h-screen bg-victory-bg">
+          <BrowserRouter>
+            <AuthProvider>
+              <AppRouter />
+              <FeedbackWidget />
+              <Toaster position="top-center" toastOptions={{ style: { background: "#12121A", border: "1px solid #2A2A3A", color: "#F0F0F5" } }} />
+            </AuthProvider>
+          </BrowserRouter>
+        </div>
+      </ClerkProvider>
+    </FeaturebaseProvider>
   );
 }
 
