@@ -94,7 +94,11 @@
       "partnerReady": "{{name}} جاهز"
     },
     "trialBanner": "تنتهي التجربة خلال <strong>{{days}} يوم{{plural}}</strong> — حافظ على تقدمك.",
-    "upgrade": "ترقية"
+    "upgrade": "ترقية",
+    "restore": "استعادة الشراء",
+    "restoring": "جارٍ التحقق…",
+    "restoreSuccess": "تمت استعادة الاشتراك!",
+    "restoreNotFound": "لم يتم العثور على اشتراك نشط لهذا الحساب."
   },
   "onboarding": {
     "birth_date": {

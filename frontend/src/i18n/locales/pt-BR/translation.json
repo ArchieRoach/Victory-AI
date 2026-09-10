@@ -94,7 +94,11 @@
       "partnerReady": "{{name}} está pronto"
     },
     "trialBanner": "O teste termina em <strong>{{days}} dia{{plural}}</strong> — continue progredindo.",
-    "upgrade": "Fazer upgrade"
+    "upgrade": "Fazer upgrade",
+    "restore": "Restaurar compra",
+    "restoring": "Verificando…",
+    "restoreSuccess": "Assinatura restaurada!",
+    "restoreNotFound": "Nenhuma assinatura ativa encontrada para esta conta."
   },
   "onboarding": {
     "birth_date": {

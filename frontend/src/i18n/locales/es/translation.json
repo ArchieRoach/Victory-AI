@@ -94,7 +94,11 @@
       "partnerReady": "{{name}} está listo"
     },
     "trialBanner": "La prueba termina en <strong>{{days}} día{{plural}}</strong> — sigue adelante.",
-    "upgrade": "Actualizar"
+    "upgrade": "Actualizar",
+    "restore": "Restaurar compra",
+    "restoring": "Comprobando…",
+    "restoreSuccess": "¡Suscripción restaurada!",
+    "restoreNotFound": "No se encontró ninguna suscripción activa para esta cuenta."
   },
   "onboarding": {
     "birth_date": {

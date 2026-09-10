@@ -94,7 +94,11 @@
       "partnerReady": "{{name}}已准备好"
     },
     "trialBanner": "试用期还有 <strong>{{days}} 天{{plural}}</strong> — 保持你的进步。",
-    "upgrade": "升级"
+    "upgrade": "升级",
+    "restore": "恢复购买",
+    "restoring": "正在检查…",
+    "restoreSuccess": "订阅已恢复！",
+    "restoreNotFound": "未找到此账户的有效订阅。"
   },
   "onboarding": {
     "birth_date": {

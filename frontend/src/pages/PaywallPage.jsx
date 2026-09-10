@@ -117,10 +117,11 @@ const PartnerMockup = () => {
 
 export default function PaywallPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useTranslation();
   const [selectedPlan, setSelectedPlan] = useState("annual");
   const [loading, setLoading] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
@@ -136,6 +137,26 @@ export default function PaywallPage() {
     } catch (error) {
       toast.error(t("common.error"));
       setLoading(false);
+    }
+  };
+
+  // For someone who already paid but isn't being recognised — matches their account to a
+  // live Stripe subscription by email and re-syncs it. Read-only against Stripe.
+  const handleRestore = async () => {
+    setRestoring(true);
+    try {
+      const res = await axios.post(`${API}/subscription/restore`, {}, { withCredentials: true });
+      if (res.data.restored) {
+        toast.success(t("paywall.restoreSuccess"));
+        await refreshUser();
+        navigate("/home");
+      } else {
+        toast.error(t("paywall.restoreNotFound"));
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || t("common.error"));
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -368,7 +389,15 @@ export default function PaywallPage() {
           )}
         </button>
 
-        <p className="text-victory-muted text-xs text-center mt-4">{t("paywall.disclaimer")}</p>
+        <button
+          onClick={handleRestore}
+          disabled={restoring}
+          className="w-full touch-target flex items-center justify-center text-victory-muted text-sm mt-4 disabled:opacity-50"
+        >
+          {restoring ? t("paywall.restoring") : t("paywall.restore")}
+        </button>
+
+        <p className="text-victory-muted text-xs text-center mt-3">{t("paywall.disclaimer")}</p>
       </main>
     </div>
   );

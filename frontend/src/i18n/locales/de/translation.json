@@ -94,7 +94,11 @@
       "partnerReady": "{{name}} ist bereit"
     },
     "trialBanner": "Testphase endet in <strong>{{days}} Tag{{plural}}</strong> — behalte deinen Fortschritt.",
-    "upgrade": "Upgraden"
+    "upgrade": "Upgraden",
+    "restore": "Kauf wiederherstellen",
+    "restoring": "Wird geprüft…",
+    "restoreSuccess": "Abo wiederhergestellt!",
+    "restoreNotFound": "Kein aktives Abo für dieses Konto gefunden."
   },
   "onboarding": {
     "birth_date": {

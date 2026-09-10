@@ -94,7 +94,11 @@
       "partnerReady": "{{name}} jest gotowy"
     },
     "trialBanner": "Okres próbny kończy się za <strong>{{days}} dni{{plural}}</strong> — zachowaj swoje postępy.",
-    "upgrade": "Uaktualnij"
+    "upgrade": "Uaktualnij",
+    "restore": "Przywróć zakup",
+    "restoring": "Sprawdzanie…",
+    "restoreSuccess": "Subskrypcja przywrócona!",
+    "restoreNotFound": "Nie znaleziono aktywnej subskrypcji dla tego konta."
   },
   "onboarding": {
     "birth_date": {
