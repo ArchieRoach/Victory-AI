@@ -545,7 +545,22 @@
     "tab_browse": "浏览",
     "tab_leaderboard": "排行榜",
     "publicGymDescOn": "会出现在浏览页中——任何人都能找到并加入",
-    "publicGymDescOff": "不会出现在浏览页中——仅可通过邀请码加入"
+    "publicGymDescOff": "不会出现在浏览页中——仅可通过邀请码加入",
+    "cityLabel": "城市",
+    "cityPlaceholder": "例如：上海",
+    "cityHint": "仅用于显示你所在城市的健身房——绝不会展示给其他用户。",
+    "gymCityHint": "显示在健身房上，方便同城的人找到它。",
+    "memberCapLabel": "成员上限",
+    "memberCapHint": "可加入的最大人数（5–1000）。之后可以修改。",
+    "nearYou": "{{city}}的健身房",
+    "otherGyms": "各地热门健身房",
+    "setCityPrompt": "添加你的城市以查找附近的健身房",
+    "noLocalGyms": "你所在的城市还没有健身房——创建一个，或加入下方的热门健身房。",
+    "full": "已满",
+    "spotsLeft": "还剩 {{count}} 个名额",
+    "oneSpotLeft": "还剩 1 个名额",
+    "gymFullNotice": "该健身房目前已满。",
+    "leaveCurrentFirst": "退出当前健身房才能加入其他健身房。"
   },
   "gym": {
     "avgScore": "平均分",

@@ -545,7 +545,22 @@
     "tab_browse": "Parcourir",
     "tab_leaderboard": "Classement",
     "publicGymDescOn": "Visible dans Explorer — tout le monde peut le trouver et le rejoindre",
-    "publicGymDescOff": "Masqué dans Explorer — rejoignable uniquement par code d'invitation"
+    "publicGymDescOff": "Masqué dans Explorer — rejoignable uniquement par code d'invitation",
+    "cityLabel": "Ville",
+    "cityPlaceholder": "ex. Paris",
+    "cityHint": "Sert uniquement à afficher les salles de ta ville — jamais visible par les autres.",
+    "gymCityHint": "Affiché sur la salle pour qu'on la trouve dans sa ville.",
+    "memberCapLabel": "Limite de membres",
+    "memberCapHint": "Nombre maximum de membres (5–1000). Modifiable plus tard.",
+    "nearYou": "Salles à {{city}}",
+    "otherGyms": "Meilleures salles partout",
+    "setCityPrompt": "Ajoute ta ville pour trouver des salles près de chez toi",
+    "noLocalGyms": "Aucune salle dans ta ville pour l'instant — crées-en une ou rejoins une salle populaire ci-dessous.",
+    "full": "Complet",
+    "spotsLeft": "{{count}} places restantes",
+    "oneSpotLeft": "1 place restante",
+    "gymFullNotice": "Cette salle est complète pour le moment.",
+    "leaveCurrentFirst": "Quitte ta salle actuelle pour en rejoindre une autre."
   },
   "gym": {
     "avgScore": "Score moyen",

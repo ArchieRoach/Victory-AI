@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
         </button>
         <div>
           <h1 className="text-victory-text font-heading font-extrabold text-base leading-tight">Privacy Policy</h1>
-          <p className="text-victory-muted text-xs">Last updated 9 September 2026</p>
+          <p className="text-victory-muted text-xs">Last updated 10 September 2026</p>
         </div>
       </div>
 
@@ -41,6 +41,7 @@ export default function PrivacyPolicyPage() {
           <p><strong className="text-victory-text">Payment data:</strong> handled directly by Stripe — we never see or store your card details.</p>
           <p><strong className="text-victory-text">Device data:</strong> push-notification tokens and basic technical/log data (IP address, request metadata) for security and abuse prevention. We also record when you last opened the app, used only to time reminder notifications (see below) and never shown to other users.</p>
           <p><strong className="text-victory-text">Crash reports:</strong> if the app crashes, we automatically receive the error message, a technical stack trace, and the page you were on, so we can fix it — kept for 90 days, deleted automatically after.</p>
+          <p><strong className="text-victory-text">City (optional):</strong> if you add your city in Profile settings, it's used only to show you gyms in the same city. It's a city name you type yourself — we never request device location or store precise coordinates — and it's never shown to other users.</p>
           <p><strong className="text-victory-text">Contact sync (optional):</strong> if you use "Find friends from your contacts", your device's contact picker lets you choose which contacts to check — we only ever receive an irreversible SHA-256 hash of each selected email, never the real email address, name, or any other contact detail. Non-matching hashes are discarded immediately and never stored.</p>
         </Section>
 

@@ -545,7 +545,22 @@
     "tab_browse": "ブラウズ",
     "tab_leaderboard": "ランキング",
     "publicGymDescOn": "「探す」に表示——誰でも見つけて参加できます",
-    "publicGymDescOff": "「探す」に非表示——招待コードでのみ参加可能"
+    "publicGymDescOff": "「探す」に非表示——招待コードでのみ参加可能",
+    "cityLabel": "都市",
+    "cityPlaceholder": "例: 東京",
+    "cityHint": "あなたの都市のジムを表示するためだけに使われます。他のユーザーには表示されません。",
+    "gymCityHint": "ジムに表示され、同じ都市の人が見つけやすくなります。",
+    "memberCapLabel": "メンバー上限",
+    "memberCapHint": "参加できる人数の上限（5〜1000）。後から変更できます。",
+    "nearYou": "{{city}}のジム",
+    "otherGyms": "各地のトップジム",
+    "setCityPrompt": "都市を追加して近くのジムを探そう",
+    "noLocalGyms": "あなたの都市にはまだジムがありません。作成するか、下のトップジムに参加しましょう。",
+    "full": "満員",
+    "spotsLeft": "残り{{count}}枠",
+    "oneSpotLeft": "残り1枠",
+    "gymFullNotice": "このジムは現在満員です。",
+    "leaveCurrentFirst": "別のジムに参加するには、現在のジムを脱退してください。"
   },
   "gym": {
     "avgScore": "平均スコア",

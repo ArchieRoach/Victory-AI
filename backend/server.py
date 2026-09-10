@@ -2071,6 +2071,7 @@ _AVATAR_PREFIXES = (
 class UserProfileExtend(BaseModel):
     bio: Optional[str] = Field(None, max_length=500)
     school_name: Optional[str] = Field(None, max_length=100)
+    city: Optional[str] = Field(None, max_length=100)   # self-reported locality — drives "gyms near you"
     weight_class: Optional[str] = Field(None, max_length=50)
     stance: Optional[str] = Field(None, max_length=20)
     amateur_wins: Optional[int] = None
@@ -2085,11 +2086,24 @@ class UserProfileExtend(BaseModel):
     display_name: Optional[str] = Field(None, max_length=60)
     weight_unit: Optional[Literal["kg", "lbs"]] = None
 
+GYM_DEFAULT_CAP = 50
+GYM_MIN_CAP = 5
+GYM_MAX_CAP = 1000
+
 class GymCreate(BaseModel):
     name: str
     description: Optional[str] = ""
     style: Optional[str] = "mixed"
     is_public: bool = True
+    city: Optional[str] = Field(None, max_length=100)   # self-reported, defines the gym's locality
+    member_cap: Optional[int] = None                    # owner-set, clamped to [GYM_MIN_CAP, GYM_MAX_CAP]
+
+def _gym_capacity(gym: dict) -> dict:
+    """Computed capacity fields for any gym doc — old gyms with no member_cap fall back
+    to the default rather than needing a migration."""
+    cap = gym.get("member_cap") or GYM_DEFAULT_CAP
+    count = gym.get("member_count", len(gym.get("members", [])))
+    return {"member_cap": cap, "spots_left": max(0, cap - count), "is_full": count >= cap}
 
 class PostCreate(BaseModel):
     video_url: Optional[str] = None
@@ -2272,7 +2286,7 @@ async def _recalculate_gym_stats(gym_id: str):
 
 @api_router.put("/users/profile")
 async def update_extended_profile(data: UserProfileExtend, user: dict = Depends(get_current_user)):
-    for field in ("display_name", "bio", "weight_class", "stance", "school_name"):
+    for field in ("display_name", "bio", "weight_class", "stance", "school_name", "city"):
         value = getattr(data, field)
         if value and await is_content_flagged(value):
             raise HTTPException(400, f"{field.replace('_', ' ').title()} violates community guidelines")
@@ -2282,11 +2296,12 @@ async def update_extended_profile(data: UserProfileExtend, user: dict = Depends(
     if update:
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0})
-    # school_name is intentionally excluded from safe_user() (never shown on another
-    # user's public profile — see /schools/leaderboard for why) but the owner still
-    # needs to see their own value back immediately after saving it.
+    # school_name and city are intentionally excluded from safe_user() (never shown on
+    # another user's public profile) but the owner still needs to see their own values
+    # back immediately after saving.
     result = safe_user(updated)
     result["school_name"] = updated.get("school_name")
+    result["city"] = updated.get("city")
     return result
 
 
@@ -2816,6 +2831,11 @@ async def create_gym(gym_data: GymCreate, user: dict = Depends(get_current_user)
         raise HTTPException(status_code=400, detail="Leave your current gym before creating a new one")
     if await is_content_flagged(gym_data.name) or await is_content_flagged(gym_data.description):
         raise HTTPException(status_code=400, detail="Gym content violates community guidelines")
+    city = (gym_data.city or "").strip()
+    if city and await is_content_flagged(city):
+        raise HTTPException(status_code=400, detail="Gym content violates community guidelines")
+    cap = gym_data.member_cap if gym_data.member_cap is not None else GYM_DEFAULT_CAP
+    cap = max(GYM_MIN_CAP, min(GYM_MAX_CAP, cap))
     gym_id = f"gym_{uuid.uuid4().hex[:12]}"
     invite_code = uuid.uuid4().hex[:8].upper()
     gym_doc = {
@@ -2823,6 +2843,8 @@ async def create_gym(gym_data: GymCreate, user: dict = Depends(get_current_user)
         "name": gym_data.name,
         "description": gym_data.description,
         "style": gym_data.style,
+        "city": city or None,
+        "member_cap": cap,
         "owner_id": user["user_id"],
         "members": [user["user_id"]],
         "is_public": gym_data.is_public,
@@ -2855,6 +2877,7 @@ async def get_my_gym(user: dict = Depends(get_current_user)):
             weekly_sessions = len({s["date"] for s in sessions if s.get("date", "") >= week_cutoff})
             members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions), "weekly_sessions": weekly_sessions})
     gym["members_detail"] = sorted(members, key=lambda m: m.get("avg_score", 0), reverse=True)
+    gym.update(_gym_capacity(gym))
     return gym
 
 @api_router.get("/schools/leaderboard")
@@ -2899,10 +2922,12 @@ async def get_gym_leaderboard(user: dict = Depends(get_current_user)):
             "gym_id": g["gym_id"],
             "name": g["name"],
             "style": g.get("style"),
+            "city": g.get("city"),
             "avg_score": g.get("avg_score", 0),
             "member_count": g.get("member_count", 0),
             "total_sessions": g.get("total_sessions", 0),
             "is_my_gym": g["gym_id"] == user.get("gym_id"),
+            **_gym_capacity(g),
         }
         for g in gyms
     ]
@@ -2926,6 +2951,7 @@ async def get_gym(gym_id: str, user: dict = Depends(get_current_user)):
     gym["members_detail"] = sorted(members, key=lambda m: m.get("avg_score", 0), reverse=True)
     gym["is_member"] = user["user_id"] in gym.get("members", [])
     gym["is_owner"] = gym["owner_id"] == user["user_id"]
+    gym.update(_gym_capacity(gym))
     posts = await db.posts.find({"gym_id": gym_id}, {"_id": 0}).sort("created_at", -1).to_list(10)
     for p in posts:
         poster = await db.users.find_one({"user_id": p["user_id"]}, {"_id": 0, "password": 0})
@@ -2934,9 +2960,26 @@ async def get_gym(gym_id: str, user: dict = Depends(get_current_user)):
     return gym
 
 @api_router.get("/gyms")
-async def browse_gyms(user: dict = Depends(get_current_user)):
-    gyms = await db.gyms.find({"is_public": True}, {"_id": 0}).sort("avg_score", -1).to_list(50)
-    return [{**g, "is_member": user["user_id"] in g.get("members", [])} for g in gyms]
+async def browse_gyms(user: dict = Depends(get_current_user), city: str = Query("")):
+    query: dict = {"is_public": True}
+    if city.strip():
+        # Self-reported free text, so case-insensitive exact match on the trimmed string —
+        # good enough for "London" == "london"; not trying to unify "NYC"/"New York".
+        query["city"] = {"$regex": f"^{re.escape(city.strip())}$", "$options": "i"}
+    # ponytail: capped at 50, sorted by reputation — fine now; if gym count outgrows that,
+    # this needs real pagination and the city filter needs to move fully server-side.
+    gyms = await db.gyms.find(query, {"_id": 0}).sort("avg_score", -1).to_list(50)
+    return [
+        {**g, "is_member": user["user_id"] in g.get("members", []), **_gym_capacity(g)}
+        for g in gyms
+    ]
+
+# Atomic "add me only if there's still room" — the $expr in the filter means two people
+# racing for the last spot can't both win.
+_GYM_HAS_ROOM = {"$expr": {"$lt": [
+    {"$size": {"$ifNull": ["$members", []]}},
+    {"$ifNull": ["$member_cap", GYM_DEFAULT_CAP]},
+]}}
 
 @api_router.post("/gyms/{gym_id}/join")
 async def join_gym(gym_id: str, user: dict = Depends(get_current_user)):
@@ -2947,11 +2990,18 @@ async def join_gym(gym_id: str, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=400, detail="Already a member")
     if user.get("gym_id"):
         raise HTTPException(status_code=400, detail="Leave your current gym first")
+    if _gym_capacity(gym)["is_full"]:
+        raise HTTPException(status_code=400, detail="This gym is full")
     joined = await db.gyms.update_one(
-        {"gym_id": gym_id, "members": {"$ne": user["user_id"]}},
+        {"gym_id": gym_id, "members": {"$ne": user["user_id"]}, **_GYM_HAS_ROOM},
         {"$addToSet": {"members": user["user_id"]}, "$inc": {"member_count": 1}}
     )
     if joined.modified_count == 0:
+        # Lost the race for the last spot (or a concurrent join). Re-check to give the
+        # right message rather than a misleading "already a member".
+        fresh = await db.gyms.find_one({"gym_id": gym_id})
+        if fresh and _gym_capacity(fresh)["is_full"]:
+            raise HTTPException(status_code=400, detail="This gym is full")
         raise HTTPException(status_code=400, detail="Already a member")
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
     await _recalculate_gym_stats(gym_id)
@@ -3002,12 +3052,17 @@ async def join_gym_by_code(request: Request, user: dict = Depends(get_current_us
         raise HTTPException(status_code=400, detail="Already a member")
     if user.get("gym_id"):
         raise HTTPException(status_code=400, detail="Leave your current gym first")
+    if _gym_capacity(gym)["is_full"]:
+        raise HTTPException(status_code=400, detail="This gym is full")
     gym_id = gym["gym_id"]
     joined = await db.gyms.update_one(
-        {"gym_id": gym_id, "members": {"$ne": user["user_id"]}},
+        {"gym_id": gym_id, "members": {"$ne": user["user_id"]}, **_GYM_HAS_ROOM},
         {"$addToSet": {"members": user["user_id"]}, "$inc": {"member_count": 1}}
     )
     if joined.modified_count == 0:
+        fresh = await db.gyms.find_one({"gym_id": gym_id})
+        if fresh and _gym_capacity(fresh)["is_full"]:
+            raise HTTPException(status_code=400, detail="This gym is full")
         raise HTTPException(status_code=400, detail="Already a member")
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
     await _recalculate_gym_stats(gym_id)

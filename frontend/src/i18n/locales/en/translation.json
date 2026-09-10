@@ -531,7 +531,22 @@
     "tab_browse": "Browse",
     "tab_leaderboard": "Leaderboard",
     "publicGymDescOn": "Listed in Browse — anyone can find and join",
-    "publicGymDescOff": "Hidden from Browse — joinable by invite code only"
+    "publicGymDescOff": "Hidden from Browse — joinable by invite code only",
+    "cityLabel": "City",
+    "cityPlaceholder": "e.g. London",
+    "cityHint": "Only used to show gyms in your city — never shown to other users.",
+    "gymCityHint": "Shown on the gym so people can find it in their city.",
+    "memberCapLabel": "Member limit",
+    "memberCapHint": "Most people who can join (5–1000). You can change it later.",
+    "nearYou": "Gyms in {{city}}",
+    "otherGyms": "Top gyms everywhere",
+    "setCityPrompt": "Add your city to find gyms near you",
+    "noLocalGyms": "No gyms in your city yet — start one, or join a top gym below.",
+    "full": "Full",
+    "spotsLeft": "{{count}} spots left",
+    "oneSpotLeft": "1 spot left",
+    "gymFullNotice": "This gym is full right now.",
+    "leaveCurrentFirst": "Leave your current gym to join another."
   },
   "gym": {
     "avgScore": "Avg Score",
