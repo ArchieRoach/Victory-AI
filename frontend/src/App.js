@@ -16,6 +16,13 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
 import { FeaturebaseProvider, useFeaturebase } from "featurebase-js/react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { installGlobalCrashReporting } from "@/utils/crashReporter";
+
+// Catches crashes outside React's render cycle (event handlers, timers, async code) —
+// ErrorBoundary below only sees render-time errors. Installed once at module load, same
+// timing as the RTL-direction setup above.
+installGlobalCrashReporting();
 
 // The workspace's General → Manage modules toggles decide server-side which surfaces
 // (messenger/changelog/feedback) actually boot; nothing here forces one on.
@@ -398,19 +405,24 @@ function FeaturebaseLogoutSync() {
 
 function App() {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <div className="App min-h-screen bg-victory-bg">
-        <BrowserRouter>
-          <AuthProvider>
-            <FeaturebaseRoot>
-              <AppRouter />
-              <FeedbackWidget />
-              <Toaster position="top-center" toastOptions={{ style: { background: "#12121A", border: "1px solid #2A2A3A", color: "#F0F0F5" } }} />
-            </FeaturebaseRoot>
-          </AuthProvider>
-        </BrowserRouter>
-      </div>
-    </ClerkProvider>
+    // Outermost on purpose — catches a crash even in ClerkProvider's own first render
+    // (this app has hit exactly that locally: a missing key throws from inside
+    // ClerkProviderBase before anything else mounts).
+    <ErrorBoundary>
+      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+        <div className="App min-h-screen bg-victory-bg">
+          <BrowserRouter>
+            <AuthProvider>
+              <FeaturebaseRoot>
+                <AppRouter />
+                <FeedbackWidget />
+                <Toaster position="top-center" toastOptions={{ style: { background: "#12121A", border: "1px solid #2A2A3A", color: "#F0F0F5" } }} />
+              </FeaturebaseRoot>
+            </AuthProvider>
+          </BrowserRouter>
+        </div>
+      </ClerkProvider>
+    </ErrorBoundary>
   );
 }
 
