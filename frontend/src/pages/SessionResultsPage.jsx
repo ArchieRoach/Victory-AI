@@ -9,13 +9,17 @@ import { BeltCelebration } from "@/components/BeltCelebration";
 import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame, Swords, Shield, Footprints, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { usePalette } from "@/hooks/useSystemTheme";
+import { dark as SHARE_CARD } from "@/theme/palette";
 
 // Real grouping already used server-side (see /dimensions) — reused here so the
 // scorecard's categories match the rest of the app, not an invented split.
+// `tone` indexes the active palette (usePalette) for on-screen UI; the shared
+// PNG scorecard is always rendered in the dark brand palette (SHARE_CARD).
 const CATEGORY_GROUPS = [
-  { key: "Offensive", label: "Offense",  icon: Swords,     color: "#E8FF47", dims: ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow", "Punch Balance", "Punch Accuracy"] },
-  { key: "Defensive", label: "Defense",  icon: Shield,     color: "#47E8C8", dims: ["Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement"] },
-  { key: "Movement",  label: "Movement", icon: Footprints, color: "#FF6B35", dims: ["Footwork", "Ring Generalship"] },
+  { key: "Offensive", label: "Offense",  icon: Swords,     tone: "lime",   dims: ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow", "Punch Balance", "Punch Accuracy"] },
+  { key: "Defensive", label: "Defense",  icon: Shield,     tone: "teal",   dims: ["Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement"] },
+  { key: "Movement",  label: "Movement", icon: Footprints, tone: "orange", dims: ["Footwork", "Ring Generalship"] },
 ];
 
 const POSITIVE_HIGHLIGHTS = {
@@ -48,6 +52,7 @@ export default function SessionResultsPage() {
   const location = useLocation();
   const { sessionId: routeSessionId } = useParams();
   const { t } = useTranslation();
+  const p = usePalette();
   const [sessions, setSessions] = useState([]);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -221,7 +226,8 @@ export default function SessionResultsPage() {
       // on-screen results page, not sixteen tiny unreadable spokes.
       const ringR = 62;
       const centers = [150, 300, 450];
-      CATEGORY_GROUPS.forEach(({ label, color, dims }, i) => {
+      CATEGORY_GROUPS.forEach(({ label, tone, dims }, i) => {
+        const color = SHARE_CARD[tone];
         const avg = getCategoryAverage(dims) || 0;
         const rcx = centers[i], rcy = 320;
 
@@ -346,10 +352,10 @@ export default function SessionResultsPage() {
         <section className="text-center py-2">
           <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
             <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 128 128">
-              <circle cx="64" cy="64" r="56" fill="none" stroke="rgba(232,255,71,0.08)" strokeWidth="6"/>
+              <circle cx="64" cy="64" r="56" fill="none" className="stroke-victory-lime/10" strokeWidth="6"/>
               <circle
                 cx="64" cy="64" r="56"
-                fill="none" stroke="#E8FF47" strokeWidth="6"
+                fill="none" className="stroke-victory-lime" strokeWidth="6"
                 strokeLinecap="round"
                 strokeDasharray={`${(session.overall_score / 10) * 351.86} 351.86`}
               />
@@ -389,14 +395,15 @@ export default function SessionResultsPage() {
         {/* Category scores — three real, meaningful numbers beat sixteen tiny
             radar-chart spokes nobody can actually read on a phone. */}
         <section className="grid grid-cols-3 gap-3" data-testid="results-categories">
-          {CATEGORY_GROUPS.map(({ key, label, icon: Icon, color, dims }) => {
+          {CATEGORY_GROUPS.map(({ key, label, icon: Icon, tone, dims }) => {
             const avg = getCategoryAverage(dims);
+            const color = p[tone];
             const circumference = 2 * Math.PI * 28;
             return (
               <div key={key} className="victory-card p-3 flex flex-col items-center text-center">
                 <div className="relative w-16 h-16 mb-2">
                   <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 64 64">
-                    <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5" />
+                    <circle cx="32" cy="32" r="28" fill="none" className="stroke-victory-border" strokeWidth="5" />
                     <circle
                       cx="32" cy="32" r="28" fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
                       strokeDasharray={`${((avg || 0) / 10) * circumference} ${circumference}`}

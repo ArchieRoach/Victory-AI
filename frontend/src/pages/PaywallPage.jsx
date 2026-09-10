@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { Check, Zap, Trophy, Target, Shield, Star, ArrowLeft } from "lucide-react";
+import { Check, Zap, Trophy, Target, Shield, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const MOCK_DIMENSIONS = [
@@ -15,114 +15,69 @@ const MOCK_DIMENSIONS = [
   { name: "Combos", value: 7 },
 ];
 
-const PhoneMockup = ({ title, children }) => (
-  <div className="flex-shrink-0 w-36 snap-center">
-    <div
-      className="bg-victory-card border border-victory-border rounded-2xl overflow-hidden flex flex-col"
-      style={{ aspectRatio: "9/19.5" }}
-    >
-      <div className="bg-black/30 h-5 flex items-center justify-center flex-shrink-0">
-        <div className="w-10 h-1 bg-victory-border rounded-full" />
-      </div>
-      <div className="flex-1 overflow-hidden p-2">{children}</div>
-    </div>
-    <p className="text-victory-muted text-xs text-center mt-2">{title}</p>
+// A small honest preview of the real post-session radar — same 6-of-16 dimensions
+// shape the app actually renders.
+const ScorePreview = () => {
+  const { t } = useTranslation();
+  const cx = 60, cy = 60, r = 44;
+  return (
+    <svg viewBox="0 0 120 132" className="w-44 h-auto mx-auto">
+      {[0.33, 0.66, 1].map((s, i) => (
+        <polygon
+          key={i}
+          points={MOCK_DIMENSIONS.map((_, idx) => {
+            const a = (idx * 60 - 90) * (Math.PI / 180);
+            return `${cx + r * s * Math.cos(a)},${cy + r * s * Math.sin(a)}`;
+          }).join(" ")}
+          fill="none" className="stroke-victory-border" strokeWidth="0.8"
+        />
+      ))}
+      <polygon
+        points={MOCK_DIMENSIONS.map((d, idx) => {
+          const a = (idx * 60 - 90) * (Math.PI / 180);
+          const pr = (d.value / 10) * r;
+          return `${cx + pr * Math.cos(a)},${cy + pr * Math.sin(a)}`;
+        }).join(" ")}
+        className="fill-victory-lime stroke-victory-lime" fillOpacity="0.3" strokeWidth="1.5"
+      />
+      <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" className="fill-victory-lime" fontSize="11" fontWeight="bold">7.0</text>
+      {MOCK_DIMENSIONS.map((d, idx) => {
+        const a = (idx * 60 - 90) * (Math.PI / 180);
+        return (
+          <text key={d.name} x={cx + (r + 9) * Math.cos(a)} y={cy + (r + 9) * Math.sin(a)}
+            textAnchor="middle" dominantBaseline="middle" className="fill-victory-muted" fontSize="5.5">
+            {d.name}
+          </text>
+        );
+      })}
+      <text x="60" y="126" textAnchor="middle" className="fill-victory-muted" fontSize="5.5">
+        {t("paywall.mockups.radarTitle")}
+      </text>
+    </svg>
+  );
+};
+
+const StepDots = ({ step }) => (
+  <div className="flex items-center gap-1.5" aria-hidden="true">
+    {[1, 2, 3].map((n) => (
+      <span
+        key={n}
+        className={`h-1.5 rounded-full transition-all ${
+          n === step ? "w-6 bg-victory-lime" : n < step ? "w-1.5 bg-victory-lime" : "w-1.5 bg-victory-border"
+        }`}
+      />
+    ))}
   </div>
 );
-
-const RadarMockup = () => {
-  const { t } = useTranslation();
-  const cx = 60, cy = 60, r = 48;
-  return (
-    <div className="flex flex-col h-full">
-      <p className="text-victory-lime text-xs font-bold mb-1">{t("paywall.mockups.radarTitle")}</p>
-      <svg viewBox="0 0 120 130" className="w-full flex-1">
-        {[0.33, 0.66, 1].map((s, i) => (
-          <polygon
-            key={i}
-            points={MOCK_DIMENSIONS.map((_, idx) => {
-              const a = (idx * 60 - 90) * (Math.PI / 180);
-              return `${cx + r * s * Math.cos(a)},${cy + r * s * Math.sin(a)}`;
-            }).join(" ")}
-            fill="none" stroke="#2A2A3A" strokeWidth="0.8"
-          />
-        ))}
-        <polygon
-          points={MOCK_DIMENSIONS.map((d, idx) => {
-            const a = (idx * 60 - 90) * (Math.PI / 180);
-            const pr = (d.value / 10) * r;
-            return `${cx + pr * Math.cos(a)},${cy + pr * Math.sin(a)}`;
-          }).join(" ")}
-          fill="#E8FF47" fillOpacity="0.3" stroke="#E8FF47" strokeWidth="1.5"
-        />
-        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill="#E8FF47" fontSize="10" fontWeight="bold">7.0</text>
-        {MOCK_DIMENSIONS.map((d, idx) => {
-          const a = (idx * 60 - 90) * (Math.PI / 180);
-          return (
-            <text key={d.name} x={cx + (r + 8) * Math.cos(a)} y={cy + (r + 8) * Math.sin(a)}
-              textAnchor="middle" dominantBaseline="middle" fill="#8888A0" fontSize="5">
-              {d.name}
-            </text>
-          );
-        })}
-        <text x="60" y="118" textAnchor="middle" fill="#8888A0" fontSize="5">6 dimensions scored</text>
-      </svg>
-    </div>
-  );
-};
-
-const DrillsMockup = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="flex flex-col gap-1 h-full">
-      <p className="text-victory-lime text-xs font-bold mb-1">{t("paywall.mockups.drillsTitle")}</p>
-      {[
-        { name: "Jab extension", level: "3 × 2 min" },
-        { name: "Head movement", level: "4 × 90 sec" },
-        { name: "Footwork ladder", level: "5 × 1 min" },
-      ].map((drill) => (
-        <div key={drill.name} className="bg-victory-bg/60 rounded p-1.5">
-          <p className="text-victory-text text-[7px] font-semibold leading-tight">{drill.name}</p>
-          <p className="text-victory-muted text-[6px]">{drill.level}</p>
-        </div>
-      ))}
-      <div className="mt-auto">
-        <div className="bg-victory-lime/20 rounded p-1 text-center">
-          <p className="text-victory-lime text-[6px] font-bold">🔥 {t("paywall.mockups.streak", { days: 3 })}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const PartnerMockup = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-2">
-      <div className="w-10 h-10 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold text-sm">
-        R
-      </div>
-      <p className="text-victory-lime text-[8px] font-bold text-center">{t("paywall.mockups.partnerReady", { name: "Rocky" })}</p>
-      <div className="bg-victory-bg/60 rounded p-1.5 w-full">
-        <p className="text-victory-muted text-[6px] italic text-center">"Your jab needs more snap. Let's fix that today."</p>
-      </div>
-      <div className="flex gap-1">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} className="w-2 h-2 fill-victory-lime text-victory-lime" />
-        ))}
-      </div>
-    </div>
-  );
-};
 
 export default function PaywallPage() {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
   const { t } = useTranslation();
+  const [step, setStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState("annual");
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
   const handleStartTrial = async () => {
@@ -140,8 +95,8 @@ export default function PaywallPage() {
     }
   };
 
-  // For someone who already paid but isn't being recognised — matches their account to a
-  // live Stripe subscription by email and re-syncs it. Read-only against Stripe.
+  // For someone who already paid but isn't being recognised — matches their account
+  // to a live Stripe subscription by email and re-syncs it. Read-only against Stripe.
   const handleRestore = async () => {
     setRestoring(true);
     try {
@@ -160,244 +115,214 @@ export default function PaywallPage() {
     }
   };
 
-  const features = [
-    { icon: Target, text: t("paywall.features.unlimitedTraining") },
-    { icon: Zap, text: t("paywall.features.aiFeedback") },
-    { icon: Trophy, text: t("paywall.features.progressTracking") },
-    { icon: Shield, text: t("paywall.features.drillRecommendations") },
+  const back = () => (step === 1 ? navigate(-1) : setStep((s) => s - 1));
+
+  // ── Page 1 — communicate value (≤7 chunks: partner + preview + 4 points) ──
+  const valuePoints = [
+    { icon: Target, text: t("paywall.valuePoints.scores") },
+    { icon: Zap, text: t("paywall.valuePoints.weakness") },
+    { icon: Trophy, text: t("paywall.valuePoints.drills") },
+    { icon: Shield, text: t("paywall.valuePoints.partner") },
   ];
 
-  const proOnlyFeatures = [
-    t("paywall.features.unlimitedAi"),
-    t("paywall.features.adFree"),
-  ];
+  // ── Page 2 — address concerns (5 Q&A) ──
+  const concerns = ["free", "cancel", "works", "secure", "forever"].map((k) => ({
+    q: t(`paywall.concernsList.${k}Q`),
+    a: t(`paywall.concernsList.${k}A`),
+  }));
 
-  const freeFeatures = [
-    t("paywall.freePlan.features.timer"),
-    t("paywall.freePlan.features.streaming"),
-    t("paywall.freePlan.features.feed"),
-    t("paywall.freePlan.features.leaderboard"),
-    t("paywall.freePlan.features.profile"),
-    t("paywall.freePlan.features.aiCredits"),
-  ];
+  const proAdds = [t("paywall.features.unlimitedAi"), t("paywall.features.adFree")];
 
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col" data-testid="paywall-page">
-      <header className="p-6 text-center relative">
+      <header className="p-4 flex items-center gap-3 sticky top-0 bg-victory-bg/95 backdrop-blur-sm z-10">
         <button
-          onClick={() => navigate(-1)}
-          className="absolute left-4 top-6 w-10 h-10 flex items-center justify-center rounded-full bg-victory-card border border-victory-border text-victory-muted hover:text-victory-text transition-colors touch-target"
-          aria-label="Go back"
+          onClick={back}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-victory-card border border-victory-border text-victory-muted hover:text-victory-text transition-colors touch-target"
+          aria-label={t("paywall.back")}
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <img src="/victory-logo.png" alt="Victory AI" className="w-48 h-48 mx-auto mb-4 object-contain" />
-        <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-victory-text mb-2">
-          {t("paywall.headline")}
-        </h1>
-        <p className="text-victory-muted">{t("paywall.subheadline")}</p>
+        <div className="flex-1">
+          <StepDots step={step} />
+          <p className="text-victory-muted text-xs mt-1.5">
+            {t("paywall.stepOf", { n: step })} · {t(`paywall.steps.${["value", "concerns", "payment"][step - 1]}`)}
+          </p>
+        </div>
       </header>
 
-      <main className="flex-1 p-6 flex flex-col">
-        {/* Training Partner Preview */}
-        {user?.training_partner && (
-          <div className="victory-card p-4 mb-6 flex items-center gap-4">
-            {user.training_partner.avatar_url && !avatarError ? (
-              <img
-                src={user.training_partner.avatar_url}
-                alt={user.training_partner.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-victory-lime"
-                onError={() => setAvatarError(true)}
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold">
-                {user.training_partner.name?.[0] || "T"}
+      <main className="flex-1 px-6 pb-8 flex flex-col max-w-lg w-full mx-auto">
+
+        {step === 1 && (
+          <div className="flex flex-col animate-fade-in">
+            <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-victory-text mt-2 mb-2">
+              {t("paywall.valueHeadline")}
+            </h1>
+            <p className="text-victory-muted mb-6">{t("paywall.valueSubheadline")}</p>
+
+            {user?.training_partner && (
+              <div className="victory-card p-4 mb-5 flex items-center gap-4">
+                {user.training_partner.avatar_url && !avatarError ? (
+                  <img
+                    src={user.training_partner.avatar_url}
+                    alt={user.training_partner.name}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-victory-lime"
+                    onError={() => setAvatarError(true)}
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-victory-lime flex items-center justify-center text-victory-bg font-bold">
+                    {user.training_partner.name?.[0] || "T"}
+                  </div>
+                )}
+                <div>
+                  <p className="text-victory-lime font-semibold">
+                    {user.training_partner.name} {t("paywall.partnerReady")}
+                  </p>
+                  <p className="text-victory-muted text-sm">
+                    {t("paywall.partnerAwaits", { style: user.training_partner.style_name?.toLowerCase() || "training partner" })}
+                  </p>
+                </div>
               </div>
             )}
-            <div>
-              <p className="text-victory-lime font-semibold">
-                {user.training_partner.name} {t("paywall.partnerReady")}
-              </p>
-              <p className="text-victory-muted text-sm">
-                {t("paywall.partnerAwaits", { style: user.training_partner.style_name?.toLowerCase() || "training partner" })}
-              </p>
+
+            <div className="victory-card p-4 mb-6">
+              <ScorePreview />
             </div>
-          </div>
-        )}
 
-        {/* App Preview Mockups */}
-        <div className="mb-6">
-          <p className="text-victory-muted text-xs text-center mb-3 uppercase tracking-wide font-semibold">
-            {t("paywall.whatsInside")}
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory px-1">
-            <PhoneMockup title={t("paywall.mockups.radar")}>
-              <RadarMockup />
-            </PhoneMockup>
-            <PhoneMockup title={t("paywall.mockups.drills")}>
-              <DrillsMockup />
-            </PhoneMockup>
-            <PhoneMockup title={t("paywall.mockups.partner")}>
-              <PartnerMockup />
-            </PhoneMockup>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="space-y-3 mb-6">
-          {features.map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-victory-lime/20 flex items-center justify-center">
-                <Icon className="w-4 h-4 text-victory-lime" />
-              </div>
-              <span className="text-victory-text">{text}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Free Plan */}
-        <div className="victory-card p-4 mb-3 border border-victory-border">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h3 className="font-semibold text-victory-text">{t("paywall.freePlan.title")}</h3>
-              <p className="text-victory-muted text-sm">{t("paywall.freePlan.subtitle")}</p>
-            </div>
-            <p className="text-2xl font-heading font-bold text-victory-text">{t("paywall.freePlan.price")}</p>
-          </div>
-          <div className="space-y-1.5 mb-4">
-            {freeFeatures.map((f) => (
-              <div key={f} className="flex items-center gap-2 text-sm text-victory-muted">
-                <Check className="w-3.5 h-3.5 text-victory-muted flex-shrink-0" />
-                {f}
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={() => navigate("/home")}
-            className="victory-btn-ghost w-full"
-            data-testid="continue-free-btn"
-          >
-            {t("paywall.freePlan.cta")}
-          </button>
-        </div>
-
-        {/* Plan Selection */}
-        <div className="space-y-3 mb-6">
-          {/* Annual Plan */}
-          <button
-            onClick={() => setSelectedPlan("annual")}
-            className={`w-full p-4 rounded-lg border text-left relative transition-all ${
-              selectedPlan === "annual"
-                ? "bg-victory-lime/10 border-victory-lime"
-                : "bg-victory-card border-victory-border"
-            }`}
-            data-testid="plan-annual"
-          >
-            <div className="absolute -top-2 right-4 bg-victory-lime text-victory-bg text-xs font-semibold px-2 py-0.5 rounded">
-              {t("paywall.plans.bestValue")}
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-victory-text">{t("paywall.plans.annual")}</h3>
-                <p className="text-victory-muted text-sm">{t("paywall.plans.annualSavings")}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-heading font-bold text-victory-text">$25</p>
-                <p className="text-victory-muted text-sm">{t("paywall.plans.perYear")}</p>
-                <p className="text-victory-lime text-xs font-semibold">{t("paywall.plans.weeklyAnnual")}</p>
-              </div>
-            </div>
-            {selectedPlan === "annual" && (
-              <div className="absolute top-4 left-4">
-                <Check className="w-5 h-5 text-victory-lime" />
-              </div>
-            )}
-          </button>
-
-          {/* Monthly Plan */}
-          <button
-            onClick={() => setSelectedPlan("monthly")}
-            className={`w-full p-4 rounded-lg border text-left relative transition-all ${
-              selectedPlan === "monthly"
-                ? "bg-victory-lime/10 border-victory-lime"
-                : "bg-victory-card border-victory-border"
-            }`}
-            data-testid="plan-monthly"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-victory-text">{t("paywall.plans.monthly")}</h3>
-                <p className="text-victory-muted text-sm">{t("paywall.plans.monthlyFlexible")}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-heading font-bold text-victory-text">$5</p>
-                <p className="text-victory-muted text-sm">{t("paywall.plans.perMonth")}</p>
-                <p className="text-victory-muted text-xs">{t("paywall.plans.weeklyMonthly")}</p>
-              </div>
-            </div>
-            {selectedPlan === "monthly" && (
-              <div className="absolute top-4 left-4">
-                <Check className="w-5 h-5 text-victory-lime" />
-              </div>
-            )}
-          </button>
-        </div>
-
-        {/* What Pro adds over Free */}
-        <div className="space-y-2 mb-4">
-          {proOnlyFeatures.map((text) => (
-            <div key={text} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-victory-lime/20 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-victory-lime" />
-              </div>
-              <span className="text-victory-text">{text}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Details Toggle */}
-        <button
-          onClick={() => setShowDetails(!showDetails)}
-          className="text-victory-muted text-sm mb-4 underline touch-target flex items-center"
-        >
-          {showDetails ? t("paywall.hideDetails") : t("paywall.viewDetails")}
-        </button>
-
-        {showDetails && (
-          <div className="victory-card p-4 mb-6 text-sm">
-            <h4 className="font-semibold text-victory-text mb-2">{t("paywall.planDetails.title")}</h4>
-            <ul className="space-y-2 text-victory-muted">
-              <li>• <strong>{t("paywall.planDetails.monthlyLine")}</strong></li>
-              <li>• <strong>{t("paywall.planDetails.annualLine")}</strong></li>
-              <li>• {t("paywall.planDetails.trial")}</li>
-              <li>• {t("paywall.planDetails.billing")}</li>
+            <ul className="space-y-3 mb-8">
+              {valuePoints.map(({ icon: Icon, text }) => (
+                <li key={text} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-victory-lime/20 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 text-victory-lime" />
+                  </div>
+                  <span className="text-victory-text text-sm">{text}</span>
+                </li>
+              ))}
             </ul>
+
+            <button onClick={() => setStep(2)} className="victory-btn-primary" data-testid="paywall-next-1">
+              {t("paywall.next")}
+            </button>
           </div>
         )}
 
-        {/* CTA Button */}
-        <button
-          onClick={handleStartTrial}
-          disabled={loading}
-          className="victory-btn-primary flex items-center justify-center gap-2"
-          data-testid="start-trial-btn"
-        >
-          {loading ? (
-            <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
-          ) : (
-            t("paywall.cta")
-          )}
-        </button>
+        {step === 2 && (
+          <div className="flex flex-col animate-fade-in">
+            <h1 className="text-2xl font-heading font-extrabold text-victory-text mt-2 mb-6">
+              {t("paywall.concernsHeadline")}
+            </h1>
 
-        <button
-          onClick={handleRestore}
-          disabled={restoring}
-          className="w-full touch-target flex items-center justify-center text-victory-muted text-sm mt-4 disabled:opacity-50"
-        >
-          {restoring ? t("paywall.restoring") : t("paywall.restore")}
-        </button>
+            <div className="space-y-3 mb-8">
+              {concerns.map(({ q, a }) => (
+                <div key={q} className="victory-card p-4">
+                  <p className="text-victory-text font-semibold text-sm mb-1">{q}</p>
+                  <p className="text-victory-muted text-sm leading-relaxed">{a}</p>
+                </div>
+              ))}
+            </div>
 
-        <p className="text-victory-muted text-xs text-center mt-3">{t("paywall.disclaimer")}</p>
+            <button onClick={() => setStep(3)} className="victory-btn-primary" data-testid="paywall-next-2">
+              {t("paywall.next")}
+            </button>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="flex flex-col animate-fade-in">
+            <h1 className="text-2xl font-heading font-extrabold text-victory-text mt-2 mb-6">
+              {t("paywall.paymentHeadline")}
+            </h1>
+
+            <div className="space-y-3 mb-5">
+              <button
+                onClick={() => setSelectedPlan("annual")}
+                className={`w-full p-4 rounded-lg border text-left relative transition-all ${
+                  selectedPlan === "annual" ? "bg-victory-lime/10 border-victory-lime" : "bg-victory-card border-victory-border"
+                }`}
+                data-testid="plan-annual"
+              >
+                <div className="absolute -top-2 right-4 bg-victory-lime text-victory-bg text-xs font-semibold px-2 py-0.5 rounded">
+                  {t("paywall.plans.bestValue")}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-victory-text flex items-center gap-2">
+                      {selectedPlan === "annual" && <Check className="w-4 h-4 text-victory-lime" />}
+                      {t("paywall.plans.annual")}
+                    </h3>
+                    <p className="text-victory-muted text-sm">{t("paywall.plans.annualSavings")}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-heading font-bold text-victory-text">$25</p>
+                    <p className="text-victory-lime text-xs font-semibold">{t("paywall.plans.weeklyAnnual")}</p>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setSelectedPlan("monthly")}
+                className={`w-full p-4 rounded-lg border text-left transition-all ${
+                  selectedPlan === "monthly" ? "bg-victory-lime/10 border-victory-lime" : "bg-victory-card border-victory-border"
+                }`}
+                data-testid="plan-monthly"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-victory-text flex items-center gap-2">
+                      {selectedPlan === "monthly" && <Check className="w-4 h-4 text-victory-lime" />}
+                      {t("paywall.plans.monthly")}
+                    </h3>
+                    <p className="text-victory-muted text-sm">{t("paywall.plans.monthlyFlexible")}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-heading font-bold text-victory-text">$5</p>
+                    <p className="text-victory-muted text-xs">{t("paywall.plans.weeklyMonthly")}</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div className="space-y-2 mb-5">
+              {proAdds.map((text) => (
+                <div key={text} className="flex items-center gap-3">
+                  <Zap className="w-4 h-4 text-victory-lime flex-shrink-0" />
+                  <span className="text-victory-text text-sm">{text}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-victory-muted text-xs mb-4 leading-relaxed">{t("paywall.paymentReassure")}</p>
+
+            <button
+              onClick={handleStartTrial}
+              disabled={loading}
+              className="victory-btn-primary flex items-center justify-center gap-2"
+              data-testid="start-trial-btn"
+            >
+              {loading ? (
+                <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
+              ) : (
+                t("paywall.cta")
+              )}
+            </button>
+
+            <button
+              onClick={handleRestore}
+              disabled={restoring}
+              className="w-full touch-target flex items-center justify-center text-victory-muted text-sm mt-3 disabled:opacity-50"
+            >
+              {restoring ? t("paywall.restoring") : t("paywall.restore")}
+            </button>
+
+            <button
+              onClick={() => navigate("/home")}
+              className="w-full touch-target flex items-center justify-center text-victory-muted text-sm mt-1 hover:text-victory-text"
+              data-testid="continue-free-btn"
+            >
+              {t("paywall.freePlan.cta")}
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

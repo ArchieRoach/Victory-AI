@@ -28,7 +28,7 @@ export const SessionCard = ({ session, onClick }) => {
             cy="24"
             r="20"
             fill="none"
-            stroke="#2A2A3A"
+            className="stroke-victory-border"
             strokeWidth="1"
           />
           <circle
@@ -36,7 +36,7 @@ export const SessionCard = ({ session, onClick }) => {
             cy="24"
             r="12"
             fill="none"
-            stroke="#2A2A3A"
+            className="stroke-victory-border"
             strokeWidth="1"
           />
           {/* Simplified radar shape */}
@@ -49,9 +49,8 @@ export const SessionCard = ({ session, onClick }) => {
                 return `${24 + r * Math.cos(angle)},${24 + r * Math.sin(angle)}`;
               })
               .join(" ")}
-            fill="#E8FF47"
+            className="fill-victory-lime stroke-victory-lime"
             fillOpacity="0.3"
-            stroke="#E8FF47"
             strokeWidth="1"
           />
         </svg>

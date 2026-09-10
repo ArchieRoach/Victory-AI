@@ -18,6 +18,7 @@ import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-re
 import { FeaturebaseProvider, useFeaturebase } from "featurebase-js/react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalCrashReporting } from "@/utils/crashReporter";
+import { useSystemTheme } from "@/hooks/useSystemTheme";
 
 // Catches crashes outside React's render cycle (event handlers, timers, async code) —
 // ErrorBoundary below only sees render-time errors. Installed once at module load, same
@@ -404,6 +405,9 @@ function FeaturebaseLogoutSync() {
 }
 
 function App() {
+  // Mirrors the OS light/dark setting onto <html data-theme> in real time, which
+  // flips every --victory-* CSS variable (and thus every victory-* class) instantly.
+  useSystemTheme();
   return (
     // Outermost on purpose — catches a crash even in ClerkProvider's own first render
     // (this app has hit exactly that locally: a missing key throws from inside
@@ -416,7 +420,7 @@ function App() {
               <FeaturebaseRoot>
                 <AppRouter />
                 <FeedbackWidget />
-                <Toaster position="top-center" toastOptions={{ style: { background: "#12121A", border: "1px solid #2A2A3A", color: "#F0F0F5" } }} />
+                <Toaster position="top-center" toastOptions={{ style: { background: "rgb(var(--victory-card))", border: "1px solid rgb(var(--victory-border))", color: "rgb(var(--victory-text))" } }} />
               </FeaturebaseRoot>
             </AuthProvider>
           </BrowserRouter>

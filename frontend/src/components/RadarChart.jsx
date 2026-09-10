@@ -6,6 +6,7 @@ import {
   PolarAngleAxis,
   ResponsiveContainer,
 } from "recharts";
+import { usePalette } from "@/hooks/useSystemTheme";
 
 const DIMENSIONS = [
   "Jab",
@@ -32,6 +33,7 @@ export const RadarChart = ({
   overallScore,
   onDimensionClick,
 }) => {
+  const p = usePalette();
   const data = useMemo(() => {
     return DIMENSIONS.map((dim) => {
       const current = currentScores?.find((s) => s.dimension_name === dim);
@@ -65,10 +67,10 @@ export const RadarChart = ({
           data={data}
           onClick={(e) => e?.activePayload?.[0]?.payload && handleClick(e.activePayload[0].payload)}
         >
-          <PolarGrid stroke="#2A2A3A" strokeWidth={1} />
+          <PolarGrid stroke={p.border} strokeWidth={1} />
           <PolarAngleAxis
             dataKey="shortLabel"
-            tick={{ fill: "#8888A0", fontSize: 10 }}
+            tick={{ fill: p.muted, fontSize: 10 }}
             tickLine={false}
           />
 
@@ -77,9 +79,9 @@ export const RadarChart = ({
             <Radar
               name="Previous"
               dataKey="previous"
-              stroke="#47E8C8"
+              stroke={p.teal}
               strokeWidth={1}
-              fill="#47E8C8"
+              fill={p.teal}
               fillOpacity={0.1}
               dot={false}
             />
@@ -89,11 +91,11 @@ export const RadarChart = ({
           <Radar
             name="Current"
             dataKey="current"
-            stroke="#E8FF47"
+            stroke={p.lime}
             strokeWidth={2}
-            fill="#E8FF47"
+            fill={p.lime}
             fillOpacity={0.3}
-            dot={{ fill: "#E8FF47", r: 3 }}
+            dot={{ fill: p.lime, r: 3 }}
           />
         </RechartsRadarChart>
       </ResponsiveContainer>

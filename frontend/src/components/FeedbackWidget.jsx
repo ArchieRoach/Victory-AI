@@ -139,9 +139,11 @@ export default function FeedbackWidget() {
                     className="text-2xl leading-none transition-colors touch-target flex items-center justify-center"
                   >
                     <Star
-                      className="w-7 h-7"
-                      fill={(hoverRating || rating) >= star ? "#E8FF47" : "transparent"}
-                      stroke={(hoverRating || rating) >= star ? "#E8FF47" : "#2A2A3A"}
+                      className={`w-7 h-7 ${
+                        (hoverRating || rating) >= star
+                          ? "fill-victory-lime text-victory-lime"
+                          : "fill-transparent text-victory-border"
+                      }`}
                     />
                   </button>
                 ))}

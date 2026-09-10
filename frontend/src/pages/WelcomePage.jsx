@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Swords, Shield, Footprints } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { usePalette } from "@/hooks/useSystemTheme";
 
 // Same 3-ring category pattern SessionResultsPage.jsx actually shows after a real
 // session — a real user complained the old 16-spoke radar chart here "doesn't really
@@ -8,14 +9,15 @@ import { useTranslation } from "react-i18next";
 // This preview was still showing the old radar chart, which is both stale UI and a
 // dishonest preview: it no longer represents what the product actually looks like.
 const PREVIEW_CATEGORIES = [
-  { key: "Offense", icon: Swords, color: "#E8FF47", value: 7.5 },
-  { key: "Defense", icon: Shield, color: "#47E8C8", value: 6.0 },
-  { key: "Movement", icon: Footprints, color: "#FF6B35", value: 8.0 },
+  { key: "Offense", icon: Swords, tone: "lime", value: 7.5 },
+  { key: "Defense", icon: Shield, tone: "teal", value: 6.0 },
+  { key: "Movement", icon: Footprints, tone: "orange", value: 8.0 },
 ];
 
 export default function WelcomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const p = usePalette();
 
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6" data-testid="welcome-page">
@@ -43,13 +45,14 @@ export default function WelcomePage() {
         {/* Category ring preview — matches the real post-session results screen */}
         <div className="victory-card p-6 mb-8">
           <div className="grid grid-cols-3 gap-3" data-testid="radar-preview">
-            {PREVIEW_CATEGORIES.map(({ key, icon: Icon, color, value }) => {
+            {PREVIEW_CATEGORIES.map(({ key, icon: Icon, tone, value }) => {
               const circumference = 2 * Math.PI * 28;
+              const color = p[tone];
               return (
                 <div key={key} className="flex flex-col items-center text-center">
                   <div className="relative w-16 h-16 mb-2">
                     <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 64 64">
-                      <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5" />
+                      <circle cx="32" cy="32" r="28" fill="none" className="stroke-victory-border" strokeWidth="5" />
                       <circle
                         cx="32" cy="32" r="28" fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
                         strokeDasharray={`${(value / 10) * circumference} ${circumference}`}

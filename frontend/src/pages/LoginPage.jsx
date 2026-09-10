@@ -1,8 +1,10 @@
 import { SignIn } from "@clerk/clerk-react";
 import { useTranslation } from "react-i18next";
+import { usePalette } from "@/hooks/useSystemTheme";
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const p = usePalette();
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md">
@@ -19,12 +21,12 @@ export default function LoginPage() {
           afterSignUpUrl="/onboarding"
           appearance={{
             variables: {
-              colorPrimary: "#E8FF47",
-              colorBackground: "#12121A",
-              colorText: "#F0F0F5",
-              colorTextSecondary: "#8888A0",
-              colorInputBackground: "#0A0A0F",
-              colorInputText: "#F0F0F5",
+              colorPrimary: p.lime,
+              colorBackground: p.card,
+              colorText: p.text,
+              colorTextSecondary: p.muted,
+              colorInputBackground: p.bg,
+              colorInputText: p.text,
               borderRadius: "0.5rem",
             },
             elements: {

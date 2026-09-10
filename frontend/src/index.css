@@ -3,7 +3,71 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Theme tokens ──────────────────────────────────────────────────────────
+     Light is the :root default. The dark palette applies when the OS asks for
+     it (prefers-color-scheme) OR when useSystemTheme sets <html data-theme>.
+     An explicit data-theme always wins, so a future manual toggle works both
+     ways.
+
+     --victory-* are stored as "R G B" channels (not hex) so Tailwind's opacity
+     modifiers work: `bg-victory-lime/20` -> rgb(var(--victory-lime) / 0.2).
+     Hex source of truth + the light/dark spec: src/theme/palette.js
+     (src/theme/palette.test.js checks these blocks stay in sync). ---------- */
   :root {
+    /* Victory brand palette — light */
+    --victory-bg: 246 246 249;
+    --victory-card: 255 255 255;
+    --victory-card-highlight: 238 238 243;
+    --victory-border: 222 222 231;
+    --victory-lime: 91 112 0;
+    --victory-orange: 196 83 15;
+    --victory-teal: 11 140 119;
+    --victory-danger: 217 45 32;
+    --victory-text: 22 22 28;
+    --victory-muted: 97 97 122;
+
+    /* shadcn/ui tokens — light (HSL) */
+    --background: 240 20% 97%;
+    --foreground: 240 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+    --primary: 70 100% 25%;
+    --primary-foreground: 240 20% 97%;
+    --secondary: 240 15% 92%;
+    --secondary-foreground: 240 10% 12%;
+    --muted: 240 15% 92%;
+    --muted-foreground: 240 8% 42%;
+    --accent: 240 15% 92%;
+    --accent-foreground: 240 10% 12%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 15% 86%;
+    --input: 240 15% 86%;
+    --ring: 70 100% 30%;
+    --chart-1: 70 100% 35%;
+    --chart-2: 168 80% 38%;
+    --chart-3: 20 90% 48%;
+    --chart-4: 0 72% 48%;
+    --chart-5: 240 8% 42%;
+    --radius: 0.5rem;
+  }
+
+  :root[data-theme="dark"] {
+    /* Victory brand palette — dark */
+    --victory-bg: 10 10 15;
+    --victory-card: 18 18 26;
+    --victory-card-highlight: 26 26 38;
+    --victory-border: 42 42 58;
+    --victory-lime: 232 255 71;
+    --victory-orange: 255 107 53;
+    --victory-teal: 71 232 200;
+    --victory-danger: 255 71 87;
+    --victory-text: 240 240 245;
+    --victory-muted: 136 136 160;
+
+    /* shadcn/ui tokens — dark (HSL) */
     --background: 240 20% 4%;
     --foreground: 240 10% 96%;
     --card: 240 20% 7%;
@@ -28,7 +92,48 @@
     --chart-3: 20 90% 60%;
     --chart-4: 0 84% 60%;
     --chart-5: 240 10% 58%;
-    --radius: 0.5rem;
+  }
+
+  /* OS-level dark preference, unless a manual light choice overrides it.
+     Values must match the :root[data-theme="dark"] block above. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --victory-bg: 10 10 15;
+      --victory-card: 18 18 26;
+      --victory-card-highlight: 26 26 38;
+      --victory-border: 42 42 58;
+      --victory-lime: 232 255 71;
+      --victory-orange: 255 107 53;
+      --victory-teal: 71 232 200;
+      --victory-danger: 255 71 87;
+      --victory-text: 240 240 245;
+      --victory-muted: 136 136 160;
+
+      --background: 240 20% 4%;
+      --foreground: 240 10% 96%;
+      --card: 240 20% 7%;
+      --card-foreground: 240 10% 96%;
+      --popover: 240 20% 7%;
+      --popover-foreground: 240 10% 96%;
+      --primary: 70 100% 63%;
+      --primary-foreground: 240 20% 4%;
+      --secondary: 240 15% 13%;
+      --secondary-foreground: 240 10% 96%;
+      --muted: 240 15% 13%;
+      --muted-foreground: 240 10% 58%;
+      --accent: 240 15% 13%;
+      --accent-foreground: 240 10% 96%;
+      --destructive: 0 84% 60%;
+      --destructive-foreground: 240 10% 96%;
+      --border: 240 15% 20%;
+      --input: 240 15% 20%;
+      --ring: 70 100% 63%;
+      --chart-1: 70 100% 63%;
+      --chart-2: 168 80% 59%;
+      --chart-3: 20 90% 60%;
+      --chart-4: 0 84% 60%;
+      --chart-5: 240 10% 58%;
+    }
   }
 }
 
@@ -65,7 +170,7 @@
   
   .victory-btn-primary {
     @apply bg-victory-lime text-victory-bg font-heading font-bold py-3 px-6 rounded-xl min-h-[52px] w-full
-    transition-all duration-200 hover:bg-[#D4E630] active:bg-[#C4D620] active:scale-[0.98]
+    transition-all duration-200 hover:opacity-90 active:opacity-80 active:scale-[0.98]
     shadow-[0_4px_20px_rgba(232,255,71,0.2)];
   }
 
@@ -148,7 +253,7 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-track {
-  background: #1A1A26;
+  background: rgb(var(--victory-card-highlight));
   height: 8px;
   border-radius: 4px;
 }
@@ -158,14 +263,14 @@ input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 24px;
   height: 24px;
-  background: #E8FF47;
+  background: rgb(var(--victory-lime));
   border-radius: 50%;
   margin-top: -8px;
   box-shadow: 0 2px 8px rgba(232, 255, 71, 0.3);
 }
 
 input[type="range"]::-moz-range-track {
-  background: #1A1A26;
+  background: rgb(var(--victory-card-highlight));
   height: 8px;
   border-radius: 4px;
 }
@@ -173,7 +278,7 @@ input[type="range"]::-moz-range-track {
 input[type="range"]::-moz-range-thumb {
   width: 24px;
   height: 24px;
-  background: #E8FF47;
+  background: rgb(var(--victory-lime));
   border-radius: 50%;
   border: none;
   box-shadow: 0 2px 8px rgba(232, 255, 71, 0.3);
@@ -204,7 +309,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(90deg, #12121A 25%, #1A1A26 50%, #12121A 75%);
+  background: linear-gradient(90deg, rgb(var(--victory-card)) 25%, rgb(var(--victory-card-highlight)) 50%, rgb(var(--victory-card)) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;

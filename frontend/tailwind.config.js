@@ -51,18 +51,20 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Victory AI custom colors
+        // Victory AI custom colors — resolve to CSS vars set in src/index.css
+        // (light by default, dark via prefers-color-scheme / <html data-theme>).
+        // Hex source of truth: src/theme/palette.js
         victory: {
-          bg: "#0A0A0F",
-          card: "#12121A",
-          "card-highlight": "#1A1A26",
-          border: "#2A2A3A",
-          lime: "#E8FF47",
-          orange: "#FF6B35",
-          teal: "#47E8C8",
-          danger: "#FF4757",
-          text: "#F0F0F5",
-          muted: "#8888A0",
+          bg: "rgb(var(--victory-bg) / <alpha-value>)",
+          card: "rgb(var(--victory-card) / <alpha-value>)",
+          "card-highlight": "rgb(var(--victory-card-highlight) / <alpha-value>)",
+          border: "rgb(var(--victory-border) / <alpha-value>)",
+          lime: "rgb(var(--victory-lime) / <alpha-value>)",
+          orange: "rgb(var(--victory-orange) / <alpha-value>)",
+          teal: "rgb(var(--victory-teal) / <alpha-value>)",
+          danger: "rgb(var(--victory-danger) / <alpha-value>)",
+          text: "rgb(var(--victory-text) / <alpha-value>)",
+          muted: "rgb(var(--victory-muted) / <alpha-value>)",
         }
       },
       fontFamily: {
