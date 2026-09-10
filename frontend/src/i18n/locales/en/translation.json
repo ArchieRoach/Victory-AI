@@ -99,7 +99,38 @@
     "restore": "Restore purchase",
     "restoring": "Checking…",
     "restoreSuccess": "Subscription restored!",
-    "restoreNotFound": "No active subscription found for this account."
+    "restoreNotFound": "No active subscription found for this account.",
+    "steps": {
+      "value": "What you get",
+      "concerns": "Common questions",
+      "payment": "Choose your plan"
+    },
+    "stepOf": "Step {{n}} of 3",
+    "next": "Continue",
+    "back": "Back",
+    "valueHeadline": "Train like you've got a coach in your corner.",
+    "valueSubheadline": "Victory AI scores your technique, shows what's holding you back, and turns it into drills you can do today — every single session.",
+    "valuePoints": {
+      "scores": "16 techniques scored from your session video",
+      "weakness": "See exactly which areas are costing you points",
+      "drills": "A daily drill plan built around your weak spots",
+      "partner": "An AI training partner that remembers your progress"
+    },
+    "concernsHeadline": "Questions people ask before starting",
+    "concernsList": {
+      "freeQ": "Do I have to pay to try it?",
+      "freeA": "No. Both paid plans open with a 14-day free trial — you're not charged until it ends.",
+      "cancelQ": "What if it's not for me?",
+      "cancelA": "Cancel in two taps from your profile any time during the trial. No charge, no questions.",
+      "worksQ": "Will it actually improve my boxing?",
+      "worksA": "It scores 16 techniques from your video and turns your weakest areas into a daily drill plan.",
+      "secureQ": "Is my payment secure?",
+      "secureA": "Payments run through Stripe. We never see or store your card details.",
+      "foreverQ": "Can I keep using the free version instead?",
+      "foreverA": "Yes — the free plan stays free forever: 10,000 AI credits a month, no card required."
+    },
+    "paymentHeadline": "Start your 14-day free trial",
+    "paymentReassure": "14 days free, then your plan renews automatically. Cancel anytime before then and you pay nothing."
   },
   "onboarding": {
     "birth_date": {

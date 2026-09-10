@@ -7,8 +7,10 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { usePalette } from "@/hooks/useSystemTheme";
 
 export const ProgressChart = ({ sessions }) => {
+  const p = usePalette();
   const data = useMemo(() => {
     // Sort by date ascending and take last 10 sessions
     const sorted = [...sessions]
@@ -67,23 +69,23 @@ export const ProgressChart = ({ sessions }) => {
             dataKey="name"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#8888A0", fontSize: 11 }}
+            tick={{ fill: p.muted, fontSize: 11 }}
           />
           <YAxis
             domain={[0, 10]}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#8888A0", fontSize: 11 }}
+            tick={{ fill: p.muted, fontSize: 11 }}
             ticks={[0, 5, 10]}
           />
           <Tooltip content={<CustomTooltip />} />
           <Line
             type="monotone"
             dataKey="score"
-            stroke="#E8FF47"
+            stroke={p.lime}
             strokeWidth={2}
-            dot={{ fill: "#E8FF47", r: 4, strokeWidth: 0 }}
-            activeDot={{ r: 6, fill: "#E8FF47" }}
+            dot={{ fill: p.lime, r: 4, strokeWidth: 0 }}
+            activeDot={{ r: 6, fill: p.lime }}
           />
         </LineChart>
       </ResponsiveContainer>
