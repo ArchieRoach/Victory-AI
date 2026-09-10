@@ -545,7 +545,22 @@
     "tab_browse": "Durchsuchen",
     "tab_leaderboard": "Rangliste",
     "publicGymDescOn": "Im Browse-Tab gelistet — jeder kann sie finden und beitreten",
-    "publicGymDescOff": "Nicht im Browse-Tab sichtbar — Beitritt nur per Einladungscode"
+    "publicGymDescOff": "Nicht im Browse-Tab sichtbar — Beitritt nur per Einladungscode",
+    "cityLabel": "Stadt",
+    "cityPlaceholder": "z. B. Berlin",
+    "cityHint": "Wird nur genutzt, um Gyms in deiner Stadt anzuzeigen — nie für andere sichtbar.",
+    "gymCityHint": "Wird beim Gym angezeigt, damit Leute es in ihrer Stadt finden.",
+    "memberCapLabel": "Mitgliederlimit",
+    "memberCapHint": "Maximale Mitgliederzahl (5–1000). Später änderbar.",
+    "nearYou": "Gyms in {{city}}",
+    "otherGyms": "Top-Gyms überall",
+    "setCityPrompt": "Gib deine Stadt ein, um Gyms in der Nähe zu finden",
+    "noLocalGyms": "Noch keine Gyms in deiner Stadt — gründe eins oder tritt unten einem Top-Gym bei.",
+    "full": "Voll",
+    "spotsLeft": "Noch {{count}} Plätze frei",
+    "oneSpotLeft": "Noch 1 Platz frei",
+    "gymFullNotice": "Dieses Gym ist gerade voll.",
+    "leaveCurrentFirst": "Verlasse dein aktuelles Gym, um einem anderen beizutreten."
   },
   "gym": {
     "avgScore": "Durchschnitt",

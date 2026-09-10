@@ -4,9 +4,11 @@ import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2, MessageSquare } from "lucide-react";
+import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2, MessageSquare, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
+
+const GYM_DEFAULT_CAP = 50;
 
 export default function GymDetailPage() {
   const { t } = useTranslation();
@@ -19,6 +21,7 @@ export default function GymDetailPage() {
   const [leaderboardScope, setLeaderboardScope] = useState("week"); // "week" | "allTime" — Strava-club style
   const [leaving, setLeaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [joining, setJoining] = useState(false);
 
   useEffect(() => {
     fetchGym();
@@ -46,6 +49,19 @@ export default function GymDetailPage() {
     } catch (err) {
       toast.error(err.response?.data?.detail || t("common.error"));
       setLeaving(false);
+    }
+  };
+
+  const handleJoin = async () => {
+    setJoining(true);
+    try {
+      await withMinDuration(axios.post(`${API}/gyms/${gymId}/join`));
+      toast.success(t("gyms.joinedGym"));
+      fetchGym();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || t("common.error"));
+    } finally {
+      setJoining(false);
     }
   };
 
@@ -86,6 +102,10 @@ export default function GymDetailPage() {
 
   const isOwner = gym.is_owner;
   const isMember = gym.is_member;
+  const cap = gym.member_cap ?? GYM_DEFAULT_CAP;
+  const isFull = gym.is_full ?? (gym.member_count >= cap);
+  const canJoin = !isMember && !isOwner && !user?.gym_id;
+  const spots = gym.spots_left;
 
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="gym-detail-page">
@@ -95,7 +115,11 @@ export default function GymDetailPage() {
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-heading font-bold text-victory-text truncate">{gym.name}</h1>
-          <p className="text-victory-muted text-sm">{gym.style} · {gym.member_count} {t("gym.members")}</p>
+          <p className="text-victory-muted text-sm flex items-center gap-1.5 flex-wrap">
+            {gym.city && <span className="flex items-center"><MapPin className="w-3 h-3 mr-0.5" />{gym.city}</span>}
+            <span>{gym.style}</span>
+            <span>· {gym.member_count}/{cap} {t("gym.members")}</span>
+          </p>
         </div>
         {isMember && !isOwner && (
           <button onClick={handleLeave} disabled={leaving} aria-label="Leave gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger disabled:opacity-40">
@@ -125,7 +149,7 @@ export default function GymDetailPage() {
             <p className="text-victory-muted text-xs mt-0.5">{t("gym.avgScore")}</p>
           </div>
           <div className="victory-card p-3 text-center">
-            <p className="font-mono font-bold text-xl text-victory-text">{gym.member_count}</p>
+            <p className="font-mono font-bold text-xl text-victory-text">{gym.member_count}/{cap}</p>
             <p className="text-victory-muted text-xs mt-0.5">{t("gym.members")}</p>
           </div>
           <div className="victory-card p-3 text-center">
@@ -133,6 +157,31 @@ export default function GymDetailPage() {
             <p className="text-victory-muted text-xs mt-0.5">{t("gym.sessions")}</p>
           </div>
         </div>
+
+        {/* Join CTA — capacity-gated */}
+        {canJoin && (
+          isFull ? (
+            <div className="victory-card p-4 text-center text-victory-muted text-sm">{t("gyms.gymFullNotice")}</div>
+          ) : (
+            <button onClick={handleJoin} disabled={joining} className="victory-btn-primary w-full flex items-center justify-center gap-2">
+              {joining ? (
+                <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  {t("gyms.joinBtn")}
+                  {typeof spots === "number" && spots <= 10 && (
+                    <span className="text-victory-bg/70 text-xs">
+                      · {spots === 1 ? t("gyms.oneSpotLeft") : t("gyms.spotsLeft", { count: spots })}
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
+          )
+        )}
+        {!isMember && !isOwner && user?.gym_id && (
+          <div className="victory-card p-4 text-center text-victory-muted text-sm">{t("gyms.leaveCurrentFirst")}</div>
+        )}
 
         {/* Description */}
         {gym.description && (

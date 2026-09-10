@@ -545,7 +545,22 @@
     "tab_browse": "Explorar",
     "tab_leaderboard": "Ranking",
     "publicGymDescOn": "Listada em Explorar — qualquer pessoa pode encontrar e entrar",
-    "publicGymDescOff": "Oculta em Explorar — entrada apenas por código de convite"
+    "publicGymDescOff": "Oculta em Explorar — entrada apenas por código de convite",
+    "cityLabel": "Cidade",
+    "cityPlaceholder": "ex. São Paulo",
+    "cityHint": "Usado apenas para mostrar academias da sua cidade — nunca aparece para outros usuários.",
+    "gymCityHint": "Aparece na academia para que as pessoas a encontrem na cidade delas.",
+    "memberCapLabel": "Limite de membros",
+    "memberCapHint": "Máximo de pessoas que podem entrar (5–1000). Você pode mudar depois.",
+    "nearYou": "Academias em {{city}}",
+    "otherGyms": "Melhores academias em todo lugar",
+    "setCityPrompt": "Adicione sua cidade para encontrar academias perto de você",
+    "noLocalGyms": "Ainda não há academias na sua cidade — crie uma ou entre em uma academia de destaque abaixo.",
+    "full": "Lotada",
+    "spotsLeft": "{{count}} vagas restantes",
+    "oneSpotLeft": "1 vaga restante",
+    "gymFullNotice": "Esta academia está lotada no momento.",
+    "leaveCurrentFirst": "Saia da sua academia atual para entrar em outra."
   },
   "gym": {
     "avgScore": "Pontuação média",

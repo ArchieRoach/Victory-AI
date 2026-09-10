@@ -545,7 +545,22 @@
     "tab_browse": "Explorar",
     "tab_leaderboard": "Clasificación",
     "publicGymDescOn": "Aparece en Explorar — cualquiera puede encontrarlo y unirse",
-    "publicGymDescOff": "Oculto en Explorar — solo se puede unir con código de invitación"
+    "publicGymDescOff": "Oculto en Explorar — solo se puede unir con código de invitación",
+    "cityLabel": "Ciudad",
+    "cityPlaceholder": "p. ej. Madrid",
+    "cityHint": "Solo se usa para mostrar gimnasios de tu ciudad — nunca se muestra a otros usuarios.",
+    "gymCityHint": "Se muestra en el gimnasio para que la gente lo encuentre en su ciudad.",
+    "memberCapLabel": "Límite de miembros",
+    "memberCapHint": "Máximo de personas que pueden unirse (5–1000). Puedes cambiarlo después.",
+    "nearYou": "Gimnasios en {{city}}",
+    "otherGyms": "Mejores gimnasios en todas partes",
+    "setCityPrompt": "Añade tu ciudad para encontrar gimnasios cerca",
+    "noLocalGyms": "Aún no hay gimnasios en tu ciudad — crea uno o únete a un gimnasio destacado abajo.",
+    "full": "Lleno",
+    "spotsLeft": "Quedan {{count}} plazas",
+    "oneSpotLeft": "Queda 1 plaza",
+    "gymFullNotice": "Este gimnasio está lleno ahora mismo.",
+    "leaveCurrentFirst": "Sal de tu gimnasio actual para unirte a otro."
   },
   "gym": {
     "avgScore": "Puntuación media",

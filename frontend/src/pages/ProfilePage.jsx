@@ -67,6 +67,7 @@ export default function ProfilePage() {
     display_name: user?.display_name || "",
     bio: user?.bio || "",
     school_name: user?.school_name || "",
+    city: user?.city || "",
     weight_class: user?.weight_class || "",
     weight_unit: user?.weight_unit || "kg",
     stance: user?.stance || "",
@@ -523,6 +524,21 @@ export default function ProfilePage() {
                 counted into the aggregate school leaderboard. Real privacy boundary, not
                 just copy: see /schools/leaderboard in server.py. */}
             <p className="text-victory-muted text-xs mt-1">{t("schools.privacyHint")}</p>
+          </div>
+
+          <div>
+            <label className="victory-label">{t("gyms.cityLabel")}</label>
+            <input
+              value={extendedForm.city}
+              onChange={(e) => setExtendedForm({ ...extendedForm, city: e.target.value })}
+              className="victory-input"
+              placeholder={t("gyms.cityPlaceholder")}
+              maxLength={100}
+            />
+            {/* Kept deliberately coarse (city, not address/GPS) and never shown to other
+                users — only used to surface gyms in the same city. See the AskUserQuestion
+                decision on this. */}
+            <p className="text-victory-muted text-xs mt-1">{t("gyms.cityHint")}</p>
           </div>
 
           {/* Weight unit preference toggle */}

@@ -1,18 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { Building2, Plus, Trophy, Users, Star, Lock, ChevronRight, X } from "lucide-react";
+import { Building2, Plus, Users, Star, Lock, ChevronRight, X, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
 
-function CreateGymModal({ onClose, onCreated }) {
+const GYM_DEFAULT_CAP = 50;
+
+function CreateGymModal({ onClose, onCreated, defaultCity }) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [style, setStyle] = useState("mixed");
+  const [city, setCity] = useState(defaultCity || "");
+  const [memberCap, setMemberCap] = useState(String(GYM_DEFAULT_CAP));
   const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +24,14 @@ function CreateGymModal({ onClose, onCreated }) {
     if (!name.trim()) return toast.error(t("gyms.nameRequired"));
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/gyms`, { name: name.trim(), description, style, is_public: isPublic });
+      const res = await axios.post(`${API}/gyms`, {
+        name: name.trim(),
+        description,
+        style,
+        is_public: isPublic,
+        city: city.trim() || null,
+        member_cap: Number(memberCap) || GYM_DEFAULT_CAP,
+      });
       toast.success(t("gyms.created"));
       onCreated(res.data);
     } catch (err) {
@@ -32,7 +43,7 @@ function CreateGymModal({ onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center p-4">
-      <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl">
+      <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-heading font-bold text-victory-text">{t("gyms.createTitle")}</h2>
           <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
@@ -46,6 +57,24 @@ function CreateGymModal({ onClose, onCreated }) {
         <div>
           <label className="victory-label">{t("gyms.description")}</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="victory-input resize-none" rows={2} placeholder={t("gyms.descriptionPlaceholder")} maxLength={200} />
+        </div>
+        <div>
+          <label className="victory-label">{t("gyms.cityLabel")}</label>
+          <input value={city} onChange={(e) => setCity(e.target.value)} className="victory-input" placeholder={t("gyms.cityPlaceholder")} maxLength={100} />
+          <p className="text-victory-muted text-xs mt-1">{t("gyms.gymCityHint")}</p>
+        </div>
+        <div>
+          <label className="victory-label">{t("gyms.memberCapLabel")}</label>
+          <input
+            type="number"
+            value={memberCap}
+            onChange={(e) => setMemberCap(e.target.value)}
+            onBlur={() => setMemberCap(String(Math.max(5, Math.min(1000, Number(memberCap) || GYM_DEFAULT_CAP))))}
+            className="victory-input"
+            min={5}
+            max={1000}
+          />
+          <p className="text-victory-muted text-xs mt-1">{t("gyms.memberCapHint")}</p>
         </div>
         <div>
           <label className="victory-label">{t("gyms.style")}</label>
@@ -62,8 +91,6 @@ function CreateGymModal({ onClose, onCreated }) {
         >
           <div className="text-left pr-3">
             <p className="text-victory-text text-sm">{t("gyms.publicGym")}</p>
-            {/* Undocumented before — a real consequence (listed vs. hidden, anyone
-                vs. invite-code-only) with no explanation of what it actually does. */}
             <p className="text-victory-muted text-xs mt-0.5">
               {isPublic ? t("gyms.publicGymDescOn") : t("gyms.publicGymDescOff")}
             </p>
@@ -123,11 +150,61 @@ function JoinByCodeModal({ onClose, onJoined }) {
   );
 }
 
+function spotsLabel(t, gym) {
+  if (gym.is_full) return t("gyms.full");
+  if (gym.spots_left === 1) return t("gyms.oneSpotLeft");
+  if (typeof gym.spots_left === "number") return t("gyms.spotsLeft", { count: gym.spots_left });
+  return null;
+}
+
+function GymRow({ gym, canJoin, joining, onOpen, onJoin }) {
+  const { t } = useTranslation();
+  const spots = spotsLabel(t, gym);
+  return (
+    <div className="victory-card p-4 flex items-center gap-3">
+      <button onClick={onOpen} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+        <div className="w-10 h-10 rounded-xl bg-victory-card border border-victory-border flex items-center justify-center flex-shrink-0">
+          <Building2 className="w-5 h-5 text-victory-muted" />
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold text-victory-text truncate">{gym.name}</p>
+          <p className="text-victory-muted text-xs flex items-center gap-1.5 flex-wrap">
+            {gym.city && <span className="flex items-center"><MapPin className="w-3 h-3 mr-0.5" />{gym.city}</span>}
+            <span><Users className="w-3 h-3 inline mr-0.5" />{gym.member_count}/{gym.member_cap ?? GYM_DEFAULT_CAP}</span>
+            <span><Star className="w-3 h-3 inline mr-0.5" />{gym.avg_score?.toFixed(1) || "—"}</span>
+          </p>
+        </div>
+      </button>
+      {gym.is_member ? (
+        <span className="text-xs text-victory-lime flex-shrink-0">{t("gyms.member")}</span>
+      ) : gym.is_full ? (
+        <span className="text-xs text-victory-muted flex-shrink-0">{spots}</span>
+      ) : canJoin ? (
+        <button
+          onClick={onJoin}
+          disabled={joining}
+          className="touch-target flex flex-col items-center justify-center text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 disabled:opacity-50 flex-shrink-0"
+        >
+          {joining ? (
+            <span className="w-3 h-3 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <span>{t("gyms.joinBtn")}</span>
+              {spots && <span className="text-victory-muted text-[10px] leading-none mt-0.5">{spots}</span>}
+            </>
+          )}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export default function GymsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [gyms, setGyms] = useState([]);
+  const [localGyms, setLocalGyms] = useState([]);
   const [myGym, setMyGym] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -135,28 +212,32 @@ export default function GymsPage() {
   const [activeTab, setActiveTab] = useState("browse"); // browse | leaderboard
   const [joiningGymId, setJoiningGymId] = useState(null);
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
+  const city = user?.city?.trim() || "";
 
-  const fetchAll = async () => {
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [browseRes, myRes] = await Promise.all([
+      const [browseRes, myRes, localRes] = await Promise.all([
         axios.get(`${API}/gyms`),
         axios.get(`${API}/gyms/my`).catch(() => ({ data: null })),
+        city ? axios.get(`${API}/gyms`, { params: { city } }) : Promise.resolve({ data: [] }),
       ]);
       setGyms(browseRes.data);
       setMyGym(myRes.data);
+      setLocalGyms(localRes.data);
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("common.error"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [city, t]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   const handleJoin = async (gymId) => {
-    if (joiningGymId) return; // ignore double-taps mid-request
+    if (joiningGymId) return;
     setJoiningGymId(gymId);
     try {
       await withMinDuration(axios.post(`${API}/gyms/${gymId}/join`));
@@ -170,6 +251,20 @@ export default function GymsPage() {
   };
 
   const hasSubscription = user?.has_subscription;
+  const canJoinAny = !myGym; // one gym per user
+  const localIds = new Set(localGyms.map((g) => g.gym_id));
+  const otherGyms = gyms.filter((g) => !localIds.has(g.gym_id));
+
+  const renderRow = (gym) => (
+    <GymRow
+      key={gym.gym_id}
+      gym={gym}
+      canJoin={canJoinAny}
+      joining={joiningGymId === gym.gym_id}
+      onOpen={() => navigate(`/gyms/${gym.gym_id}`)}
+      onJoin={() => handleJoin(gym.gym_id)}
+    />
+  );
 
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="gyms-page">
@@ -206,7 +301,6 @@ export default function GymsPage() {
           </div>
         </div>
 
-        {/* Tab switcher */}
         <div className="flex gap-2">
           {["browse", "leaderboard"].map((tab) => (
             <button
@@ -222,7 +316,7 @@ export default function GymsPage() {
         </div>
       </header>
 
-      <main className="p-4 space-y-4">
+      <main className="p-4 space-y-6">
         {/* My gym card */}
         {myGym && (
           <section>
@@ -236,7 +330,9 @@ export default function GymsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-victory-text truncate">{myGym.name}</p>
-                <p className="text-victory-muted text-sm">{myGym.member_count} {t("gyms.members")} · {myGym.avg_score?.toFixed(1) || "—"} {t("gyms.avgScore")}</p>
+                <p className="text-victory-muted text-sm">
+                  {myGym.member_count}/{myGym.member_cap ?? GYM_DEFAULT_CAP} {t("gyms.members")} · {myGym.avg_score?.toFixed(1) || "—"} {t("gyms.avgScore")}
+                </p>
               </div>
               <ChevronRight className="w-5 h-5 text-victory-muted flex-shrink-0" />
             </button>
@@ -246,46 +342,48 @@ export default function GymsPage() {
         {loading ? (
           [1, 2, 3, 4].map((i) => <div key={i} className="skeleton-shimmer h-20 rounded-xl" />)
         ) : activeTab === "browse" ? (
-          <section>
-            {!myGym && <p className="text-victory-muted text-xs uppercase tracking-wider mb-2">{t("gyms.findGym")}</p>}
-            {gyms.length === 0 ? (
-              <div className="text-center py-12">
-                <Building2 className="w-12 h-12 text-victory-muted mx-auto mb-3" />
-                <p className="text-victory-muted">{t("gyms.noGyms")}</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {gyms.map((gym) => (
-                  <div key={gym.gym_id} className="victory-card p-4 flex items-center gap-3">
-                    <button onClick={() => navigate(`/gyms/${gym.gym_id}`)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
-                      <div className="w-10 h-10 rounded-xl bg-victory-card border border-victory-border flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-5 h-5 text-victory-muted" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-victory-text truncate">{gym.name}</p>
-                        <p className="text-victory-muted text-xs">
-                          <Users className="w-3 h-3 inline mr-0.5" />{gym.member_count}
-                          {" · "}<Star className="w-3 h-3 inline mr-0.5" />{gym.avg_score?.toFixed(1) || "—"}
-                        </p>
-                      </div>
-                    </button>
-                    {!gym.is_member && !myGym && (
-                      <button
-                        onClick={() => handleJoin(gym.gym_id)}
-                        disabled={joiningGymId === gym.gym_id}
-                        className="touch-target flex items-center justify-center text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 disabled:opacity-50"
-                      >
-                        {joiningGymId === gym.gym_id ? (
-                          <span className="w-3 h-3 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
-                        ) : t("gyms.joinBtn")}
-                      </button>
-                    )}
-                    {gym.is_member && <span className="text-xs text-victory-lime">{t("gyms.member")}</span>}
-                  </div>
-                ))}
-              </div>
+          <>
+            {/* Locality — the group of gyms you're "assigned" to by your city */}
+            {!myGym && !city && (
+              <button
+                onClick={() => navigate("/profile")}
+                className="victory-card w-full p-4 flex items-center gap-3 text-left border border-victory-lime/30 bg-victory-lime/5"
+              >
+                <MapPin className="w-5 h-5 text-victory-lime flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-victory-text text-sm font-semibold">{t("gyms.setCityPrompt")}</p>
+                  <p className="text-victory-muted text-xs">{t("gyms.cityHint")}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-victory-muted flex-shrink-0" />
+              </button>
             )}
-          </section>
+
+            {city && (
+              <section>
+                <p className="text-victory-muted text-xs uppercase tracking-wider mb-2">{t("gyms.nearYou", { city })}</p>
+                {localGyms.length === 0 ? (
+                  <p className="text-victory-muted text-sm">{t("gyms.noLocalGyms")}</p>
+                ) : (
+                  <div className="space-y-3">{localGyms.map(renderRow)}</div>
+                )}
+              </section>
+            )}
+
+            {/* Everywhere else — join by reputation, still capacity-gated */}
+            <section>
+              <p className="text-victory-muted text-xs uppercase tracking-wider mb-2">
+                {city ? t("gyms.otherGyms") : t("gyms.findGym")}
+              </p>
+              {otherGyms.length === 0 ? (
+                <div className="text-center py-12">
+                  <Building2 className="w-12 h-12 text-victory-muted mx-auto mb-3" />
+                  <p className="text-victory-muted">{t("gyms.noGyms")}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">{otherGyms.map(renderRow)}</div>
+              )}
+            </section>
+          </>
         ) : (
           /* Leaderboard tab */
           <section>
@@ -304,7 +402,9 @@ export default function GymsPage() {
                     <span className="font-mono text-sm text-victory-muted w-6">#{idx + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className={`font-semibold truncate ${gym.is_my_gym ? "text-victory-lime" : "text-victory-text"}`}>{gym.name}</p>
-                      <p className="text-victory-muted text-xs"><Users className="w-3 h-3 inline mr-0.5" />{gym.member_count} · {gym.total_sessions} {t("gyms.sessions")}</p>
+                      <p className="text-victory-muted text-xs">
+                        <Users className="w-3 h-3 inline mr-0.5" />{gym.member_count}/{gym.member_cap ?? GYM_DEFAULT_CAP} · {gym.total_sessions} {t("gyms.sessions")}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="font-mono font-bold text-victory-lime">{gym.avg_score?.toFixed(1) || "—"}</p>
@@ -320,6 +420,7 @@ export default function GymsPage() {
 
       {showCreate && (
         <CreateGymModal
+          defaultCity={city}
           onClose={() => setShowCreate(false)}
           onCreated={(gym) => { setMyGym(gym); setShowCreate(false); fetchAll(); }}
         />

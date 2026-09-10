@@ -545,7 +545,22 @@
     "tab_browse": "Przeglądaj",
     "tab_leaderboard": "Ranking",
     "publicGymDescOn": "Widoczna w Przeglądaj — każdy może ją znaleźć i dołączyć",
-    "publicGymDescOff": "Ukryta w Przeglądaj — dołączenie tylko przez kod zaproszenia"
+    "publicGymDescOff": "Ukryta w Przeglądaj — dołączenie tylko przez kod zaproszenia",
+    "cityLabel": "Miasto",
+    "cityPlaceholder": "np. Warszawa",
+    "cityHint": "Używane tylko do pokazywania klubów w twoim mieście — nigdy nie widoczne dla innych.",
+    "gymCityHint": "Pokazywane przy klubie, aby inni znaleźli go w swoim mieście.",
+    "memberCapLabel": "Limit członków",
+    "memberCapHint": "Maksymalna liczba osób (5–1000). Możesz to później zmienić.",
+    "nearYou": "Kluby w {{city}}",
+    "otherGyms": "Najlepsze kluby wszędzie",
+    "setCityPrompt": "Dodaj swoje miasto, aby znaleźć kluby w pobliżu",
+    "noLocalGyms": "Brak klubów w twoim mieście — załóż jeden lub dołącz do najlepszego klubu poniżej.",
+    "full": "Pełny",
+    "spotsLeft": "Wolne miejsca: {{count}}",
+    "oneSpotLeft": "1 wolne miejsce",
+    "gymFullNotice": "Ten klub jest teraz pełny.",
+    "leaveCurrentFirst": "Opuść obecny klub, aby dołączyć do innego."
   },
   "gym": {
     "avgScore": "Średni wynik",
