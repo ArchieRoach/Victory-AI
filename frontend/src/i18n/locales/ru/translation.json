@@ -94,7 +94,11 @@
       "partnerReady": "{{name}} готов"
     },
     "trialBanner": "Пробный период заканчивается через <strong>{{days}} дн.</strong> — сохраните свой прогресс.",
-    "upgrade": "Обновить"
+    "upgrade": "Обновить",
+    "restore": "Восстановить покупку",
+    "restoring": "Проверка…",
+    "restoreSuccess": "Подписка восстановлена!",
+    "restoreNotFound": "Активная подписка для этого аккаунта не найдена."
   },
   "onboarding": {
     "birth_date": {

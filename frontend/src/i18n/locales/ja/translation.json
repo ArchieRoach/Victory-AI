@@ -94,7 +94,11 @@
       "partnerReady": "{{name}}が準備完了"
     },
     "trialBanner": "トライアルは<strong>{{days}}日{{plural}}</strong>後に終了 — 進捗を維持しましょう。",
-    "upgrade": "アップグレード"
+    "upgrade": "アップグレード",
+    "restore": "購入を復元",
+    "restoring": "確認中…",
+    "restoreSuccess": "サブスクリプションを復元しました！",
+    "restoreNotFound": "このアカウントに有効なサブスクリプションが見つかりませんでした。"
   },
   "onboarding": {
     "birth_date": {

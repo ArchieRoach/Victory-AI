@@ -1219,6 +1219,69 @@ async def get_subscription_status(user: dict = Depends(get_current_user)):
         return {"has_subscription": False, "status": None}
     return {"has_subscription": subscription["status"] in ["active", "trialing"], "status": subscription["status"], "plan_id": subscription.get("plan_id")}
 
+@api_router.post("/subscription/restore")
+async def restore_subscription(user: dict = Depends(get_current_user)):
+    """For someone who already paid but the app doesn't show them as subscribed — a
+    missed webhook, a fresh account on the same email, a device switch. Looks the account
+    up in Stripe by email, finds a live subscription, and re-points the local record at
+    it. Read-only against Stripe; never creates a charge."""
+    if _rate_limited(f"restore_sub:{user['user_id']}", 5, 60):
+        raise HTTPException(429, "Too many attempts — try again in a minute")
+    email = user.get("email")
+    if not email:
+        raise HTTPException(400, "No email on this account to match a purchase against")
+    if not STRIPE_API_KEY:
+        raise HTTPException(503, "Billing isn't configured")
+
+    try:
+        customers = await asyncio.to_thread(stripe_lib.Customer.list, email=email, limit=10)
+    except Exception as e:
+        logger.error(f"restore_subscription: Stripe customer lookup failed: {e}")
+        raise HTTPException(502, "Couldn't reach Stripe — try again in a moment")
+
+    live_sub = None
+    for cust in customers.data:
+        try:
+            subs = await asyncio.to_thread(stripe_lib.Subscription.list, customer=cust.id, status="all", limit=10)
+        except Exception:
+            continue
+        for s in subs.data:
+            if s.status in ("active", "trialing"):
+                live_sub = s
+                break
+        if live_sub:
+            break
+
+    if not live_sub:
+        return {"restored": False, "reason": "no_active_subscription"}
+
+    plan_id = "monthly"
+    try:
+        interval = live_sub["items"]["data"][0]["price"]["recurring"]["interval"]
+        plan_id = "annual" if interval == "year" else "monthly"
+    except Exception:
+        pass
+
+    fields = {
+        "subscription_id": live_sub.id,
+        "user_id": user["user_id"],
+        "plan_id": plan_id,
+        "status": live_sub.status,
+        "subscription_active": True,  # only active/trialing subs get this far
+        "restored_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if live_sub.get("trial_end"):
+        fields["trial_end"] = datetime.fromtimestamp(live_sub["trial_end"], tz=timezone.utc).isoformat()
+    if live_sub.get("current_period_end"):
+        fields["current_period_end"] = datetime.fromtimestamp(live_sub["current_period_end"], tz=timezone.utc).isoformat()
+
+    await db.subscriptions.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": fields, "$setOnInsert": {"created_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"restored": True, "status": live_sub.status, "plan_id": plan_id}
+
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
     body = await request.body()

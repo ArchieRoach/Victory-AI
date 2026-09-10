@@ -95,7 +95,11 @@
       "partnerReady": "{{name}} is ready"
     },
     "trialBanner": "Trial ends in <strong>{{days}} day{{plural}}</strong> — keep your progress going.",
-    "upgrade": "Upgrade"
+    "upgrade": "Upgrade",
+    "restore": "Restore purchase",
+    "restoring": "Checking…",
+    "restoreSuccess": "Subscription restored!",
+    "restoreNotFound": "No active subscription found for this account."
   },
   "onboarding": {
     "birth_date": {

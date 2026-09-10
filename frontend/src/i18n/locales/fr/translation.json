@@ -94,7 +94,11 @@
       "partnerReady": "{{name}} est prêt"
     },
     "trialBanner": "L'essai se termine dans <strong>{{days}} jour{{plural}}</strong> — continue sur ta lancée.",
-    "upgrade": "Mettre à niveau"
+    "upgrade": "Mettre à niveau",
+    "restore": "Restaurer l'achat",
+    "restoring": "Vérification…",
+    "restoreSuccess": "Abonnement restauré !",
+    "restoreNotFound": "Aucun abonnement actif trouvé pour ce compte."
   },
   "onboarding": {
     "birth_date": {
