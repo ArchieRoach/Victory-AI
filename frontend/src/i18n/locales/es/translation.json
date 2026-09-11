@@ -98,7 +98,38 @@
     "restore": "Restaurar compra",
     "restoring": "Comprobando…",
     "restoreSuccess": "¡Suscripción restaurada!",
-    "restoreNotFound": "No se encontró ninguna suscripción activa para esta cuenta."
+    "restoreNotFound": "No se encontró ninguna suscripción activa para esta cuenta.",
+    "steps": {
+      "value": "Qué obtienes",
+      "concerns": "Preguntas frecuentes",
+      "payment": "Elige tu plan"
+    },
+    "stepOf": "Paso {{n}} de 3",
+    "next": "Continuar",
+    "back": "Atrás",
+    "valueHeadline": "Entrena como si tuvieras un entrenador en tu esquina.",
+    "valueSubheadline": "Victory AI puntúa tu técnica, te muestra qué te está frenando y lo convierte en ejercicios que puedes hacer hoy — en cada sesión.",
+    "valuePoints": {
+      "scores": "16 técnicas puntuadas a partir del vídeo de tu sesión",
+      "weakness": "Ve exactamente qué áreas te están costando puntos",
+      "drills": "Un plan de ejercicios diario centrado en tus puntos débiles",
+      "partner": "Un compañero de entrenamiento con IA que recuerda tu progreso"
+    },
+    "concernsHeadline": "Preguntas que la gente hace antes de empezar",
+    "concernsList": {
+      "freeQ": "¿Tengo que pagar para probarlo?",
+      "freeA": "No. Ambos planes de pago empiezan con una prueba gratuita de 14 días — no se te cobra hasta que termina.",
+      "cancelQ": "¿Y si no es para mí?",
+      "cancelA": "Cancela con dos toques desde tu perfil en cualquier momento durante la prueba. Sin cargos, sin preguntas.",
+      "worksQ": "¿De verdad mejorará mi boxeo?",
+      "worksA": "Puntúa 16 técnicas a partir de tu vídeo y convierte tus áreas más débiles en un plan de ejercicios diario.",
+      "secureQ": "¿Es seguro mi pago?",
+      "secureA": "Los pagos se procesan a través de Stripe. Nunca vemos ni almacenamos los datos de tu tarjeta.",
+      "foreverQ": "¿Puedo seguir usando la versión gratuita?",
+      "foreverA": "Sí — el plan gratuito es gratis para siempre: 10.000 créditos de IA al mes, sin tarjeta."
+    },
+    "paymentHeadline": "Comienza tu prueba gratuita de 14 días",
+    "paymentReassure": "14 días gratis y luego tu plan se renueva automáticamente. Cancela en cualquier momento antes y no pagarás nada."
   },
   "onboarding": {
     "birth_date": {

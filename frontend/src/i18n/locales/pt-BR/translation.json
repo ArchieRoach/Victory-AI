@@ -98,7 +98,38 @@
     "restore": "Restaurar compra",
     "restoring": "Verificando…",
     "restoreSuccess": "Assinatura restaurada!",
-    "restoreNotFound": "Nenhuma assinatura ativa encontrada para esta conta."
+    "restoreNotFound": "Nenhuma assinatura ativa encontrada para esta conta.",
+    "steps": {
+      "value": "O que você recebe",
+      "concerns": "Perguntas frequentes",
+      "payment": "Escolha seu plano"
+    },
+    "stepOf": "Etapa {{n}} de 3",
+    "next": "Continuar",
+    "back": "Voltar",
+    "valueHeadline": "Treine como se tivesse um treinador no seu córner.",
+    "valueSubheadline": "O Victory AI avalia sua técnica, mostra o que está te segurando e transforma isso em exercícios que você pode fazer hoje — em toda sessão.",
+    "valuePoints": {
+      "scores": "16 técnicas avaliadas a partir do vídeo da sua sessão",
+      "weakness": "Veja exatamente quais áreas estão custando pontos a você",
+      "drills": "Um plano diário de exercícios focado nos seus pontos fracos",
+      "partner": "Um parceiro de treino com IA que lembra do seu progresso"
+    },
+    "concernsHeadline": "Perguntas que as pessoas fazem antes de começar",
+    "concernsList": {
+      "freeQ": "Preciso pagar para experimentar?",
+      "freeA": "Não. Os dois planos pagos começam com um teste grátis de 14 dias — você só é cobrado quando ele termina.",
+      "cancelQ": "E se não for para mim?",
+      "cancelA": "Cancele com dois toques pelo seu perfil a qualquer momento durante o teste. Sem cobrança, sem perguntas.",
+      "worksQ": "Isso vai realmente melhorar meu boxe?",
+      "worksA": "Ele avalia 16 técnicas a partir do seu vídeo e transforma suas áreas mais fracas em um plano diário de exercícios.",
+      "secureQ": "Meu pagamento é seguro?",
+      "secureA": "Os pagamentos são processados pela Stripe. Nunca vemos nem armazenamos os dados do seu cartão.",
+      "foreverQ": "Posso continuar usando a versão gratuita?",
+      "foreverA": "Sim — o plano gratuito é grátis para sempre: 10.000 créditos de IA por mês, sem cartão."
+    },
+    "paymentHeadline": "Comece seu teste gratuito de 14 dias",
+    "paymentReassure": "14 dias grátis e depois seu plano é renovado automaticamente. Cancele a qualquer momento antes disso e você não paga nada."
   },
   "onboarding": {
     "birth_date": {
