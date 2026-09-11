@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
 import { Check, Zap, Trophy, Target, Shield, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { analytics } from "@/lib/analytics";
 
 const MOCK_DIMENSIONS = [
   { name: "Jab", value: 7.5 },
@@ -80,8 +81,14 @@ export default function PaywallPage() {
   const [restoring, setRestoring] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
+  // Funnel: which of the 3 steps people actually reach.
+  useEffect(() => {
+    analytics.capture("paywall_step_viewed", { step, name: ["value", "concerns", "payment"][step - 1] });
+  }, [step]);
+
   const handleStartTrial = async () => {
     setLoading(true);
+    analytics.capture("checkout_started", { plan: selectedPlan });
     try {
       const response = await axios.post(
         `${API}/payments/checkout`,

@@ -5,6 +5,7 @@ import { API, useAuth } from "@/App";
 import { toast } from "sonner";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { analytics } from "@/lib/analytics";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ export default function PaymentSuccess() {
           await refreshUser(); // refresh without unmounting this page
           if (cancelled) return;
           setStatus("success");
+          analytics.capture("subscription_activated");
           toast.success(t("payment.successToast"));
           redirectTimer = setTimeout(() => navigate("/home", { replace: true }), 2000);
           return;

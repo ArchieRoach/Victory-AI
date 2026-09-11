@@ -19,11 +19,15 @@ import { FeaturebaseProvider, useFeaturebase } from "featurebase-js/react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalCrashReporting } from "@/utils/crashReporter";
 import { useSystemTheme } from "@/hooks/useSystemTheme";
+import { initAnalytics, analytics } from "@/lib/analytics";
 
 // Catches crashes outside React's render cycle (event handlers, timers, async code) —
 // ErrorBoundary below only sees render-time errors. Installed once at module load, same
 // timing as the RTL-direction setup above.
 installGlobalCrashReporting();
+
+// PostHog — no-ops if REACT_APP_POSTHOG_KEY is unset. Privacy config lives in the lib.
+initAnalytics();
 
 // The workspace's General → Manage modules toggles decide server-side which surfaces
 // (messenger/changelog/feedback) actually boot; nothing here forces one on.
@@ -404,6 +408,34 @@ function FeaturebaseLogoutSync() {
   return null;
 }
 
+// PostHog: one manual $pageview per client-side route change (capture_pageview is
+// off), plus identify on login / reset on logout. Only the stable app user_id is
+// sent — never email or name.
+function AnalyticsTracker() {
+  const location = useLocation();
+  const { user, isAuthenticated } = useAuth();
+  const identified = useRef(false);
+
+  useEffect(() => {
+    analytics.pageview(location.pathname);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.user_id && !identified.current) {
+      analytics.identify(user.user_id, {
+        plan: user.has_subscription ? "pro" : "free",
+        onboarded: !!user.onboarding_completed,
+      });
+      identified.current = true;
+    } else if (!isAuthenticated && identified.current) {
+      analytics.reset();
+      identified.current = false;
+    }
+  }, [isAuthenticated, user]);
+
+  return null;
+}
+
 function App() {
   // Mirrors the OS light/dark setting onto <html data-theme> in real time, which
   // flips every --victory-* CSS variable (and thus every victory-* class) instantly.
@@ -418,6 +450,7 @@ function App() {
           <BrowserRouter>
             <AuthProvider>
               <FeaturebaseRoot>
+                <AnalyticsTracker />
                 <AppRouter />
                 <FeedbackWidget />
                 <Toaster position="top-center" toastOptions={{ style: { background: "rgb(var(--victory-card))", border: "1px solid rgb(var(--victory-border))", color: "rgb(var(--victory-text))" } }} />

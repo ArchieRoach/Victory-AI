@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
         </button>
         <div>
           <h1 className="text-victory-text font-heading font-extrabold text-base leading-tight">Privacy Policy</h1>
-          <p className="text-victory-muted text-xs">Last updated 10 September 2026</p>
+          <p className="text-victory-muted text-xs">Last updated 11 September 2026</p>
         </div>
       </div>
 
@@ -41,19 +41,20 @@ export default function PrivacyPolicyPage() {
           <p><strong className="text-victory-text">Payment data:</strong> handled directly by Stripe — we never see or store your card details.</p>
           <p><strong className="text-victory-text">Device data:</strong> push-notification tokens and basic technical/log data (IP address, request metadata) for security and abuse prevention. We also record when you last opened the app, used only to time reminder notifications (see below) and never shown to other users.</p>
           <p><strong className="text-victory-text">Crash reports:</strong> if the app crashes, we automatically receive the error message, a technical stack trace, and the page you were on, so we can fix it — kept for 90 days, deleted automatically after.</p>
+          <p><strong className="text-victory-text">Product analytics:</strong> we record which screens are used and a few key actions (e.g. starting a trial) to understand what's working, via PostHog. It's tied only to your app account ID — never your name or email — page addresses are stripped of anything identifying, and no analytics cookies are stored on your device. We don't use session recording.</p>
           <p><strong className="text-victory-text">City (optional):</strong> if you add your city in Profile settings, it's used only to show you gyms in the same city. It's a city name you type yourself — we never request device location or store precise coordinates — and it's never shown to other users.</p>
           <p><strong className="text-victory-text">Contact sync (optional):</strong> if you use "Find friends from your contacts", your device's contact picker lets you choose which contacts to check — we only ever receive an irreversible SHA-256 hash of each selected email, never the real email address, name, or any other contact detail. Non-matching hashes are discarded immediately and never stored.</p>
         </Section>
 
         <Section title="Why we process it, and our legal basis">
           <p><strong className="text-victory-text">Contract (Art. 6(1)(b)):</strong> core app functionality — training sessions, AI feedback, social features, subscriptions.</p>
-          <p><strong className="text-victory-text">Legitimate interests (Art. 6(1)(f)):</strong> content moderation, fraud/abuse prevention, service security, and crash diagnostics.</p>
+          <p><strong className="text-victory-text">Legitimate interests (Art. 6(1)(f)):</strong> content moderation, fraud/abuse prevention, service security, crash diagnostics, and privacy-preserving product analytics (no cookies, no cross-site tracking, pseudonymous) to improve the app.</p>
           <p><strong className="text-victory-text">Consent (Art. 6(1)(a)):</strong> push notifications — including reminders if you've been away a few days or your trial is ending soon, always based on your own real activity, never a scheduled blast to everyone — which you can withdraw any time in Profile settings; and contact sync, which only ever runs when you tap "Find" and pick contacts yourself — nothing is checked automatically or in the background.</p>
         </Section>
 
         <Section title="Who we share it with">
           <p>We use the following processors to run the service. Each only receives the data it needs to perform its function:</p>
-          <p>Clerk (authentication), Stripe (payments), Cloudinary (media storage), Livepeer (live streaming), ElevenLabs (voice/TTS feedback), OpenAI (AI training feedback and content moderation), Resend (transactional email), MongoDB Atlas (database hosting), Featurebase (feedback &amp; support — your name and email, so any feedback, votes, or messages you send there are attributed to your real account rather than showing up anonymous).</p>
+          <p>Clerk (authentication), Stripe (payments), Cloudinary (media storage), Livepeer (live streaming), ElevenLabs (voice/TTS feedback), OpenAI (AI training feedback and content moderation), Resend (transactional email), MongoDB Atlas (database hosting), Featurebase (feedback &amp; support — your name and email, so any feedback, votes, or messages you send there are attributed to your real account rather than showing up anonymous), PostHog (product analytics — receives only a pseudonymous account ID and in-app events, no name or email).</p>
           <p>Most of these providers are based in the United States. Transfers rely on the EU-US Data Privacy Framework and/or Standard Contractual Clauses as the transfer safeguard.</p>
           <p>We do not sell your personal data.</p>
         </Section>
