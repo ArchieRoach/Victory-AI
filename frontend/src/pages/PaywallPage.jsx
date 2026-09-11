@@ -328,6 +328,12 @@ export default function PaywallPage() {
             >
               {t("paywall.freePlan.cta")}
             </button>
+
+            <p className="text-victory-muted text-[11px] text-center mt-4">
+              <button onClick={() => navigate("/terms")} className="underline">{t("profile.termsOfService")}</button>
+              {" · "}
+              <button onClick={() => navigate("/privacy")} className="underline">{t("profile.privacyPolicy")}</button>
+            </p>
           </div>
         )}
       </main>

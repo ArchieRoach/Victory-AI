@@ -10,7 +10,8 @@
     "cancel": "Cancel",
     "champ": "Champ",
     "loading": "Loading...",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "and": "and"
   },
   "nav": {
     "home": "Home",
@@ -138,7 +139,8 @@
       "subtitle": "We ask this once, to comply with data protection law.",
       "cta": "Continue",
       "under13": "You must be at least 13 years old to use Victory AI",
-      "required": "Please enter your date of birth"
+      "required": "Please enter your date of birth",
+      "legalPrefix": "By continuing, you agree to our"
     },
     "affirmation": {
       "title": "Smart move, champ.",
@@ -385,7 +387,8 @@
     "almostDone": "1 thing left!",
     "nextMilestone": "Next milestone: {{days}}-day streak",
     "daysLeft": "{{count}} days left",
-    "oneDayLeft": "1 day left!"
+    "oneDayLeft": "1 day left!",
+    "termsOfService": "Terms of Service"
   },
   "train": {
     "title": "Set Your Training",

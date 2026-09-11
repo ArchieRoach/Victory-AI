@@ -69,6 +69,7 @@ import StreamViewPage from "@/pages/StreamViewPage";
 import GoLivePage from "@/pages/GoLivePage";
 import AdvertisePage from "@/pages/AdvertisePage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
+import TermsOfServicePage from "@/pages/TermsOfServicePage";
 import EmoteStudioPage from "@/pages/EmoteStudioPage";
 import { PushPrompt } from "@/components/PushPrompt";
 import StreamerDashboardPage from "@/pages/StreamerDashboardPage";
@@ -365,6 +366,7 @@ const AppRouter = () => {
 
         {/* Public — no auth required */}
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfServicePage />} />
 
         {/* Advertiser onboarding — public, no auth required */}
         <Route path="/advertise" element={<AdvertisePage />} />

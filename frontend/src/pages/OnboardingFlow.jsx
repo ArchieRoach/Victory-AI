@@ -39,9 +39,16 @@ const BirthDatePhase = ({ onNext }) => {
         {t("onboarding.birth_date.cta")}
         <ChevronRight className="w-5 h-5" />
       </button>
-      <button onClick={() => navigate("/privacy")} className="w-full touch-target flex items-center justify-center text-victory-muted text-xs hover:underline">
-        {t("profile.privacyPolicy")}
-      </button>
+      <p className="text-victory-muted text-xs text-center leading-relaxed">
+        {t("onboarding.birth_date.legalPrefix")}{" "}
+        <button onClick={() => navigate("/terms")} className="text-victory-lime underline touch-target">
+          {t("profile.termsOfService")}
+        </button>{" "}
+        {t("common.and")}{" "}
+        <button onClick={() => navigate("/privacy")} className="text-victory-lime underline touch-target">
+          {t("profile.privacyPolicy")}
+        </button>.
+      </p>
     </div>
   );
 };

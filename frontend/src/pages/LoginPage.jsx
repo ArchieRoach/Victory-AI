@@ -33,7 +33,8 @@ export default function LoginPage() {
               card: "shadow-none",
               headerTitle: "hidden",
               headerSubtitle: "hidden",
-              socialButtonsBlockButton: "border border-victory-border text-victory-text",
+              // Let Clerk render each provider's own branded button — Sign in with
+              // Apple in particular must keep Apple's required styling (Guideline 4.8).
               formButtonPrimary: "bg-victory-lime text-victory-bg hover:opacity-90",
               footerActionLink: "text-victory-lime",
               formFieldInput: "bg-victory-bg border-victory-border text-victory-text",

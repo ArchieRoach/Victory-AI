@@ -103,9 +103,14 @@ export default function WelcomePage() {
           </button>
         </p>
 
-        <button onClick={() => navigate("/privacy")} className="mt-3 text-victory-muted text-xs hover:underline touch-target flex items-center justify-center" data-testid="welcome-privacy-link">
-          {t("profile.privacyPolicy")}
-        </button>
+        <div className="mt-3 flex items-center justify-center gap-4 text-victory-muted text-xs">
+          <button onClick={() => navigate("/terms")} className="hover:underline touch-target flex items-center" data-testid="welcome-terms-link">
+            {t("profile.termsOfService")}
+          </button>
+          <button onClick={() => navigate("/privacy")} className="hover:underline touch-target flex items-center" data-testid="welcome-privacy-link">
+            {t("profile.privacyPolicy")}
+          </button>
+        </div>
       </div>
     </div>
   );

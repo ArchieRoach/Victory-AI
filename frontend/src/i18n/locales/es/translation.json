@@ -10,7 +10,8 @@
     "cancel": "Cancelar",
     "champ": "Campeón",
     "loading": "Cargando...",
-    "error": "Algo salió mal"
+    "error": "Algo salió mal",
+    "and": "y"
   },
   "nav": {
     "home": "Inicio",
@@ -137,7 +138,8 @@
       "subtitle": "Te lo preguntamos una sola vez, para cumplir con la normativa de protección de datos.",
       "cta": "Continuar",
       "under13": "Debes tener al menos 13 años para usar Victory AI",
-      "required": "Introduce tu fecha de nacimiento"
+      "required": "Introduce tu fecha de nacimiento",
+      "legalPrefix": "Al continuar, aceptas nuestros"
     },
     "affirmation": {
       "title": "Buena decisión, campeón.",
@@ -384,7 +386,8 @@
     "almostDone": "¡Falta 1 cosa!",
     "nextMilestone": "Próxima meta: racha de {{days}} días",
     "daysLeft": "Faltan {{count}} días",
-    "oneDayLeft": "¡Falta 1 día!"
+    "oneDayLeft": "¡Falta 1 día!",
+    "termsOfService": "Términos de servicio"
   },
   "train": {
     "title": "Configura tu entrenamiento",

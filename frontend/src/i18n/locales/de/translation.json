@@ -10,7 +10,8 @@
     "cancel": "Abbrechen",
     "champ": "Champ",
     "loading": "Wird geladen...",
-    "error": "Etwas ist schiefgelaufen"
+    "error": "Etwas ist schiefgelaufen",
+    "and": "und"
   },
   "nav": {
     "home": "Startseite",
@@ -137,7 +138,8 @@
       "subtitle": "Das fragen wir einmalig, um Datenschutzvorgaben einzuhalten.",
       "cta": "Weiter",
       "under13": "Du musst mindestens 13 Jahre alt sein, um Victory AI zu nutzen",
-      "required": "Bitte gib dein Geburtsdatum ein"
+      "required": "Bitte gib dein Geburtsdatum ein",
+      "legalPrefix": "Mit dem Fortfahren akzeptierst du unsere"
     },
     "affirmation": {
       "title": "Kluge Entscheidung, Champ.",
@@ -384,7 +386,8 @@
     "almostDone": "Noch 1 Sache!",
     "nextMilestone": "Nächstes Ziel: {{days}} Tage in Folge",
     "daysLeft": "Noch {{count}} Tage",
-    "oneDayLeft": "Noch 1 Tag!"
+    "oneDayLeft": "Noch 1 Tag!",
+    "termsOfService": "Nutzungsbedingungen"
   },
   "train": {
     "title": "Training konfigurieren",

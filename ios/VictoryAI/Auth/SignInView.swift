@@ -75,12 +75,15 @@ struct SignInView: View {
                     }
                     .disabled(viewModel.isLoading)
 
-                    HStack(spacing: 12) {
+                    // Sign in with Apple must be offered (and at least as prominent
+                    // as other social options) whenever any third-party login is —
+                    // App Store Review Guideline 4.8. Apple button goes first.
+                    VStack(spacing: 10) {
+                        SocialSignInButton(provider: .apple) {
+                            Task { await signInWith(.apple) }
+                        }
                         SocialSignInButton(provider: .google) {
                             Task { await signInWith(.google) }
-                        }
-                        SocialSignInButton(provider: .facebook) {
-                            Task { await signInWith(.facebook) }
                         }
                     }
 
@@ -122,21 +125,31 @@ struct SocialSignInButton: View {
     let provider: OAuthProvider
     let action: () -> Void
 
+    private var isApple: Bool { provider == .apple }
+
     var body: some View {
         Button(action: action) {
-            HStack {
-                Image(provider == .google ? "ic_google" : "ic_facebook")
-                    .resizable()
-                    .frame(width: 20, height: 20)
-                Text(provider == .google ? "Google" : "Facebook")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.white)
+            HStack(spacing: 8) {
+                if isApple {
+                    Image(systemName: "apple.logo")
+                        .font(.system(size: 17, weight: .medium))
+                } else {
+                    Image("ic_google")
+                        .resizable()
+                        .frame(width: 18, height: 18)
+                }
+                Text(isApple ? "Sign in with Apple" : "Continue with Google")
+                    .font(.subheadline.weight(.semibold))
             }
+            .foregroundColor(isApple ? .black : .white)
             .frame(maxWidth: .infinity)
-            .frame(height: 46)
-            .background(Color(hex: "#1E1E2E"))
+            .frame(height: 48)
+            .background(isApple ? Color.white : Color(hex: "#1E1E2E"))
             .cornerRadius(10)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#2A2A3A")))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isApple ? Color.clear : Color(hex: "#2A2A3A"))
+            )
         }
     }
 }
