@@ -98,7 +98,38 @@
     "restore": "Przywróć zakup",
     "restoring": "Sprawdzanie…",
     "restoreSuccess": "Subskrypcja przywrócona!",
-    "restoreNotFound": "Nie znaleziono aktywnej subskrypcji dla tego konta."
+    "restoreNotFound": "Nie znaleziono aktywnej subskrypcji dla tego konta.",
+    "steps": {
+      "value": "Co otrzymujesz",
+      "concerns": "Częste pytania",
+      "payment": "Wybierz plan"
+    },
+    "stepOf": "Krok {{n}} z 3",
+    "next": "Dalej",
+    "back": "Wstecz",
+    "valueHeadline": "Trenuj tak, jakbyś miał trenera w swoim narożniku.",
+    "valueSubheadline": "Victory AI ocenia twoją technikę, pokazuje, co cię hamuje, i zamienia to w ćwiczenia, które możesz wykonać już dziś — na każdym treningu.",
+    "valuePoints": {
+      "scores": "16 technik ocenionych na podstawie nagrania twojego treningu",
+      "weakness": "Zobacz dokładnie, które obszary kosztują cię punkty",
+      "drills": "Codzienny plan ćwiczeń oparty na twoich słabych punktach",
+      "partner": "Partner treningowy AI, który pamięta twoje postępy"
+    },
+    "concernsHeadline": "Pytania, które ludzie zadają przed rozpoczęciem",
+    "concernsList": {
+      "freeQ": "Czy muszę płacić, żeby wypróbować?",
+      "freeA": "Nie. Oba płatne plany zaczynają się od 14-dniowego bezpłatnego okresu próbnego — opłata pobierana jest dopiero po jego zakończeniu.",
+      "cancelQ": "A jeśli to nie dla mnie?",
+      "cancelA": "Anuluj dwoma dotknięciami w swoim profilu, w dowolnym momencie okresu próbnego. Bez opłat, bez pytań.",
+      "worksQ": "Czy to naprawdę poprawi mój boks?",
+      "worksA": "Ocenia 16 technik na podstawie twojego nagrania i zamienia twoje najsłabsze obszary w codzienny plan ćwiczeń.",
+      "secureQ": "Czy moja płatność jest bezpieczna?",
+      "secureA": "Płatności realizowane są przez Stripe. Nigdy nie widzimy ani nie przechowujemy danych twojej karty.",
+      "foreverQ": "Czy zamiast tego mogę dalej korzystać z wersji bezpłatnej?",
+      "foreverA": "Tak — plan bezpłatny pozostaje darmowy na zawsze: 10 000 kredytów AI miesięcznie, bez karty."
+    },
+    "paymentHeadline": "Rozpocznij 14-dniowy bezpłatny okres próbny",
+    "paymentReassure": "14 dni za darmo, potem plan odnawia się automatycznie. Anuluj w dowolnym momencie wcześniej, a nic nie zapłacisz."
   },
   "onboarding": {
     "birth_date": {

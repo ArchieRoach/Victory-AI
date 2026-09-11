@@ -98,7 +98,38 @@
     "restore": "恢复购买",
     "restoring": "正在检查…",
     "restoreSuccess": "订阅已恢复！",
-    "restoreNotFound": "未找到此账户的有效订阅。"
+    "restoreNotFound": "未找到此账户的有效订阅。",
+    "steps": {
+      "value": "你将获得",
+      "concerns": "常见问题",
+      "payment": "选择方案"
+    },
+    "stepOf": "第 {{n}} 步，共 3 步",
+    "next": "继续",
+    "back": "返回",
+    "valueHeadline": "像有教练在你角落一样训练。",
+    "valueSubheadline": "Victory AI 为你的技术评分，指出是什么在拖你后腿，并把它转化为你今天就能做的训练 — 每一次训练都是如此。",
+    "valuePoints": {
+      "scores": "根据你的训练视频为 16 项技术评分",
+      "weakness": "精准了解哪些方面在让你失分",
+      "drills": "围绕你的薄弱环节制定的每日训练计划",
+      "partner": "记得你进步的 AI 训练搭档"
+    },
+    "concernsHeadline": "开始前大家常问的问题",
+    "concernsList": {
+      "freeQ": "试用需要付费吗？",
+      "freeA": "不需要。两种付费方案都以 14 天免费试用开始 — 试用结束前不会收费。",
+      "cancelQ": "如果不适合我怎么办？",
+      "cancelA": "试用期内随时在个人资料中两次点击即可取消。不收费，不多问。",
+      "worksQ": "这真的能提升我的拳击水平吗？",
+      "worksA": "它根据你的视频为 16 项技术评分，并把你最薄弱的方面变成每日训练计划。",
+      "secureQ": "我的付款安全吗？",
+      "secureA": "付款通过 Stripe 处理。我们从不查看或存储你的银行卡信息。",
+      "foreverQ": "我可以继续使用免费版吗？",
+      "foreverA": "可以 — 免费方案永久免费：每月 10,000 个 AI 额度，无需绑卡。"
+    },
+    "paymentHeadline": "开始你的 14 天免费试用",
+    "paymentReassure": "14 天免费，之后方案将自动续订。在此之前随时取消，你无需支付任何费用。"
   },
   "onboarding": {
     "birth_date": {

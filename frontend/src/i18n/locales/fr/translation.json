@@ -98,7 +98,38 @@
     "restore": "Restaurer l'achat",
     "restoring": "Vérification…",
     "restoreSuccess": "Abonnement restauré !",
-    "restoreNotFound": "Aucun abonnement actif trouvé pour ce compte."
+    "restoreNotFound": "Aucun abonnement actif trouvé pour ce compte.",
+    "steps": {
+      "value": "Ce que vous obtenez",
+      "concerns": "Questions fréquentes",
+      "payment": "Choisissez votre formule"
+    },
+    "stepOf": "Étape {{n}} sur 3",
+    "next": "Continuer",
+    "back": "Retour",
+    "valueHeadline": "Entraînez-vous comme si un coach était dans votre coin.",
+    "valueSubheadline": "Victory AI note votre technique, révèle ce qui vous freine et le transforme en exercices à faire dès aujourd'hui — à chaque séance.",
+    "valuePoints": {
+      "scores": "16 techniques notées à partir de la vidéo de votre séance",
+      "weakness": "Voyez exactement quelles zones vous coûtent des points",
+      "drills": "Un plan d'exercices quotidien axé sur vos points faibles",
+      "partner": "Un partenaire d'entraînement IA qui se souvient de vos progrès"
+    },
+    "concernsHeadline": "Les questions que l'on se pose avant de commencer",
+    "concernsList": {
+      "freeQ": "Dois-je payer pour l'essayer ?",
+      "freeA": "Non. Les deux formules payantes commencent par un essai gratuit de 14 jours — vous n'êtes facturé qu'à la fin.",
+      "cancelQ": "Et si ça ne me convient pas ?",
+      "cancelA": "Annulez en deux touches depuis votre profil, à tout moment pendant l'essai. Aucun frais, aucune question.",
+      "worksQ": "Est-ce que ça va vraiment améliorer ma boxe ?",
+      "worksA": "L'app note 16 techniques à partir de votre vidéo et transforme vos points les plus faibles en plan d'exercices quotidien.",
+      "secureQ": "Mon paiement est-il sécurisé ?",
+      "secureA": "Les paiements passent par Stripe. Nous ne voyons ni ne conservons jamais vos données de carte.",
+      "foreverQ": "Puis-je continuer avec la version gratuite ?",
+      "foreverA": "Oui — la formule gratuite reste gratuite pour toujours : 10 000 crédits IA par mois, sans carte."
+    },
+    "paymentHeadline": "Commencez votre essai gratuit de 14 jours",
+    "paymentReassure": "14 jours gratuits, puis votre formule se renouvelle automatiquement. Annulez à tout moment avant et vous ne payez rien."
   },
   "onboarding": {
     "birth_date": {

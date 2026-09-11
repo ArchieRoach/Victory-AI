@@ -98,7 +98,38 @@
     "restore": "Kauf wiederherstellen",
     "restoring": "Wird geprüft…",
     "restoreSuccess": "Abo wiederhergestellt!",
-    "restoreNotFound": "Kein aktives Abo für dieses Konto gefunden."
+    "restoreNotFound": "Kein aktives Abo für dieses Konto gefunden.",
+    "steps": {
+      "value": "Das bekommst du",
+      "concerns": "Häufige Fragen",
+      "payment": "Wähle deinen Plan"
+    },
+    "stepOf": "Schritt {{n}} von 3",
+    "next": "Weiter",
+    "back": "Zurück",
+    "valueHeadline": "Trainiere, als hättest du einen Coach in deiner Ecke.",
+    "valueSubheadline": "Victory AI bewertet deine Technik, zeigt dir, was dich zurückhält, und macht daraus Übungen, die du noch heute machen kannst — in jeder Einheit.",
+    "valuePoints": {
+      "scores": "16 Techniken, bewertet anhand deines Trainingsvideos",
+      "weakness": "Sieh genau, welche Bereiche dich Punkte kosten",
+      "drills": "Ein täglicher Übungsplan rund um deine Schwachstellen",
+      "partner": "Ein KI-Trainingspartner, der sich deinen Fortschritt merkt"
+    },
+    "concernsHeadline": "Fragen, die sich viele vor dem Start stellen",
+    "concernsList": {
+      "freeQ": "Muss ich zahlen, um es auszuprobieren?",
+      "freeA": "Nein. Beide kostenpflichtigen Pläne starten mit einer 14-tägigen kostenlosen Testphase — abgerechnet wird erst danach.",
+      "cancelQ": "Was, wenn es nichts für mich ist?",
+      "cancelA": "Kündige mit zwei Tippen in deinem Profil, jederzeit während der Testphase. Keine Kosten, keine Nachfragen.",
+      "worksQ": "Verbessert das wirklich mein Boxen?",
+      "worksA": "Die App bewertet 16 Techniken anhand deines Videos und macht aus deinen schwächsten Bereichen einen täglichen Übungsplan.",
+      "secureQ": "Ist meine Zahlung sicher?",
+      "secureA": "Zahlungen laufen über Stripe. Wir sehen und speichern deine Kartendaten nie.",
+      "foreverQ": "Kann ich stattdessen die kostenlose Version weiter nutzen?",
+      "foreverA": "Ja — der kostenlose Plan bleibt für immer kostenlos: 10.000 KI-Credits pro Monat, keine Karte erforderlich."
+    },
+    "paymentHeadline": "Starte deine 14-tägige kostenlose Testphase",
+    "paymentReassure": "14 Tage kostenlos, danach verlängert sich dein Plan automatisch. Kündige jederzeit vorher und du zahlst nichts."
   },
   "onboarding": {
     "birth_date": {
