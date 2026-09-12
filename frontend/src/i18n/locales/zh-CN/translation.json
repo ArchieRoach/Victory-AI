@@ -10,7 +10,8 @@
     "cancel": "取消",
     "champ": "冠军",
     "loading": "加载中...",
-    "error": "出现错误"
+    "error": "出现错误",
+    "and": "和"
   },
   "nav": {
     "home": "首页",
@@ -137,7 +138,8 @@
       "subtitle": "我们仅询问一次，以遵守数据保护法规。",
       "cta": "继续",
       "under13": "您必须年满13岁才能使用 Victory AI",
-      "required": "请输入您的出生日期"
+      "required": "请输入您的出生日期",
+      "legalPrefix": "继续即表示您同意我们的"
     },
     "affirmation": {
       "title": "明智之举，冠军。",
@@ -384,7 +386,8 @@
     "almostDone": "还差1项！",
     "nextMilestone": "下一个目标：连续{{days}}天",
     "daysLeft": "还差{{count}}天",
-    "oneDayLeft": "还差1天！"
+    "oneDayLeft": "还差1天！",
+    "termsOfService": "服务条款"
   },
   "train": {
     "title": "设置训练",

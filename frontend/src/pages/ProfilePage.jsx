@@ -904,6 +904,14 @@ export default function ProfilePage() {
             {t("profile.privacyPolicy")}
           </button>
           <button
+            onClick={() => navigate("/terms")}
+            className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+            data-testid="terms-of-service-btn"
+          >
+            <Shield className="w-5 h-5" />
+            {t("profile.termsOfService")}
+          </button>
+          <button
             onClick={handleExportData}
             disabled={exportingData}
             className="victory-btn-ghost w-full flex items-center justify-center gap-2 disabled:opacity-60"
