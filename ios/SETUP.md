@@ -23,13 +23,8 @@ Add these in Xcode → File → Add Package Dependencies:
 <key>WEB_APP_URL</key>
 <string>https://victory-ai-alpha.vercel.app</string>
 
-<!-- Web subscription page — opened in SFSafariViewController -->
-<key>SUBSCRIBE_URL</key>
-<string>https://buy.stripe.com/7sY8wP8ED7qp6CP8qCaR200</string>
-
-<!-- Stripe customer portal — for reactivation on LapsedSubscriptionView -->
-<key>STRIPE_PORTAL_URL</key>
-<string>https://billing.stripe.com/p/login/7sY8wP8ED7qp6CP8qCaR200</string>
+<!-- No SUBSCRIBE_URL / STRIPE_PORTAL_URL: the native app must not link to Stripe
+     (Guideline 3.1.1). Delete those keys if an older Info.plist still has them. -->
 
 <!-- Clerk OAuth callback scheme (must match your app's bundle ID) -->
 <key>CFBundleURLTypes</key>
@@ -54,10 +49,16 @@ Add these in Xcode → File → Add Package Dependencies:
 <string>Choose an existing training video to analyse instead of recording a new one.</string>
 <key>NSPhotoLibraryAddUsageDescription</key>
 <string>Save your scorecard image to your photo library.</string>
+
+<!-- Remote notifications (APNs) — see "Push notifications" below -->
+<key>UIBackgroundModes</key>
+<array>
+  <string>remote-notification</string>
+</array>
 ```
 
-Notifications use `UNUserNotificationCenter` (no Info.plist string needed, but the
-first `requestAuthorization` call is the system prompt). Contacts are **not**
+Notifications use `UNUserNotificationCenter` (no Info.plist string needed). The system
+prompt appears the first time a signed-in user with access reaches the app. Contacts are **not**
 accessed on iOS — the "find friends from contacts" feature relies on the browser
 Contact Picker API, which WKWebView does not expose, so it never runs here. Do not
 add `NSContactsUsageDescription` unless that changes.
@@ -87,6 +88,9 @@ import ClerkSDK
 
 @main
 struct VictoryAIApp: App {
+    // Required for APNs — device-token callbacks only reach a UIApplicationDelegate.
+    @UIApplicationDelegateAdaptor(VictoryAppDelegate.self) var appDelegate
+
     var body: some Scene {
         WindowGroup {
             AppRootView()
@@ -104,9 +108,9 @@ App launch (existing session) → SplashView → validate → .app / .paywall / 
 App launch (no session)       → SignInView
 Sign in complete              → validate  → .app / .paywall / .lapsed / .networkError
 Network unreachable           → NetworkErrorView (retry button, never locks user out)
-.paywall → Subscribe Now      → SFSafariViewController (Lovable web) → auto re-validate on return
-.lapsed  → Reactivate         → SFSafariViewController (Stripe portal) → auto re-validate on return
-Any screen → Sign Out         → Clerk.shared.signOut() → SignInView
+.paywall / .lapsed           → Restore Access → re-validate (no purchase or portal link — Guideline 3.1.1)
+.app                          → PushNotificationManager.enable() → APNs token POSTed to /api/push/apns
+Any screen → Sign Out         → DELETE /api/push/apns → Clerk.shared.signOut() → SignInView
 ```
 
 ## Social login (Apple + Google)
@@ -155,6 +159,28 @@ into the page via `window.__setMobileAuthToken`, which `frontend/src/App.js`'s `
 accepts as a Bearer token source alongside (and preferred over) the web Clerk SDK. Token is
 re-pushed every 45s since Clerk session JWTs are short-lived.
 
+It also adds `VictoryAI-iOS` to the user agent. `frontend/src/lib/nativeShell.js` detects that and
+hides every Stripe purchase surface (paywall, token store, gift subs, advertising, upgrade prompts)
+inside the app, as Guideline 3.1.1 requires. Subscriptions bought on the web still unlock the app
+under the 3.1.3(b) multiplatform-services exception.
+
+## Push notifications (APNs)
+
+The backend sends every notification to both web push and APNs (`_send_apns` in
+`backend/server.py`). One-time setup:
+
+1. **Xcode** → target → Signing & Capabilities → **+ Capability → Push Notifications**, and
+   **+ Capability → Background Modes → Remote notifications**.
+2. Add `@UIApplicationDelegateAdaptor(VictoryAppDelegate.self)` to the `@main` App (above), and
+   add the new `Push/` folder to the app target.
+3. **Apple Developer** → Keys → **+** → enable **Apple Push Notifications service (APNs)** →
+   download `AuthKey_XXXXXXXXXX.p8` (it can only be downloaded once).
+4. Set the four `APNS_*` Railway variables below. Until all four exist, iOS push silently no-ops.
+
+Debug builds register **sandbox** tokens; TestFlight / App Store builds register **production**
+tokens. The backend sends each token to the matching APNs host. Tapping a notification opens its
+`url` path inside the web view.
+
 ## Environment variables on Railway (already set — confirm they exist)
 
 | Variable | Purpose |
@@ -164,6 +190,10 @@ re-pushed every 45s since Clerk session JWTs are short-lived.
 | `STRIPE_WEBHOOK_SECRET` | Verify webhook signatures |
 | `MONGO_URL` | MongoDB connection string |
 | `DB_NAME` | Database name (default: `victoryai`) |
+| `APNS_KEY_ID` | 10-character key ID of the APNs .p8 key |
+| `APNS_TEAM_ID` | Apple Developer team ID |
+| `APNS_KEY` | Full contents of the .p8 file (literal `\n` for newlines is fine) |
+| `APNS_BUNDLE_ID` | The app's bundle ID (the APNs topic) |
 
 ## MongoDB — one-time backfill
 

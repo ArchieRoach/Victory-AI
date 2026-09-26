@@ -61,6 +61,14 @@ VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')  # PEM string
 VAPID_PUBLIC_KEY  = os.environ.get('VAPID_PUBLIC_KEY',  '')  # URL-safe base64
 VAPID_SUBJECT     = os.environ.get('VAPID_SUBJECT', 'mailto:push@victory.ai')
 
+# ── Native iOS push (APNs, token-based auth) ─────────────────────────────────
+# APNS_KEY is the contents of the AuthKey_XXXX.p8 file. Railway may store newlines
+# as literal "\n", so they're restored here. Push to iOS silently no-ops until all four are set.
+APNS_KEY_ID    = os.environ.get('APNS_KEY_ID', '')
+APNS_TEAM_ID   = os.environ.get('APNS_TEAM_ID', '')
+APNS_KEY       = os.environ.get('APNS_KEY', '').replace('\\n', '\n')
+APNS_BUNDLE_ID = os.environ.get('APNS_BUNDLE_ID', '')
+
 # ── Freemium AI token budget ──────────────────────────────────────────────────
 # Based on real API costs: GPT-4o ~$0.005/call, ElevenLabs ~$0.02/call.
 # 10,000 free tokens/month ≈ 5 video analyses OR 6 TTS sessions OR any mix.
@@ -1794,6 +1802,7 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.chat_messages.delete_many({"user_id": user_id})
     await db.streams.delete_many({"user_id": user_id})
     await db.push_subscriptions.delete_many({"user_id": user_id})
+    await db.apns_tokens.delete_many({"user_id": user_id})
     await db.waitlist.delete_many({"email": user["email"]})
 
     if user.get("gym_id"):
@@ -1835,6 +1844,7 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "crash_reports": await db.crash_reports.find({"user_id": user_id}, proj).to_list(1000),
         "feedback_submitted": await db.feedback.find({"user_id": user_id}, proj).to_list(10000),
         "push_subscriptions": await db.push_subscriptions.find({"user_id": user_id}, proj).to_list(1000),
+        "ios_push_devices": await db.apns_tokens.find({"user_id": user_id}, proj).to_list(1000),
     }
     return jsonable_encoder(export)
 
@@ -2785,8 +2795,112 @@ async def push_unsubscribe(req: PushUnsubscribeRequest, user: dict = Depends(get
     })
     return {"ok": True}
 
+class ApnsTokenRequest(BaseModel):
+    device_token: str = Field(pattern=r"^[0-9a-fA-F]{64,200}$")
+    environment: Literal["production", "sandbox"] = "production"
+
+def _apns_configured() -> bool:
+    return bool(APNS_KEY_ID and APNS_TEAM_ID and APNS_KEY and APNS_BUNDLE_ID)
+
+@api_router.post("/push/apns")
+async def apns_register(req: ApnsTokenRequest, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"apns_register:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many requests — slow down")
+    token = req.device_token.lower()
+    # Upsert on the token so a device that changes hands moves to the new account.
+    await db.apns_tokens.update_one(
+        {"device_token": token},
+        {"$set": {
+            "user_id":      user["user_id"],
+            "device_token": token,
+            "environment":  req.environment,
+            "updated_at":   datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+    return {"ok": True}
+
+@api_router.delete("/push/apns")
+async def apns_unregister(req: ApnsTokenRequest, user: dict = Depends(get_current_user)):
+    await db.apns_tokens.delete_one({"device_token": req.device_token.lower(), "user_id": user["user_id"]})
+    return {"ok": True}
+
+_apns_jwt: dict = {"token": None, "issued_at": 0.0}
+_apns_client: Optional[httpx.AsyncClient] = None
+
+def _apns_provider_token() -> str:
+    # Apple rejects tokens older than 60 min and throttles refreshes more often than every
+    # 20 min, so one token is reused for 50 min.
+    now = time.time()
+    if not _apns_jwt["token"] or now - _apns_jwt["issued_at"] > 50 * 60:
+        _apns_jwt["token"] = jwt.encode(
+            {"iss": APNS_TEAM_ID, "iat": int(now)},
+            APNS_KEY,
+            algorithm="ES256",
+            headers={"kid": APNS_KEY_ID},
+        )
+        _apns_jwt["issued_at"] = now
+    return _apns_jwt["token"]
+
+def _apns_http() -> Optional[httpx.AsyncClient]:
+    global _apns_client
+    if _apns_client is None:
+        try:
+            _apns_client = httpx.AsyncClient(http2=True, timeout=10)
+        except ImportError:
+            logger.warning("h2 not installed — APNs push skipped")
+            return None
+    return _apns_client
+
+async def _send_apns(user_id: str, title: str, body: str, url: str, tag: str):
+    if not _apns_configured():
+        return
+    tokens = await db.apns_tokens.find({"user_id": user_id}, {"_id": 0}).to_list(10)
+    if not tokens:
+        return
+    client = _apns_http()
+    if client is None:
+        return
+    try:
+        provider_token = _apns_provider_token()
+    except Exception as exc:
+        logger.error(f"APNs provider token failed — check APNS_KEY: {exc}")
+        return
+
+    payload = {"aps": {"alert": {"title": title, "body": body}, "sound": "default", "thread-id": tag}, "url": url}
+    headers = {
+        "authorization":   f"bearer {provider_token}",
+        "apns-topic":      APNS_BUNDLE_ID,
+        "apns-push-type":  "alert",
+        "apns-priority":   "10",
+        "apns-collapse-id": tag[:64],
+    }
+    for t in tokens:
+        host = "api.sandbox.push.apple.com" if t.get("environment") == "sandbox" else "api.push.apple.com"
+        try:
+            r = await client.post(f"https://{host}/3/device/{t['device_token']}", json=payload, headers=headers)
+        except httpx.HTTPError as exc:
+            logger.warning(f"APNs request failed for {user_id}: {exc}")
+            continue
+        if r.status_code == 200:
+            continue
+        reason = ""
+        try:
+            reason = r.json().get("reason", "")
+        except ValueError:
+            pass
+        logger.warning(f"APNs {r.status_code} {reason} for {user_id}")
+        if r.status_code == 410 or reason in ("BadDeviceToken", "DeviceTokenNotForTopic"):
+            await db.apns_tokens.delete_one({"device_token": t["device_token"]})
+
 async def _send_push(user_id: str, title: str, body: str, url: str = "/live", tag: str | None = None):
-    """Fire-and-forget push to all subscriptions for a user. Cleans up expired subs."""
+    """Fire-and-forget push to all web subscriptions and iOS devices for a user. Cleans up expired ones."""
+    tag = tag or f"v-{uuid.uuid4().hex[:6]}"
+    try:
+        await _send_apns(user_id, title, body, url, tag)
+    except Exception as exc:
+        logger.warning(f"APNs push failed for {user_id}: {exc}")
+
     if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
         return
     subs = await db.push_subscriptions.find({"user_id": user_id}, {"_id": 0}).to_list(10)
@@ -2800,7 +2914,7 @@ async def _send_push(user_id: str, title: str, body: str, url: str = "/live", ta
         return
 
     import asyncio as _aio
-    payload = json.dumps({"title": title, "body": body, "url": url, "tag": tag or f"v-{uuid.uuid4().hex[:6]}"})
+    payload = json.dumps({"title": title, "body": body, "url": url, "tag": tag})
 
     for sub in subs:
         sub_info = {"endpoint": sub["endpoint"], "keys": sub["keys"]}

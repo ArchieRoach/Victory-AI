@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Building2, Plus, Users, Star, Lock, ChevronRight, X, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
+import { isNativeShell } from "@/lib/nativeShell";
 
 const GYM_DEFAULT_CAP = 50;
 
@@ -289,7 +290,7 @@ export default function GymsPage() {
               >
                 <Plus className="w-5 h-5 text-victory-bg" />
               </button>
-            ) : (
+            ) : !isNativeShell() && (
               <button
                 onClick={() => navigate("/paywall")}
                 className="flex items-center gap-1 touch-target text-xs text-victory-muted border border-victory-border rounded-full px-3"

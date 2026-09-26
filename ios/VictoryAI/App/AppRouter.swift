@@ -38,6 +38,9 @@ final class AppRouter: ObservableObject {
         do {
             let result = try await AuthService.shared.validateAccess()
             appState = result.accessGranted ? .app : stateForReason(result.reason)
+            if result.accessGranted {
+                await PushNotificationManager.shared.enable()
+            }
         } catch AuthError.noSession, AuthError.tokenFetchFailed {
             appState = .signIn
         } catch AuthError.serverError(let code, _) where code == 401 {
@@ -50,6 +53,8 @@ final class AppRouter: ObservableObject {
     }
 
     func signOut() async {
+        // Needs the still-valid session to authenticate the unregister call.
+        await PushNotificationManager.shared.disable()
         try? await Clerk.shared.signOut()
         appState = .signIn
     }
