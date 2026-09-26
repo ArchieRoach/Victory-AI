@@ -1,5 +1,5 @@
 import SwiftUI
-import ClerkSDK
+import ClerkKit
 
 /// Global navigation state machine.
 /// Owned by AppRootView; passed down to screens that need to trigger transitions.
@@ -55,7 +55,7 @@ final class AppRouter: ObservableObject {
     func signOut() async {
         // Needs the still-valid session to authenticate the unregister call.
         await PushNotificationManager.shared.disable()
-        try? await Clerk.shared.signOut()
+        try? await Clerk.shared.auth.signOut()
         appState = .signIn
     }
 

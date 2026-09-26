@@ -1,5 +1,4 @@
 import SwiftUI
-import ClerkSDK
 
 @MainActor
 final class SignInViewModel: ObservableObject {

@@ -1,6 +1,5 @@
 import UIKit
 import UserNotifications
-import ClerkSDK
 
 /// Registers this device with APNs and hands the token to the backend, which sends
 /// the same notifications as web push (see `_send_apns` in backend/server.py).
@@ -68,8 +67,7 @@ final class PushNotificationManager: NSObject {
     }
 
     private func send(method: String, token: String) async {
-        guard let session = await Clerk.shared.session,
-              let jwt = try? await session.getToken() else { return }
+        guard let jwt = await ClerkSession.token() else { return }
 
         var request = URLRequest(url: Self.endpoint, timeoutInterval: 10)
         request.httpMethod = method

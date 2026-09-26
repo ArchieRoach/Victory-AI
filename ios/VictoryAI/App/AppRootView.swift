@@ -1,15 +1,7 @@
 import SwiftUI
-import ClerkSDK
 
-/// Entry point for the app. Owns the AppRouter and renders the correct screen
+/// Root view (see VictoryAIApp). Owns the AppRouter and renders the correct screen
 /// based on current auth/subscription state.
-///
-/// Usage — replace the default ContentView in your @main App struct:
-///
-///     WindowGroup {
-///         AppRootView()
-///             .clerkEnvironment(publishableKey: "pk_live_...")
-///     }
 struct AppRootView: View {
     @StateObject private var router = AppRouter()
 
@@ -37,7 +29,7 @@ struct AppRootView: View {
                 NetworkErrorView(message: message) {
                     // Retry: re-validate if session exists, otherwise go to sign-in
                     Task {
-                        if await Clerk.shared.session != nil {
+                        if ClerkSession.isSignedIn {
                             await router.validate()
                         } else {
                             router.appState = .signIn
@@ -47,8 +39,9 @@ struct AppRootView: View {
             }
         }
         // On every app launch, re-validate — never rely on a cached access_granted.
+        // Clerk restores a returning user's cached session synchronously in configure().
         .task {
-            if await Clerk.shared.session != nil {
+            if ClerkSession.isSignedIn {
                 await router.validate()
             } else {
                 router.appState = .signIn

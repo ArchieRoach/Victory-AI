@@ -1,6 +1,5 @@
 import SwiftUI
 import WebKit
-import ClerkSDK
 
 /// Hosts the existing Victory AI web app (React, deployed on Vercel) inside the
 /// native shell. Only Auth/Paywall/Splash/NetworkError are truly native —
@@ -81,8 +80,7 @@ private struct WebAppContainer: UIViewRepresentable {
         private func refreshToken() {
             guard let webView else { return }
             Task {
-                guard let session = await Clerk.shared.session,
-                      let token = try? await session.getToken() else { return }
+                guard let token = await ClerkSession.token() else { return }
                 let escaped = token.replacingOccurrences(of: "'", with: "\\'")
                 await MainActor.run {
                     webView.evaluateJavaScript(

@@ -1,0 +1,148 @@
+name: iOS
+
+# compile: every push that touches ios/ — unsigned simulator build, needs no secrets.
+# testflight: run by hand (Actions tab → iOS → Run workflow) — signs and uploads to App Store Connect.
+on:
+  push:
+    paths: ["ios/**", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: "Sign and upload to TestFlight"
+        type: boolean
+        default: true
+
+env:
+  IOS_BUNDLE_ID: ${{ vars.IOS_BUNDLE_ID || 'com.example.victoryai' }}
+  APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+  IOS_PROFILE_NAME: ${{ vars.IOS_PROFILE_NAME }}
+  CLERK_PUBLISHABLE_KEY: ${{ vars.CLERK_PUBLISHABLE_KEY }}
+  BACKEND_URL: ${{ vars.BACKEND_URL }}
+  WEB_APP_URL: ${{ vars.WEB_APP_URL || 'https://victory-ai-alpha.vercel.app' }}
+  BUILD_NUMBER: ${{ github.run_number }}
+
+jobs:
+  compile:
+    if: github.event_name == 'push'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          mkdir -p ios/Config
+          cd ios && xcodegen generate
+      - name: Build (simulator, unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project ios/VictoryAI.xcodeproj -scheme VictoryAI -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -skipPackagePluginValidation -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO | tee "$RUNNER_TEMP/build.log" | grep -E 'error:|BUILD (SUCCEEDED|FAILED)' || true
+          grep -q 'BUILD SUCCEEDED' "$RUNNER_TEMP/build.log"
+
+  testflight:
+    if: github.event_name == 'workflow_dispatch' && inputs.upload
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check configuration
+        env:
+          HAS_CERT: ${{ secrets.DIST_CERT_P12_BASE64 != '' }}
+          HAS_PROFILE: ${{ secrets.PROFILE_BASE64 != '' }}
+          HAS_ASC_KEY: ${{ secrets.ASC_KEY_P8 != '' && secrets.ASC_KEY_ID != '' && secrets.ASC_ISSUER_ID != '' }}
+        run: |
+          missing=()
+          for v in APPLE_TEAM_ID IOS_PROFILE_NAME CLERK_PUBLISHABLE_KEY BACKEND_URL; do
+            [ -n "${!v}" ] || missing+=("variable $v")
+          done
+          [ "${{ vars.IOS_BUNDLE_ID }}" != "" ] || missing+=("variable IOS_BUNDLE_ID")
+          [ "$HAS_CERT" = "true" ] || missing+=("secret DIST_CERT_P12_BASE64")
+          [ "$HAS_PROFILE" = "true" ] || missing+=("secret PROFILE_BASE64")
+          [ "$HAS_ASC_KEY" = "true" ] || missing+=("secrets ASC_KEY_P8 / ASC_KEY_ID / ASC_ISSUER_ID")
+          if [ ${#missing[@]} -gt 0 ]; then
+            printf '::error::Missing %s\n' "${missing[@]}"
+            exit 1
+          fi
+
+      - name: Install signing certificate and profile
+        env:
+          DIST_CERT_P12_BASE64: ${{ secrets.DIST_CERT_P12_BASE64 }}
+          DIST_CERT_PASSWORD: ${{ secrets.DIST_CERT_PASSWORD }}
+          PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KC_PASS="$(openssl rand -base64 24)"
+          security create-keychain -p "$KC_PASS" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KC_PASS" "$KEYCHAIN"
+          echo "$DIST_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security import "$RUNNER_TEMP/dist.p12" -P "$DIST_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KC_PASS" "$KEYCHAIN" > /dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/dist.p12"
+          # Xcode 16+ reads the UserData location; older tooling still reads MobileDevice.
+          for dir in "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" "$HOME/Library/MobileDevice/Provisioning Profiles"; do
+            mkdir -p "$dir"
+            echo "$PROFILE_BASE64" | base64 --decode > "$dir/victoryai_appstore.mobileprovision"
+          done
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          mkdir -p ios/Config
+          cd ios && xcodegen generate
+
+      - name: Archive
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project ios/VictoryAI.xcodeproj -scheme VictoryAI -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/VictoryAI.xcarchive" \
+            -skipPackagePluginValidation -skipMacroValidation \
+            | tee "$RUNNER_TEMP/archive.log" | grep -E 'error:|ARCHIVE (SUCCEEDED|FAILED)' || true
+          grep -q 'ARCHIVE SUCCEEDED' "$RUNNER_TEMP/archive.log"
+
+      - name: Upload to App Store Connect
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict><key>${{ vars.IOS_BUNDLE_ID }}</key><string>${IOS_PROFILE_NAME}</string></dict>
+            <key>uploadSymbols</key><true/>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/VictoryAI.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          echo "Uploaded build $BUILD_NUMBER — it appears in App Store Connect → TestFlight after processing (~10–30 min)."
+
+      - name: Clean up signing material
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
