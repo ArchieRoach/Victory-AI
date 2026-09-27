@@ -1,9 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { X, Zap } from "lucide-react";
+import { isNativeShell } from "@/lib/nativeShell";
+import { NativePurchaseNoticeModal } from "@/components/NativePurchaseNotice";
+
+export function TokenPurchaseModal({ onClose }) {
+  if (isNativeShell()) return <NativePurchaseNoticeModal onClose={onClose} />;
+  return <TokenStorePrompt onClose={onClose} />;
+}
 
 // Thin wrapper — sends users to the full /tokens store page,
 // passing the current path so they can return after purchase.
-export function TokenPurchaseModal({ onClose }) {
+function TokenStorePrompt({ onClose }) {
   const navigate = useNavigate();
 
   const handleGoToStore = () => {

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { X, Clock } from "lucide-react";
+import { isNativeShell } from "@/lib/nativeShell";
 
 function useMidRollSimulator(enabled = false) {
   const [countdown, setCountdown] = useState(null);
@@ -78,12 +79,14 @@ export function SponsorBanner({ className = "", simulateAd = false }) {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button
-            onClick={handleLearnMore}
-            className="text-[10px] font-semibold text-victory-lime border border-victory-lime/40 rounded-lg px-2.5 touch-target flex items-center justify-center hover:bg-victory-lime/10 transition-colors whitespace-nowrap"
-          >
-            {isLive ? "Learn More" : "Advertise Here"}
-          </button>
+          {(isLive || !isNativeShell()) && (
+            <button
+              onClick={handleLearnMore}
+              className="text-[10px] font-semibold text-victory-lime border border-victory-lime/40 rounded-lg px-2.5 touch-target flex items-center justify-center hover:bg-victory-lime/10 transition-colors whitespace-nowrap"
+            >
+              {isLive ? "Learn More" : "Advertise Here"}
+            </button>
+          )}
           <button onClick={() => setDismissed(true)} aria-label="Dismiss ad" className="w-11 h-11 -my-3.5 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-3.5 h-3.5" />
           </button>

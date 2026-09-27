@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Zap, Lock } from "lucide-react";
 import { API, useAuth } from "@/App";
+import { isNativeShell } from "@/lib/nativeShell";
 
 const FREE_FEATURES = [
   "Round timer",
@@ -34,12 +35,14 @@ function UsageBanner({ usage, onUpgrade }) {
           />
         </div>
       </div>
-      <button
-        onClick={onUpgrade}
-        className="text-xs text-victory-lime font-semibold whitespace-nowrap border border-victory-lime/30 rounded-lg px-2.5 touch-target flex items-center justify-center hover:bg-victory-lime/10 transition-colors"
-      >
-        Go Pro
-      </button>
+      {!isNativeShell() && (
+        <button
+          onClick={onUpgrade}
+          className="text-xs text-victory-lime font-semibold whitespace-nowrap border border-victory-lime/30 rounded-lg px-2.5 touch-target flex items-center justify-center hover:bg-victory-lime/10 transition-colors"
+        >
+          Go Pro
+        </button>
+      )}
     </div>
   );
 }
@@ -57,17 +60,23 @@ function QuotaExceededScreen({ feature }) {
       <p className="text-victory-muted text-sm mb-2 max-w-xs leading-relaxed">
         You've used your 10,000 free AI credits for this month.
       </p>
-      <p className="text-victory-muted text-xs mb-8 max-w-xs">
-        Resets on the 1st. Upgrade to Pro for unlimited{" "}
-        <span className="text-victory-lime">{feature}</span> with no monthly cap.
-      </p>
-      <button
-        onClick={() => navigate("/paywall")}
-        className="victory-btn-primary w-full max-w-xs flex items-center justify-center gap-2 mb-3"
-      >
-        <Zap className="w-4 h-4" />
-        Upgrade to Pro
-      </button>
+      {isNativeShell() ? (
+        <p className="text-victory-muted text-xs mb-8 max-w-xs">Resets on the 1st.</p>
+      ) : (
+        <>
+          <p className="text-victory-muted text-xs mb-8 max-w-xs">
+            Resets on the 1st. Upgrade to Pro for unlimited{" "}
+            <span className="text-victory-lime">{feature}</span> with no monthly cap.
+          </p>
+          <button
+            onClick={() => navigate("/paywall")}
+            className="victory-btn-primary w-full max-w-xs flex items-center justify-center gap-2 mb-3"
+          >
+            <Zap className="w-4 h-4" />
+            Upgrade to Pro
+          </button>
+        </>
+      )}
       <button
         onClick={() => navigate(-1)}
         className="text-victory-muted text-sm touch-target flex items-center justify-center"
@@ -104,13 +113,15 @@ function NoSubscriptionScreen({ feature }) {
           </div>
         ))}
       </div>
-      <button
-        onClick={() => navigate("/paywall")}
-        className="victory-btn-primary w-full max-w-xs flex items-center justify-center gap-2"
-      >
-        <Zap className="w-4 h-4" />
-        Unlock Pro
-      </button>
+      {!isNativeShell() && (
+        <button
+          onClick={() => navigate("/paywall")}
+          className="victory-btn-primary w-full max-w-xs flex items-center justify-center gap-2"
+        >
+          <Zap className="w-4 h-4" />
+          Unlock Pro
+        </button>
+      )}
       <button onClick={() => navigate(-1)} className="text-victory-muted text-sm mt-4 touch-target flex items-center justify-center">
         Go back
       </button>

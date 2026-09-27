@@ -1,6 +1,5 @@
 import SwiftUI
 import WebKit
-import ClerkSDK
 
 /// Hosts the existing Victory AI web app (React, deployed on Vercel) inside the
 /// native shell. Only Auth/Paywall/Splash/NetworkError are truly native —
@@ -21,11 +20,24 @@ private struct WebAppContainer: UIViewRepresentable {
         return URL(string: raw.trimmingCharacters(in: .whitespaces))!
     }()
 
+    static func url(forPath path: String?) -> URL {
+        guard let path, path.hasPrefix("/"),
+              let url = URL(string: path, relativeTo: webAppURL) else { return webAppURL }
+        return url.absoluteURL
+    }
+
     func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
+        let config = WKWebViewConfiguration()
+        // The web app hides every Stripe purchase surface when it sees this tag
+        // (frontend/src/lib/nativeShell.js) — App Store Guideline 3.1.1.
+        config.applicationNameForUserAgent = "Mobile/15E148 VictoryAI-iOS"
+
+        let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
-        webView.load(URLRequest(url: Self.webAppURL))
+        let initialPath = PushNotificationManager.shared.takePendingPath()
+        webView.load(URLRequest(url: Self.url(forPath: initialPath)))
         context.coordinator.startTokenRefresh(for: webView)
+        context.coordinator.observePushTaps()
         return webView
     }
 
@@ -47,6 +59,20 @@ private struct WebAppContainer: UIViewRepresentable {
             }
         }
 
+        private var pushObserver: NSObjectProtocol?
+
+        func observePushTaps() {
+            pushObserver = NotificationCenter.default.addObserver(
+                forName: PushNotificationManager.openPathNotification, object: nil, queue: .main
+            ) { [weak self] note in
+                guard let path = note.userInfo?["path"] as? String else { return }
+                MainActor.assumeIsolated {
+                    _ = PushNotificationManager.shared.takePendingPath()
+                    self?.webView?.load(URLRequest(url: WebAppContainer.url(forPath: path)))
+                }
+            }
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             refreshToken()
         }
@@ -54,8 +80,7 @@ private struct WebAppContainer: UIViewRepresentable {
         private func refreshToken() {
             guard let webView else { return }
             Task {
-                guard let session = await Clerk.shared.session,
-                      let token = try? await session.getToken() else { return }
+                guard let token = await ClerkSession.token() else { return }
                 let escaped = token.replacingOccurrences(of: "'", with: "\\'")
                 await MainActor.run {
                     webView.evaluateJavaScript(
@@ -65,6 +90,9 @@ private struct WebAppContainer: UIViewRepresentable {
             }
         }
 
-        deinit { timer?.invalidate() }
+        deinit {
+            timer?.invalidate()
+            if let pushObserver { NotificationCenter.default.removeObserver(pushObserver) }
+        }
     }
 }

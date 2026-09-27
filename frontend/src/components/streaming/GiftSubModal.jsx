@@ -3,6 +3,8 @@ import { X, Gift } from "lucide-react";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
+import { isNativeShell } from "@/lib/nativeShell";
+import { NativePurchaseNoticeModal } from "@/components/NativePurchaseNotice";
 
 const TIERS = [
   { count: 1,  price: 4.99,   label: "1 Gift Sub",   description: "Gift a single subscription" },
@@ -19,6 +21,11 @@ const BADGE_THRESHOLDS = [
 ];
 
 export function GiftSubModal({ streamId, onClose }) {
+  if (isNativeShell()) return <NativePurchaseNoticeModal onClose={onClose} />;
+  return <GiftSubCheckout streamId={streamId} onClose={onClose} />;
+}
+
+function GiftSubCheckout({ streamId, onClose }) {
   const [selected, setSelected]   = useState(1);
   const [loading,  setLoading]    = useState(false);
 

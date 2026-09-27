@@ -20,6 +20,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalCrashReporting } from "@/utils/crashReporter";
 import { useSystemTheme } from "@/hooks/useSystemTheme";
 import { initAnalytics, analytics } from "@/lib/analytics";
+import { isNativeShell } from "@/lib/nativeShell";
+import { NativePurchaseNoticePage } from "@/components/NativePurchaseNotice";
 
 // Catches crashes outside React's render cycle (event handlers, timers, async code) —
 // ErrorBoundary below only sees render-time errors. Installed once at module load, same
@@ -261,7 +263,7 @@ const TrialExpirationBanner = () => {
     check();
   }, [isAuthenticated, user]);
 
-  if (!trialInfo || dismissed) return null;
+  if (!trialInfo || dismissed || isNativeShell()) return null;
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-victory-orange text-white px-4 py-2 flex items-center justify-between text-sm">
@@ -297,11 +299,13 @@ const AppRouter = () => {
       (r) => r,
       (err) => {
         if (err?.response?.status === 402 && err?.response?.data?.detail === "ai_quota_exceeded") {
-          toast("Monthly AI limit reached", {
-            description: "You've used your 10,000 free AI credits. Upgrade to Pro for unlimited access.",
-            action: { label: "Upgrade", onClick: () => navigate("/paywall") },
-            duration: 6000,
-          });
+          toast("Monthly AI limit reached", isNativeShell()
+            ? { description: "You've used your 10,000 free AI credits. They reset on the 1st.", duration: 6000 }
+            : {
+                description: "You've used your 10,000 free AI credits. Upgrade to Pro for unlimited access.",
+                action: { label: "Upgrade", onClick: () => navigate("/paywall") },
+                duration: 6000,
+              });
         }
         return Promise.reject(err);
       }
@@ -318,7 +322,7 @@ const AppRouter = () => {
         <Route path="/login/*" element={<LoginPage />} />
 
         <Route path="/onboarding" element={<OnboardingRoute><OnboardingFlow /></OnboardingRoute>} />
-        <Route path="/paywall" element={<OnboardingRoute><PaywallPage /></OnboardingRoute>} />
+        <Route path="/paywall" element={isNativeShell() ? <NativePurchaseNoticePage /> : <OnboardingRoute><PaywallPage /></OnboardingRoute>} />
         <Route path="/payment/success" element={<OnboardingRoute><PaymentSuccess /></OnboardingRoute>} />
 
         {/* Free for all authenticated users */}
@@ -359,7 +363,7 @@ const AppRouter = () => {
         <Route path="/go-live" element={<ProtectedRoute><GoLivePage /></ProtectedRoute>} />
         <Route path="/emotes" element={<ProtectedRoute><EmoteStudioPage /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><StreamerDashboardPage /></ProtectedRoute>} />
-        <Route path="/tokens" element={<ProtectedRoute><TokensPage /></ProtectedRoute>} />
+        <Route path="/tokens" element={<ProtectedRoute>{isNativeShell() ? <NativePurchaseNoticePage /> : <TokensPage />}</ProtectedRoute>} />
         <Route path="/tokens/success" element={<ProtectedRoute><TokenSuccessPage /></ProtectedRoute>} />
         <Route path="/clips" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />
         <Route path="/clip/:postId" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />
@@ -369,7 +373,7 @@ const AppRouter = () => {
         <Route path="/terms" element={<TermsOfServicePage />} />
 
         {/* Advertiser onboarding — public, no auth required */}
-        <Route path="/advertise" element={<AdvertisePage />} />
+        <Route path="/advertise" element={isNativeShell() ? <NativePurchaseNoticePage /> : <AdvertisePage />} />
         <Route path="/advertise/success" element={<AdvertisePage success />} />
 
         <Route path="/" element={<RootRedirect />} />

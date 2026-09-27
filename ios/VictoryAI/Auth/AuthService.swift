@@ -1,5 +1,4 @@
 import Foundation
-import ClerkSDK
 
 // MARK: - Response types
 
@@ -54,10 +53,10 @@ actor AuthService {
     /// Call after Clerk sign-in completes.
     /// Returns a ValidateResponse; throws AuthError on failure.
     func validateAccess() async throws -> ValidateResponse {
-        guard let session = await Clerk.shared.session else {
+        guard await ClerkSession.isSignedIn else {
             throw AuthError.noSession
         }
-        guard let token = try? await session.getToken() else {
+        guard let token = await ClerkSession.token() else {
             throw AuthError.tokenFetchFailed
         }
 

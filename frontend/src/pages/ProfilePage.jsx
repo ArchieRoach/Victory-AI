@@ -13,6 +13,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
+import { isNativeShell } from "@/lib/nativeShell";
 import {
   Select,
   SelectContent,
@@ -820,13 +821,15 @@ export default function ProfilePage() {
         </section>
 
         {/* Tokens */}
-        <button
-          onClick={() => navigate("/tokens", { state: { returnPath: "/profile" } })}
-          className="victory-btn-ghost w-full flex items-center justify-center gap-2 border-victory-lime/30 text-victory-lime hover:bg-victory-lime/10"
-        >
-          <Zap className="w-5 h-5" />
-          Buy Tokens
-        </button>
+        {!isNativeShell() && (
+          <button
+            onClick={() => navigate("/tokens", { state: { returnPath: "/profile" } })}
+            className="victory-btn-ghost w-full flex items-center justify-center gap-2 border-victory-lime/30 text-victory-lime hover:bg-victory-lime/10"
+          >
+            <Zap className="w-5 h-5" />
+            Buy Tokens
+          </button>
+        )}
 
         {/* Squads — free, no subscription gate (unlike Gyms) since this is the core
             free social/motivation loop for an audience unlikely to hold a paid plan. */}

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Swords, Plus, Clock, CheckCircle, Star, Lock, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
+import { isNativeShell } from "@/lib/nativeShell";
 
 function CompetitionCard({ comp, onClick }) {
   const { t } = useTranslation();
@@ -161,10 +162,12 @@ export default function CompetitionsPage() {
               <p className="text-victory-text text-sm font-semibold">{t("compete.aiJudgeBanner")}</p>
               <p className="text-victory-muted text-xs">{t("compete.aiJudgeBannerDesc")}</p>
             </div>
-            <button onClick={() => navigate("/paywall")} className="flex items-center gap-1 touch-target text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 flex-shrink-0">
-              <Lock className="w-3 h-3" />
-              Pro
-            </button>
+            {!isNativeShell() && (
+              <button onClick={() => navigate("/paywall")} className="flex items-center gap-1 touch-target text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 flex-shrink-0">
+                <Lock className="w-3 h-3" />
+                Pro
+              </button>
+            )}
           </div>
         )}
 

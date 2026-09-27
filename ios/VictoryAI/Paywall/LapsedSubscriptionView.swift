@@ -1,19 +1,12 @@
 import SwiftUI
 
 /// Shown when access_granted: false and reason is "subscription_lapsed" or "subscription_inactive".
-/// Reactivation goes through the Stripe customer portal (web, via SFSafariViewController).
+/// No reactivation link: see PaywallView for why the app can't point users to Stripe.
 struct LapsedSubscriptionView: View {
     let router: AppRouter
 
-    @State private var showPortal = false
     @State private var isValidating = false
     @State private var errorMessage: String?
-
-    private let portalURL: URL = {
-        let raw = Bundle.main.object(forInfoDictionaryKey: "STRIPE_PORTAL_URL") as? String
-            ?? "https://billing.stripe.com/p/login/7sY8wP8ED7qp6CP8qCaR200"
-        return URL(string: raw)!
-    }()
 
     var body: some View {
         ZStack {
@@ -38,7 +31,7 @@ struct LapsedSubscriptionView: View {
                     .foregroundColor(.white)
                     .padding(.bottom, 12)
 
-                Text("Your subscription has ended.\nReactivate to get back to training.")
+                Text("Your subscription has ended.\nIf you've renewed, tap Restore Access.")
                     .font(.subheadline)
                     .foregroundColor(Color(hex: "#8888A0"))
                     .multilineTextAlignment(.center)
@@ -56,33 +49,22 @@ struct LapsedSubscriptionView: View {
                 }
 
                 VStack(spacing: 12) {
-                    // Opens Stripe customer portal — reactivation without native IAP
-                    Button { showPortal = true } label: {
-                        Text("Reactivate Subscription")
-                            .font(.headline)
-                            .foregroundColor(Color(hex: "#12121A"))
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .background(Color(hex: "#E8FF47"))
-                            .cornerRadius(14)
-                    }
-
-                    // Re-validates in case user already reactivated in a web browser
+                    // Primary action: re-validates in case the subscription was renewed on another device
                     Button {
                         Task { await restore() }
                     } label: {
                         ZStack {
                             if isValidating {
-                                ProgressView().tint(Color(hex: "#E8FF47"))
+                                ProgressView().tint(Color(hex: "#12121A"))
                             } else {
                                 Text("Restore Access")
                                     .font(.headline)
-                                    .foregroundColor(Color(hex: "#E8FF47"))
+                                    .foregroundColor(Color(hex: "#12121A"))
                             }
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .background(Color(hex: "#E8FF47").opacity(0.12))
+                        .background(Color(hex: "#E8FF47"))
                         .cornerRadius(14)
                     }
                     .disabled(isValidating)
@@ -101,15 +83,6 @@ struct LapsedSubscriptionView: View {
                 Spacer().frame(height: 52)
             }
         }
-        // Stripe customer portal inside the app
-        .sheet(isPresented: $showPortal) {
-            SafariBrowser(url: portalURL)
-                .ignoresSafeArea()
-                .onDisappear {
-                    // Auto re-validate when user returns from the Stripe portal
-                    Task { await restore() }
-                }
-        }
     }
 
     // MARK: - Actions
@@ -123,7 +96,7 @@ struct LapsedSubscriptionView: View {
         await router.validate()
 
         if case .lapsed = router.appState {
-            errorMessage = "Subscription still inactive. Complete reactivation in the portal above."
+            errorMessage = "Subscription still inactive."
         }
     }
 }

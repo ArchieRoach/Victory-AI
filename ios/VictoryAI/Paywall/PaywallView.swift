@@ -1,20 +1,14 @@
 import SwiftUI
 
 /// Shown when access_granted: false and reason is "no_subscription", "not_found", or "access_revoked".
-/// Subscription purchase happens on the web — no native IAP flow (App Store guideline compliant).
+/// No purchase button or link: Guideline 3.1.1 bans Stripe checkout in the app, and the
+/// 3.1.3(b) multiplatform exception only lets us unlock a subscription bought elsewhere.
 struct PaywallView: View {
     let router: AppRouter
     let reason: String
 
-    @State private var showBrowser = false
     @State private var isValidating = false
     @State private var errorMessage: String?
-
-    private let subscribeURL: URL = {
-        let raw = Bundle.main.object(forInfoDictionaryKey: "SUBSCRIBE_URL") as? String
-            ?? "https://buy.stripe.com/7sY8wP8ED7qp6CP8qCaR200"
-        return URL(string: raw)!
-    }()
 
     private var isRevoked: Bool { reason == "access_revoked" }
 
@@ -34,14 +28,14 @@ struct PaywallView: View {
                     .padding(.bottom, 28)
 
                     // Heading
-                    Text(isRevoked ? "Account Suspended" : "Subscription Required")
+                    Text(isRevoked ? "Account Suspended" : "Membership Required")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.bottom, 12)
 
                     Text(isRevoked
                          ? "Your account access has been suspended.\nPlease contact support."
-                         : "Victory AI requires an active subscription.\nSubscribe on our website to unlock the app."
+                         : "This account doesn't have an active membership.\nAlready a member? Tap Restore Access."
                     )
                     .font(.subheadline)
                     .foregroundColor(Color(hex: "#8888A0"))
@@ -70,15 +64,6 @@ struct PaywallView: View {
                 }
             }
         }
-        // Opens the Lovable web subscription page inside the app
-        .sheet(isPresented: $showBrowser) {
-            SafariBrowser(url: subscribeURL)
-                .ignoresSafeArea()
-                .onDisappear {
-                    // Auto re-validate when user returns from the browser
-                    Task { await restore() }
-                }
-        }
     }
 
     // MARK: - Sub-views
@@ -95,35 +80,22 @@ struct PaywallView: View {
 
     private var actionButtons: some View {
         VStack(spacing: 12) {
-            if !isRevoked {
-                // Primary CTA — web subscription (no native purchase)
-                Button { showBrowser = true } label: {
-                    Text("Subscribe Now")
-                        .font(.headline)
-                        .foregroundColor(Color(hex: "#12121A"))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(Color(hex: "#E8FF47"))
-                        .cornerRadius(14)
-                }
-            }
-
-            // Restore access — re-validates against backend
+            // Primary action: re-validates against the backend
             Button {
                 Task { await restore() }
             } label: {
                 ZStack {
                     if isValidating {
-                        ProgressView().tint(Color(hex: "#E8FF47"))
+                        ProgressView().tint(Color(hex: "#12121A"))
                     } else {
                         Text("Restore Access")
                             .font(.headline)
-                            .foregroundColor(Color(hex: "#E8FF47"))
+                            .foregroundColor(Color(hex: "#12121A"))
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
-                .background(Color(hex: "#E8FF47").opacity(0.12))
+                .background(Color(hex: "#E8FF47"))
                 .cornerRadius(14)
             }
             .disabled(isValidating)
@@ -160,7 +132,7 @@ struct PaywallView: View {
 
         // If still on paywall, surface a hint
         if case .paywall = router.appState {
-            errorMessage = "No active subscription found. Complete your purchase on the web first."
+            errorMessage = "No active membership found for this account."
         }
     }
 

@@ -1,5 +1,6 @@
 import SwiftUI
-import ClerkSDK
+import AuthenticationServices
+import ClerkKit
 
 /// Sign-in screen. Routing after successful sign-in is handled by AppRouter,
 /// not this view — so no NavigationStack or navigationDestination here.
@@ -99,20 +100,35 @@ struct SignInView: View {
     private func signIn() async {
         errorMessage = nil
         do {
-            let result = try await SignIn.create(strategy: .identifier(emailAddress, password: password))
+            let result = try await Clerk.shared.auth.signInWithPassword(identifier: emailAddress, password: password)
             if result.status == .complete {
                 await viewModel.handleSignInComplete()
+            } else {
+                errorMessage = "This account needs an extra verification step. Sign in on the web to finish setting it up."
             }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    private func signInWith(_ provider: OAuthProvider) async {
+    private func signInWith(_ provider: SocialProvider) async {
         errorMessage = nil
         do {
-            try await SignIn.authenticateWithRedirect(strategy: .oauth(provider))
-            await viewModel.handleSignInComplete()
+            switch provider {
+            case .apple:
+                // Native ASAuthorization flow (ID token), not a web redirect.
+                try await Clerk.shared.auth.signInWithApple()
+            case .google:
+                try await Clerk.shared.auth.signInWithOAuth(provider: .google)
+            }
+            // The transfer flow can finish as a sign-up for new users; either way a session exists.
+            if ClerkSession.isSignedIn {
+                await viewModel.handleSignInComplete()
+            }
+        } catch let error as ASAuthorizationError where error.code == .canceled {
+            return
+        } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
+            return
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -121,8 +137,12 @@ struct SignInView: View {
 
 // MARK: - Supporting views
 
+enum SocialProvider {
+    case apple, google
+}
+
 struct SocialSignInButton: View {
-    let provider: OAuthProvider
+    let provider: SocialProvider
     let action: () -> Void
 
     private var isApple: Bool { provider == .apple }
