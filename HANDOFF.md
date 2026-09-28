@@ -1,6 +1,54 @@
-# Session Handoff — Victory AI Bug-Hunt Pass
+# Session Handoff — Victory AI
 
-> For the next Claude session. Read this first, then `git log` on the branch below.
+> For the next Claude session. Read this first, then `git log`.
+
+# Latest: Auto Highlights (merged to `main`, PR #1, `6ebdeb0`)
+
+Product context: the audience is teens and 18–24s. Features should serve three drives:
+**permission to show off, visible progress, identity expression.**
+
+## What it does
+- Viewers tap a flame **hype button** over the live video. When reactions spike, the server
+  **auto-clips** the moment. The clip is watermarked (vertical 1080×1920, "VICTORY AI",
+  @handle, "N REACTIONS AT ONCE") and shared as a real MP4 via the OS share sheet
+  (TikTok / Reels / Snap / Shorts), with a download fallback.
+- Streamers get a `/highlights` page (stats, best clip, share/post/delete). Go Live shows a live
+  highlight counter, and ending a stream that produced highlights routes to them.
+- Manual "Clip 30s" clips go through the same watermarking. **Viewers can now clip** live
+  public streams (previously every non-owner got a 403).
+
+## Where it lives
+- **Backend (`server.py`, "Auto highlights" section after `ws_manager`):**
+  - `HypeTracker` scores hype taps, chat, tips and gift subs per stream over a 10s window. It fires
+    when the score is ≥12, ≥3× the 2-min baseline and ≥3 distinct reactors. Free signals are
+    capped per user per window, the streamer's own reactions are excluded, and there's a 45s
+    cooldown with a max of 15 per stream. It's **in memory**, so it assumes one Railway instance.
+  - Pipeline `_run_highlight`: Livepeer `/clip` → poll asset → Cloudinary upload
+    (`victory_highlights/{id}`) with an eager watermark transform → HEAD-poll until servable →
+    `ready` + WS `highlight_ready` + push. Stale jobs resume lazily when the highlight is read.
+  - Collection `highlights`, statuses `clipping|processing|ready|failed`. There are no indexes;
+    the repo creates none anywhere.
+  - Endpoints: `GET /highlights/mine`, `GET /streams/{id}/highlights`, `GET /highlights/{id}`,
+    `POST /highlights/{id}/retry|publish|share`, `DELETE /highlights/{id}`.
+  - WebSocket: client sends `{"type":"hype"}`. Server sends `hype_burst` (batched every 0.6s),
+    `highlight` and `highlight_ready`.
+- **Frontend:** `components/streaming/HypeOverlay.jsx`, `components/HighlightShareSheet.jsx`,
+  `pages/HighlightsPage.jsx`, `lib/shareVideo.js`. Also touched `LiveChat`, `StreamViewPage`,
+  `GoLivePage`, `ShareSheet`, `TrendingClipsPage`, the dashboard link, and the `float-up`
+  keyframe in `tailwind.config.js`.
+- **Tests:** `python3 backend/test_highlights.py` (14 checks, all services faked) and
+  `frontend/src/lib/shareVideo.test.js`.
+
+## Status / open items
+- Cloudinary env vars are confirmed set on Railway.
+- **Not yet verified on a real stream.** The main risk is clip timing: auto clips use server
+  wall-clock time, while Livepeer times clips against the playhead. A 25s lead absorbs latency;
+  confirm the clip lands on the moment. Failures log as `Highlight <id> failed: …` on Railway.
+- Each highlight is a Cloudinary video render, which costs transformation credits.
+
+---
+
+# Previous: Bug-Hunt Pass
 
 ## TL;DR
 A full adversarial bug hunt was run across the whole codebase (backend `server.py` +
