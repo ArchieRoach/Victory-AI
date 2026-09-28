@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
-import { ArrowLeft, Zap, Radio, Users, Smile, TrendingUp, Clock, ChevronRight } from "lucide-react";
+import { ArrowLeft, Zap, Radio, Users, Smile, TrendingUp, Clock, ChevronRight, Scissors } from "lucide-react";
 
 const PERIODS = [
   { value: "7d",  label: "7 days"  },
@@ -315,6 +315,20 @@ export default function StreamerDashboardPage() {
               <EarningsChart data={data.chart} />
             )}
           </div>
+
+          <button
+            onClick={() => navigate("/highlights")}
+            className="w-full victory-card p-4 flex items-center gap-3 border-victory-lime/30 bg-victory-lime/5 active:scale-[0.99] transition-transform text-left"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center flex-shrink-0">
+              <Scissors className="w-5 h-5 text-victory-lime" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-victory-text font-heading font-bold text-sm">Highlights</p>
+              <p className="text-victory-muted text-xs">Auto-clipped moments, watermarked and ready to post</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-victory-muted" />
+          </button>
 
           {/* ── Recent streams ── */}
           <div className="bg-victory-card border border-victory-border rounded-2xl p-4">
