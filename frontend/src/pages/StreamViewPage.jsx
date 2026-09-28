@@ -15,6 +15,8 @@ import { GiftSubModal }       from "@/components/streaming/GiftSubModal";
 import { SponsorBanner }      from "@/components/streaming/SponsorBanner";
 import { TokenPurchaseModal } from "@/components/streaming/TokenPurchaseModal";
 import { EmoteShop }          from "@/components/streaming/EmoteShop";
+import { HypeOverlay }        from "@/components/streaming/HypeOverlay";
+import { HighlightShareSheet } from "@/components/HighlightShareSheet";
 
 const TYPE_COLORS = {
   training: "bg-blue-500/20 text-blue-400",
@@ -41,6 +43,12 @@ export default function StreamViewPage() {
   const [showClipModal,  setShowClipModal]  = useState(false);
   const [clipCaption,    setClipCaption]    = useState("");
   const [showShareSheet, setShowShareSheet] = useState(false);
+  const [openHighlightId, setOpenHighlightId] = useState(null);
+
+  // Hype taps + auto highlights
+  const hypeSendRef = useRef(null);
+  const [hypeBurst,     setHypeBurst]     = useState(null);
+  const [lastHighlight, setLastHighlight] = useState(null);
 
   // Modal visibility
   const [showTip,     setShowTip]     = useState(false);
@@ -111,6 +119,16 @@ export default function StreamViewPage() {
     setAlertQueue((q) => [...q, { ...data, type: "gift_sub", _key: `gift-${Date.now()}` }]);
   }, []);
 
+  const handleHypeBurst = useCallback((data) => {
+    setHypeBurst({ count: data.count || 0, key: Date.now() });
+  }, []);
+
+  const handleHighlight = useCallback((data) => {
+    setLastHighlight({ ...data, key: Date.now() });
+  }, []);
+
+  const sendHype = useCallback(() => hypeSendRef.current?.() ?? false, []);
+
   const dismissAlert = useCallback((event) => {
     setAlertQueue((q) => q.filter((e) => e._key !== event._key));
   }, []);
@@ -136,7 +154,8 @@ export default function StreamViewPage() {
 
   const handleClipShare = async () => {
     setShowClipModal(false);
-    setShowShareSheet(true);
+    if (clipPost?.highlight_id) setOpenHighlightId(clipPost.highlight_id);
+    else setShowShareSheet(true);
   };
 
   const handleClipDismiss = () => {
@@ -249,6 +268,10 @@ export default function StreamViewPage() {
         />
       )}
 
+      {openHighlightId && (
+        <HighlightShareSheet highlightId={openHighlightId} onClose={() => setOpenHighlightId(null)} />
+      )}
+
       {/* ── Top bar ── */}
       <div className="flex items-center gap-3 px-4 py-3 bg-black/80">
         <button onClick={() => navigate("/live")} aria-label="Go back" className="w-11 h-11 -mx-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text flex-shrink-0">
@@ -292,7 +315,18 @@ export default function StreamViewPage() {
       {!user?.has_subscription && <SponsorBanner simulateAd={false} />}
 
       {/* ── Video player ── */}
-      <LivePlayer playbackId={stream.playback_id} autoPlay />
+      <div className="relative">
+        <LivePlayer playbackId={stream.playback_id} autoPlay />
+        {isLive && (
+          <HypeOverlay
+            onHype={sendHype}
+            burst={hypeBurst}
+            highlight={lastHighlight}
+            onOpenHighlight={setOpenHighlightId}
+            disabled={stream.user_id === user?.user_id}
+          />
+        )}
+      </div>
 
       {/* ── Stream info bar ── */}
       <div className="bg-victory-bg px-4 py-3 border-b border-victory-border">
@@ -377,6 +411,9 @@ export default function StreamViewPage() {
           onGiftEvent={handleGiftEvent}
           onTipClick={() => setShowTip(true)}
           onGiftClick={() => setShowGift(true)}
+          hypeSendRef={hypeSendRef}
+          onHypeBurst={handleHypeBurst}
+          onHighlight={handleHighlight}
         />
 
         {/* Token top-up prompt if balance is low */}

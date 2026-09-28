@@ -71,7 +71,7 @@ function ChatText({ text, emoteMap }) {
   );
 }
 
-export default function LiveChat({ streamId, streamOwnerId, user, className = "", onTipEvent, onGiftEvent, onTipClick, onGiftClick }) {
+export default function LiveChat({ streamId, streamOwnerId, user, className = "", onTipEvent, onGiftEvent, onTipClick, onGiftClick, hypeSendRef, onHypeBurst, onHighlight }) {
   const { getToken } = useClerkHook();
   const [messages,    setMessages]    = useState([]);
   const [input,       setInput]       = useState("");
@@ -138,6 +138,10 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
             [data.user_id]: (prev[data.user_id] || 0) + (data.count || 1),
           }));
           onGiftEvent?.(data);
+        } else if (data.type === "hype_burst") {
+          onHypeBurst?.(data);
+        } else if (data.type === "highlight") {
+          onHighlight?.(data);
         }
       } catch {}
     };
@@ -149,7 +153,18 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
     };
 
     ws.onerror = () => ws.close();
-  }, [streamId, scrollToBottom, onTipEvent, onGiftEvent]);
+  }, [streamId, scrollToBottom, onTipEvent, onGiftEvent, onHypeBurst, onHighlight]);
+
+  useEffect(() => {
+    if (!hypeSendRef) return;
+    hypeSendRef.current = () => {
+      const ws = wsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+      ws.send(JSON.stringify({ type: "hype" }));
+      return true;
+    };
+    return () => { hypeSendRef.current = null; };
+  }, [hypeSendRef]);
 
   useEffect(() => {
     deadRef.current = false;

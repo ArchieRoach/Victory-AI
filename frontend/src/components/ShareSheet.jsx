@@ -1,14 +1,38 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { X, Share2, Link, RotateCcw, Flame } from "lucide-react";
+import { X, Share2, Link, Flame, Film } from "lucide-react";
+import { fetchVideoFile, shareVideoFile } from "@/lib/shareVideo";
 
 export function ShareSheet({ post, onClose, onShared }) {
   const { user } = useAuth();
   const [sharing, setSharing] = useState(false);
   const [copied,  setCopied]  = useState(false);
   const [shared,  setShared]  = useState(false);
+  const [videoFile, setVideoFile] = useState(null);
+
+  useEffect(() => {
+    if (!post.share_video_url) return;
+    let cancelled = false;
+    fetchVideoFile(post.share_video_url, `victory-${post.post_id}.mp4`)
+      .then((f) => { if (!cancelled) setVideoFile(f); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [post.share_video_url, post.post_id]);
+
+  const handleVideoShare = async () => {
+    if (!videoFile) return;
+    setSharing(true);
+    try {
+      const result = await shareVideoFile(videoFile, { title: post.caption || "Victory AI clip", text: "Caught this on Victory AI #boxing #VictoryAI" });
+      if (result !== "cancelled") await recordShare();
+      if (result === "downloaded") toast.success("Saved — post it from your camera roll");
+    } catch {
+      toast.error("Share failed");
+    }
+    setSharing(false);
+  };
 
   const shareUrl = `${window.location.origin}/clip/${post.post_id}`;
 
@@ -97,11 +121,24 @@ export function ShareSheet({ post, onClose, onShared }) {
 
         {/* Actions */}
         <div className="p-4 space-y-3 pb-8">
+          {post.share_video_url && (
+            <button
+              onClick={handleVideoShare}
+              disabled={sharing || !videoFile}
+              className="w-full flex items-center gap-3 bg-victory-lime text-victory-bg font-bold py-3.5 px-4 rounded-xl disabled:opacity-50 transition-opacity"
+            >
+              <Film className="w-5 h-5 flex-shrink-0" />
+              <span className="flex-1 text-left">{videoFile ? "Share video to TikTok, Reels…" : "Preparing video…"}</span>
+            </button>
+          )}
+
           {/* Native share / send */}
           <button
             onClick={handleNativeShare}
             disabled={sharing}
-            className="w-full flex items-center gap-3 bg-victory-lime text-victory-bg font-bold py-3.5 px-4 rounded-xl disabled:opacity-50 transition-opacity"
+            className={`w-full flex items-center gap-3 font-bold py-3.5 px-4 rounded-xl disabled:opacity-50 transition-opacity ${
+              post.share_video_url ? "bg-victory-card border border-victory-border text-victory-text" : "bg-victory-lime text-victory-bg"
+            }`}
           >
             <Share2 className="w-5 h-5 flex-shrink-0" />
             <span className="flex-1 text-left">{navigator.share ? "Send to…" : "Copy & Share"}</span>

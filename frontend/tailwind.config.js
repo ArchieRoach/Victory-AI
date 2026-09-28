@@ -118,6 +118,11 @@ module.exports = {
           "0%, 100%": { transform: "rotate(-2.5deg) translateX(-3px)" },
           "50%":      { transform: "rotate(2.5deg) translateX(3px)" },
         },
+        "float-up": {
+          "0%":   { transform: "translate(0, 0) scale(0.6)", opacity: "0" },
+          "12%":  { transform: "translate(0, -20px) scale(1)", opacity: "1" },
+          "100%": { transform: "translate(var(--drift, 0px), -240px) scale(0.9)", opacity: "0" },
+        },
         "fly-across": {
           "0%":   { transform: "translateX(110vw)",  opacity: "0" },
           "8%":   { opacity: "1" },
@@ -137,6 +142,7 @@ module.exports = {
         "sway": "sway 3.2s ease-in-out infinite",
         "bounce-slow": "bounce-slow 1.4s ease-in-out infinite",
         "fly-across": "fly-across 4s linear forwards",
+        "float-up": "float-up 1.8s ease-out both",
       },
     },
   },

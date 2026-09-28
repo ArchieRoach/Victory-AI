@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth as useClerkHook } from "@clerk/clerk-react";
 import { API, useAuth } from "@/App";
-import { Radio, Users, AlertCircle, VideoOff } from "lucide-react";
+import { Radio, Users, AlertCircle, VideoOff, Scissors } from "lucide-react";
+import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { withMinDuration } from "@/utils/async";
 
@@ -31,11 +32,13 @@ export default function GoLivePage() {
   const [streamInfo, setStreamInfo] = useState(null);
   const [viewerCount, setViewerCount] = useState(0);
   const [endingStream, setEndingStream] = useState(false);
+  const [highlightCount, setHighlightCount] = useState(0);
 
   const videoRef = useRef(null);
   const mediaRef = useRef(null);
   const pcRef = useRef(null);
   const pollRef = useRef(null);
+  const highlightCountRef = useRef(0);
   const mountedRef = useRef(true);
   const startingRef = useRef(false);
 
@@ -201,13 +204,29 @@ export default function GoLivePage() {
       title: streamData.title,
     });
     setViewerCount(0);
+    setHighlightCount(0);
+    highlightCountRef.current = 0;
     setPhase("live");
 
-    // Poll viewer count every 15 s
+    // Poll viewer count + new auto highlights every 15 s
     pollRef.current = setInterval(async () => {
       try {
         const res = await axios.get(`${API}/streams/${streamData.stream_id}`);
         setViewerCount(res.data.viewer_count ?? 0);
+      } catch {}
+      try {
+        const res = await axios.get(`${API}/highlights/mine`, { params: { stream_id: streamData.stream_id } });
+        const list = res.data.highlights || [];
+        if (list.length > highlightCountRef.current) {
+          const newest = list[0];
+          toast.success(
+            newest?.peak_reactions
+              ? `Highlight clipped: ${newest.peak_reactions} reactions at once`
+              : "Highlight clipped",
+          );
+        }
+        highlightCountRef.current = list.length;
+        setHighlightCount(list.length);
       } catch {}
     }, 15000);
   };
@@ -229,7 +248,7 @@ export default function GoLivePage() {
         }
       })());
     }
-    navigate("/live");
+    navigate(sid && highlightCountRef.current > 0 ? `/highlights?stream=${sid}` : "/live");
   };
 
   // ── Live screen ──────────────────────────────────────────────────────────
@@ -260,6 +279,15 @@ export default function GoLivePage() {
               <span key={viewerCount} className="animate-scale-in">{viewerCount}</span>
             </span>
           </div>
+          {highlightCount > 0 && (
+            <div className="absolute top-16 right-4 pointer-events-none">
+              <span className="flex items-center gap-1.5 bg-victory-bg/80 backdrop-blur-sm border border-victory-lime/40 text-victory-lime text-xs font-bold px-3 py-1.5 rounded-full">
+                <Scissors className="w-3 h-3" />
+                <span key={highlightCount} className="font-mono animate-scale-in">{highlightCount}</span>
+                {highlightCount === 1 ? "highlight" : "highlights"}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Controls bar */}

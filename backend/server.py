@@ -21,6 +21,7 @@ import base64
 import random
 import time
 import json
+from collections import deque
 import cloudinary
 import cloudinary.api
 import cloudinary.uploader
@@ -1355,6 +1356,7 @@ async def stripe_webhook(request: Request):
                     if stream_id:
                         gifter = await db.users.find_one({"user_id": uid}, {"name": 1, "display_name": 1, "avatar_url": 1})
                         gname = (gifter or {}).get("display_name") or (gifter or {}).get("name", "Someone")
+                        record_hype(stream_id, uid, gift_hype_weight(count), paid=True)
                         await ws_manager.broadcast(stream_id, {
                             "type": "gift_sub",
                             "user_name": gname,
@@ -1491,6 +1493,7 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
         "created_at": now,
     }
     await db.tips.insert_one(tip_doc)
+    record_hype(stream_id, user["user_id"], tip_hype_weight(req.amount), paid=True)
 
     # Broadcast tip event to all chat viewers
     is_combo = punch.get("category") == "combo" if punch else False
@@ -4354,6 +4357,343 @@ class ConnectionManager:
 ws_manager = ConnectionManager()
 
 
+# ─── Auto highlights ──────────────────────────────────────────────────────────
+# Every viewer reaction (hype tap, chat line, tip, gift) is scored per stream. When the
+# last HYPE_WINDOW_S seconds out-score both an absolute floor and a multiple of the
+# stream's recent baseline, the moment is clipped automatically.
+
+HYPE_WINDOW_S          = 10
+HYPE_BASELINE_S        = 120
+HYPE_MIN_SCORE         = 12
+HYPE_SPIKE_MULTIPLIER  = 3.0
+HYPE_MIN_REACTORS      = 3
+HYPE_COOLDOWN_S        = 45
+HYPE_MAX_PER_STREAM    = 15
+# Free signals are capped per user per window so one person spamming can't fake a spike;
+# paid signals (tips, gifts) count in full.
+HYPE_FREE_CAP_PER_USER = 4
+
+HIGHLIGHT_LEAD_MS = 25_000
+HIGHLIGHT_TAIL_MS = 6_000
+
+
+def tip_hype_weight(amount: int) -> int:
+    return 5 + min(amount // 50, 15)
+
+
+def gift_hype_weight(count: int) -> int:
+    return min(8 * count, 40)
+
+
+class HypeTracker:
+    def __init__(self):
+        self._events: Dict[str, deque] = {}
+        self._last_fire: Dict[str, float] = {}
+        self._fired: Dict[str, int] = {}
+
+    def forget(self, stream_id: str):
+        self._events.pop(stream_id, None)
+        self._last_fire.pop(stream_id, None)
+        self._fired.pop(stream_id, None)
+
+    def record(self, stream_id: str, user_id: str, weight: int, paid: bool = False,
+               now: Optional[float] = None) -> Optional[dict]:
+        now = time.time() if now is None else now
+        q = self._events.setdefault(stream_id, deque())
+        q.append((now, user_id, weight, paid))
+        while q and now - q[0][0] > HYPE_BASELINE_S:
+            q.popleft()
+
+        if self._fired.get(stream_id, 0) >= HYPE_MAX_PER_STREAM:
+            return None
+        if now - self._last_fire.get(stream_id, float("-inf")) < HYPE_COOLDOWN_S:
+            return None
+
+        n_buckets = HYPE_BASELINE_S // HYPE_WINDOW_S
+        free: List[Dict[str, int]] = [{} for _ in range(n_buckets)]
+        paid_totals = [0] * n_buckets
+        reactors: set = set()
+        reaction_count = 0
+        for ts, uid, w, is_paid in q:
+            b = int((now - ts) // HYPE_WINDOW_S)
+            if b >= n_buckets:
+                continue
+            if is_paid:
+                paid_totals[b] += w
+            else:
+                free[b][uid] = free[b].get(uid, 0) + w
+            if b == 0:
+                reactors.add(uid)
+                reaction_count += 1
+
+        scores = [
+            sum(min(v, HYPE_FREE_CAP_PER_USER) for v in free[b].values()) + paid_totals[b]
+            for b in range(n_buckets)
+        ]
+        current = scores[0]
+        baseline = sum(scores[1:]) / (n_buckets - 1)
+        if current < HYPE_MIN_SCORE or current < baseline * HYPE_SPIKE_MULTIPLIER:
+            return None
+        if len(reactors) < HYPE_MIN_REACTORS:
+            return None
+
+        self._last_fire[stream_id] = now
+        self._fired[stream_id] = self._fired.get(stream_id, 0) + 1
+        return {
+            "score": current,
+            "baseline": round(baseline, 2),
+            "reactors": len(reactors),
+            "reaction_count": reaction_count,
+            "at": now,
+        }
+
+
+hype_tracker = HypeTracker()
+_bg_tasks: set = set()
+
+
+def _spawn(coro):
+    task = asyncio.create_task(coro)
+    _bg_tasks.add(task)
+    task.add_done_callback(_bg_tasks.discard)
+    return task
+
+
+def record_hype(stream_id: str, user_id: str, weight: int, paid: bool = False):
+    spike = hype_tracker.record(stream_id, user_id, weight, paid)
+    if spike:
+        _spawn(_start_auto_highlight(stream_id, spike))
+
+
+# Hype taps are aggregated into one broadcast per stream every HYPE_FLUSH_S so a busy
+# stream doesn't fan out one websocket frame per tap per viewer.
+HYPE_FLUSH_S = 0.6
+_pending_taps: Dict[str, int] = {}
+
+
+async def _flush_taps(stream_id: str):
+    await asyncio.sleep(HYPE_FLUSH_S)
+    count = _pending_taps.pop(stream_id, 0)
+    if count:
+        await ws_manager.broadcast(stream_id, {"type": "hype_burst", "count": count})
+
+
+def queue_hype_tap(stream_id: str):
+    first = stream_id not in _pending_taps
+    _pending_taps[stream_id] = _pending_taps.get(stream_id, 0) + 1
+    if first:
+        _spawn(_flush_taps(stream_id))
+
+
+_WATERMARK_HANDLE_RE = re.compile(r"[^A-Za-z0-9_.]")
+
+
+def watermark_handle(name: str) -> str:
+    handle = _WATERMARK_HANDLE_RE.sub("", (name or "").replace(" ", "_"))[:24]
+    return f"@{handle or 'fighter'}"
+
+
+def highlight_share_urls(public_id: str, handle: str, peak_reactions: int = 0) -> dict:
+    layers = [
+        {"width": 1080, "height": 1920, "crop": "pad", "background": "blurred:400:15"},
+        {"overlay": {"font_family": "Arial", "font_size": 64, "font_weight": "bold", "text": "VICTORY AI"},
+         "color": "#E8FF47", "gravity": "north_west", "x": 48, "y": 96},
+        {"overlay": {"font_family": "Arial", "font_size": 44, "font_weight": "bold", "text": handle},
+         "color": "#F0F0F5", "gravity": "north_west", "x": 48, "y": 176},
+    ]
+    if peak_reactions:
+        layers.append(
+            {"overlay": {"font_family": "Arial", "font_size": 40, "font_weight": "bold",
+                         "text": f"{peak_reactions} REACTIONS AT ONCE"},
+             "color": "#E8FF47", "gravity": "south", "y": 160}
+        )
+    video_tf = layers + [{"quality": "auto", "video_codec": "h264", "audio_codec": "aac"}]
+    video_url, _ = cloudinary.utils.cloudinary_url(
+        public_id, resource_type="video", format="mp4", secure=True, transformation=video_tf,
+    )
+    thumb_url, _ = cloudinary.utils.cloudinary_url(
+        public_id, resource_type="video", format="jpg", secure=True,
+        transformation=[{"start_offset": "auto"}] + layers[:1] + [{"quality": "auto"}],
+    )
+    return {"share_video_url": video_url, "thumbnail_url": thumb_url, "eager": video_tf}
+
+
+async def _start_auto_highlight(stream_id: str, spike: dict):
+    try:
+        stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0, "stream_key": 0})
+        if not stream or stream.get("status") != "live" or not stream.get("playback_id"):
+            return
+        spike_ms = int(spike["at"] * 1000)
+        highlight = await _create_highlight(
+            stream,
+            source="auto",
+            start_ms=spike_ms - HYPE_WINDOW_S * 1000 - HIGHLIGHT_LEAD_MS,
+            end_ms=spike_ms + HIGHLIGHT_TAIL_MS,
+            peak_score=spike["score"],
+            peak_reactions=spike["reaction_count"],
+            peak_reactors=spike["reactors"],
+        )
+        await ws_manager.broadcast(stream_id, {
+            "type": "highlight",
+            "highlight_id": highlight["highlight_id"],
+            "reactions": spike["reaction_count"],
+            "reactors": spike["reactors"],
+        })
+    except Exception as e:
+        logger.error(f"Auto highlight for {stream_id} failed: {e}")
+
+
+async def _create_highlight(stream: dict, *, source: str, start_ms: int, end_ms: int,
+                            created_by: Optional[str] = None, post_id: Optional[str] = None,
+                            asset_id: Optional[str] = None,
+                            peak_score: int = 0, peak_reactions: int = 0, peak_reactors: int = 0) -> dict:
+    now_iso = datetime.now(timezone.utc).isoformat()
+    doc = {
+        "highlight_id":   f"hl_{uuid.uuid4().hex[:12]}",
+        "stream_id":      stream["stream_id"],
+        "stream_title":   stream.get("title", ""),
+        "stream_type":    stream.get("type", "training"),
+        "streamer_id":    stream["user_id"],
+        "streamer_name":  stream.get("display_name") or stream.get("user_name") or "",
+        "created_by":     created_by or stream["user_id"],
+        "source":         source,
+        "start_ms":       start_ms,
+        "end_ms":         end_ms,
+        "peak_score":     peak_score,
+        "peak_reactions": peak_reactions,
+        "peak_reactors":  peak_reactors,
+        "status":         "processing" if asset_id else "clipping",
+        "livepeer_asset_id": asset_id,
+        "post_id":        post_id,
+        "share_count":    0,
+        "created_at":     now_iso,
+        "updated_at":     now_iso,
+    }
+    await db.highlights.insert_one(doc)
+    doc.pop("_id", None)
+    _highlight_jobs[doc["highlight_id"]] = _spawn(_run_highlight(doc["highlight_id"], stream["playback_id"]))
+    return doc
+
+
+_highlight_jobs: Dict[str, asyncio.Task] = {}
+
+HIGHLIGHT_POLL_S        = 5
+HIGHLIGHT_ASSET_TRIES   = 60
+HIGHLIGHT_DERIVED_TRIES = 48
+HIGHLIGHT_STALE_S       = 90
+
+
+async def _set_highlight(highlight_id: str, **fields):
+    fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.highlights.update_one({"highlight_id": highlight_id}, {"$set": fields})
+
+
+async def _run_highlight(highlight_id: str, playback_id: Optional[str] = None):
+    try:
+        hl = await db.highlights.find_one({"highlight_id": highlight_id}, {"_id": 0})
+        if not hl:
+            return
+
+        asset_id = hl.get("livepeer_asset_id")
+        if not asset_id:
+            wait_s = hl["end_ms"] / 1000 - time.time()
+            if wait_s > 0:
+                await asyncio.sleep(wait_s)
+            if not playback_id:
+                stream = await db.streams.find_one({"stream_id": hl["stream_id"]}, {"playback_id": 1})
+                playback_id = (stream or {}).get("playback_id")
+            if not playback_id:
+                raise RuntimeError("stream has no playback id")
+            clip = await _livepeer("POST", "/clip", {
+                "playbackId": playback_id,
+                "startTime":  hl["start_ms"],
+                "endTime":    hl["end_ms"],
+                "name":       f"Highlight – {hl.get('stream_title') or 'stream'}",
+            })
+            asset = clip.get("asset") or {}
+            asset_id = asset.get("id")
+            if not asset_id:
+                raise RuntimeError("Livepeer returned no asset")
+            await _set_highlight(highlight_id, status="processing", livepeer_asset_id=asset_id,
+                                 livepeer_playback_id=asset.get("playbackId", ""))
+
+        download_url = None
+        for _ in range(HIGHLIGHT_ASSET_TRIES):
+            asset = await _livepeer("GET", f"/asset/{asset_id}")
+            phase = (asset.get("status") or {}).get("phase")
+            if phase == "failed":
+                raise RuntimeError(f"Livepeer asset failed: {(asset.get('status') or {}).get('errorMessage', '')}")
+            if phase == "ready":
+                download_url = asset.get("downloadUrl") or (
+                    f"https://livepeercdn.studio/asset/{asset['playbackId']}/video" if asset.get("playbackId") else None
+                )
+                break
+            await asyncio.sleep(HIGHLIGHT_POLL_S)
+        if not download_url:
+            raise RuntimeError("Livepeer asset never became ready")
+
+        streamer = await db.users.find_one({"user_id": hl["streamer_id"]}, {"display_name": 1, "name": 1})
+        handle = watermark_handle((streamer or {}).get("display_name") or (streamer or {}).get("name") or hl.get("streamer_name"))
+        public_id = f"victory_highlights/{highlight_id}"
+        urls = highlight_share_urls(public_id, handle, hl.get("peak_reactions", 0) if hl["source"] == "auto" else 0)
+        await asyncio.to_thread(
+            cloudinary.uploader.upload, download_url,
+            resource_type="video", public_id=public_id, overwrite=True,
+            eager=[urls["eager"]], eager_async=True,
+        )
+
+        # The watermarked rendition is built asynchronously; wait until it's servable so
+        # "ready" means the user can actually download it.
+        async with httpx.AsyncClient(timeout=20, follow_redirects=True) as c:
+            for _ in range(HIGHLIGHT_DERIVED_TRIES):
+                r = await c.head(urls["share_video_url"])
+                if r.status_code == 200:
+                    break
+                await asyncio.sleep(HIGHLIGHT_POLL_S)
+            else:
+                raise RuntimeError("watermarked rendition never became available")
+
+        await _set_highlight(highlight_id, status="ready", share_video_url=urls["share_video_url"],
+                             thumbnail_url=urls["thumbnail_url"], watermark_handle=handle, error=None)
+        if hl.get("post_id"):
+            await db.posts.update_one({"post_id": hl["post_id"]}, {"$set": {
+                "share_video_url": urls["share_video_url"],
+                "thumbnail_url":   urls["thumbnail_url"],
+                "highlight_id":    highlight_id,
+            }})
+        await ws_manager.broadcast(hl["stream_id"], {"type": "highlight_ready", "highlight_id": highlight_id})
+        if hl["source"] == "auto":
+            await _send_push(
+                hl["streamer_id"],
+                title="Your stream just popped off",
+                body=f"{hl.get('peak_reactions', 0)} reactions at once — your highlight is ready to share",
+                url="/highlights",
+                tag=f"highlight-{highlight_id}",
+            )
+    except Exception as e:
+        logger.error(f"Highlight {highlight_id} failed: {e}")
+        await _set_highlight(highlight_id, status="failed", error=str(e)[:300])
+    finally:
+        _highlight_jobs.pop(highlight_id, None)
+
+
+def _resume_highlight_if_stale(hl: dict):
+    if hl.get("status") not in ("clipping", "processing") or hl["highlight_id"] in _highlight_jobs:
+        return
+    try:
+        updated = datetime.fromisoformat(hl["updated_at"])
+    except (KeyError, ValueError):
+        return
+    if (datetime.now(timezone.utc) - updated).total_seconds() > HIGHLIGHT_STALE_S:
+        _highlight_jobs[hl["highlight_id"]] = _spawn(_run_highlight(hl["highlight_id"]))
+
+
+def _public_highlight(hl: dict) -> dict:
+    hl.pop("_id", None)
+    hl.pop("error", None)
+    return hl
+
+
 class StreamCreate(BaseModel):
     title: str
     description: Optional[str] = ""
@@ -4588,6 +4928,7 @@ async def update_stream(stream_id: str, data: StreamUpdate, user: dict = Depends
     if updates:
         await db.streams.update_one({"stream_id": stream_id}, {"$set": updates})
     if data.status == "ended":
+        hype_tracker.forget(stream_id)
         await check_and_award_belts(user["user_id"])
     updated = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
     return updated
@@ -4610,6 +4951,9 @@ async def delete_stream(stream_id: str, user: dict = Depends(get_current_user)):
     return {"ok": True}
 
 
+MAX_CLIP_MS = 60_000
+
+
 class ClipCreate(BaseModel):
     caption: str = ""
 
@@ -4623,13 +4967,21 @@ async def create_clip(
 ):
     if _rate_limited(f"clip_create:{user['user_id']}", 10, 60):
         raise HTTPException(429, "Too many clips — slow down")
-    stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
+    stream = await db.streams.find_one({"stream_id": stream_id, "is_hidden": {"$ne": True}}, {"_id": 0})
     if not stream:
         raise HTTPException(404, "Stream not found")
     if stream["user_id"] != user["user_id"]:
-        raise HTTPException(403, "Not your stream")
+        if stream.get("is_private"):
+            raise HTTPException(403, "Private stream")
+        if await _is_blocked(user["user_id"], stream["user_id"]):
+            raise HTTPException(403, "You can't clip this stream")
+        if stream.get("status") != "live":
+            raise HTTPException(400, "Stream isn't live")
     if not stream.get("playback_id"):
         raise HTTPException(400, "No playback ID")
+    now_ms = int(time.time() * 1000)
+    if not (0 < end_time - start_time <= MAX_CLIP_MS) or end_time > now_ms + 5_000:
+        raise HTTPException(400, "Clips must be up to 60 seconds of what's already streamed")
     if await is_content_flagged(caption):
         raise HTTPException(400, "Caption violates community guidelines")
     try:
@@ -4663,7 +5015,7 @@ async def create_clip(
         "stream_id_ref":      stream_id,
         "stream_title":       stream.get("title", ""),
         "streamer_id":        stream.get("user_id"),
-        "streamer_name":      stream.get("streamer_name") or stream.get("title", ""),
+        "streamer_name":      stream.get("user_name") or "",
         "likes":              [],
         "like_count":         0,
         "comment_count":      0,
@@ -4675,7 +5027,191 @@ async def create_clip(
     post_doc["author"] = safe_user(user)
     post_doc["liked_by_me"] = False
 
+    if asset_id:
+        highlight = await _create_highlight(
+            stream, source="manual", start_ms=start_time, end_ms=end_time,
+            created_by=user["user_id"], post_id=post_id, asset_id=asset_id,
+        )
+        await db.posts.update_one({"post_id": post_id}, {"$set": {"highlight_id": highlight["highlight_id"]}})
+        post_doc["highlight_id"] = highlight["highlight_id"]
+
     return post_doc
+
+
+@api_router.get("/highlights/mine")
+async def my_highlights(
+    sort: str = Query("recent", enum=["recent", "top"]),
+    stream_id: Optional[str] = Query(None),
+    user: dict = Depends(get_current_user),
+):
+    query: Dict[str, Any] = {"streamer_id": user["user_id"]}
+    if stream_id:
+        query["stream_id"] = stream_id
+    order = [("peak_reactions", -1), ("created_at", -1)] if sort == "top" else [("created_at", -1)]
+    items = await db.highlights.find(query, {"_id": 0}).sort(order).limit(100).to_list(100)
+    for hl in items:
+        _resume_highlight_if_stale(hl)
+
+    ready = [h for h in items if h.get("status") == "ready"]
+    all_stats = await db.highlights.aggregate([
+        {"$match": {"streamer_id": user["user_id"], "status": "ready"}},
+        {"$group": {"_id": None, "count": {"$sum": 1}, "best": {"$max": "$peak_reactions"},
+                    "shares": {"$sum": "$share_count"}}},
+    ]).to_list(1)
+    stats = all_stats[0] if all_stats else {}
+    return {
+        "highlights": [_public_highlight(h) for h in items],
+        "stats": {
+            "total":          stats.get("count", 0),
+            "best_reactions": stats.get("best") or 0,
+            "total_shares":   stats.get("shares", 0),
+            "ready_in_view":  len(ready),
+        },
+    }
+
+
+@api_router.get("/streams/{stream_id}/highlights")
+async def stream_highlights(stream_id: str, user: dict = Depends(get_current_user)):
+    stream = await db.streams.find_one({"stream_id": stream_id}, {"user_id": 1})
+    if not stream:
+        raise HTTPException(404, "Stream not found")
+    query: Dict[str, Any] = {"stream_id": stream_id}
+    if stream["user_id"] != user["user_id"]:
+        await _require_profile_visible(stream["user_id"], user)
+        query["status"] = "ready"
+    items = await db.highlights.find(query, {"_id": 0}).sort("peak_reactions", -1).limit(50).to_list(50)
+    return [_public_highlight(h) for h in items]
+
+
+async def _get_highlight_for(highlight_id: str, user: dict, owner_only: bool = False) -> dict:
+    hl = await db.highlights.find_one({"highlight_id": highlight_id}, {"_id": 0})
+    if not hl:
+        raise HTTPException(404, "Highlight not found")
+    is_owner = user["user_id"] in (hl["streamer_id"], hl.get("created_by"))
+    if owner_only and not is_owner:
+        raise HTTPException(403, "Not your highlight")
+    if not is_owner:
+        if hl.get("status") != "ready":
+            raise HTTPException(404, "Highlight not found")
+        await _require_profile_visible(hl["streamer_id"], user)
+    return hl
+
+
+@api_router.get("/highlights/{highlight_id}")
+async def get_highlight(highlight_id: str, user: dict = Depends(get_current_user)):
+    hl = await _get_highlight_for(highlight_id, user)
+    _resume_highlight_if_stale(hl)
+    return _public_highlight(hl)
+
+
+@api_router.post("/highlights/{highlight_id}/retry")
+async def retry_highlight(highlight_id: str, user: dict = Depends(get_current_user)):
+    hl = await _get_highlight_for(highlight_id, user, owner_only=True)
+    if hl.get("status") != "failed":
+        raise HTTPException(400, "Only failed highlights can be retried")
+    if _rate_limited(f"highlight_retry:{user['user_id']}", 5, 60):
+        raise HTTPException(429, "Too many retries — give it a minute")
+    await _set_highlight(highlight_id, status="processing" if hl.get("livepeer_asset_id") else "clipping", error=None)
+    _highlight_jobs[highlight_id] = _spawn(_run_highlight(highlight_id))
+    return {"status": "processing"}
+
+
+class HighlightPublish(BaseModel):
+    caption: str = ""
+
+
+@api_router.post("/highlights/{highlight_id}/publish")
+async def publish_highlight(highlight_id: str, data: HighlightPublish, user: dict = Depends(get_current_user)):
+    hl = await _get_highlight_for(highlight_id, user, owner_only=True)
+    if hl.get("status") != "ready":
+        raise HTTPException(400, "Highlight is still processing")
+    if hl.get("post_id"):
+        post = await db.posts.find_one({"post_id": hl["post_id"]}, {"_id": 0, "likes": 0})
+        if post:
+            post["author"] = safe_user(user)
+            return post
+    caption = data.caption.strip()[:500]
+    if await is_content_flagged(caption):
+        raise HTTPException(400, "Caption violates community guidelines")
+    playback_id = hl.get("livepeer_playback_id") or ""
+    post_id = f"clip_{uuid.uuid4().hex[:12]}"
+    post_doc = {
+        "post_id":              post_id,
+        "user_id":              user["user_id"],
+        "post_type":            "clip",
+        "video_url":            f"https://livepeercdn.studio/hls/{playback_id}/index.m3u8" if playback_id else hl["share_video_url"],
+        "share_video_url":      hl["share_video_url"],
+        "thumbnail_url":        hl.get("thumbnail_url"),
+        "livepeer_asset_id":    hl.get("livepeer_asset_id"),
+        "livepeer_playback_id": playback_id,
+        "highlight_id":         highlight_id,
+        "is_highlight":         hl["source"] == "auto",
+        "peak_reactions":       hl.get("peak_reactions", 0),
+        "caption":              caption or f"Highlight from: {hl.get('stream_title') or 'my stream'}",
+        "tags":                 ["clip", "highlight", hl.get("stream_type", "training")],
+        "stream_id_ref":        hl["stream_id"],
+        "stream_title":         hl.get("stream_title", ""),
+        "streamer_id":          hl["streamer_id"],
+        "streamer_name":        hl.get("streamer_name", ""),
+        "likes":                [],
+        "like_count":           0,
+        "comment_count":        0,
+        "share_count":          0,
+        "created_at":           datetime.now(timezone.utc).isoformat(),
+    }
+    await db.posts.insert_one(post_doc)
+    await _set_highlight(highlight_id, post_id=post_id)
+    post_doc.pop("_id", None)
+    post_doc.pop("likes", None)
+    post_doc["author"] = safe_user(user)
+    post_doc["liked_by_me"] = False
+    return post_doc
+
+
+SHARE_TARGETS = ("native", "download", "link", "tiktok", "instagram", "snapchat", "youtube", "x", "other")
+
+
+class HighlightShare(BaseModel):
+    target: str = "native"
+
+
+@api_router.post("/highlights/{highlight_id}/share")
+async def share_highlight(highlight_id: str, data: HighlightShare, user: dict = Depends(get_current_user)):
+    hl = await _get_highlight_for(highlight_id, user)
+    if hl.get("status") != "ready":
+        raise HTTPException(400, "Highlight is still processing")
+    target = data.target if data.target in SHARE_TARGETS else "other"
+    if _rate_limited(f"highlight_share:{user['user_id']}:{highlight_id}", 5, 60):
+        return {"share_count": hl.get("share_count", 0)}
+    await db.highlights.update_one(
+        {"highlight_id": highlight_id},
+        {"$inc": {"share_count": 1, f"shares_by_target.{target}": 1}},
+    )
+    if hl.get("post_id"):
+        await db.posts.update_one({"post_id": hl["post_id"]}, {"$inc": {"share_count": 1}})
+    return {"share_count": hl.get("share_count", 0) + 1}
+
+
+@api_router.delete("/highlights/{highlight_id}")
+async def delete_highlight(highlight_id: str, user: dict = Depends(get_current_user)):
+    hl = await _get_highlight_for(highlight_id, user, owner_only=True)
+    if hl["streamer_id"] != user["user_id"] and hl.get("source") != "manual":
+        raise HTTPException(403, "Only the streamer can delete a highlight")
+    job = _highlight_jobs.pop(highlight_id, None)
+    if job:
+        job.cancel()
+    await db.highlights.delete_one({"highlight_id": highlight_id})
+    if hl.get("post_id"):
+        await db.posts.update_one({"post_id": hl["post_id"]}, {"$unset": {"share_video_url": "", "thumbnail_url": ""}})
+    if hl.get("share_video_url"):
+        try:
+            await asyncio.to_thread(
+                cloudinary.uploader.destroy, f"victory_highlights/{highlight_id}",
+                resource_type="video", invalidate=True,
+            )
+        except Exception as e:
+            logger.warning(f"Cloudinary destroy for {highlight_id}: {e}")
+    return {"ok": True}
 
 
 @app.post("/api/livepeer/webhook")
@@ -4763,6 +5299,12 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
             if payload.get("type") == "ping":
                 await websocket.send_text(json.dumps({"type": "pong"}))
                 continue
+            if payload.get("type") == "hype":
+                if not _rate_limited(f"hype:{stream_id}:{server_user_id}", 8, 2):
+                    queue_hype_tap(stream_id)
+                    if server_user_id != stream["user_id"]:
+                        record_hype(stream_id, server_user_id, 1)
+                continue
             text = (payload.get("message") or "").strip()
             if not text or len(text) > 500:
                 continue
@@ -4780,6 +5322,8 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
             await db.chat_messages.insert_one(msg)
             msg.pop("_id", None)
             await ws_manager.broadcast(stream_id, {"type": "message", **msg})
+            if server_user_id != stream["user_id"]:
+                record_hype(stream_id, server_user_id, 1)
     except WebSocketDisconnect:
         pass
     except Exception:

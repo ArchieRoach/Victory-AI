@@ -74,11 +74,17 @@ function ClipCard({ clip, onLike, onShare }) {
       )}
 
       {/* Video */}
-      {clip.video_url ? (
-        <div className="relative bg-black aspect-video">
+      {clip.share_video_url || clip.video_url ? (
+        <div className={`relative bg-black ${clip.share_video_url ? "aspect-[9/16] max-h-[70vh] mx-auto" : "aspect-video"}`}>
+          {clip.is_highlight && clip.peak_reactions > 0 && (
+            <span className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-victory-bg/80 text-victory-lime text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-lime/30">
+              <Flame className="w-3 h-3" /> {clip.peak_reactions} REACTIONS AT ONCE
+            </span>
+          )}
           <video
             ref={videoRef}
-            src={clip.video_url}
+            src={clip.share_video_url || clip.video_url}
+            poster={clip.thumbnail_url}
             className="w-full h-full object-contain"
             preload="metadata"
             loop
