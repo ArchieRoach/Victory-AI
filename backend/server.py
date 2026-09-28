@@ -4951,6 +4951,9 @@ async def delete_stream(stream_id: str, user: dict = Depends(get_current_user)):
     return {"ok": True}
 
 
+MAX_CLIP_MS = 60_000
+
+
 class ClipCreate(BaseModel):
     caption: str = ""
 
@@ -4964,13 +4967,21 @@ async def create_clip(
 ):
     if _rate_limited(f"clip_create:{user['user_id']}", 10, 60):
         raise HTTPException(429, "Too many clips — slow down")
-    stream = await db.streams.find_one({"stream_id": stream_id}, {"_id": 0})
+    stream = await db.streams.find_one({"stream_id": stream_id, "is_hidden": {"$ne": True}}, {"_id": 0})
     if not stream:
         raise HTTPException(404, "Stream not found")
     if stream["user_id"] != user["user_id"]:
-        raise HTTPException(403, "Not your stream")
+        if stream.get("is_private"):
+            raise HTTPException(403, "Private stream")
+        if await _is_blocked(user["user_id"], stream["user_id"]):
+            raise HTTPException(403, "You can't clip this stream")
+        if stream.get("status") != "live":
+            raise HTTPException(400, "Stream isn't live")
     if not stream.get("playback_id"):
         raise HTTPException(400, "No playback ID")
+    now_ms = int(time.time() * 1000)
+    if not (0 < end_time - start_time <= MAX_CLIP_MS) or end_time > now_ms + 5_000:
+        raise HTTPException(400, "Clips must be up to 60 seconds of what's already streamed")
     if await is_content_flagged(caption):
         raise HTTPException(400, "Caption violates community guidelines")
     try:
@@ -5004,7 +5015,7 @@ async def create_clip(
         "stream_id_ref":      stream_id,
         "stream_title":       stream.get("title", ""),
         "streamer_id":        stream.get("user_id"),
-        "streamer_name":      stream.get("streamer_name") or stream.get("title", ""),
+        "streamer_name":      stream.get("user_name") or "",
         "likes":              [],
         "like_count":         0,
         "comment_count":      0,
@@ -5184,7 +5195,7 @@ async def share_highlight(highlight_id: str, data: HighlightShare, user: dict = 
 @api_router.delete("/highlights/{highlight_id}")
 async def delete_highlight(highlight_id: str, user: dict = Depends(get_current_user)):
     hl = await _get_highlight_for(highlight_id, user, owner_only=True)
-    if hl["streamer_id"] != user["user_id"]:
+    if hl["streamer_id"] != user["user_id"] and hl.get("source") != "manual":
         raise HTTPException(403, "Only the streamer can delete a highlight")
     job = _highlight_jobs.pop(highlight_id, None)
     if job:
