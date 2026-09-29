@@ -19,11 +19,12 @@ def test_local_hour_uses_js_offset_convention():
     assert local_hour(at, 0) == 16
 
 
-def test_quiet_hours_are_10pm_to_7am_local():
+def test_quiet_hours_are_10pm_to_5am_local():
     assert in_quiet_hours(datetime(2026, 9, 29, 21, 30, tzinfo=UTC), -60) is True   # 22:30 BST
-    assert in_quiet_hours(datetime(2026, 9, 29, 5, 30, tzinfo=UTC), -60) is True    # 06:30 BST
-    assert in_quiet_hours(datetime(2026, 9, 29, 5, 30, tzinfo=UTC), 0) is True      # 05:30 UTC
-    assert in_quiet_hours(datetime(2026, 9, 29, 6, 0, tzinfo=UTC), -60) is False    # 07:00 BST
+    assert in_quiet_hours(datetime(2026, 9, 29, 3, 30, tzinfo=UTC), -60) is True    # 04:30 BST
+    assert in_quiet_hours(datetime(2026, 9, 29, 4, 59, tzinfo=UTC), 0) is True      # 04:59 UTC
+    assert in_quiet_hours(datetime(2026, 9, 29, 4, 0, tzinfo=UTC), -60) is False    # 05:00 BST
+    assert in_quiet_hours(datetime(2026, 9, 29, 5, 30, tzinfo=UTC), -60) is False   # 06:30 BST
     assert in_quiet_hours(datetime(2026, 9, 29, 20, 59, tzinfo=UTC), -60) is False  # 21:59 BST
 
 

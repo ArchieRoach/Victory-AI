@@ -17,10 +17,11 @@ test("no separate Saturday chip when Saturday is already tomorrow or in 2 days",
   expect(bookingChips(new Date(2026, 9, 1, 12)).map((c) => c.key)).not.toContain("saturday"); // Thursday
 });
 
-test("quiet hours are 10pm–7am", () => {
+test("quiet hours are 10pm–5am", () => {
   expect(isQuietHour(new Date(2026, 0, 1, 22, 0))).toBe(true);
-  expect(isQuietHour(new Date(2026, 0, 1, 6, 59))).toBe(true);
-  expect(isQuietHour(new Date(2026, 0, 1, 7, 0))).toBe(false);
+  expect(isQuietHour(new Date(2026, 0, 1, 4, 59))).toBe(true);
+  expect(isQuietHour(new Date(2026, 0, 1, 5, 0))).toBe(false);
+  expect(isQuietHour(new Date(2026, 0, 1, 6, 0))).toBe(false);
 });
 
 test("booking labels are relative", () => {

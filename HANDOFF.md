@@ -83,7 +83,7 @@ Goal: cut the steps between "I want to show off" and the reward, and remove the 
 ## Investment loops (branch `feature/investment-loops`)
 All background work runs in `_investment_loop`: it checks every 60s for due bookings and expired
 callouts, and hourly for weekly reminders and film digests. Local times use the client's
-`getTimezoneOffset()`, stored as `users.tz_offset_minutes`. Quiet hours are 10pm–7am local.
+`getTimezoneOffset()`, stored as `users.tz_offset_minutes`. Bookings are refused between 10pm and 5am local.
 - **Book your next round:** a card on the results screen. The chips are Tomorrow 7am, Tomorrow 6pm,
   In 2 days 6pm, Saturday 10am and "Pick a time"; there is deliberately no "after school" chip. It
   creates `bookings`. At the booked time a push is sent ("Your footwork round is booked · PB to

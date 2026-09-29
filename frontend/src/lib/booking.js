@@ -1,4 +1,4 @@
-// Quick-pick times for "Book your next round". All land between 7am and 10pm local,
+// Quick-pick times for "Book your next round". All land between 5am and 10pm local,
 // matching the server's quiet-hours rule.
 const at = (base, daysAhead, hour) => {
   const d = new Date(base);
@@ -23,7 +23,7 @@ export function bookingChips(now = new Date()) {
   return chips;
 }
 
-export const isQuietHour = (date) => date.getHours() >= 22 || date.getHours() < 7;
+export const isQuietHour = (date) => date.getHours() >= 22 || date.getHours() < 5;
 
 export function formatBooking(iso, now = new Date()) {
   const d = new Date(iso);

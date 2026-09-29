@@ -33,7 +33,7 @@ export function BookNextRound({ focusOptions = [] }) {
   const book = async () => {
     if (!chosenDate) return;
     if (isQuietHour(chosenDate)) {
-      toast.error("Pick a time between 7am and 10pm");
+      toast.error("Pick a time between 5am and 10pm");
       return;
     }
     setSaving(true);

@@ -6227,7 +6227,7 @@ async def set_notification_prefs(data: NotificationPrefs, user: dict = Depends(g
 # (reputation), and a curated Fight Film reel (content, followers).
 
 QUIET_START_HOUR = 22
-QUIET_END_HOUR = 7
+QUIET_END_HOUR = 5
 BOOKING_MIN_LEAD = timedelta(minutes=15)
 BOOKING_MAX_LEAD = timedelta(days=14)
 LOCAL_SEND_HOUR_REMINDER = 17
@@ -6265,7 +6265,7 @@ async def book_next_round(data: BookingCreate, user: dict = Depends(get_current_
     if not (now + BOOKING_MIN_LEAD <= at <= now + BOOKING_MAX_LEAD):
         raise HTTPException(400, "Pick a time between 15 minutes and 2 weeks from now")
     if in_quiet_hours(at, data.tz_offset_minutes):
-        raise HTTPException(400, "Pick a time between 7am and 10pm")
+        raise HTTPException(400, "Pick a time between 5am and 10pm")
     focus = data.focus if data.focus in DIMENSIONS else None
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"personal_bests": 1}) or {}
     focus_pb = (fresh.get("personal_bests") or {}).get(_pb_key(focus)) if focus else None
