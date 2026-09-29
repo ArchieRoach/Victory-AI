@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { currentEntry } from "@/lib/entrySource";
 import { API } from "@/App";
 import { useTranslation } from "react-i18next";
 import { BottomNav } from "@/components/BottomNav";
@@ -162,7 +163,7 @@ export default function ScorePage() {
 
       const response = await axios.post(
         `${API}/sessions`,
-        { video_url: videoUrl || null, session_notes: sessionNotes || null, date: sessionDate, dimension_scores: dimensionScores },
+        { video_url: videoUrl || null, session_notes: sessionNotes || null, date: sessionDate, dimension_scores: dimensionScores, ...currentEntry() },
         { withCredentials: true }
       );
 

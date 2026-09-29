@@ -11,6 +11,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
 import { withMinDuration } from "@/utils/async";
+import { currentEntry } from "@/lib/entrySource";
+import { analytics } from "@/lib/analytics";
 import { FirstUseTip } from "@/components/FirstUseTip";
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
@@ -325,8 +327,10 @@ export default function TrainPage() {
         rest_duration:  restDuration,
         total_rounds:   totalRounds,
         record_video:   recordVideo,
+        ...currentEntry(),
       }, { withCredentials: true }));
       setSessionId(res.data.session_id);
+      analytics.capture("training_started", { entry_source: currentEntry().entry_source, record_video: recordVideo });
     } catch {
       toast.error(t("train.startOffline", "Couldn't reach the server — this session won't be saved."));
     }
