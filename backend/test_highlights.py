@@ -9,7 +9,8 @@ from urllib.parse import unquote
 import server
 from server import (
     HypeTracker, HYPE_COOLDOWN_S, HYPE_MAX_PER_STREAM, HYPE_MIN_SCORE, HYPE_FREE_CAP_PER_USER,
-    tip_hype_weight, gift_hype_weight, watermark_handle, highlight_share_urls,
+    tip_hype_weight, gift_hype_weight, watermark_handle, highlight_share_urls, reactions_badge,
+    hype_thresholds, training_badge, training_trim, training_source_url, can_view_stream, TRAINING_CLIP_S,
 )
 
 
@@ -107,15 +108,62 @@ def test_watermark_handle_is_sanitised():
 
 def test_share_url_has_watermark_and_vertical_format():
     server.cloudinary.config(cloud_name="demo")
-    urls = highlight_share_urls("victory_highlights/hl_1", "@Big_Mike", peak_reactions=42)
+    urls = highlight_share_urls("victory_highlights/hl_1", "@Big_Mike", reactions_badge(42))
     v = unquote(urls["share_video_url"])
     assert v.startswith("https://res.cloudinary.com/demo/video/upload/")
     assert "c_pad,h_1920,w_1080" in v
     assert "VICTORY AI" in v and "@Big_Mike" in v and "42 REACTIONS AT ONCE" in v
     assert v.endswith("victory_highlights/hl_1.mp4")
     assert urls["thumbnail_url"].endswith(".jpg")
-    plain = unquote(highlight_share_urls("p", "@x")["share_video_url"])
+    plain = unquote(highlight_share_urls("p", "@x", reactions_badge(0))["share_video_url"])
     assert "REACTIONS" not in plain
+
+
+def test_training_source_is_only_the_trimmed_window():
+    server.cloudinary.config(cloud_name="demo")
+    assert training_source_url("victory_rounds/u/r1", 75.0, 30).endswith("/du_30,so_75.0/v1/victory_rounds/u/r1.mp4")
+    assert training_source_url("victory_rounds/u/r1", 0, None).endswith("/victory_rounds/u/r1.mp4")
+
+
+def test_small_streams_need_fewer_reactors():
+    assert hype_thresholds(None) == (3, 12)
+    assert hype_thresholds(10) == (3, 12)
+    assert hype_thresholds(3) == (2, 8)
+    t = HypeTracker()
+    assert burst(t, "big", ["a", "b"], 10, at=1000) is None
+    spike = None
+    for i in range(10):
+        for u in ("a", "b"):
+            spike = t.record("small", u, 1, now=1000 + i * 0.1, viewers=3) or spike
+    assert spike and spike["reactors"] == 2
+
+
+def test_hype_meter_tracks_progress_to_a_clip():
+    t = HypeTracker()
+    assert t.progress("s", now=1000)["ratio"] == 0
+    t.record("s", "a", 1, now=1000)
+    t.record("s", "a", 1, now=1000.1)
+    m = t.progress("s", now=1000.2)
+    assert m["reactors"] == 1 and m["needed_reactors"] == 3 and 0 < m["ratio"] < 1
+    burst(t, "s", ["a", "b", "c"], 4, at=1001)
+    assert t.progress("s", now=1002)["cooling"] is True
+
+
+def test_training_badge_and_trim():
+    dims = [{"dimension_name": "Jab", "score": 9}, {"dimension_name": "Left Hook", "score": 7}]
+    assert training_badge(8.4, dims, 0.6) == "AI SCORE 8.4 (+0.6) · JAB 9"
+    assert training_badge(8.4, dims, -0.2) == "AI SCORE 8.4 · JAB 9"
+    assert training_badge(None, [], None) == "ROUND COMPLETE"
+    assert training_trim(None) == (0, None)
+    assert training_trim(20) == (0, None)
+    assert training_trim(180) == (75.0, TRAINING_CLIP_S)
+
+
+def test_squad_only_streams_are_visible_to_members_only():
+    st = {"user_id": "own", "is_private": True, "allowed_viewer_ids": ["mate"]}
+    assert can_view_stream(st, "own") and can_view_stream(st, "mate")
+    assert not can_view_stream(st, "stranger")
+    assert can_view_stream({"user_id": "own", "is_private": False}, "stranger")
 
 
 # ── Pipeline with faked services ─────────────────────────────────────────────
@@ -240,6 +288,41 @@ def test_pipeline_marks_failure():
     hl, calls = run_pipeline(["ready"], upload_raises=True)
     assert hl["status"] == "failed" and "cloudinary" in hl["error"]
     assert calls["push"] == []
+
+
+def test_training_pipeline_uploads_a_trimmed_copy_not_the_original():
+    db = FakeDB()
+    uploads = []
+
+    saved = {k: getattr(server, k) for k in ("db", "HIGHLIGHT_POLL_S")}
+    saved_upload, saved_client = server.cloudinary.uploader.upload, server.httpx.AsyncClient
+    server.db, server.HIGHLIGHT_POLL_S = db, 0
+    server.cloudinary.uploader.upload = lambda url, **kw: uploads.append((url, kw))
+    server.httpx.AsyncClient = FakeHttp
+    server.cloudinary.config(cloud_name="demo")
+    FakeHttp.heads = 0
+    try:
+        async def go():
+            await db.users.insert_one({"user_id": "u", "display_name": "Jo"})
+            await db.highlights.insert_one({
+                "highlight_id": "hl_t", "source": "training", "streamer_id": "u", "stream_id": None,
+                "source_public_id": "victory_rounds/u/r2", "badge": "AI SCORE 8.4 · JAB 9",
+                "trim_start": 75.0, "trim_duration": 30, "status": "processing",
+            })
+            await server._run_highlight("hl_t")
+            return db.highlights.docs[0]
+        hl = asyncio.run(go())
+    finally:
+        for k, v in saved.items():
+            setattr(server, k, v)
+        server.cloudinary.uploader.upload, server.httpx.AsyncClient = saved_upload, saved_client
+    assert hl["status"] == "ready", hl
+    url, kw = uploads[0]
+    assert "du_30,so_75.0" in url and url.endswith("victory_rounds/u/r2.mp4")
+    assert kw["public_id"] == "victory_highlights/hl_t"
+    v = unquote(hl["share_video_url"])
+    assert "AI SCORE 8.4 · JAB 9" in v and "@Jo" in v
+    assert "victory_rounds" not in v
 
 
 def test_ended_stream_is_not_clipped():

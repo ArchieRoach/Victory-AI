@@ -120,7 +120,7 @@ export default function StreamViewPage() {
   }, []);
 
   const handleHypeBurst = useCallback((data) => {
-    setHypeBurst({ count: data.count || 0, key: Date.now() });
+    setHypeBurst({ count: data.count || 0, meter: data.meter || null, key: Date.now() });
   }, []);
 
   const handleHighlight = useCallback((data) => {

@@ -39,6 +39,11 @@ export function downloadFile(file) {
 }
 
 export function highlightCaption(highlight) {
+  if (highlight?.source === "training") {
+    const score = highlight.round_score != null ? `AI score ${Number(highlight.round_score).toFixed(1)}` : "New round";
+    const up = highlight.score_delta > 0 ? ` (+${Number(highlight.score_delta).toFixed(1)})` : "";
+    return `${score}${up} on Victory AI #boxing #VictoryAI`;
+  }
   const n = highlight?.peak_reactions || 0;
   const hook = n ? `${n} reactions at once` : "Caught this live";
   return `${hook} on Victory AI #boxing #VictoryAI`;
