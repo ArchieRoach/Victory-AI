@@ -12,7 +12,18 @@ const API_BASE = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // turn into dozens of identical reports for the same underlying crash.
 const reported = new Set();
 
+// Browser warnings that fire on healthy pages when layout settles across more than one
+// frame — not crashes, and reporting them buries the real ones.
+const BENIGN_PATTERNS = [
+  /ResizeObserver loop completed with undelivered notifications/,
+  /ResizeObserver loop limit exceeded/,
+];
+
+export const isBenignError = (message) =>
+  BENIGN_PATTERNS.some((re) => re.test(String(message || "")));
+
 export function reportCrash({ message, stack, componentStack, source = "window" }) {
+  if (isBenignError(message)) return;
   const key = `${source}:${message}:${(stack || "").slice(0, 200)}`;
   if (reported.has(key)) return;
   reported.add(key);
