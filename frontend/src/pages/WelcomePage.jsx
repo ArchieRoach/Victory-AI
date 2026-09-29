@@ -29,7 +29,7 @@ export default function WelcomePage() {
           <img
             src="/mascot-render.png"
             alt="Victory AI"
-            className="w-64 mx-auto object-contain rounded-2xl"
+            className="h-60 w-auto mx-auto object-contain"
             data-testid="app-logo"
           />
         </div>
