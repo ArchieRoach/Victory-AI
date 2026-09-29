@@ -17,6 +17,7 @@ import { ShareSheet } from "@/components/ShareSheet";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { formatWeightClass, getWeightUnit } from "@/utils/weightClasses";
 import { ReportModal } from "@/components/ReportModal";
+import { FightFilm, FighterReputation } from "@/components/FightFilm";
 
 // ── Follow list modal (followers / following) ─────────────────────────────────
 function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
@@ -756,6 +757,9 @@ export default function PublicProfilePage() {
 
       {tab === "home" && (
         <main className="px-4 pt-4 space-y-4 pb-4">
+          <FighterReputation profile={profile} />
+          <FightFilm userId={userId} isOwn={isOwn} />
+
           {/* Stats */}
           <section className="victory-card p-4">
             <h2 className="font-heading font-bold text-victory-text mb-3 flex items-center gap-2">

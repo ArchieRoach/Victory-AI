@@ -1812,6 +1812,10 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.highlights.update_many({"squad_viewer_ids": user_id}, {"$pull": {"squad_viewer_ids": user_id}})
     await db.highlight_stamps.delete_many({"$or": [{"user_id": user_id}, {"owner_id": user_id}]})
     await db.season_stats.delete_many({"user_id": user_id})
+    await db.bookings.delete_many({"user_id": user_id})
+    await db.callouts.delete_many({"challenger_id": user_id})
+    await db.callouts.update_many({"target_ids": user_id}, {"$pull": {"target_ids": user_id, "accepted_ids": user_id}})
+    await db.film_views.delete_many({"$or": [{"owner_id": user_id}, {"viewer_id": user_id}]})
 
     if user.get("gym_id"):
         await db.gyms.update_one({"gym_id": user["gym_id"]}, {"$pull": {"members": user_id}, "$inc": {"member_count": -1}})
@@ -1853,6 +1857,8 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "highlights": await db.highlights.find({"streamer_id": user_id}, proj).to_list(1000),
         "round_stamps_given": await db.highlight_stamps.find({"user_id": user_id}, proj).to_list(10000),
         "season_stats": await db.season_stats.find({"user_id": user_id}, proj).to_list(1000),
+        "bookings": await db.bookings.find({"user_id": user_id}, proj).to_list(1000),
+        "callouts_sent": await db.callouts.find({"challenger_id": user_id}, proj).to_list(1000),
         "feedback_submitted": await db.feedback.find({"user_id": user_id}, proj).to_list(10000),
         "push_subscriptions": await db.push_subscriptions.find({"user_id": user_id}, proj).to_list(1000),
         "ios_push_devices": await db.apns_tokens.find({"user_id": user_id}, proj).to_list(1000),
@@ -2493,6 +2499,10 @@ async def get_public_profile(user_id: str, current_user: dict = Depends(get_curr
     profile = safe_user(target)
     sessions = await db.sessions.find({"user_id": user_id}).to_list(10000)
     profile["total_sessions"] = len(sessions)
+    profile["callouts_won"] = target.get("callouts_won", 0)
+    profile["callouts_defended"] = target.get("callouts_defended", 0)
+    profile["titles"] = target.get("titles", [])
+    profile["fight_film_count"] = len(target.get("fight_film") or [])
     profile["avg_score"] = _avg_score(sessions)
     profile["best_score"] = _best_score(sessions)
     profile["current_streak"], profile["longest_streak"] = _compute_streaks(sessions)
@@ -4756,6 +4766,8 @@ async def _run_highlight(highlight_id: str, playback_id: Optional[str] = None):
             }})
         if hl.get("stream_id"):
             await ws_manager.broadcast(hl["stream_id"], {"type": "highlight_ready", "highlight_id": highlight_id})
+        if hl["source"] == "training":
+            await _maybe_suggest_film_swap({**hl, "status": "ready"})
         if hl["source"] == "auto":
             await _send_push(
                 hl["streamer_id"],
@@ -5250,6 +5262,9 @@ async def _get_highlight_for(highlight_id: str, user: dict, owner_only: bool = F
 async def get_highlight(highlight_id: str, user: dict = Depends(get_current_user)):
     hl = await _get_highlight_for(highlight_id, user)
     _resume_highlight_if_stale(hl)
+    if hl["streamer_id"] == user["user_id"]:
+        fresh = await db.users.find_one({"user_id": user["user_id"]}, {"fight_film": 1}) or {}
+        hl["on_fight_film"] = highlight_id in (fresh.get("fight_film") or [])
     return _public_highlight(hl)
 
 
@@ -5472,6 +5487,7 @@ async def delete_highlight(highlight_id: str, user: dict = Depends(get_current_u
         job.cancel()
     await db.highlights.delete_one({"highlight_id": highlight_id})
     await db.highlight_stamps.delete_many({"highlight_id": highlight_id})
+    await db.users.update_one({"user_id": hl["streamer_id"]}, {"$pull": {"fight_film": highlight_id}})
     if hl.get("post_id"):
         await db.posts.update_one({"post_id": hl["post_id"]}, {"$unset": {"share_video_url": "", "thumbnail_url": ""}})
     if hl.get("share_video_url"):
@@ -5928,17 +5944,17 @@ def build_scouting_report(dims: list, seed: str, percentiles: Optional[dict] = N
 
     if kind == "weakness":
         drill = DRILLS.get(worst["dimension_name"], {})
-        return {"locked": False, "type": kind, "rarity": "common",
+        return {"locked": False, "type": kind, "rarity": "common", "dimension": worst["dimension_name"],
                 "title": f"Scout says: {worst['dimension_name']} is the gap",
                 "body": f"Scored {worst['score']}/10 today. Fix it with “{drill.get('name', 'fundamentals')}”: "
                         f"{drill.get('description', 'drill the basics until it is automatic.')}"}
     if kind == "strength":
-        return {"locked": False, "type": kind, "rarity": "common",
+        return {"locked": False, "type": kind, "rarity": "common", "dimension": best["dimension_name"],
                 "title": f"Weapon spotted: {best['dimension_name']}",
                 "body": f"{best['score']}/10 today — build your combos around it."}
     if kind == "percentile":
         name, pct = top_pct
-        return {"locked": False, "type": kind, "rarity": "rare",
+        return {"locked": False, "type": kind, "rarity": "rare", "dimension": name,
                 "title": f"Top {100 - pct}% {name} this week",
                 "body": f"Your {name.lower()} beat {pct}% of fighters who trained on Victory AI in the last 7 days."}
     return {"locked": False, "type": "elite", "rarity": "epic",
@@ -6006,7 +6022,11 @@ async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool)
             report["types_found"] = len(found.get("scouting_types_found") or [])
             report["types_total"] = len(SCOUTING_TYPES)
 
+    await _complete_bookings_for(uid)
+    callouts_beaten = await _settle_callouts_for(user, overall, dims) if trusted_scores else []
+
     return {
+        "callouts_beaten": callouts_beaten,
         "personal_bests": {"new": pb["new"], "near": pb["near"], "baselines": pb["baselines"]},
         "season": {**season, **rank, "points": total, "earned": pts, "ranked_up": ranked_up},
         "scouting_report": report,
@@ -6176,18 +6196,441 @@ async def squad_rounds_inbox(user: dict = Depends(get_current_user)):
 
 
 class NotificationPrefs(BaseModel):
-    teasers: bool = True
+    teasers: Optional[bool] = None
+    weekly_reminder: Optional[bool] = None
+    tz_offset_minutes: Optional[int] = Field(None, ge=-840, le=840)
 
 
 @api_router.get("/users/me/notification-prefs")
 async def get_notification_prefs(user: dict = Depends(get_current_user)):
-    return {"teasers": teasers_enabled(user)}
+    return {"teasers": teasers_enabled(user), "weekly_reminder": weekly_reminder_prefs_on(user)}
 
 
 @api_router.put("/users/me/notification-prefs")
 async def set_notification_prefs(data: NotificationPrefs, user: dict = Depends(get_current_user)):
-    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"notification_prefs.teasers": data.teasers}})
-    return {"teasers": data.teasers}
+    updates: Dict[str, Any] = {}
+    if data.teasers is not None:
+        updates["notification_prefs.teasers"] = data.teasers
+    if data.weekly_reminder is not None:
+        updates["notification_prefs.weekly_reminder"] = data.weekly_reminder
+    if data.tz_offset_minutes is not None:
+        updates["tz_offset_minutes"] = data.tz_offset_minutes
+    if updates:
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": updates})
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"notification_prefs": 1}) or {}
+    return {"teasers": teasers_enabled(fresh), "weekly_reminder": weekly_reminder_prefs_on(fresh)}
+
+
+# ============== INVESTMENT LOOPS ==============
+# Small investments right after the reward that (1) load the next trigger and (2) store
+# value the fighter would lose by leaving: a booked next round (data), squad callouts
+# (reputation), and a curated Fight Film reel (content, followers).
+
+QUIET_START_HOUR = 22
+QUIET_END_HOUR = 7
+BOOKING_MIN_LEAD = timedelta(minutes=15)
+BOOKING_MAX_LEAD = timedelta(days=14)
+LOCAL_SEND_HOUR_REMINDER = 17
+LOCAL_SEND_HOUR_DIGEST = 12
+
+
+def local_hour(at_utc: datetime, tz_offset_minutes: int) -> int:
+    # JS getTimezoneOffset(): minutes to ADD to local time to get UTC (BST → -60).
+    return (at_utc - timedelta(minutes=tz_offset_minutes)).hour
+
+
+def in_quiet_hours(at_utc: datetime, tz_offset_minutes: int) -> bool:
+    h = local_hour(at_utc, tz_offset_minutes)
+    return h >= QUIET_START_HOUR or h < QUIET_END_HOUR
+
+
+def _parse_utc(iso: str) -> datetime:
+    dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+class BookingCreate(BaseModel):
+    at: str
+    tz_offset_minutes: int = Field(0, ge=-840, le=840)
+    focus: Optional[str] = Field(None, max_length=40)
+
+
+@api_router.post("/bookings")
+async def book_next_round(data: BookingCreate, user: dict = Depends(get_current_user)):
+    try:
+        at = _parse_utc(data.at)
+    except ValueError:
+        raise HTTPException(400, "Invalid time")
+    now = datetime.now(timezone.utc)
+    if not (now + BOOKING_MIN_LEAD <= at <= now + BOOKING_MAX_LEAD):
+        raise HTTPException(400, "Pick a time between 15 minutes and 2 weeks from now")
+    if in_quiet_hours(at, data.tz_offset_minutes):
+        raise HTTPException(400, "Pick a time between 7am and 10pm")
+    focus = data.focus if data.focus in DIMENSIONS else None
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"personal_bests": 1}) or {}
+    focus_pb = (fresh.get("personal_bests") or {}).get(_pb_key(focus)) if focus else None
+    await db.bookings.update_many({"user_id": user["user_id"], "status": "pending"},
+                                  {"$set": {"status": "replaced"}})
+    doc = {
+        "booking_id": f"book_{uuid.uuid4().hex[:12]}",
+        "user_id": user["user_id"],
+        "at": at.isoformat(),
+        "focus": focus,
+        "focus_pb": focus_pb,
+        "status": "pending",
+        "created_at": now.isoformat(),
+    }
+    await db.bookings.insert_one(doc)
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"tz_offset_minutes": data.tz_offset_minutes}})
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.get("/bookings/next")
+async def next_booking(user: dict = Depends(get_current_user)):
+    return await db.bookings.find_one({"user_id": user["user_id"], "status": "pending"}, {"_id": 0})
+
+
+@api_router.delete("/bookings/{booking_id}")
+async def cancel_booking(booking_id: str, user: dict = Depends(get_current_user)):
+    res = await db.bookings.update_one({"booking_id": booking_id, "user_id": user["user_id"], "status": "pending"},
+                                       {"$set": {"status": "cancelled"}})
+    if res.matched_count == 0:
+        raise HTTPException(404, "Booking not found")
+    return {"ok": True}
+
+
+def booking_push(b: dict) -> tuple:
+    if b.get("focus"):
+        body = f"PB to beat: {b['focus_pb']:g}" if isinstance(b.get("focus_pb"), (int, float)) else "Set your first score"
+        return (f"Your {b['focus'].lower()} round is booked", body,
+                f"/train?focus={_url_parse.quote(b['focus'])}")
+    return ("Your round is booked", "You said now — gloves on", "/train")
+
+
+async def _send_due_bookings(now: datetime):
+    due = await db.bookings.find({"status": "pending", "at": {"$lte": now.isoformat()}}, {"_id": 0}).to_list(500)
+    for b in due:
+        claimed = await db.bookings.update_one({"booking_id": b["booking_id"], "status": "pending"},
+                                               {"$set": {"status": "sent", "sent_at": now.isoformat()}})
+        if claimed.modified_count:
+            title, body, url = booking_push(b)
+            await _send_push(b["user_id"], title=title, body=body, url=url, tag=f"booking-{b['booking_id']}")
+
+
+async def _complete_bookings_for(user_id: str):
+    # Training within 6h of (or before) the booked time counts as keeping the booking —
+    # no reminder for a round they already did.
+    horizon = (datetime.now(timezone.utc) + timedelta(hours=6)).isoformat()
+    await db.bookings.update_many({"user_id": user_id, "status": {"$in": ["pending", "sent"]}, "at": {"$lte": horizon}},
+                                  {"$set": {"status": "kept"}})
+
+
+# ── Weekly reminder (the Profile switch now actually does something) ─────────
+
+def weekly_reminder_prefs_on(u: dict) -> bool:
+    return ((u or {}).get("notification_prefs") or {}).get("weekly_reminder", True)
+
+
+def joined_before(u: dict, cutoff: datetime) -> bool:
+    # Older user docs stored created_at as a datetime, newer ones as an ISO string.
+    created = u.get("created_at")
+    try:
+        created = _parse_utc(created) if isinstance(created, str) else created
+    except ValueError:
+        return False
+    if isinstance(created, datetime):
+        created = created if created.tzinfo else created.replace(tzinfo=timezone.utc)
+        return created < cutoff
+    return False
+
+
+def is_local_hour(now: datetime, u: dict, hour: int) -> bool:
+    return local_hour(now, u.get("tz_offset_minutes") or 0) == hour
+
+
+async def _send_weekly_reminders(now: datetime):
+    week_ago = (now - timedelta(days=7)).isoformat()
+    day_ago = (now - timedelta(days=1)).isoformat()
+    candidates = await db.users.find({
+        "notification_prefs.weekly_reminder": {"$ne": False},
+        "$or": [{"last_weekly_reminder_at": {"$exists": False}}, {"last_weekly_reminder_at": {"$lt": week_ago}}],
+    }, {"user_id": 1, "tz_offset_minutes": 1, "created_at": 1}).to_list(5000)
+    season = current_season(now.date())
+    for u in candidates:
+        if not is_local_hour(now, u, LOCAL_SEND_HOUR_REMINDER) or not joined_before(u, now - timedelta(days=7)):
+            continue
+        uid = u["user_id"]
+        if await db.bookings.find_one({"user_id": uid, "status": "pending"}):
+            continue
+        if await db.sessions.find_one({"user_id": uid, "created_at": {"$gte": day_ago}}):
+            continue
+        stats = await db.season_stats.find_one({"user_id": uid, "season_id": season["season_id"]}) or {}
+        rank = season_rank(stats.get("points", 0))
+        body = (f"{rank['next_at'] - stats.get('points', 0)} points to {rank['next_rank']} · season ends in {season['days_left']} days"
+                if rank["next_rank"] else "Book this week's round and keep your streak alive")
+        await _send_push(uid, title="Your weekly round", body=body, url="/train", tag="weekly-reminder")
+        await db.users.update_one({"user_id": uid}, {"$set": {"last_weekly_reminder_at": now.isoformat()}})
+
+
+# ── Squad callouts ───────────────────────────────────────────────────────────
+
+CALLOUT_DAYS = 7
+CALLOUTS_PER_DAY = 3
+
+
+def callout_beaten_by(callout: dict, overall: Optional[float], dims: list) -> Optional[float]:
+    if callout["dimension"] == "Overall":
+        mine = overall
+    else:
+        mine = next((d["score"] for d in dims or [] if d.get("dimension_name") == callout["dimension"]), None)
+    return mine if isinstance(mine, (int, float)) and mine > callout["score"] else None
+
+
+class CalloutCreate(BaseModel):
+    dimension: str = Field(..., max_length=40)
+
+
+@api_router.post("/callouts")
+async def create_callout(data: CalloutCreate, user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    if data.dimension != "Overall" and data.dimension not in DIMENSIONS:
+        raise HTTPException(400, "Unknown skill")
+    fresh = await db.users.find_one({"user_id": uid}, {"personal_bests": 1}) or {}
+    pb = (fresh.get("personal_bests") or {}).get(_pb_key(data.dimension))
+    if not isinstance(pb, (int, float)):
+        raise HTTPException(400, "Set a personal best in that skill first")
+    mates = await _squad_mate_ids(uid)
+    if not mates:
+        raise HTTPException(400, "Join or create a squad first")
+    now = datetime.now(timezone.utc)
+    if await db.callouts.find_one({"challenger_id": uid, "dimension": data.dimension, "status": "open",
+                                   "expires_at": {"$gt": now.isoformat()}}):
+        raise HTTPException(400, "You already have an open callout for that skill")
+    if _rate_limited(f"callout:{uid}", CALLOUTS_PER_DAY, 86400):
+        raise HTTPException(429, "That's enough callouts for today")
+    name = user.get("display_name") or user.get("name") or "Your squad mate"
+    doc = {
+        "callout_id": f"call_{uuid.uuid4().hex[:12]}",
+        "challenger_id": uid,
+        "challenger_name": name,
+        "target_ids": mates,
+        "accepted_ids": [],
+        "dimension": data.dimension,
+        "score": pb,
+        "status": "open",
+        "created_at": now.isoformat(),
+        "expires_at": (now + timedelta(days=CALLOUT_DAYS)).isoformat(),
+    }
+    await db.callouts.insert_one(doc)
+    doc.pop("_id", None)
+    prefs = {u["user_id"]: u for u in await db.users.find(
+        {"user_id": {"$in": mates}}, {"user_id": 1, "notification_prefs": 1}).to_list(len(mates))}
+    await asyncio.gather(*[
+        _send_push(m, title=f"{name} called you out",
+                   body=f"Beat their {data.dimension} {pb:g} within {CALLOUT_DAYS} days",
+                   url="/callouts", tag=f"callout-{doc['callout_id']}")
+        for m in mates if teasers_enabled(prefs.get(m))
+    ], return_exceptions=True)
+    return doc
+
+
+@api_router.post("/callouts/{callout_id}/accept")
+async def accept_callout(callout_id: str, user: dict = Depends(get_current_user)):
+    c = await db.callouts.find_one({"callout_id": callout_id, "target_ids": user["user_id"]}, {"_id": 0})
+    if not c:
+        raise HTTPException(404, "Callout not found")
+    if c["status"] != "open":
+        raise HTTPException(400, "This callout is already settled")
+    res = await db.callouts.update_one({"callout_id": callout_id, "accepted_ids": {"$ne": user["user_id"]}},
+                                       {"$addToSet": {"accepted_ids": user["user_id"]}})
+    if res.modified_count:
+        owner = await db.users.find_one({"user_id": c["challenger_id"]}, {"notification_prefs": 1})
+        if teasers_enabled(owner):
+            name = user.get("display_name") or user.get("name") or "Someone"
+            _spawn(_send_push(c["challenger_id"], title=f"{name} accepted your callout",
+                              body=f"They're coming for your {c['dimension']} {c['score']:g}",
+                              url="/callouts", tag=f"callout-{callout_id}"))
+    return {"ok": True}
+
+
+@api_router.get("/callouts")
+async def my_callouts(user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    since = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    proj = {"_id": 0}
+    sent = await db.callouts.find({"challenger_id": uid, "created_at": {"$gte": since}}, proj).sort("created_at", -1).to_list(30)
+    received = await db.callouts.find({"target_ids": uid, "created_at": {"$gte": since}}, proj).sort("created_at", -1).to_list(30)
+    for c in sent + received:
+        c["accepted"] = uid in c.get("accepted_ids", [])
+        c["accepted_count"] = len(c.pop("accepted_ids", []))
+        c["target_count"] = len(c.pop("target_ids", []))
+    return {"sent": sent, "received": received}
+
+
+async def _settle_callouts_for(user: dict, overall: Optional[float], dims: list) -> list:
+    uid = user["user_id"]
+    now = datetime.now(timezone.utc).isoformat()
+    beaten = []
+    for c in await db.callouts.find({"target_ids": uid, "status": "open", "expires_at": {"$gt": now}},
+                                    {"_id": 0}).to_list(50):
+        score = callout_beaten_by(c, overall, dims)
+        if score is None:
+            continue
+        name = user.get("display_name") or user.get("name") or "Someone"
+        won = await db.callouts.update_one({"callout_id": c["callout_id"], "status": "open"}, {"$set": {
+            "status": "beaten", "beaten_by": uid, "beaten_by_name": name, "beaten_score": score, "resolved_at": now,
+        }})
+        if not won.modified_count:
+            continue
+        title = f"{c['dimension']} King"
+        await db.users.update_one({"user_id": uid}, {"$inc": {"callouts_won": 1}, "$addToSet": {"titles": title}})
+        await db.users.update_one({"user_id": c["challenger_id"]}, {"$pull": {"titles": title}})
+        _spawn(_send_push(c["challenger_id"], title=f"{name} beat your callout",
+                          body=f"{c['dimension']} {score:g} — your title's gone. Win it back",
+                          url=f"/train?focus={_url_parse.quote(c['dimension']) if c['dimension'] != 'Overall' else ''}",
+                          tag=f"callout-{c['callout_id']}"))
+        beaten.append({"callout_id": c["callout_id"], "challenger_name": c["challenger_name"],
+                       "dimension": c["dimension"], "score": c["score"], "your_score": score, "title": title})
+    return beaten
+
+
+async def _expire_callouts(now: datetime):
+    expired = await db.callouts.find({"status": "open", "expires_at": {"$lte": now.isoformat()}}, {"_id": 0}).to_list(500)
+    for c in expired:
+        res = await db.callouts.update_one({"callout_id": c["callout_id"], "status": "open"},
+                                           {"$set": {"status": "defended", "resolved_at": now.isoformat()}})
+        if not res.modified_count:
+            continue
+        await db.users.update_one({"user_id": c["challenger_id"]},
+                                  {"$inc": {"callouts_defended": 1}, "$addToSet": {"titles": f"{c['dimension']} King"}})
+        await _send_push(c["challenger_id"], title="Callout defended",
+                         body=f"Nobody touched your {c['dimension']} {c['score']:g}. Title: {c['dimension']} King",
+                         url="/callouts", tag=f"callout-{c['callout_id']}")
+
+
+# ── Fight Film ───────────────────────────────────────────────────────────────
+
+FIGHT_FILM_MAX = 6
+
+
+@api_router.post("/fight-film/{highlight_id}")
+async def add_to_fight_film(highlight_id: str, user: dict = Depends(get_current_user)):
+    hl = await _get_highlight_for(highlight_id, user, owner_only=True)
+    if hl["streamer_id"] != user["user_id"]:
+        raise HTTPException(403, "Only your own rounds go on your Fight Film")
+    if hl.get("status") != "ready":
+        raise HTTPException(400, "Highlight is still processing")
+    res = await db.users.update_one(
+        {"user_id": user["user_id"], "fight_film": {"$ne": highlight_id},
+         f"fight_film.{FIGHT_FILM_MAX - 1}": {"$exists": False}},
+        {"$push": {"fight_film": highlight_id}},
+    )
+    if res.matched_count == 0:
+        fresh = await db.users.find_one({"user_id": user["user_id"]}, {"fight_film": 1}) or {}
+        if highlight_id in (fresh.get("fight_film") or []):
+            return {"on_fight_film": True}
+        raise HTTPException(400, f"Your Fight Film is full ({FIGHT_FILM_MAX}) — remove one first")
+    return {"on_fight_film": True}
+
+
+@api_router.delete("/fight-film/{highlight_id}")
+async def remove_from_fight_film(highlight_id: str, user: dict = Depends(get_current_user)):
+    await db.users.update_one({"user_id": user["user_id"]}, {"$pull": {"fight_film": highlight_id}})
+    return {"on_fight_film": False}
+
+
+@api_router.get("/users/{user_id}/fight-film")
+async def get_fight_film(user_id: str, current_user: dict = Depends(get_current_user)):
+    if user_id != current_user["user_id"] and await _is_blocked(current_user["user_id"], user_id):
+        raise HTTPException(403, "Profile is unavailable")
+    await _require_profile_visible(user_id, current_user)
+    owner = await db.users.find_one({"user_id": user_id}, {"fight_film": 1}) or {}
+    ids = owner.get("fight_film") or []
+    docs = {h["highlight_id"]: h for h in await db.highlights.find(
+        {"highlight_id": {"$in": ids}, "status": "ready"}, {"_id": 0}).to_list(FIGHT_FILM_MAX)}
+    reel = [_public_highlight(docs[i]) for i in ids if i in docs]
+    out = {"reel": reel, "max": FIGHT_FILM_MAX}
+    if user_id == current_user["user_id"]:
+        week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
+        out["views_7d"] = await db.film_views.count_documents({"owner_id": user_id, "date": {"$gte": week_ago}})
+    return out
+
+
+@api_router.post("/users/{user_id}/fight-film/view")
+async def view_fight_film(user_id: str, current_user: dict = Depends(get_current_user)):
+    if user_id == current_user["user_id"]:
+        return {"ok": True}
+    if await _is_blocked(current_user["user_id"], user_id):
+        raise HTTPException(403, "Profile is unavailable")
+    await _require_profile_visible(user_id, current_user)
+    today = datetime.now(timezone.utc).date().isoformat()
+    await db.film_views.update_one(
+        {"owner_id": user_id, "viewer_id": current_user["user_id"], "date": today},
+        {"$setOnInsert": {"created_at": datetime.now(timezone.utc).isoformat()}}, upsert=True,
+    )
+    return {"ok": True}
+
+
+async def _maybe_suggest_film_swap(hl: dict):
+    """A new training clip that out-scores the weakest round on the reel is a reason to
+    come back and curate — a trigger loaded by the fighter's own improvement."""
+    score = hl.get("round_score")
+    if hl.get("source") != "training" or not isinstance(score, (int, float)):
+        return
+    owner = await db.users.find_one({"user_id": hl["streamer_id"]}, {"fight_film": 1}) or {}
+    ids = owner.get("fight_film") or []
+    if not ids:
+        return
+    reel_scores = [h.get("round_score") for h in await db.highlights.find(
+        {"highlight_id": {"$in": ids}}, {"round_score": 1}).to_list(FIGHT_FILM_MAX)]
+    reel_scores = [s for s in reel_scores if isinstance(s, (int, float))]
+    if len(ids) >= FIGHT_FILM_MAX and reel_scores and score > min(reel_scores):
+        await _send_push(hl["streamer_id"], title="This round beats your Fight Film",
+                         body=f"AI score {score:.1f} — swap it onto your reel?",
+                         url=f"/highlights?open={hl['highlight_id']}", tag=f"film-swap-{hl['highlight_id']}")
+
+
+async def _send_film_digests(now: datetime):
+    week_ago = now - timedelta(days=7)
+    owners = await db.users.find({
+        "fight_film.0": {"$exists": True},
+        "notification_prefs.teasers": {"$ne": False},
+        "$or": [{"last_film_digest_at": {"$exists": False}}, {"last_film_digest_at": {"$lt": week_ago.isoformat()}}],
+    }, {"user_id": 1, "tz_offset_minutes": 1}).to_list(5000)
+    for u in owners:
+        if not is_local_hour(now, u, LOCAL_SEND_HOUR_DIGEST):
+            continue
+        uid = u["user_id"]
+        views = await db.film_views.count_documents({"owner_id": uid, "date": {"$gte": week_ago.date().isoformat()}})
+        follows = await db.follows.count_documents({"following_id": uid, "created_at": {"$gte": week_ago.isoformat()}})
+        await db.users.update_one({"user_id": uid}, {"$set": {"last_film_digest_at": now.isoformat()}})
+        if views + follows == 0:
+            continue
+        parts = []
+        if views:
+            parts.append(f"{views} {'view' if views == 1 else 'views'}")
+        if follows:
+            parts.append(f"{follows} new {'follower' if follows == 1 else 'followers'}")
+        await _send_push(uid, title="Your Fight Film this week", body=" and ".join(parts),
+                         url=f"/profile/{uid}", tag="film-digest")
+
+
+async def _investment_loop():
+    last_hourly = None
+    while True:
+        await asyncio.sleep(60)
+        now = datetime.now(timezone.utc)
+        try:
+            await _send_due_bookings(now)
+            await _expire_callouts(now)
+            hour_key = now.strftime("%Y%m%d%H")
+            if hour_key != last_hourly:
+                last_hourly = hour_key
+                await _send_weekly_reminders(now)
+                await _send_film_digests(now)
+        except Exception as exc:
+            logger.warning(f"Investment loop error: {exc}")
 
 
 app.include_router(api_router)
@@ -6364,6 +6807,7 @@ async def startup():
     _aio.create_task(_scheduled_stream_reminder_loop())
     _aio.create_task(_retention_cleanup_loop())
     _aio.create_task(_reengagement_loop())
+    _aio.create_task(_investment_loop())
 
 @app.on_event("shutdown")
 async def shutdown():
