@@ -80,6 +80,27 @@ Goal: cut the steps between "I want to show off" and the reward, and remove the 
   "Squad reactions"). Rewards run through `safe_session_rewards`, so they can never fail a session
   save. Account deletion and export now cover highlights, stamps and season stats.
 
+## Investment loops (branch `feature/investment-loops`)
+All background work runs in `_investment_loop`: it checks every 60s for due bookings and expired
+callouts, and hourly for weekly reminders and film digests. Local times use the client's
+`getTimezoneOffset()`, stored as `users.tz_offset_minutes`. Bookings are refused between 10pm and 5am local.
+- **Book your next round:** a card on the results screen. The chips are Tomorrow 7am, Tomorrow 6pm,
+  In 2 days 6pm, Saturday 10am and "Pick a time"; there is deliberately no "after school" chip. It
+  creates `bookings`. At the booked time a push is sent ("Your footwork round is booked · PB to
+  beat: 6") that opens `/train?focus=…`, where Train shows the focus and the PB. Training within 6h
+  of the booking marks it kept.
+- **Weekly reminder:** the Profile switch now works (it previously did nothing). It's stored in
+  `notification_prefs.weekly_reminder`, defaults to on, and sends at most once a week at 5pm local.
+  It's skipped if the user has a pending booking, trained in the last 24h, or joined in the last 7 days.
+- **Squad callouts:** a new PB can be called out (`POST /callouts`). Squad mates get 7 days to beat
+  it with a real analysed score. Beating it moves the "{Skill} King" title to the winner; an expired
+  callout counts as defended and gives the challenger the title. The record and titles appear on
+  profiles. `/callouts` page.
+- **Fight Film:** up to 6 pinned ready highlights (`users.fight_film`) shown on the profile.
+  Views are counted once per viewer per day (`film_views`). A weekly digest ("N views and M new
+  followers") goes out at noon local. When a new training round beats the weakest round on a full
+  reel, a "swap it in?" push is sent.
+
 ---
 
 # Previous: Bug-Hunt Pass

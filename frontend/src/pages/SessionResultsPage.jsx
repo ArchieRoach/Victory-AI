@@ -9,6 +9,7 @@ import { BeltCelebration } from "@/components/BeltCelebration";
 import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame, Swords, Shield, Footprints, ChevronDown, ChevronUp, Film, ChevronRight } from "lucide-react";
 import { HighlightShareSheet } from "@/components/HighlightShareSheet";
 import { SessionRewards } from "@/components/SessionRewards";
+import { BookNextRound } from "@/components/BookNextRound";
 import { analytics } from "@/lib/analytics";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -585,6 +586,13 @@ export default function SessionResultsPage() {
             <ChevronRight className="w-4 h-4 text-victory-muted" />
           </button>
         )}
+
+        <BookNextRound
+          focusOptions={[
+            ...(session.scouting_report?.type === "weakness" ? [session.scouting_report.dimension] : []),
+            ...getLowestDimensions().map((d) => d.dimension_name),
+          ].filter((v, i, a) => v && a.indexOf(v) === i).slice(0, 3)}
+        />
 
         {/* Share Button */}
         {isScored && <button

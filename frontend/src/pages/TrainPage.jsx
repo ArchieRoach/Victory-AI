@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
-  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff,
+  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
@@ -58,6 +58,16 @@ export default function TrainPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
+  // Set by a booked-round or callout push: "/train?focus=Footwork".
+  const [searchParams] = useSearchParams();
+  const focus = searchParams.get("focus");
+  const [focusPb, setFocusPb] = useState(null);
+  useEffect(() => {
+    if (!focus) return;
+    axios.get(`${API}/users/me/personal-bests`)
+      .then((r) => setFocusPb(r.data?.[focus.replace(/[^A-Za-z0-9 ]/g, "")] ?? null))
+      .catch(() => {});
+  }, [focus]);
 
   // ── Config state ────────────────────────────────────────────────────────────
   const [isConfiguring, setIsConfiguring] = useState(true);
@@ -473,6 +483,20 @@ export default function TrainPage() {
           </div>
 
           <div className="space-y-6 max-w-md mx-auto w-full">
+
+            {focus && (
+              <div className="victory-card p-4 flex items-center gap-3 border-victory-lime/30 bg-victory-lime/5" data-testid="train-focus">
+                <div className="w-10 h-10 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center flex-shrink-0">
+                  <Target className="w-5 h-5 text-victory-lime" />
+                </div>
+                <div>
+                  <p className="text-victory-text font-heading font-bold text-sm">Today's focus: {focus}</p>
+                  <p className="text-victory-muted text-xs">
+                    {focusPb != null ? <>Personal best to beat: <span className="font-mono text-victory-lime">{focusPb}</span></> : "Turn on video so the AI can score it"}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Round duration */}
             <div>

@@ -4,7 +4,7 @@ import axios from "axios";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { Swords, Plus, Users, ChevronRight, X, Flame, Gavel, Check } from "lucide-react";
+import { Swords, Plus, Users, ChevronRight, X, Flame, Gavel, Check, Megaphone } from "lucide-react";
 import { stampByKey } from "@/lib/stamps";
 import { useTranslation } from "react-i18next";
 
@@ -144,6 +144,22 @@ export default function SquadsPage() {
       </header>
 
       <main className="p-4 space-y-3">
+        {squads.length > 0 && (
+          <button
+            onClick={() => navigate("/callouts")}
+            className="victory-card w-full p-4 flex items-center gap-3 text-left border-victory-lime/30 bg-victory-lime/5 active:scale-[0.99] transition-transform"
+          >
+            <div className="w-11 h-11 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center flex-shrink-0">
+              <Megaphone className="w-5 h-5 text-victory-lime" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-victory-text font-heading font-bold text-sm">Callouts</p>
+              <p className="text-victory-muted text-xs">Beat a squad mate's best within 7 days and take their title</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-victory-muted flex-shrink-0" />
+          </button>
+        )}
+
         {toRate.length > 0 && (
           <section data-testid="rounds-to-rate">
             <p className="section-label mb-2 flex items-center gap-1.5"><Gavel className="w-3 h-3" /> Rounds to rate</p>

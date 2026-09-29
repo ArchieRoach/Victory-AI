@@ -10,6 +10,7 @@ import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { toast } from "sonner";
 import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban, Users, GraduationCap } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { FightFilm } from "@/components/FightFilm";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
@@ -41,11 +42,26 @@ export default function ProfilePage() {
     longest_streak: 0,
     week_activity: [],
   });
-  const [weeklyReminder, setWeeklyReminder] = useState(true);
+  const [weeklyReminder, setWeeklyReminder] = useState(null);
   const [teasers, setTeasers] = useState(null);
   useEffect(() => {
-    axios.get(`${API}/users/me/notification-prefs`).then((r) => setTeasers(r.data.teasers)).catch(() => setTeasers(true));
+    axios.get(`${API}/users/me/notification-prefs`)
+      .then((r) => { setTeasers(r.data.teasers); setWeeklyReminder(r.data.weekly_reminder); })
+      .catch(() => { setTeasers(true); setWeeklyReminder(true); });
   }, []);
+
+  const savePref = async (key, on, setter) => {
+    setter(on);
+    try {
+      await axios.put(`${API}/users/me/notification-prefs`, {
+        [key]: on,
+        tz_offset_minutes: new Date().getTimezoneOffset(),
+      });
+    } catch {
+      setter(!on);
+      toast.error("Couldn't save — try again");
+    }
+  };
   const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const EXPERIENCE_LEVELS = [
@@ -705,6 +721,8 @@ export default function ProfilePage() {
           </button>
         </section>
 
+        {user?.user_id && <FightFilm userId={user.user_id} isOwn />}
+
         {/* Belts & Titles */}
         {beltCatalogue.length > 0 && (
           <section className="victory-card p-4">
@@ -775,8 +793,9 @@ export default function ProfilePage() {
               <p className="text-victory-muted text-sm">{t("profile.weeklyReminderDesc")}</p>
             </div>
             <Switch
-              checked={weeklyReminder}
-              onCheckedChange={setWeeklyReminder}
+              checked={!!weeklyReminder}
+              disabled={weeklyReminder === null}
+              onCheckedChange={(on) => savePref("weekly_reminder", on, setWeeklyReminder)}
               data-testid="reminder-toggle"
             />
           </div>
@@ -819,15 +838,7 @@ export default function ProfilePage() {
             <Switch
               checked={teasers}
               disabled={teasers === null}
-              onCheckedChange={async (on) => {
-                setTeasers(on);
-                try {
-                  await axios.put(`${API}/users/me/notification-prefs`, { teasers: on });
-                } catch {
-                  setTeasers(!on);
-                  toast.error("Couldn't save — try again");
-                }
-              }}
+              onCheckedChange={(on) => savePref("teasers", on, setTeasers)}
               data-testid="teasers-toggle"
             />
           </div>

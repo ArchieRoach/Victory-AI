@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
-import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video } from "lucide-react";
+import { toast } from "sonner";
+import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown } from "lucide-react";
+import { analytics } from "@/lib/analytics";
 import { seasonProgress } from "@/lib/rewards";
 
 const RARITY = {
@@ -66,6 +68,7 @@ function PersonalBests({ pb }) {
           </div>
         </div>
       )}
+      {fresh.length > 0 && <CalloutButton pbs={fresh} />}
     </section>
   );
 }
@@ -146,9 +149,67 @@ function SeasonProgress({ season: initial }) {
   );
 }
 
+// A new PB is the moment to turn a private win into a public dare: the squad gets a
+// trigger now, and the fighter gets one back whatever happens (accepted, beaten, defended).
+function CalloutButton({ pbs }) {
+  const navigate = useNavigate();
+  const pick = pbs.find((b) => b.name !== "Overall") || pbs[0];
+  const [state, setState] = useState("idle");
+  const send = async () => {
+    setState("sending");
+    try {
+      await axios.post(`${API}/callouts`, { dimension: pick.name });
+      setState("sent");
+      analytics.capture("callout_sent", { dimension: pick.name });
+    } catch (err) {
+      setState("idle");
+      const detail = err?.response?.data?.detail;
+      if (detail && detail.toLowerCase().includes("squad")) {
+        toast(detail, { action: { label: "Squads", onClick: () => navigate("/squads") } });
+      } else {
+        toast.error(detail || "Couldn't send the callout");
+      }
+    }
+  };
+  if (state === "sent") {
+    return (
+      <p className="text-victory-muted text-xs flex items-center gap-1.5 pt-1">
+        <Megaphone className="w-3.5 h-3.5 text-victory-lime" /> Callout sent — your squad has 7 days to beat {pick.name} {pick.score}.
+      </p>
+    );
+  }
+  return (
+    <button onClick={send} disabled={state === "sending"} className="victory-btn-secondary w-full flex items-center justify-center gap-2 min-h-[48px] disabled:opacity-50">
+      <Megaphone className="w-4 h-4" /> {state === "sending" ? "Sending…" : `Call out your squad: beat my ${pick.name} ${pick.score}`}
+    </button>
+  );
+}
+
+function CalloutsBeaten({ beaten }) {
+  if (!beaten?.length) return null;
+  return (
+    <section className="victory-card p-4 space-y-2 border-victory-lime/50 bg-victory-lime/5 animate-scale-in" data-testid="callouts-beaten">
+      {beaten.map((b) => (
+        <div key={b.callout_id} className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-victory-lime flex items-center justify-center flex-shrink-0">
+            <Crown className="w-5 h-5 text-victory-bg" />
+          </div>
+          <div>
+            <p className="text-victory-text font-heading font-extrabold text-sm">You beat {b.challenger_name}'s callout</p>
+            <p className="text-victory-muted text-xs">
+              {b.dimension} <span className="font-mono text-victory-lime">{b.your_score}</span> vs {b.score} · title taken: {b.title}
+            </p>
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function SessionRewards({ rewards, scoutingReport }) {
   return (
     <div className="space-y-3" data-testid="session-rewards">
+      <CalloutsBeaten beaten={rewards?.callouts_beaten} />
       <PersonalBests pb={rewards?.personal_bests} />
       <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
       <SeasonProgress season={rewards?.season} />

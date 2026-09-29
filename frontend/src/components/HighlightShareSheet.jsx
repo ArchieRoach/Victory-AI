@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { X, Share2, Download, Link, Scissors, Flame, RotateCcw, Send, Users, Dumbbell, TrendingUp } from "lucide-react";
+import { X, Share2, Download, Link, Scissors, Flame, RotateCcw, Send, Users, Dumbbell, TrendingUp, Film } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { fetchVideoFile, canShareFile, shareVideoFile, downloadFile, highlightCaption } from "@/lib/shareVideo";
 import { SquadVerdict } from "@/components/SquadVerdict";
@@ -108,6 +108,23 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
     } catch {
       toast.error("Could not copy link");
     }
+  };
+
+  const toggleFilm = async () => {
+    setBusy("film");
+    try {
+      const res = hl.on_fight_film
+        ? await axios.delete(`${API}/fight-film/${highlightId}`)
+        : await axios.post(`${API}/fight-film/${highlightId}`);
+      setHl((h) => ({ ...h, on_fight_film: res.data.on_fight_film }));
+      if (res.data.on_fight_film) {
+        toast.success("Added to your Fight Film");
+        analytics.capture("fight_film_added", { source: hl?.source });
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Couldn't update your Fight Film");
+    }
+    setBusy(null);
   };
 
   const handleRetry = async () => {
@@ -281,7 +298,20 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
             )}
           </div>
 
-          {isOwner && status === "ready" && hl.streamer_id === user?.user_id && (
+          {isOwner && status === "ready" && (
+            <button
+              onClick={toggleFilm}
+              disabled={busy === "film"}
+              aria-pressed={!!hl.on_fight_film}
+              className={`w-full min-h-[48px] rounded-xl border flex items-center justify-center gap-2 font-heading font-bold text-sm transition-colors disabled:opacity-50 ${
+                hl.on_fight_film ? "bg-victory-lime/15 border-victory-lime text-victory-lime" : "bg-victory-card border-victory-border text-victory-text"
+              }`}
+            >
+              <Film className="w-4 h-4" /> {hl.on_fight_film ? "On your Fight Film" : "Add to your Fight Film"}
+            </button>
+          )}
+
+          {isOwner && status === "ready" && (
             <SquadVerdict highlightId={highlightId} sentToSquad={hl.sent_to_squad || 0} />
           )}
         </div>
