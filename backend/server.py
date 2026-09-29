@@ -4134,8 +4134,22 @@ class CrashReportCreate(BaseModel):
     user_agent: Optional[str] = Field(None, max_length=500)
     source: str = Field("window", max_length=50)  # "boundary" | "window" | "promise"
 
+# Browser warnings that fire on healthy pages (layout settling across frames). Filtered here
+# too, not just client-side, so already-loaded older bundles stop emailing.
+BENIGN_CRASH_PATTERNS = (
+    "ResizeObserver loop completed with undelivered notifications",
+    "ResizeObserver loop limit exceeded",
+)
+
+
+def is_benign_crash(message: str) -> bool:
+    return any(p in (message or "") for p in BENIGN_CRASH_PATTERNS)
+
+
 @api_router.post("/crash-reports")
 async def report_crash(data: CrashReportCreate, request: Request):
+    if is_benign_crash(data.message):
+        return {"crash_id": None, "ignored": True}
     client_ip = request.client.host if request.client else "unknown"
     if _rate_limited(f"crash_report:{client_ip}", 20, 300):
         raise HTTPException(429, "Too many reports")
