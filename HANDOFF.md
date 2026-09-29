@@ -61,6 +61,25 @@ Goal: cut the steps between "I want to show off" and the reward, and remove the 
   websocket, clip, highlights and feed. Pinging the squad is rate-limited to once per 30 min.
   Squad members who join after the stream starts can't see it until the next stream.
 
+## Variable rewards (branch `feature/variable-rewards`)
+- **Honest scoring:** failed or absent video analysis no longer invents scores. Previously
+  `random.randint` filled every unwatched dimension, and camera recording is off by default, so
+  that was most sessions. Unscored sessions now have `overall_score: None` and `scored: False`.
+  `_avg_score` and `_best_score` skip them everywhere, and the UI shows "—" / "logged". Sessions
+  saved before this change still contain the old random scores.
+- **Self:** per-dimension personal bests (`users.personal_bests`, updated atomically with `$max`)
+  plus near misses. 6-week seasons (`season_stats`, epoch 2026-01-05) with a Bronze→Champion
+  ladder: 10 points per session, plus score and PB points for analysed sessions only (self-rated
+  scorecards can't farm points).
+- **Hunt:** each analysed session gets one scouting report of variable type and rarity: weakness,
+  strength, rare weekly percentile (needs ≥20 samples), or epic elite. It's seeded by session_id,
+  so it's stable. The number of report types found is tracked. Unscored sessions get a locked teaser.
+- **Tribe:** `POST /highlights/{id}/send-to-squad` → squad mates stamp the round (`/rate/:id`,
+  encouraging stamps only) → the owner gets a collapsing teaser push. The verdict unlocks at 5 stamps.
+- **Safeguards:** no paid randomness anywhere. Teasers can be switched off (Profile →
+  "Squad reactions"). Rewards run through `safe_session_rewards`, so they can never fail a session
+  save. Account deletion and export now cover highlights, stamps and season stats.
+
 ---
 
 # Previous: Bug-Hunt Pass

@@ -67,8 +67,17 @@ export const SessionCard = ({ session, onClick }) => {
       {/* Score + arrow */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <div className="text-right">
-          <p className="font-mono font-bold text-victory-lime leading-none">{(session.overall_score ?? 0).toFixed(1)}</p>
-          <p className="text-victory-muted text-[10px] font-mono">/10</p>
+          {typeof session.overall_score === "number" ? (
+            <>
+              <p className="font-mono font-bold text-victory-lime leading-none">{session.overall_score.toFixed(1)}</p>
+              <p className="text-victory-muted text-[10px] font-mono">/10</p>
+            </>
+          ) : (
+            <>
+              <p className="font-mono font-bold text-victory-muted leading-none">—</p>
+              <p className="text-victory-muted text-[10px]">logged</p>
+            </>
+          )}
         </div>
         <ChevronRight className="w-5 h-5 text-victory-muted" />
       </div>

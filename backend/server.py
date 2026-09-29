@@ -967,22 +967,10 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
         return generate_simulated_analysis(round_number, partner_name, focus_areas)
 
 def generate_simulated_analysis(round_number: int, partner_name: str, focus_areas: List[str]) -> dict:
-    key_dimensions = ["Jab", "Cross", "Guard Position", "Head Movement", "Footwork", "Combination Flow"]
-    dimension_scores = [{"dimension_name": dim, "score": random.randint(5, 9)} for dim in key_dimensions]
-    
-    sorted_scores = sorted(dimension_scores, key=lambda x: x["score"])
-    best = sorted_scores[-1]
-    worst = sorted_scores[0]
-    
-    return {
-        "analysis": {
-            "dimension_scores": dimension_scores,
-            "what_did_well": f"Strong {best['dimension_name'].lower()} this round - keep that up!",
-            "what_to_improve": f"Focus on your {worst['dimension_name'].lower()} next round.",
-            "drill_recommendation": DRILLS.get(worst["dimension_name"], {"name": "Basic drill", "description": "Work on fundamentals"})
-        },
-        "partner_name": partner_name
-    }
+    # Analysis failed or isn't configured. Returning no analysis (rather than invented
+    # scores) sends the round down the honest generic-coaching path, and keeps it out of
+    # the session score, personal bests and scouting reports.
+    return {"analysis": None, "partner_name": partner_name, "unavailable": True}
 
 # ============== AI FEEDBACK ENDPOINTS ==============
 
@@ -1074,32 +1062,36 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
                     all_scores[dim] = []
                 all_scores[dim].append(score["score"])
     
-    # Calculate final scores
+    # Only dimensions the analysis actually scored. Unwatched dimensions stay None —
+    # a made-up number would poison personal bests, seasons and scouting reports.
     final_dimension_scores = []
     for dim in DIMENSIONS:
-        if dim in all_scores:
-            avg = sum(all_scores[dim]) / len(all_scores[dim])
-            final_dimension_scores.append({"dimension_name": dim, "score": round(avg)})
-        else:
-            final_dimension_scores.append({"dimension_name": dim, "score": random.randint(5, 8)})
-    
-    scores = [d["score"] for d in final_dimension_scores if d["score"]]
-    overall_score = sum(scores) / len(scores) if scores else 6.0
-    
+        vals = [v for v in all_scores.get(dim, []) if isinstance(v, (int, float))]
+        final_dimension_scores.append({"dimension_name": dim, "score": round(sum(vals) / len(vals)) if vals else None})
+
+    scores = [d["score"] for d in final_dimension_scores if d["score"] is not None]
+    overall_score = round(sum(scores) / len(scores), 1) if scores else None
+
     session_record = {
         "session_id": session_id, "user_id": user["user_id"], "date": session["date"],
-        "overall_score": round(overall_score, 1), "dimension_scores": final_dimension_scores,
+        "overall_score": overall_score, "scored": overall_score is not None,
+        "dimension_scores": final_dimension_scores,
         "rounds": [{"round_number": v["round_number"], "video_url": v["video_url"], "analysis": v.get("analysis_results")} for v in videos],
         "training_config": {"round_duration": session["round_duration"], "rest_duration": session["rest_duration"], "total_rounds": session["total_rounds"]},
         "created_at": session["created_at"], "completed_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.sessions.insert_one({**session_record})
-    await db.training_sessions.update_one({"session_id": session_id}, {"$set": {"status": "completed", "overall_score": round(overall_score, 1)}})
+    await db.training_sessions.update_one({"session_id": session_id}, {"$set": {"status": "completed", "overall_score": overall_score}})
     new_belts = await check_and_award_belts(user["user_id"])
-    # Return a clean copy without _id
+    rewards = await safe_session_rewards(user, session_record, trusted_scores=True)
+    if rewards.get("scouting_report"):
+        await db.sessions.update_one({"session_id": session_id, "user_id": user["user_id"]},
+                                     {"$set": {"scouting_report": rewards["scouting_report"]}})
     result = dict(session_record)
     result["new_belts"] = new_belts
+    result["rewards"] = rewards
+    result["scouting_report"] = rewards.get("scouting_report")
     return result
 
 # ============== STRIPE PAYMENT ENDPOINTS ==============
@@ -1731,7 +1723,7 @@ async def create_session(data: SessionCreate, user: dict = Depends(get_current_u
     session_record = {
         "session_id": f"session_{uuid.uuid4().hex[:12]}",
         "user_id": user["user_id"],
-        "date": data.date or now,
+        "date": data.date or now[:10],
         "overall_score": overall_score,
         "dimension_scores": dimension_scores,
         "video_url": data.video_url,
@@ -1743,6 +1735,7 @@ async def create_session(data: SessionCreate, user: dict = Depends(get_current_u
     await db.sessions.insert_one({**session_record})
     new_belts = await check_and_award_belts(user["user_id"])
     result = dict(session_record)
+    result["rewards"] = await safe_session_rewards(user, session_record, trusted_scores=False)
     result["new_belts"] = new_belts
     return result
 
@@ -1807,6 +1800,18 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.push_subscriptions.delete_many({"user_id": user_id})
     await db.apns_tokens.delete_many({"user_id": user_id})
     await db.waitlist.delete_many({"email": user["email"]})
+    own_highlights = await db.highlights.find({"streamer_id": user_id}, {"highlight_id": 1, "share_video_url": 1}).to_list(1000)
+    for hl in own_highlights:
+        if hl.get("share_video_url"):
+            try:
+                await asyncio.to_thread(cloudinary.uploader.destroy, f"victory_highlights/{hl['highlight_id']}",
+                                        resource_type="video", invalidate=True)
+            except Exception as e:
+                logger.warning(f"Cloudinary destroy on account delete: {e}")
+    await db.highlights.delete_many({"streamer_id": user_id})
+    await db.highlights.update_many({"squad_viewer_ids": user_id}, {"$pull": {"squad_viewer_ids": user_id}})
+    await db.highlight_stamps.delete_many({"$or": [{"user_id": user_id}, {"owner_id": user_id}]})
+    await db.season_stats.delete_many({"user_id": user_id})
 
     if user.get("gym_id"):
         await db.gyms.update_one({"gym_id": user["gym_id"]}, {"$pull": {"members": user_id}, "$inc": {"member_count": -1}})
@@ -1845,6 +1850,9 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "chat_messages_in_own_streams": chat_in_own_streams,
         "reports_filed": await db.reports.find({"reporter_id": user_id}, proj).to_list(10000),
         "crash_reports": await db.crash_reports.find({"user_id": user_id}, proj).to_list(1000),
+        "highlights": await db.highlights.find({"streamer_id": user_id}, proj).to_list(1000),
+        "round_stamps_given": await db.highlight_stamps.find({"user_id": user_id}, proj).to_list(10000),
+        "season_stats": await db.season_stats.find({"user_id": user_id}, proj).to_list(1000),
         "feedback_submitted": await db.feedback.find({"user_id": user_id}, proj).to_list(10000),
         "push_subscriptions": await db.push_subscriptions.find({"user_id": user_id}, proj).to_list(1000),
         "ios_push_devices": await db.apns_tokens.find({"user_id": user_id}, proj).to_list(1000),
@@ -1857,7 +1865,7 @@ async def get_user_stats(user: dict = Depends(get_current_user)):
     current_streak, longest_streak = _compute_streaks(sessions)
     return {
         "total_sessions": len(sessions),
-        "best_score": max([s.get("overall_score", 0) for s in sessions]) if sessions else 0,
+        "best_score": _best_score(sessions),
         "most_improved_dimension": None,
         "current_streak": current_streak,
         "longest_streak": longest_streak,
@@ -2206,6 +2214,21 @@ def _week_activity(sessions: list) -> list:
         for i in range(6, -1, -1)
     ]
 
+def _score_values(sessions) -> list:
+    """Only sessions that were actually scored. A session with no video analysis has
+    overall_score None and must not drag averages toward zero or crash sum()."""
+    return [s["overall_score"] for s in sessions if isinstance(s.get("overall_score"), (int, float))]
+
+
+def _avg_score(sessions, ndigits: int = 1) -> float:
+    vals = _score_values(sessions)
+    return round(sum(vals) / len(vals), ndigits) if vals else 0
+
+
+def _best_score(sessions) -> float:
+    return max(_score_values(sessions), default=0)
+
+
 async def check_and_award_belts(user_id: str) -> list:
     user = await db.users.find_one({"user_id": user_id})
     if not user:
@@ -2213,7 +2236,7 @@ async def check_and_award_belts(user_id: str) -> list:
     already_earned = {b["belt_id"] for b in user.get("badges", [])}
     sessions = await db.sessions.find({"user_id": user_id}, {"overall_score": 1, "date": 1}).to_list(None)
     total = len(sessions)
-    avg   = sum(s.get("overall_score", 0) for s in sessions) / total if sessions else 0
+    avg   = _avg_score(sessions, 4)
     _, longest_streak = _compute_streaks(sessions)
     comp_wins    = user.get("competition_wins", 0)
     has_gym      = bool(user.get("gym_id"))
@@ -2284,12 +2307,12 @@ async def _recalculate_gym_stats(gym_id: str):
     gym = await db.gyms.find_one({"gym_id": gym_id})
     if not gym:
         return
-    total_score, total_sessions = 0.0, 0
+    total_sessions, scores = 0, []
     for uid in gym.get("members", []):
         sessions = await db.sessions.find({"user_id": uid}).to_list(10000)
         total_sessions += len(sessions)
-        total_score += sum(s.get("overall_score", 0) for s in sessions)
-    avg = round(total_score / total_sessions, 1) if total_sessions else 0.0
+        scores += _score_values(sessions)
+    avg = round(sum(scores) / len(scores), 1) if scores else 0.0
     await db.gyms.update_one(
         {"gym_id": gym_id},
         {"$set": {"avg_score": avg, "total_sessions": total_sessions}}
@@ -2470,8 +2493,8 @@ async def get_public_profile(user_id: str, current_user: dict = Depends(get_curr
     profile = safe_user(target)
     sessions = await db.sessions.find({"user_id": user_id}).to_list(10000)
     profile["total_sessions"] = len(sessions)
-    profile["avg_score"] = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
-    profile["best_score"] = max((s.get("overall_score", 0) for s in sessions), default=0)
+    profile["avg_score"] = _avg_score(sessions)
+    profile["best_score"] = _best_score(sessions)
     profile["current_streak"], profile["longest_streak"] = _compute_streaks(sessions)
     profile["week_activity"] = _week_activity(sessions)
     follower_count = await db.follows.count_documents({"following_id": user_id})
@@ -2990,7 +3013,7 @@ async def get_my_gym(user: dict = Depends(get_current_user)):
         u = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0})
         if u:
             sessions = await db.sessions.find({"user_id": uid}).to_list(10000)
-            avg = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
+            avg = _avg_score(sessions)
             weekly_sessions = len({s["date"] for s in sessions if s.get("date", "") >= week_cutoff})
             members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions), "weekly_sessions": weekly_sessions})
     gym["members_detail"] = sorted(members, key=lambda m: m.get("avg_score", 0), reverse=True)
@@ -3062,7 +3085,7 @@ async def get_gym(gym_id: str, user: dict = Depends(get_current_user)):
         u = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0})
         if u:
             sessions = await db.sessions.find({"user_id": uid}).to_list(10000)
-            avg = round(sum(s.get("overall_score", 0) for s in sessions) / len(sessions), 1) if sessions else 0
+            avg = _avg_score(sessions)
             weekly_sessions = len({s["date"] for s in sessions if s.get("date", "") >= week_cutoff})
             members.append({**safe_user(u), "avg_score": avg, "total_sessions": len(sessions), "weekly_sessions": weekly_sessions})
     gym["members_detail"] = sorted(members, key=lambda m: m.get("avg_score", 0), reverse=True)
@@ -4763,6 +4786,7 @@ def _public_highlight(hl: dict) -> dict:
     hl.pop("_id", None)
     hl.pop("error", None)
     hl.pop("source_public_id", None)
+    hl["sent_to_squad"] = len(hl.pop("squad_viewer_ids", None) or [])
     return hl
 
 
@@ -5217,7 +5241,8 @@ async def _get_highlight_for(highlight_id: str, user: dict, owner_only: bool = F
     if not is_owner:
         if hl.get("status") != "ready":
             raise HTTPException(404, "Highlight not found")
-        await _require_profile_visible(hl["streamer_id"], user)
+        if user["user_id"] not in (hl.get("squad_viewer_ids") or []):
+            await _require_profile_visible(hl["streamer_id"], user)
     return hl
 
 
@@ -5446,6 +5471,7 @@ async def delete_highlight(highlight_id: str, user: dict = Depends(get_current_u
     if job:
         job.cancel()
     await db.highlights.delete_one({"highlight_id": highlight_id})
+    await db.highlight_stamps.delete_many({"highlight_id": highlight_id})
     if hl.get("post_id"):
         await db.posts.update_one({"post_id": hl["post_id"]}, {"$unset": {"share_video_url": "", "thumbnail_url": ""}})
     if hl.get("share_video_url"):
@@ -5589,7 +5615,7 @@ async def get_belt_catalogue(user: dict = Depends(get_current_user)):
     earned_map = {b["belt_id"]: b for b in user.get("badges", [])}
     sessions = await db.sessions.find({"user_id": user["user_id"]}, {"overall_score": 1}).to_list(None)
     total = len(sessions)
-    avg   = sum(s.get("overall_score", 0) for s in sessions) / total if sessions else 0
+    avg   = _avg_score(sessions, 4)
     comp_wins = user.get("competition_wins", 0)
     result = []
     for belt_id, belt in BELT_CATALOGUE.items():
@@ -5808,6 +5834,362 @@ class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 app.add_middleware(_SecurityHeadersMiddleware)
+# ============== VARIABLE REWARDS ==============
+# Three reward loops that make every session end on something the fighter couldn't
+# predict: personal bests across 16 dimensions (self), a scouting report of varying type
+# and rarity (hunt, in information — never money), and squad stamps on round clips
+# (tribe). Only real analysed scores feed PBs, season score points and reports.
+
+PB_NEAR_MISS = {"Overall": 0.3}
+PB_NEAR_MISS_DIM = 1
+_PB_KEY_RE = re.compile(r"[^A-Za-z0-9 ]")
+
+
+def _pb_key(name: str) -> str:
+    return _PB_KEY_RE.sub("", name)[:40]
+
+
+def compute_pb_changes(pbs: dict, overall: Optional[float], dims: list) -> dict:
+    entries = []
+    if isinstance(overall, (int, float)):
+        entries.append(("Overall", overall))
+    entries += [(d["dimension_name"], d["score"]) for d in dims or []
+                if isinstance(d.get("score"), (int, float))]
+    new, near, baselines = [], [], 0
+    for name, score in entries:
+        best = (pbs or {}).get(_pb_key(name))
+        if best is None:
+            baselines += 1
+        elif score > best:
+            new.append({"name": name, "score": score, "prev": best})
+        else:
+            gap = round(best - score, 1)
+            if 0 < gap <= PB_NEAR_MISS.get(name, PB_NEAR_MISS_DIM):
+                near.append({"name": name, "score": score, "best": best, "gap": gap})
+    near.sort(key=lambda n: n["gap"])
+    return {"new": new, "near": near[:3], "baselines": baselines, "entries": entries}
+
+
+SEASON_EPOCH = date(2026, 1, 5)
+SEASON_DAYS = 42
+SEASON_RANKS = [
+    ("Bronze", 0), ("Silver", 100), ("Gold", 250),
+    ("Platinum", 450), ("Diamond", 700), ("Champion", 1000),
+]
+SESSION_POINTS = 10
+PB_POINTS = 15
+
+
+def current_season(today: Optional[date] = None) -> dict:
+    today = today or datetime.now(timezone.utc).date()
+    n = max(0, (today - SEASON_EPOCH).days // SEASON_DAYS)
+    start = SEASON_EPOCH + timedelta(days=n * SEASON_DAYS)
+    end = start + timedelta(days=SEASON_DAYS)
+    return {"season_id": f"S{n + 1}", "number": n + 1, "starts": start.isoformat(),
+            "ends": end.isoformat(), "days_left": (end - today).days}
+
+
+def season_rank(points: int) -> dict:
+    idx = max(i for i, (_, at) in enumerate(SEASON_RANKS) if points >= at)
+    nxt = SEASON_RANKS[idx + 1] if idx + 1 < len(SEASON_RANKS) else None
+    return {"rank": SEASON_RANKS[idx][0], "rank_index": idx,
+            "next_rank": nxt[0] if nxt else None, "next_at": nxt[1] if nxt else None}
+
+
+def session_points(overall: Optional[float], new_pbs: int, trusted_scores: bool) -> int:
+    pts = SESSION_POINTS
+    if trusted_scores and isinstance(overall, (int, float)):
+        pts += round(overall * 5) + new_pbs * PB_POINTS
+    return pts
+
+
+SCOUTING_TYPES = ("weakness", "strength", "percentile", "elite")
+
+
+def build_scouting_report(dims: list, seed: str, percentiles: Optional[dict] = None) -> dict:
+    scored = [d for d in dims or [] if isinstance(d.get("score"), (int, float))]
+    if not scored:
+        return {"locked": True, "type": None, "rarity": None,
+                "title": "Scouting report locked",
+                "body": "Record a round on video and the AI will scout your technique."}
+    rng = random.Random(seed)
+    best = max(scored, key=lambda d: d["score"])
+    worst = min(scored, key=lambda d: d["score"])
+    options = [("weakness", 40), ("strength", 35)]
+    top_pct = None
+    if percentiles:
+        name, pct = max(percentiles.items(), key=lambda kv: kv[1])
+        if pct >= 60:
+            top_pct = (name, pct)
+            options.append(("percentile", 20))
+    if best["score"] >= 9 or (len(scored) >= 4 and worst["score"] >= 7):
+        options.append(("elite", 5))
+    kind = rng.choices([o[0] for o in options], weights=[o[1] for o in options])[0]
+
+    if kind == "weakness":
+        drill = DRILLS.get(worst["dimension_name"], {})
+        return {"locked": False, "type": kind, "rarity": "common",
+                "title": f"Scout says: {worst['dimension_name']} is the gap",
+                "body": f"Scored {worst['score']}/10 today. Fix it with “{drill.get('name', 'fundamentals')}”: "
+                        f"{drill.get('description', 'drill the basics until it is automatic.')}"}
+    if kind == "strength":
+        return {"locked": False, "type": kind, "rarity": "common",
+                "title": f"Weapon spotted: {best['dimension_name']}",
+                "body": f"{best['score']}/10 today — build your combos around it."}
+    if kind == "percentile":
+        name, pct = top_pct
+        return {"locked": False, "type": kind, "rarity": "rare",
+                "title": f"Top {100 - pct}% {name} this week",
+                "body": f"Your {name.lower()} beat {pct}% of fighters who trained on Victory AI in the last 7 days."}
+    return {"locked": False, "type": "elite", "rarity": "epic",
+            "title": "Elite pattern detected",
+            "body": (f"{best['dimension_name']} hit {best['score']}/10" if best["score"] >= 9
+                     else f"No dimension under 7 across {len(scored)} scored")
+                    + " — that's a pro-level round. Screenshot this one."}
+
+
+PERCENTILE_MIN_SAMPLE = 20
+
+
+async def _weekly_percentiles(user_id: str, dims: list) -> dict:
+    scored = {d["dimension_name"]: d["score"] for d in dims or [] if isinstance(d.get("score"), (int, float))}
+    if not scored:
+        return {}
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    others = await db.sessions.find(
+        {"user_id": {"$ne": user_id}, "scored": True, "created_at": {"$gte": cutoff}},
+        {"dimension_scores": 1},
+    ).limit(2000).to_list(2000)
+    pool: Dict[str, list] = {}
+    for s in others:
+        for d in s.get("dimension_scores") or []:
+            if isinstance(d.get("score"), (int, float)) and d.get("dimension_name") in scored:
+                pool.setdefault(d["dimension_name"], []).append(d["score"])
+    result = {}
+    for name, mine in scored.items():
+        vals = pool.get(name, [])
+        if len(vals) >= PERCENTILE_MIN_SAMPLE:
+            result[name] = round(100 * sum(1 for v in vals if v < mine) / len(vals))
+    return result
+
+
+async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool) -> dict:
+    uid = user["user_id"]
+    overall = session.get("overall_score") if trusted_scores else None
+    dims = session.get("dimension_scores") if trusted_scores else []
+    fresh = await db.users.find_one({"user_id": uid}, {"personal_bests": 1}) or {}
+    pb = compute_pb_changes(fresh.get("personal_bests") or {}, overall, dims)
+    if pb["entries"]:
+        await db.users.update_one({"user_id": uid}, {"$max": {
+            f"personal_bests.{_pb_key(name)}": score for name, score in pb["entries"]
+        }})
+
+    season = current_season()
+    pts = session_points(overall, len(pb["new"]), trusted_scores)
+    before = await db.season_stats.find_one({"user_id": uid, "season_id": season["season_id"]}, {"points": 1}) or {}
+    stats = await db.season_stats.find_one_and_update(
+        {"user_id": uid, "season_id": season["season_id"]},
+        {"$inc": {"points": pts, "sessions": 1, "pbs": len(pb["new"])}},
+        upsert=True, return_document=True,
+    )
+    total = (stats or {}).get("points", pts)
+    rank = season_rank(total)
+    ranked_up = season_rank(before.get("points", 0))["rank_index"] < rank["rank_index"]
+
+    report = None
+    if trusted_scores:
+        percentiles = await _weekly_percentiles(uid, dims)
+        report = build_scouting_report(dims, session["session_id"], percentiles)
+        if report.get("type"):
+            await db.users.update_one({"user_id": uid}, {"$addToSet": {"scouting_types_found": report["type"]}})
+            found = await db.users.find_one({"user_id": uid}, {"scouting_types_found": 1}) or {}
+            report["types_found"] = len(found.get("scouting_types_found") or [])
+            report["types_total"] = len(SCOUTING_TYPES)
+
+    return {
+        "personal_bests": {"new": pb["new"], "near": pb["near"], "baselines": pb["baselines"]},
+        "season": {**season, **rank, "points": total, "earned": pts, "ranked_up": ranked_up},
+        "scouting_report": report,
+    }
+
+
+async def safe_session_rewards(user: dict, session: dict, trusted_scores: bool) -> dict:
+    # Rewards are a bonus layer: a failure here must never lose or 500 the session itself.
+    try:
+        return await apply_session_rewards(user, session, trusted_scores)
+    except Exception as e:
+        logger.error(f"Session rewards failed for {session.get('session_id')}: {e}")
+        return {}
+
+
+@api_router.get("/seasons/me")
+async def my_season(user: dict = Depends(get_current_user)):
+    season = current_season()
+    stats = await db.season_stats.find_one({"user_id": user["user_id"], "season_id": season["season_id"]}, {"_id": 0}) or {}
+    points = stats.get("points", 0)
+    return {**season, **season_rank(points), "points": points, "sessions": stats.get("sessions", 0)}
+
+
+@api_router.get("/users/me/personal-bests")
+async def my_personal_bests(user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"personal_bests": 1}) or {}
+    return fresh.get("personal_bests") or {}
+
+
+# ── Squad stamps on round clips ──────────────────────────────────────────────
+
+SQUAD_STAMPS = {
+    "heavy_hands":   "Heavy hands",
+    "clean":         "Clean",
+    "sharp_jab":     "Sharp jab",
+    "slick_defence": "Slick D",
+    "keep_grinding": "Keep grinding",
+}
+VERDICT_AT = 5
+SQUAD_ROUND_TTL_DAYS = 14
+
+
+def teasers_enabled(u: Optional[dict]) -> bool:
+    return ((u or {}).get("notification_prefs") or {}).get("teasers", True)
+
+
+def stamp_summary(stamps: list, reveal_at: int = VERDICT_AT) -> dict:
+    tally = {k: 0 for k in SQUAD_STAMPS}
+    for s in stamps:
+        if s.get("stamp") in tally:
+            tally[s["stamp"]] += 1
+    n = len(stamps)
+    verdict = None
+    if n >= reveal_at:
+        top = max(tally.items(), key=lambda kv: kv[1])
+        verdict = {"stamp": top[0], "label": SQUAD_STAMPS[top[0]], "count": top[1]}
+    return {"count": n, "tally": tally, "verdict": verdict,
+            "verdict_in": max(0, reveal_at - n)}
+
+
+@api_router.post("/highlights/{highlight_id}/send-to-squad")
+async def send_highlight_to_squad(highlight_id: str, user: dict = Depends(get_current_user)):
+    hl = await _get_highlight_for(highlight_id, user, owner_only=True)
+    if hl["streamer_id"] != user["user_id"]:
+        raise HTTPException(403, "Only the fighter in the clip can send it")
+    if hl.get("status") != "ready":
+        raise HTTPException(400, "Highlight is still processing")
+    if _rate_limited(f"squad_send:{user['user_id']}", 5, 3600):
+        raise HTTPException(429, "You've sent a lot to your squad — try again later")
+    mates = await _squad_mate_ids(user["user_id"])
+    if not mates:
+        raise HTTPException(400, "Join or create a squad first")
+    already = set(hl.get("squad_viewer_ids") or [])
+    new_mates = [m for m in mates if m not in already]
+    await db.highlights.update_one({"highlight_id": highlight_id}, {
+        "$addToSet": {"squad_viewer_ids": {"$each": mates}},
+        "$set": {"sent_to_squad_at": datetime.now(timezone.utc).isoformat()},
+    })
+    name = user.get("display_name") or user.get("name") or "Your squad mate"
+    prefs = {u["user_id"]: u for u in await db.users.find(
+        {"user_id": {"$in": new_mates}}, {"user_id": 1, "notification_prefs": 1}).to_list(len(new_mates) or 1)}
+    await asyncio.gather(*[
+        _send_push(m, title=f"{name} wants your verdict", body="Rate their round — one tap",
+                   url=f"/rate/{highlight_id}", tag=f"rate-{highlight_id}")
+        for m in new_mates if teasers_enabled(prefs.get(m))
+    ], return_exceptions=True)
+    return {"sent_to": len(mates)}
+
+
+class StampCreate(BaseModel):
+    stamp: str
+    comment: str = Field("", max_length=80)
+
+
+@api_router.post("/highlights/{highlight_id}/stamps")
+async def stamp_highlight(highlight_id: str, data: StampCreate, user: dict = Depends(get_current_user)):
+    hl = await db.highlights.find_one({"highlight_id": highlight_id}, {"_id": 0})
+    if not hl or user["user_id"] not in (hl.get("squad_viewer_ids") or []):
+        raise HTTPException(404, "Round not found")
+    if data.stamp not in SQUAD_STAMPS:
+        raise HTTPException(400, "Unknown stamp")
+    if _rate_limited(f"stamp:{user['user_id']}", 30, 60):
+        raise HTTPException(429, "Slow down")
+    comment = data.comment.strip()
+    if comment and await is_content_flagged(comment):
+        raise HTTPException(400, "Comment violates community guidelines")
+    now = datetime.now(timezone.utc).isoformat()
+    res = await db.highlight_stamps.update_one(
+        {"highlight_id": highlight_id, "user_id": user["user_id"]},
+        {"$set": {"stamp": data.stamp, "comment": comment, "updated_at": now},
+         "$setOnInsert": {"created_at": now, "owner_id": hl["streamer_id"]}},
+        upsert=True,
+    )
+    stamps = await db.highlight_stamps.find({"highlight_id": highlight_id}, {"stamp": 1}).to_list(100)
+    summary = stamp_summary(stamps)
+    if res.upserted_id is not None:
+        owner = await db.users.find_one({"user_id": hl["streamer_id"]}, {"notification_prefs": 1})
+        if teasers_enabled(owner):
+            n = summary["count"]
+            teaser = (f"The verdict is in — tap to see it" if n == VERDICT_AT
+                      else f"{n} {'person' if n == 1 else 'people'} reacted to your round — see who")
+            _spawn(_send_push(hl["streamer_id"], title="Your squad reacted", body=teaser,
+                              url=f"/highlights?open={highlight_id}", tag=f"stamps-{highlight_id}"))
+    return {**summary, "my_stamp": data.stamp}
+
+
+@api_router.get("/highlights/{highlight_id}/stamps")
+async def get_highlight_stamps(highlight_id: str, user: dict = Depends(get_current_user)):
+    hl = await db.highlights.find_one({"highlight_id": highlight_id}, {"_id": 0})
+    if not hl:
+        raise HTTPException(404, "Round not found")
+    is_owner = hl["streamer_id"] == user["user_id"]
+    if not is_owner and user["user_id"] not in (hl.get("squad_viewer_ids") or []):
+        raise HTTPException(404, "Round not found")
+    stamps = await db.highlight_stamps.find({"highlight_id": highlight_id}, {"_id": 0}).sort("created_at", 1).to_list(100)
+    summary = stamp_summary(stamps)
+    mine = next((s for s in stamps if s["user_id"] == user["user_id"]), None)
+    out = {**summary, "my_stamp": mine["stamp"] if mine else None, "sent_to": len(hl.get("squad_viewer_ids") or [])}
+    if is_owner:
+        people = {u["user_id"]: u for u in await db.users.find(
+            {"user_id": {"$in": [s["user_id"] for s in stamps]}}, {"_id": 0, "password": 0}).to_list(100)}
+        out["reactions"] = [{
+            "user": safe_user(people.get(s["user_id"], {"user_id": s["user_id"]})),
+            "stamp": s["stamp"], "label": SQUAD_STAMPS.get(s["stamp"], s["stamp"]),
+            "comment": s.get("comment", ""),
+        } for s in stamps]
+    return out
+
+
+@api_router.get("/squad-rounds/inbox")
+async def squad_rounds_inbox(user: dict = Depends(get_current_user)):
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=SQUAD_ROUND_TTL_DAYS)).isoformat()
+    items = await db.highlights.find(
+        {"squad_viewer_ids": user["user_id"], "status": "ready", "sent_to_squad_at": {"$gte": cutoff}},
+        {"_id": 0},
+    ).sort("sent_to_squad_at", -1).limit(20).to_list(20)
+    mine = {s["highlight_id"]: s["stamp"] for s in await db.highlight_stamps.find(
+        {"user_id": user["user_id"], "highlight_id": {"$in": [h["highlight_id"] for h in items]}},
+        {"highlight_id": 1, "stamp": 1}).to_list(20)}
+    out = []
+    for h in items:
+        h = _public_highlight(h)
+        h.pop("squad_viewer_ids", None)
+        h["my_stamp"] = mine.get(h["highlight_id"])
+        out.append(h)
+    return out
+
+
+class NotificationPrefs(BaseModel):
+    teasers: bool = True
+
+
+@api_router.get("/users/me/notification-prefs")
+async def get_notification_prefs(user: dict = Depends(get_current_user)):
+    return {"teasers": teasers_enabled(user)}
+
+
+@api_router.put("/users/me/notification-prefs")
+async def set_notification_prefs(data: NotificationPrefs, user: dict = Depends(get_current_user)):
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"notification_prefs.teasers": data.teasers}})
+    return {"teasers": data.teasers}
+
+
 app.include_router(api_router)
 
 async def _scheduled_stream_reminder_loop():

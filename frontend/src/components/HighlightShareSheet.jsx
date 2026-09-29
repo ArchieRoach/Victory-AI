@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { X, Share2, Download, Link, Scissors, Flame, RotateCcw, Send, Users, Dumbbell, TrendingUp } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { fetchVideoFile, canShareFile, shareVideoFile, downloadFile, highlightCaption } from "@/lib/shareVideo";
+import { SquadVerdict } from "@/components/SquadVerdict";
 
 const POLL_MS = 4000;
 const PENDING = ["clipping", "processing"];
@@ -279,6 +280,10 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
               <div />
             )}
           </div>
+
+          {isOwner && status === "ready" && hl.streamer_id === user?.user_id && (
+            <SquadVerdict highlightId={highlightId} sentToSquad={hl.sent_to_squad || 0} />
+          )}
         </div>
       </div>
     </div>

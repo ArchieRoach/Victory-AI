@@ -8,6 +8,7 @@ import { Confetti } from "@/components/Confetti";
 import { BeltCelebration } from "@/components/BeltCelebration";
 import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame, Swords, Shield, Footprints, ChevronDown, ChevronUp, Film, ChevronRight } from "lucide-react";
 import { HighlightShareSheet } from "@/components/HighlightShareSheet";
+import { SessionRewards } from "@/components/SessionRewards";
 import { analytics } from "@/lib/analytics";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -144,7 +145,10 @@ export default function SessionResultsPage() {
     }
   };
 
-  const previousSession = sessions.find((s) => s.session_id !== session?.session_id);
+  const isScored = typeof session?.overall_score === "number";
+  const previousSession = sessions.find(
+    (s) => s.session_id !== session?.session_id && typeof s.overall_score === "number",
+  );
 
   const getCategoryAverage = (dims) => {
     if (!session) return null;
@@ -154,7 +158,7 @@ export default function SessionResultsPage() {
   };
 
   const getScoreDifference = () => {
-    if (!previousSession || !session) return null;
+    if (!previousSession || !isScored) return null;
     return session.overall_score - previousSession.overall_score;
   };
 
@@ -199,6 +203,7 @@ export default function SessionResultsPage() {
   };
 
   const handleShare = async () => {
+    if (!isScored) return;
     try {
       const canvas = document.createElement("canvas");
       canvas.width = 600;
@@ -376,14 +381,14 @@ export default function SessionResultsPage() {
                 cx="64" cy="64" r="56"
                 fill="none" className="stroke-victory-lime" strokeWidth="6"
                 strokeLinecap="round"
-                strokeDasharray={`${(session.overall_score / 10) * 351.86} 351.86`}
+                strokeDasharray={`${((isScored ? session.overall_score : 0) / 10) * 351.86} 351.86`}
               />
             </svg>
             <div>
-              <p className="font-heading font-extrabold text-4xl text-victory-lime leading-none">
-                {session.overall_score.toFixed(1)}
+              <p className={`font-heading font-extrabold text-4xl leading-none ${isScored ? "text-victory-lime" : "text-victory-muted"}`}>
+                {isScored ? session.overall_score.toFixed(1) : "—"}
               </p>
-              <p className="text-victory-muted text-[10px] text-center font-mono">/10</p>
+              <p className="text-victory-muted text-[10px] text-center font-mono">{isScored ? "/10" : "logged"}</p>
             </div>
           </div>
           {isFirstSession ? (
@@ -411,8 +416,17 @@ export default function SessionResultsPage() {
           )}
         </section>
 
+        {!isScored && (
+          <p className="text-victory-muted text-sm text-center -mt-2" data-testid="unscored-note">
+            {t("results.unscoredNote", "No AI score this time — nothing watched this session. Turn on video in Train and the AI will score every round.")}
+          </p>
+        )}
+
+        <SessionRewards rewards={session.rewards} scoutingReport={session.scouting_report} />
+
         {/* Category scores — three real, meaningful numbers beat sixteen tiny
             radar-chart spokes nobody can actually read on a phone. */}
+        {isScored && (
         <section className="grid grid-cols-3 gap-3" data-testid="results-categories">
           {CATEGORY_GROUPS.map(({ key, label, icon: Icon, tone, dims }) => {
             const avg = getCategoryAverage(dims);
@@ -438,6 +452,7 @@ export default function SessionResultsPage() {
             );
           })}
         </section>
+        )}
 
         {/* Top 3 Highlights */}
         {topDimensions.length > 0 && (
@@ -572,14 +587,14 @@ export default function SessionResultsPage() {
         )}
 
         {/* Share Button */}
-        <button
+        {isScored && <button
           onClick={handleShare}
           className="victory-btn-secondary w-full flex items-center justify-center gap-2"
           data-testid="share-btn"
         >
           <Share2 className="w-5 h-5" />
           {t("results.shareBtn")}
-        </button>
+        </button>}
 
         {/* Navigation Buttons */}
         <div ref={navButtonsRef} className="grid grid-cols-2 gap-3">
