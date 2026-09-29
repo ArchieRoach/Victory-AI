@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth as useClerkHook } from "@clerk/clerk-react";
 import { API, useAuth } from "@/App";
-import { Radio, Users, AlertCircle, VideoOff, Scissors } from "lucide-react";
+import { Radio, Users, AlertCircle, VideoOff, Scissors, Globe, Lock, BellRing } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { withMinDuration } from "@/utils/async";
@@ -33,6 +33,9 @@ export default function GoLivePage() {
   const [viewerCount, setViewerCount] = useState(0);
   const [endingStream, setEndingStream] = useState(false);
   const [highlightCount, setHighlightCount] = useState(0);
+  const [squadCount,   setSquadCount]   = useState(null);
+  const [audience,     setAudience]     = useState("public");
+  const [notifySquad,  setNotifySquad]  = useState(true);
 
   const videoRef = useRef(null);
   const mediaRef = useRef(null);
@@ -61,6 +64,12 @@ export default function GoLivePage() {
       videoRef.current.srcObject = mediaRef.current;
     }
   }, [phase]);
+
+  useEffect(() => {
+    axios.get(`${API}/squads/mine`)
+      .then((r) => setSquadCount((r.data || []).length))
+      .catch(() => setSquadCount(0));
+  }, []);
 
   // Cleanup on unmount (navigating away while live or mid-setup)
   useEffect(() => {
@@ -112,12 +121,17 @@ export default function GoLivePage() {
     // Step 2: Create / reuse stream on backend
     let streamData;
     try {
-      const res = await axios.post(`${API}/streams/go-live`);
+      const res = await axios.post(`${API}/streams/go-live`, {
+        audience,
+        notify_squad: notifySquad && squadCount > 0,
+      });
       streamData = res.data;
     } catch (err) {
       cleanup();
       const detail = err?.response?.data?.detail;
-      if (detail && detail.toLowerCase().includes("not configured")) {
+      if (detail && detail.toLowerCase().includes("squad")) {
+        setErrorMsg(detail);
+      } else if (detail && detail.toLowerCase().includes("not configured")) {
         setErrorMsg("Streaming is not configured on the server. Please contact support.");
       } else if (detail) {
         setErrorMsg("Stream setup failed. Please check your connection and try again.");
@@ -202,6 +216,7 @@ export default function GoLivePage() {
       stream_id: streamData.stream_id,
       playback_id: streamData.playback_id,
       title: streamData.title,
+      audience: streamData.audience || "public",
     });
     setViewerCount(0);
     setHighlightCount(0);
@@ -248,7 +263,7 @@ export default function GoLivePage() {
         }
       })());
     }
-    navigate(sid && highlightCountRef.current > 0 ? `/highlights?stream=${sid}` : "/live");
+    navigate(sid && highlightCountRef.current > 0 ? `/highlights?stream=${sid}&open=best` : "/live");
   };
 
   // ── Live screen ──────────────────────────────────────────────────────────
@@ -267,9 +282,16 @@ export default function GoLivePage() {
 
           {/* Overlays */}
           <div className="absolute top-safe-top top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-            <span className="flex items-center gap-1.5 bg-victory-danger text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
-              <Radio className="w-3 h-3" />
-              LIVE
+            <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 bg-victory-danger text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
+                <Radio className="w-3 h-3" />
+                LIVE
+              </span>
+              {streamInfo?.audience === "squad" && (
+                <span className="flex items-center gap-1 bg-victory-bg/80 backdrop-blur-sm border border-victory-teal/40 text-victory-teal text-xs font-bold px-3 py-1.5 rounded-full">
+                  <Lock className="w-3 h-3" /> SQUAD ONLY
+                </span>
+              )}
             </span>
             <span className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full">
               <Users className="w-3 h-3" />
@@ -352,6 +374,54 @@ export default function GoLivePage() {
                 </div>
               )}
               <p className="text-victory-muted text-sm">Ready to go live?</p>
+            </div>
+
+            {/* Audience: squad-only is the low-stakes first stream — friends, not strangers */}
+            <div className="w-full space-y-3">
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Who can watch">
+                {[
+                  { value: "public", label: "Everyone", icon: Globe },
+                  { value: "squad",  label: "Squad only", icon: Lock },
+                ].map(({ value, label, icon: Icon }) => {
+                  const disabled = value === "squad" && squadCount === 0;
+                  const active = audience === value;
+                  return (
+                    <button
+                      key={value}
+                      role="radio"
+                      aria-checked={active}
+                      disabled={disabled}
+                      onClick={() => setAudience(value)}
+                      className={`min-h-[48px] rounded-xl border flex items-center justify-center gap-2 font-heading font-bold text-sm transition-colors disabled:opacity-40 ${
+                        active
+                          ? "bg-victory-lime/15 border-victory-lime text-victory-lime"
+                          : "bg-victory-card border-victory-border text-victory-muted"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" /> {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {squadCount > 0 ? (
+                <button
+                  role="switch"
+                  aria-checked={notifySquad}
+                  onClick={() => setNotifySquad((v) => !v)}
+                  className="w-full min-h-[48px] victory-card px-3 flex items-center gap-3 text-left"
+                >
+                  <BellRing className={`w-4 h-4 flex-shrink-0 ${notifySquad ? "text-victory-lime" : "text-victory-muted"}`} />
+                  <span className="flex-1 text-victory-text text-sm">Ping my squad when I go live</span>
+                  <span className={`w-10 h-6 rounded-full p-0.5 transition-colors ${notifySquad ? "bg-victory-lime" : "bg-victory-border"}`}>
+                    <span className={`block w-5 h-5 rounded-full bg-victory-bg transition-transform ${notifySquad ? "translate-x-4" : ""}`} />
+                  </span>
+                </button>
+              ) : squadCount === 0 ? (
+                <button onClick={() => navigate("/squads")} className="w-full text-victory-muted text-xs text-center touch-target">
+                  Start a squad so your friends get pinged when you go live, and your first highlight comes easy →
+                </button>
+              ) : null}
             </div>
 
             {/* Big Go Live button */}

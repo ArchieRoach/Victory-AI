@@ -6,7 +6,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { DrillCard } from "@/components/DrillCard";
 import { Confetti } from "@/components/Confetti";
 import { BeltCelebration } from "@/components/BeltCelebration";
-import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame, Swords, Shield, Footprints, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame, Swords, Shield, Footprints, ChevronDown, ChevronUp, Film, ChevronRight } from "lucide-react";
+import { HighlightShareSheet } from "@/components/HighlightShareSheet";
+import { analytics } from "@/lib/analytics";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { usePalette } from "@/hooks/useSystemTheme";
@@ -62,6 +64,8 @@ export default function SessionResultsPage() {
   const [session, setSession] = useState(location.state?.session || null);
   const [sessionNotFound, setSessionNotFound] = useState(false);
   const navButtonsRef = useRef(null);
+  const [roundClip,     setRoundClip]     = useState(null);
+  const [clipStarting,  setClipStarting]  = useState(false);
 
   // Tesler's Law: the results screen only worked before for a fighter who never
   // refreshes, backgrounds the tab, or reopens a saved link — real people do all
@@ -177,6 +181,21 @@ export default function SessionResultsPage() {
       .filter((d) => d.score !== null)
       .sort((a, b) => (b.score || 0) - (a.score || 0))
       .slice(0, 3);
+  };
+
+  const handleRoundClip = async () => {
+    const id = session?.session_id || routeSessionId;
+    if (!id || clipStarting) return;
+    setClipStarting(true);
+    try {
+      const res = await axios.post(`${API}/sessions/${id}/highlight`, {});
+      setRoundClip(res.data);
+      analytics.capture("training_clip_started", { round: res.data.round_number });
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || t("results.roundClipFailed", "Couldn't make your clip — try again"));
+    } finally {
+      setClipStarting(false);
+    }
   };
 
   const handleShare = async () => {
@@ -528,6 +547,30 @@ export default function SessionResultsPage() {
           </div>
         </section>
 
+        {session.rounds?.some((r) => r.video_url) && (
+          <button
+            onClick={handleRoundClip}
+            disabled={clipStarting}
+            className="w-full victory-card p-4 flex items-center gap-3 border-victory-lime/30 bg-victory-lime/5 active:scale-[0.99] transition-transform text-left disabled:opacity-60"
+            data-testid="round-clip-btn"
+          >
+            <div className="w-11 h-11 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center flex-shrink-0">
+              <Film className="w-5 h-5 text-victory-lime" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-victory-text font-heading font-bold text-sm">
+                {t("results.roundClipTitle", "Post your best round")}
+              </p>
+              <p className="text-victory-muted text-xs">
+                {clipStarting
+                  ? t("results.roundClipStarting", "Cutting your clip…")
+                  : t("results.roundClipBody", "30s vertical clip with your AI score on it, ready for TikTok and Reels")}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-victory-muted" />
+          </button>
+        )}
+
         {/* Share Button */}
         <button
           onClick={handleShare}
@@ -558,6 +601,14 @@ export default function SessionResultsPage() {
           </button>
         </div>
       </main>
+
+      {roundClip && (
+        <HighlightShareSheet
+          highlightId={roundClip.highlight_id}
+          initial={roundClip}
+          onClose={() => setRoundClip(null)}
+        />
+      )}
 
       <BottomNav />
     </div>

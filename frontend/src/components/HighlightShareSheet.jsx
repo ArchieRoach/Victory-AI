@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { X, Share2, Download, Link, Scissors, Flame, RotateCcw, Send, Users } from "lucide-react";
+import { X, Share2, Download, Link, Scissors, Flame, RotateCcw, Send, Users, Dumbbell, TrendingUp } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { fetchVideoFile, canShareFile, shareVideoFile, downloadFile, highlightCaption } from "@/lib/shareVideo";
 
@@ -138,6 +138,10 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
               <span className="flex items-center gap-1 bg-victory-lime/15 text-victory-lime text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-lime/30">
                 <Flame className="w-3 h-3" /> AUTO HIGHLIGHT
               </span>
+            ) : hl?.source === "training" ? (
+              <span className="flex items-center gap-1 bg-victory-teal/15 text-victory-teal text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-teal/30">
+                <Dumbbell className="w-3 h-3" /> YOUR ROUND
+              </span>
             ) : (
               <span className="flex items-center gap-1 bg-victory-card-highlight text-victory-muted text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-border">
                 <Scissors className="w-3 h-3" /> CLIP
@@ -188,6 +192,31 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
             )}
           </div>
         </div>
+
+        {hl?.source === "training" && hl.round_score != null && (
+          <div className="flex items-center justify-center gap-4 px-4 pt-4">
+            <div className="text-center">
+              <p className="font-mono font-bold text-2xl text-victory-lime">{Number(hl.round_score).toFixed(1)}</p>
+              <p className="text-victory-muted text-[11px]">AI score</p>
+            </div>
+            {hl.score_delta > 0 && (
+              <>
+                <div className="w-px h-8 bg-victory-border" />
+                <div className="text-center">
+                  <p className="font-mono font-bold text-2xl text-victory-teal flex items-center gap-1 justify-center">
+                    <TrendingUp className="w-4 h-4" />+{Number(hl.score_delta).toFixed(1)}
+                  </p>
+                  <p className="text-victory-muted text-[11px]">since last session</p>
+                </div>
+              </>
+            )}
+            <div className="w-px h-8 bg-victory-border" />
+            <div className="text-center">
+              <p className="font-mono font-bold text-2xl text-victory-text">{hl.share_count || 0}</p>
+              <p className="text-victory-muted text-[11px]">shares</p>
+            </div>
+          </div>
+        )}
 
         {hl?.peak_reactions > 0 && (
           <div className="flex items-center justify-center gap-4 px-4 pt-4">

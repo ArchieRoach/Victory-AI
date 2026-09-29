@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
-import { ArrowLeft, Scissors, Flame, Share2, Trophy, Radio, Trash2, X, AlertCircle } from "lucide-react";
+import { ArrowLeft, Scissors, Flame, Share2, Trophy, Radio, Trash2, X, AlertCircle, Dumbbell } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { HighlightShareSheet } from "@/components/HighlightShareSheet";
 
@@ -51,6 +51,10 @@ function HighlightCard({ hl, isBest, onOpen, onDelete }) {
           <span className="flex items-center gap-1 bg-victory-bg/80 text-victory-lime text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-lime/30">
             <Flame className="w-3 h-3" /> AUTO
           </span>
+        ) : hl.source === "training" ? (
+          <span className="flex items-center gap-1 bg-victory-bg/80 text-victory-teal text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-teal/30">
+            <Dumbbell className="w-3 h-3" /> ROUND
+          </span>
         ) : (
           <span className="flex items-center gap-1 bg-victory-bg/80 text-victory-muted text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-border">
             <Scissors className="w-3 h-3" /> CLIP
@@ -79,6 +83,11 @@ function HighlightCard({ hl, isBest, onOpen, onDelete }) {
       )}
 
       <div className="absolute bottom-0 left-0 right-0 p-2.5">
+        {hl.source === "training" && hl.round_score != null && (
+          <p className="font-mono font-bold text-lg text-victory-lime leading-none">
+            {Number(hl.round_score).toFixed(1)}<span className="text-victory-muted text-[10px] font-body font-medium ml-1">AI score</span>
+          </p>
+        )}
         {hl.peak_reactions > 0 && (
           <p className="font-mono font-bold text-lg text-victory-lime leading-none">
             {hl.peak_reactions}<span className="text-victory-muted text-[10px] font-body font-medium ml-1">reactions</span>
@@ -100,6 +109,7 @@ export default function HighlightsPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const streamFilter = params.get("stream");
+  const openParam    = params.get("open");
 
   const [sort,    setSort]    = useState("recent");
   const [items,   setItems]   = useState([]);
@@ -122,6 +132,22 @@ export default function HighlightsPage() {
   }, [sort, streamFilter]);
 
   useEffect(() => { setLoading(true); load(); }, [load]);
+
+  // Deep links (push notification, end of stream) land straight in the share sheet, so the
+  // reward is one tap away instead of four. "best" = the biggest pop, else the newest.
+  useEffect(() => {
+    if (!openParam || loading) return;
+    let target = null;
+    if (openParam === "best") {
+      target = items.reduce((best, h) => (!best || (h.peak_reactions || 0) > (best.peak_reactions || 0) ? h : best), null);
+    } else {
+      target = items.find((h) => h.highlight_id === openParam) || { highlight_id: openParam };
+    }
+    if (target) setOpen(target);
+    const next = new URLSearchParams(params);
+    next.delete("open");
+    setParams(next, { replace: true });
+  }, [openParam, loading, items, params, setParams]);
 
   const anyPending = items.some((h) => PENDING.includes(h.status));
   useEffect(() => {

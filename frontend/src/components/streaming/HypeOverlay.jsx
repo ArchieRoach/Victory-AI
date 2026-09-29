@@ -7,6 +7,8 @@ const SEND_GAP_MS   = 250;
 const COMBO_MS      = 1500;
 const BANNER_MS     = 4500;
 const PARTICIPATION_MS = 20_000;
+// Matches the server's 10s scoring window: with no taps for that long the meter is stale.
+const METER_STALE_MS = 10_000;
 const COLORS = ["text-victory-lime", "text-victory-teal", "text-victory-orange"];
 
 let nextId = 0;
@@ -17,6 +19,8 @@ export function HypeOverlay({ onHype, burst, highlight, onOpenHighlight, disable
   const [particles, setParticles] = useState([]);
   const [combo,     setCombo]     = useState(0);
   const [banner,    setBanner]    = useState(null);
+  const [meter,     setMeter]     = useState(null);
+  const meterTimerRef = useRef(null);
   const lastSendRef   = useRef(0);
   const lastTapRef    = useRef(0);
   const pendingOwnRef = useRef(0);
@@ -42,17 +46,31 @@ export function HypeOverlay({ onHype, burst, highlight, onOpenHighlight, disable
     const others = burst.count - pendingOwnRef.current;
     pendingOwnRef.current = Math.max(0, pendingOwnRef.current - burst.count);
     spawn(others);
+    if (burst.meter) {
+      setMeter(burst.meter.cooling ? null : burst.meter);
+      clearTimeout(meterTimerRef.current);
+      meterTimerRef.current = setTimeout(() => setMeter(null), METER_STALE_MS);
+    }
   }, [burst, spawn]);
 
   useEffect(() => {
     if (!highlight) return;
     const wasPartOfIt = Date.now() - lastTapRef.current < PARTICIPATION_MS;
     setBanner({ ...highlight, wasPartOfIt });
+    setMeter(null);
     const t = setTimeout(() => setBanner(null), BANNER_MS);
     return () => clearTimeout(t);
   }, [highlight]);
 
-  useEffect(() => () => clearTimeout(comboTimerRef.current), []);
+  useEffect(() => () => {
+    clearTimeout(comboTimerRef.current);
+    clearTimeout(meterTimerRef.current);
+  }, []);
+
+  const missing = meter ? Math.max(0, meter.needed_reactors - meter.reactors) : 0;
+  const meterLabel = !meter ? "" : missing > 0
+    ? `${missing} more ${missing === 1 ? "person" : "people"} to clip it!`
+    : meter.ratio >= 0.8 ? "Almost — keep going!" : "Keep the hype up!";
 
   const tap = () => {
     const now = Date.now();
@@ -98,7 +116,22 @@ export function HypeOverlay({ onHype, burst, highlight, onOpenHighlight, disable
       )}
 
       {!disabled && (
-        <div className="absolute bottom-3 right-3 flex flex-col items-center gap-1 pointer-events-auto">
+        <div className="absolute bottom-3 right-3 flex flex-col items-end gap-1 pointer-events-auto">
+          {meter && meter.ratio > 0 && (
+            <div className="animate-fade-in mb-1 w-40 bg-victory-bg/80 backdrop-blur border border-victory-border rounded-xl px-2.5 py-2" role="status" aria-live="polite">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-heading font-extrabold tracking-wide text-victory-lime">HYPE</span>
+                <span className="font-mono text-[10px] text-victory-muted">{meter.reactors}/{meter.needed_reactors}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-victory-border overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-victory-teal to-victory-lime transition-[width] duration-300"
+                  style={{ width: `${Math.round(meter.ratio * 100)}%` }}
+                />
+              </div>
+              <p className="text-victory-text text-[11px] mt-1 leading-tight">{meterLabel}</p>
+            </div>
+          )}
           {combo > 1 && (
             <span key={combo} className="animate-scale-in font-mono font-bold text-sm text-victory-lime drop-shadow">
               x{combo}

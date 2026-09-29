@@ -34,3 +34,8 @@ test("caption leads with the reaction count when there is one", () => {
   expect(highlightCaption({ peak_reactions: 42 })).toMatch(/^42 reactions at once/);
   expect(highlightCaption({})).toMatch(/^Caught this live/);
 });
+
+test("training captions brag about the score and the improvement", () => {
+  expect(highlightCaption({ source: "training", round_score: 8.4, score_delta: 0.6 })).toMatch(/^AI score 8\.4 \(\+0\.6\)/);
+  expect(highlightCaption({ source: "training", round_score: 8.4, score_delta: -0.2 })).toMatch(/^AI score 8\.4 on/);
+});

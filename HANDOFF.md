@@ -46,6 +46,21 @@ Product context: the audience is teens and 18–24s. Features should serve three
   confirm the clip lands on the moment. Failures log as `Highlight <id> failed: …` on Railway.
 - Each highlight is a Cloudinary video render, which costs transformation credits.
 
+## Habit-loop follow-up (branch `feature/habit-loop`)
+Goal: cut the steps between "I want to show off" and the reward, and remove the need for an audience.
+- **Training clips:** `POST /sessions/{id}/highlight` picks the best-scoring round, trims 30s from the
+  middle, and uploads a *copy* to `victory_highlights/{id}` with an "AI SCORE 8.4 (+0.6) · JAB 9" badge.
+  It never watermarks the original, so the share URL can't expose the full round. Only videos under
+  `victory_rounds/{user_id}/` are accepted. Entry point: "Post your best round" on the session results screen.
+- **One-tap share:** the push notification and the end-of-stream redirect use `/highlights?open=<id|best>`,
+  which lands in the share sheet with the file already pre-fetched.
+- **Easier first spike:** streams with fewer than 5 viewers need 2 reactors and a score of 8. A live
+  hype meter (in `hype_burst.meter`) shows viewers "N more people to clip it!".
+- **Squad go-live:** `POST /streams/go-live {audience: "public"|"squad", notify_squad}`. Squad-only
+  streams are private with `allowed_viewer_ids`, enforced by `can_view_stream()` on the stream page,
+  websocket, clip, highlights and feed. Pinging the squad is rate-limited to once per 30 min.
+  Squad members who join after the stream starts can't see it until the next stream.
+
 ---
 
 # Previous: Bug-Hunt Pass
