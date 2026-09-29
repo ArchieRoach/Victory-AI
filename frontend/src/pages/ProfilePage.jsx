@@ -42,6 +42,10 @@ export default function ProfilePage() {
     week_activity: [],
   });
   const [weeklyReminder, setWeeklyReminder] = useState(true);
+  const [teasers, setTeasers] = useState(null);
+  useEffect(() => {
+    axios.get(`${API}/users/me/notification-prefs`).then((r) => setTeasers(r.data.teasers)).catch(() => setTeasers(true));
+  }, []);
   const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const EXPERIENCE_LEVELS = [
@@ -807,6 +811,26 @@ export default function ProfilePage() {
               />
             </div>
           )}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-victory-border">
+            <div>
+              <p className="text-victory-text text-sm">Squad reactions</p>
+              <p className="text-victory-muted text-xs">"3 people reacted to your round" and verdict requests</p>
+            </div>
+            <Switch
+              checked={teasers}
+              disabled={teasers === null}
+              onCheckedChange={async (on) => {
+                setTeasers(on);
+                try {
+                  await axios.put(`${API}/users/me/notification-prefs`, { teasers: on });
+                } catch {
+                  setTeasers(!on);
+                  toast.error("Couldn't save — try again");
+                }
+              }}
+              data-testid="teasers-toggle"
+            />
+          </div>
           {pushPermission === 'denied' && (
             <p className="text-victory-muted text-xs mt-3 pt-3 border-t border-victory-border">
               Push notifications are blocked in your browser settings.

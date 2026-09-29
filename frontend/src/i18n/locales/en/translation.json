@@ -316,6 +316,7 @@
     "homework": "Your Homework",
     "shareBtn": "Share My Scorecard",
     "roundClipTitle": "Post your best round",
+    "unscoredNote": "No AI score this time — nothing watched this session. Turn on video in Train and the AI will score every round.",
     "roundClipBody": "30s vertical clip with your AI score on it, ready for TikTok and Reels",
     "roundClipStarting": "Cutting your clip…",
     "roundClipFailed": "Couldn't make your clip — try again",

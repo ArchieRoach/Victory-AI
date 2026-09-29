@@ -9,8 +9,13 @@ import {
 } from "recharts";
 import { usePalette } from "@/hooks/useSystemTheme";
 
-export const ProgressChart = ({ sessions }) => {
+export const ProgressChart = ({ sessions: allSessions }) => {
   const p = usePalette();
+  // Sessions without video analysis have no score — plotting them as 0 would fake a slump.
+  const sessions = useMemo(
+    () => (allSessions || []).filter((s) => typeof s.overall_score === "number"),
+    [allSessions],
+  );
   const data = useMemo(() => {
     // Sort by date ascending and take last 10 sessions
     const sorted = [...sessions]

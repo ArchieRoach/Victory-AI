@@ -76,6 +76,7 @@ import EmoteStudioPage from "@/pages/EmoteStudioPage";
 import { PushPrompt } from "@/components/PushPrompt";
 import StreamerDashboardPage from "@/pages/StreamerDashboardPage";
 import HighlightsPage from "@/pages/HighlightsPage";
+import RateRoundPage from "@/pages/RateRoundPage";
 import TokensPage from "@/pages/TokensPage";
 import DiscoverPage from "@/pages/DiscoverPage";
 import TokenSuccessPage from "@/pages/TokenSuccessPage";
@@ -365,6 +366,7 @@ const AppRouter = () => {
         <Route path="/emotes" element={<ProtectedRoute><EmoteStudioPage /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><StreamerDashboardPage /></ProtectedRoute>} />
         <Route path="/highlights" element={<ProtectedRoute><HighlightsPage /></ProtectedRoute>} />
+        <Route path="/rate/:highlightId" element={<ProtectedRoute><RateRoundPage /></ProtectedRoute>} />
         <Route path="/tokens" element={<ProtectedRoute>{isNativeShell() ? <NativePurchaseNoticePage /> : <TokensPage />}</ProtectedRoute>} />
         <Route path="/tokens/success" element={<ProtectedRoute><TokenSuccessPage /></ProtectedRoute>} />
         <Route path="/clips" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />

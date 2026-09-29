@@ -4,7 +4,8 @@ import axios from "axios";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { Swords, Plus, Users, ChevronRight, X, Flame } from "lucide-react";
+import { Swords, Plus, Users, ChevronRight, X, Flame, Gavel, Check } from "lucide-react";
+import { stampByKey } from "@/lib/stamps";
 import { useTranslation } from "react-i18next";
 
 function CreateSquadModal({ onClose, onCreated }) {
@@ -97,9 +98,11 @@ export default function SquadsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [toRate, setToRate] = useState([]);
 
   useEffect(() => {
     fetchSquads();
+    axios.get(`${API}/squad-rounds/inbox`).then((r) => setToRate(r.data || [])).catch(() => {});
   }, []);
 
   const fetchSquads = async () => {
@@ -141,6 +144,35 @@ export default function SquadsPage() {
       </header>
 
       <main className="p-4 space-y-3">
+        {toRate.length > 0 && (
+          <section data-testid="rounds-to-rate">
+            <p className="section-label mb-2 flex items-center gap-1.5"><Gavel className="w-3 h-3" /> Rounds to rate</p>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+              {toRate.map((h) => {
+                const mine = h.my_stamp && stampByKey(h.my_stamp);
+                return (
+                  <button
+                    key={h.highlight_id}
+                    onClick={() => navigate(`/rate/${h.highlight_id}`)}
+                    className="relative flex-shrink-0 w-28 aspect-[9/16] rounded-2xl overflow-hidden bg-victory-card border border-victory-border active:scale-[0.98] transition-transform text-left"
+                  >
+                    {h.thumbnail_url && <img src={h.thumbnail_url} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />}
+                    <div className="absolute inset-0 bg-gradient-to-t from-victory-bg via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-2">
+                      <p className="text-victory-text text-xs font-semibold truncate">{h.streamer_name || "Squad mate"}</p>
+                      {mine ? (
+                        <p className="text-victory-muted text-[10px] flex items-center gap-1"><Check className="w-3 h-3 text-victory-lime" /> {mine.label}</p>
+                      ) : (
+                        <p className="text-victory-lime text-[10px] font-heading font-bold">Rate it</p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {loading ? (
           [1, 2, 3].map((i) => <div key={i} className="skeleton-shimmer h-20 rounded-xl" />)
         ) : squads.length === 0 ? (
