@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
 import { withMinDuration } from "@/utils/async";
 import { currentEntry } from "@/lib/entrySource";
+import { getVideoPref, setVideoPref } from "@/lib/videoPref";
 import { analytics } from "@/lib/analytics";
 import { FirstUseTip } from "@/components/FirstUseTip";
 
@@ -78,7 +79,9 @@ export default function TrainPage() {
   const [totalRounds,   setTotalRounds]   = useState(3);
   const [sessionMode,   setSessionMode]   = useState("private"); // "private" | "public"
   const [voiceEnabled,  setVoiceEnabled]  = useState(true);
-  const [recordVideo,   setRecordVideo]   = useState(false); // opt-in, off by default — privacy by default
+  // Opt-in, off by default (privacy by default) — but remembered once the fighter answers.
+  const [videoPref,     setVideoPrefState] = useState(() => getVideoPref());
+  const [recordVideo,   setRecordVideo]   = useState(() => getVideoPref() === "on");
   const [cameraReady,   setCameraReady]   = useState(false);
   const [cameraError,   setCameraError]   = useState(null);
   const [startingSession, setStartingSession] = useState(false);
@@ -145,6 +148,13 @@ export default function TrainPage() {
       videoPreviewRef.current.srcObject = cameraStreamRef.current;
     }
   }, [cameraReady, isConfiguring]);
+
+  const chooseVideo = (on) => {
+    setRecordVideo(on);
+    setVideoPref(on);
+    setVideoPrefState(on ? "on" : "off");
+    analytics.capture("record_video_choice", { on, asked: videoPref === null });
+  };
 
   const saveConfig = useCallback(() => {
     localStorage.setItem("victory_train_config", JSON.stringify({
@@ -671,9 +681,29 @@ export default function TrainPage() {
 
             {/* Video recording toggle — opt-in, off by default. Enabling it is what
                 makes AI feedback based on your real technique instead of banter. */}
-            {sessionMode === "private" && (
+            {sessionMode === "private" && videoPref === null && (
+              <div className="victory-card p-4 space-y-3 border-victory-lime/40 bg-victory-lime/5" data-testid="video-ask">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center flex-shrink-0">
+                    <Video className="w-5 h-5 text-victory-lime" />
+                  </div>
+                  <div>
+                    <p className="text-victory-text font-heading font-bold">{t("train.videoAskTitle", "Get scored by AI?")}</p>
+                    <p className="text-victory-muted text-sm">
+                      {t("train.videoAskBody", "Recording is how the AI scores you, finds your personal bests and writes your scouting report. Clips stay private unless you share them.")}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => chooseVideo(false)} className="victory-btn-ghost min-h-[48px] text-sm">{t("train.videoAskNo", "Not now")}</button>
+                  <button onClick={() => chooseVideo(true)} className="victory-btn-secondary min-h-[48px] text-sm">{t("train.videoAskYes", "Turn on")}</button>
+                </div>
+              </div>
+            )}
+
+            {sessionMode === "private" && videoPref !== null && (
               <div className="victory-card p-4">
-                <button onClick={() => setRecordVideo(!recordVideo)} className="w-full flex items-center justify-between touch-target">
+                <button onClick={() => chooseVideo(!recordVideo)} className="w-full flex items-center justify-between touch-target">
                   <div className="flex items-center gap-3">
                     {recordVideo ? <Video className="w-6 h-6 text-victory-lime" /> : <VideoOff className="w-6 h-6 text-victory-muted" />}
                     <div className="text-left">
@@ -687,6 +717,11 @@ export default function TrainPage() {
                 </button>
                 {cameraError && (
                   <p className="text-victory-danger text-xs mt-2">{cameraError}</p>
+                )}
+                {!recordVideo && (
+                  <p className="text-victory-muted text-xs mt-2" data-testid="video-off-note">
+                    {t("train.videoOffNote", "Video's off — this session won't get an AI score, personal bests or a scouting report.")}
+                  </p>
                 )}
               </div>
             )}
