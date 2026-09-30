@@ -16,7 +16,7 @@ export const BottomNav = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-victory-bg/95 backdrop-blur-sm border-t border-victory-border z-50 bottom-nav"
+      className="fixed bottom-0 left-0 right-0 bg-victory-bg/95 backdrop-blur-sm border-t border-victory-border z-40 bottom-nav"
       data-testid="bottom-nav"
     >
       <div className="flex justify-around items-center h-20 max-w-lg mx-auto px-1">
