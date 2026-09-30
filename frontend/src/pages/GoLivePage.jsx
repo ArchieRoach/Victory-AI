@@ -68,7 +68,8 @@ export default function GoLivePage() {
   useEffect(() => {
     axios.get(`${API}/squads/mine`)
       .then((r) => setSquadCount((r.data || []).length))
-      .catch(() => setSquadCount(0));
+      // Unknown ≠ none: a failed lookup must not lock the option; the server re-checks.
+      .catch(() => setSquadCount(null));
   }, []);
 
   // Cleanup on unmount (navigating away while live or mid-setup)
@@ -383,16 +384,25 @@ export default function GoLivePage() {
                   { value: "public", label: "Everyone", icon: Globe },
                   { value: "squad",  label: "Squad only", icon: Lock },
                 ].map(({ value, label, icon: Icon }) => {
-                  const disabled = value === "squad" && squadCount === 0;
+                  const needsSquad = value === "squad" && squadCount === 0;
                   const active = audience === value;
                   return (
                     <button
                       key={value}
                       role="radio"
                       aria-checked={active}
-                      disabled={disabled}
-                      onClick={() => setAudience(value)}
-                      className={`min-h-[48px] rounded-xl border flex items-center justify-center gap-2 font-heading font-bold text-sm transition-colors disabled:opacity-40 ${
+                      aria-disabled={needsSquad}
+                      onClick={() => {
+                        if (needsSquad) {
+                          toast("Start a squad first", {
+                            description: "Squad-only streams are just for your squad.",
+                            action: { label: "Squads", onClick: () => navigate("/squads") },
+                          });
+                          return;
+                        }
+                        setAudience(value);
+                      }}
+                      className={`min-h-[48px] rounded-xl border flex items-center justify-center gap-2 font-heading font-bold text-sm transition-colors ${needsSquad ? "opacity-40" : ""} ${
                         active
                           ? "bg-victory-lime/15 border-victory-lime text-victory-lime"
                           : "bg-victory-card border-victory-border text-victory-muted"

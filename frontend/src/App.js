@@ -415,7 +415,9 @@ const AppRouter = () => {
 function FeaturebaseRoot({ children }) {
   const { user } = useAuth();
   return (
-    <FeaturebaseProvider appId={FEATUREBASE_APP_ID} featurebaseJwt={user?.featurebaseJwt}>
+    // The default launcher is a fixed bottom-right bubble that sits on top of the bottom
+    // nav's Profile tab; the messenger opens from FeedbackWidget instead.
+    <FeaturebaseProvider appId={FEATUREBASE_APP_ID} featurebaseJwt={user?.featurebaseJwt} hideDefaultLauncher>
       <FeaturebaseLogoutSync />
       {children}
     </FeaturebaseProvider>

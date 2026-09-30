@@ -3,7 +3,8 @@ import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
-import { MessageSquarePlus, X, Bug, Lightbulb, MessageCircle, Star } from "lucide-react";
+import { MessageSquarePlus, X, Bug, Lightbulb, MessageCircle, Star, MessagesSquare, ChevronRight } from "lucide-react";
+import { useFeaturebase } from "featurebase-js/react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/App";
 
@@ -13,12 +14,14 @@ const TYPES = [
   { key: "general", icon: MessageCircle, labelKey: "feedback.typeGeneral" },
 ];
 
-const HIDDEN_PATHS = ["/welcome", "/login", "/onboarding", "/paywall", "/payment", "/stream/", "/go-live"];
+// Hidden on full-bleed video screens, where a floating button covers the stream itself.
+const HIDDEN_PATHS = ["/welcome", "/login", "/onboarding", "/paywall", "/payment", "/stream/", "/go-live", "/live"];
 
 export default function FeedbackWidget() {
   const { isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
+  const { show: showMessenger, unreadCount } = useFeaturebase();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState("general");
   const [message, setMessage] = useState("");
@@ -73,9 +76,14 @@ export default function FeedbackWidget() {
       <button
         onClick={() => setOpen(true)}
         className="fixed bottom-20 left-4 z-40 w-12 h-12 rounded-full bg-victory-lime text-victory-bg flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
-        aria-label={t("feedback.title")}
+        aria-label={unreadCount > 0 ? `${t("feedback.title")} (${unreadCount} unread)` : t("feedback.title")}
       >
         <MessageSquarePlus className="w-5 h-5" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-victory-danger text-victory-text text-[10px] font-mono font-bold flex items-center justify-center border-2 border-victory-bg">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
       </button>
 
       {/* Backdrop */}
@@ -107,6 +115,20 @@ export default function FeedbackWidget() {
                 <X className="w-4 h-4" />
               </button>
             </div>
+
+            <button
+              onClick={() => { handleClose(); showMessenger(); }}
+              className="w-full touch-target flex items-center gap-3 rounded-xl bg-victory-bg border border-victory-border px-3 text-left hover:border-victory-lime/40 transition-colors"
+            >
+              <MessagesSquare className="w-4 h-4 text-victory-lime flex-shrink-0" />
+              <span className="flex-1 text-victory-text text-sm">{t("feedback.chat", "Chat with the team")}</span>
+              {unreadCount > 0 && (
+                <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-victory-danger text-victory-text text-[10px] font-mono font-bold flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+              <ChevronRight className="w-4 h-4 text-victory-muted" />
+            </button>
 
             {/* Type selector */}
             <div className="flex gap-2">
