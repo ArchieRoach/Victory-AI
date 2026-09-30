@@ -48,6 +48,21 @@ def test_weekly_summary():
     assert empty["pct_direct"] is None and empty["median_sessions_per_user"] == 0
 
 
+def test_metrics_token_needs_a_long_configured_secret():
+    import server
+    saved = server.METRICS_API_TOKEN
+    try:
+        server.METRICS_API_TOKEN = ""
+        assert server.metrics_token_ok("") is False and server.metrics_token_ok("anything") is False
+        server.METRICS_API_TOKEN = "short"
+        assert server.metrics_token_ok("short") is False
+        server.METRICS_API_TOKEN = "x" * 40
+        assert server.metrics_token_ok("x" * 40) is True
+        assert server.metrics_token_ok("x" * 39) is False and server.metrics_token_ok(None) is False
+    finally:
+        server.METRICS_API_TOKEN = saved
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:

@@ -118,6 +118,11 @@ callouts, and hourly for weekly reminders and film digests. Local times use the 
   Train now asks once ("Get scored by AI?"), remembers the answer on the device
   (`lib/videoPref.js`), and when video is off explains that the session won't be scored.
 
+**Reading metrics without a browser:** set `METRICS_API_TOKEN` (32+ random characters) on Railway.
+Put the same value in the Claude Code environment as `VICTORY_METRICS_TOKEN`, along with
+`VICTORY_API_URL` (the backend base URL), then run `python3 tools/habit_metrics.py 8`. The token
+only opens `/api/admin/habit-metrics`.
+
 ---
 
 # Previous: Bug-Hunt Pass
