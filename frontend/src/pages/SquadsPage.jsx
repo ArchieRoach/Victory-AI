@@ -29,7 +29,7 @@ function CreateSquadModal({ onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center p-4">
-      <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl">
+      <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-heading font-bold text-victory-text">{t("squads.createTitle")}</h2>
           <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
@@ -69,7 +69,7 @@ function JoinSquadModal({ onClose, onJoined }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center p-4">
-      <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl">
+      <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-heading font-bold text-victory-text">{t("squads.joinByCode")}</h2>
           <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">

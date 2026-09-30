@@ -6680,10 +6680,22 @@ def summarise_habit_week(sessions: list) -> dict:
     }
 
 
+# Lets the owner read habit metrics from a script or Claude Code without a browser
+# session. Only this read-only endpoint accepts it; unset (or short) disables it.
+METRICS_API_TOKEN = os.environ.get("METRICS_API_TOKEN", "")
+
+
+def metrics_token_ok(provided: Optional[str]) -> bool:
+    import hmac as _hmac
+    return len(METRICS_API_TOKEN) >= 32 and bool(provided) and _hmac.compare_digest(provided, METRICS_API_TOKEN)
+
+
 @api_router.get("/admin/habit-metrics")
-async def habit_metrics(weeks: int = Query(8, ge=1, le=26), user: dict = Depends(get_current_user)):
-    if user.get("email") != ADMIN_EMAIL:
-        raise HTTPException(403, "Admin only")
+async def habit_metrics(request: Request, weeks: int = Query(8, ge=1, le=26)):
+    if not metrics_token_ok(request.headers.get("X-Metrics-Token")):
+        user = await get_current_user(request)
+        if user.get("email") != ADMIN_EMAIL:
+            raise HTTPException(403, "Admin only")
     today = datetime.now(timezone.utc).date()
     week_start = today - timedelta(days=today.weekday())
     out = []
