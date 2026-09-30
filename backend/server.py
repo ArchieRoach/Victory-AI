@@ -293,6 +293,22 @@ class TrainingSessionCreate(BaseModel):
     rest_duration: int = 60
     total_rounds: int = 3
     record_video: bool = True
+    entry_source: Optional[str] = Field(None, max_length=20)
+    entry_age_minutes: Optional[int] = Field(None, ge=0)
+
+
+# A push only gets credit for a session started within this long of tapping it; after
+# that the fighter chose to train on their own.
+TRIGGER_ATTRIBUTION_MINUTES = 60
+
+
+def session_trigger(entry_source: Optional[str], entry_age_minutes: Optional[int]) -> str:
+    src = _PUSH_KIND_RE.sub("", (entry_source or "").lower())[:20]
+    if not src or src == "direct":
+        return "direct"
+    if entry_age_minutes is not None and entry_age_minutes > TRIGGER_ATTRIBUTION_MINUTES:
+        return "direct"
+    return src
 
 class RoundVideoUpload(BaseModel):
     session_id: str
@@ -1038,6 +1054,7 @@ async def start_training_session(session_config: TrainingSessionCreate, user: di
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "round_duration": session_config.round_duration, "rest_duration": session_config.rest_duration,
         "total_rounds": session_config.total_rounds, "record_video": session_config.record_video,
+        "trigger": session_trigger(session_config.entry_source, session_config.entry_age_minutes),
         "rounds": [], "status": "in_progress", "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.training_sessions.insert_one(session_doc)
@@ -1075,6 +1092,7 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
     session_record = {
         "session_id": session_id, "user_id": user["user_id"], "date": session["date"],
         "overall_score": overall_score, "scored": overall_score is not None,
+        "trigger": session.get("trigger", "direct"), "record_video": session.get("record_video"),
         "dimension_scores": final_dimension_scores,
         "rounds": [{"round_number": v["round_number"], "video_url": v["video_url"], "analysis": v.get("analysis_results")} for v in videos],
         "training_config": {"round_duration": session["round_duration"], "rest_duration": session["rest_duration"], "total_rounds": session["total_rounds"]},
@@ -1707,6 +1725,8 @@ class DimensionScore(BaseModel):
     score: Optional[float] = None
 
 class SessionCreate(BaseModel):
+    entry_source: Optional[str] = Field(None, max_length=20)
+    entry_age_minutes: Optional[int] = Field(None, ge=0)
     video_url: Optional[str] = None
     session_notes: Optional[str] = None
     date: Optional[str] = None
@@ -1729,6 +1749,7 @@ async def create_session(data: SessionCreate, user: dict = Depends(get_current_u
         "video_url": data.video_url,
         "session_notes": data.session_notes,
         "source": "manual",
+        "trigger": session_trigger(data.entry_source, data.entry_age_minutes),
         "created_at": now,
         "completed_at": now,
     }
@@ -2929,9 +2950,25 @@ async def _send_apns(user_id: str, title: str, body: str, url: str, tag: str):
         if r.status_code == 410 or reason in ("BadDeviceToken", "DeviceTokenNotForTopic"):
             await db.apns_tokens.delete_one({"device_token": t["device_token"]})
 
+_PUSH_KIND_RE = re.compile(r"[^a-z]")
+
+
+def push_kind(tag: Optional[str]) -> str:
+    return _PUSH_KIND_RE.sub("", (tag or "").split("-")[0].lower())[:20] or "push"
+
+
+def tag_push_url(url: str, tag: Optional[str]) -> str:
+    """Every push link says what kind of push it was (?src=booking), so a session started
+    from it can be told apart from one the fighter started on their own."""
+    if not url.startswith("/") or "src=" in url:
+        return url
+    return f"{url}{'&' if '?' in url else '?'}src={push_kind(tag)}"
+
+
 async def _send_push(user_id: str, title: str, body: str, url: str = "/live", tag: str | None = None):
     """Fire-and-forget push to all web subscriptions and iOS devices for a user. Cleans up expired ones."""
     tag = tag or f"v-{uuid.uuid4().hex[:6]}"
+    url = tag_push_url(url, tag)
     try:
         await _send_apns(user_id, title, body, url, tag)
     except Exception as exc:
@@ -6614,6 +6651,60 @@ async def _send_film_digests(now: datetime):
             parts.append(f"{follows} new {'follower' if follows == 1 else 'followers'}")
         await _send_push(uid, title="Your Fight Film this week", body=" and ".join(parts),
                          url=f"/profile/{uid}", tag="film-digest")
+
+
+# ── Habit measurement (admin) ────────────────────────────────────────────────
+
+HABIT_ZONE = (2, 4)
+
+
+def summarise_habit_week(sessions: list) -> dict:
+    per_user: Dict[str, int] = {}
+    by_trigger: Dict[str, int] = {}
+    for s in sessions:
+        per_user[s["user_id"]] = per_user.get(s["user_id"], 0) + 1
+        t = s.get("trigger") or "untagged"
+        by_trigger[t] = by_trigger.get(t, 0) + 1
+    tagged = sum(v for k, v in by_trigger.items() if k != "untagged")
+    counts = sorted(per_user.values())
+    lo, hi = HABIT_ZONE
+    return {
+        "sessions": len(sessions),
+        "active_users": len(per_user),
+        "by_trigger": dict(sorted(by_trigger.items(), key=lambda kv: -kv[1])),
+        "pct_direct": round(100 * by_trigger.get("direct", 0) / tagged) if tagged else None,
+        "median_sessions_per_user": counts[len(counts) // 2] if counts else 0,
+        "users_in_habit_zone": sum(1 for c in counts if lo <= c <= hi),
+        "users_over_zone": sum(1 for c in counts if c > hi),
+        "pct_recorded": round(100 * sum(1 for s in sessions if s.get("record_video")) / len(sessions)) if sessions else None,
+    }
+
+
+@api_router.get("/admin/habit-metrics")
+async def habit_metrics(weeks: int = Query(8, ge=1, le=26), user: dict = Depends(get_current_user)):
+    if user.get("email") != ADMIN_EMAIL:
+        raise HTTPException(403, "Admin only")
+    today = datetime.now(timezone.utc).date()
+    week_start = today - timedelta(days=today.weekday())
+    out = []
+    for i in range(weeks - 1, -1, -1):
+        start = week_start - timedelta(weeks=i)
+        end = start + timedelta(days=7)
+        sessions = await db.sessions.find(
+            {"created_at": {"$gte": start.isoformat(), "$lt": end.isoformat()}},
+            {"user_id": 1, "trigger": 1, "record_video": 1},
+        ).to_list(100000)
+        bookings = await db.bookings.find(
+            {"at": {"$gte": start.isoformat(), "$lt": end.isoformat()}}, {"status": 1},
+        ).to_list(100000)
+        b = {k: sum(1 for x in bookings if x.get("status") == k) for k in ("kept", "sent", "cancelled")}
+        due = b["kept"] + b["sent"]
+        out.append({
+            "week_of": start.isoformat(),
+            **summarise_habit_week(sessions),
+            "bookings": {**b, "kept_rate": round(100 * b["kept"] / due) if due else None},
+        })
+    return {"weeks": out, "habit_zone": list(HABIT_ZONE), "attribution_minutes": TRIGGER_ATTRIBUTION_MINUTES}
 
 
 async def _investment_loop():

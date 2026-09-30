@@ -101,6 +101,23 @@ callouts, and hourly for weekly reminders and film digests. Local times use the 
   followers") goes out at noon local. When a new training round beats the weakest round on a full
   reel, a "swap it in?" push is sent.
 
+## Habit measurement (branch `feature/habit-measurement`)
+- **Push links:** `_send_push` appends `?src=<kind>` to every push link, where the kind comes from
+  the tag prefix (`booking`, `callout`, `stamps`, `weekly`, …). The app records what opened it
+  (`lib/entrySource.js`, per tab) and strips `src` from the URL.
+- **Session trigger:** training starts and manual scorecards send `entry_source` and
+  `entry_age_minutes`. The server stores `trigger` on the session: the push kind if the session
+  started within 60 minutes of tapping it, otherwise `direct`.
+- **Metrics:** `GET /admin/habit-metrics?weeks=8` (ADMIN_EMAIL only) shows, per week, sessions,
+  active users, sessions by trigger, % direct, median sessions per user, users in the 2–4/week
+  habit zone and over it, % recorded, and booking kept-rate. **Success looks like % direct rising
+  week on week.** Sessions saved before this change show as `untagged`.
+- **Push deep-link fix:** `sw.js` used to only focus an already-open app, ignoring the link. It now
+  navigates, or falls back to messaging the app, which routes itself.
+- **Video choice:** still opt-in (high-privacy default for teens, per the UK Children's Code).
+  Train now asks once ("Get scored by AI?"), remembers the answer on the device
+  (`lib/videoPref.js`), and when video is off explains that the session won't be scored.
+
 ---
 
 # Previous: Bug-Hunt Pass

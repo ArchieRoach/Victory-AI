@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, createContext, useContext, useRef } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { noteEntry } from "@/lib/entrySource";
 import axios from "axios";
 import i18n from "@/i18n";
 
@@ -295,6 +296,23 @@ const RootRedirect = () => {
 
 const AppRouter = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const cleaned = noteEntry(location.search);
+    if (cleaned !== null) navigate(`${location.pathname}${cleaned}${location.hash}`, { replace: true });
+  }, [location.pathname, location.search, location.hash, navigate]);
+
+  // The service worker hands us push links when it can't navigate an already-open tab itself.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const onMessage = (e) => {
+      const url = e.data?.type === "navigate" && typeof e.data.url === "string" ? e.data.url : null;
+      if (url && url.startsWith("/")) navigate(url);
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, [navigate]);
 
   // Global 402 handler — fires when free-tier AI quota is exceeded mid-session
   useEffect(() => {
