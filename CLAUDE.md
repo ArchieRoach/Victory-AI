@@ -4,6 +4,18 @@ Full-stack boxing-training + live-streaming app. See `HANDOFF.md` for current br
 
 > **UI rule**: Read `DESIGN.md` before writing any frontend code. All colors, typography, components, and patterns are defined there. Never use generic Tailwind colors or write UI without following the Victory AI design system.
 
+## Design rule: Goal → Psychology → Design
+Every product decision is written as three parts, and the reasoning is stated, not implied:
+1. **Goal**: the outcome it serves (a metric, or one of the three drives for 13–24s: permission
+   to show off, visible progress, identity expression).
+2. **Psychology**: the principle or observation that supports it (e.g. self-perception, the
+   labelling effect, peak-end, defaults/status-quo bias, variable reward, investment).
+3. **Design**: how the UI or behaviour applies it.
+
+Put the three lines in the PR description, and in a short code comment where the reasoning is
+non-obvious (e.g. `IDENTITY_TRAITS` in `backend/server.py`). Psychology never overrides honesty:
+praise and labels must be earned from real evidence, and high-privacy defaults for under-18s stay.
+
 ## Stack
 - **Frontend:** React (CRA + CRACO), JavaScript `.jsx` (no TypeScript, no Next.js). Tailwind only.
   Deployed to **Vercel** (`victory-ai-alpha.vercel.app`).

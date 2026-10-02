@@ -1,4 +1,5 @@
 import { Activity, Ghost, Headphones } from "lucide-react";
+import { roundPraise } from "@/lib/identity";
 
 // During the round: the counts, live, over the camera preview.
 export function LiveCoachOverlay({ status, stats, ghost, airpods }) {
@@ -42,8 +43,11 @@ export function LiveCoachOverlay({ status, stats, ghost, airpods }) {
 // Between rounds: what the last round looked like.
 export function LiveRoundSummary({ round, ghostPunches }) {
   if (!round) return null;
+  const praise = roundPraise(round, ghostPunches);
   return (
-    <div className="victory-card p-3 mb-3 flex items-center gap-3" data-testid="live-round-summary">
+    <div className="victory-card p-3 mb-3 space-y-2" data-testid="live-round-summary">
+    {praise && <p className="text-victory-lime text-sm font-semibold">{praise}</p>}
+    <div className="flex items-center gap-3">
       <Activity className="w-5 h-5 text-victory-lime flex-shrink-0" />
       <div className="flex-1 grid grid-cols-4 gap-2 text-center">
         <Stat label="punches" value={round.punches} />
@@ -56,6 +60,7 @@ export function LiveRoundSummary({ round, ghostPunches }) {
           Best: <span className="font-mono text-victory-text">{ghostPunches}</span>
         </p>
       )}
+    </div>
     </div>
   );
 }

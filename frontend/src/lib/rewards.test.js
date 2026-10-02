@@ -33,3 +33,8 @@ test("callouts, rank-ups and rare reports also count as wins", () => {
   expect(inviteMoment({ season: { ranked_up: true, rank: "Contender" } })).toEqual({ dimension: null, headline: "You're Contender now. Bring your crew." });
   expect(inviteMoment({}, { rarity: "rare" }).dimension).toBeNull();
 });
+
+test("a first-time trait is a win; a repeat isn't", () => {
+  expect(inviteMoment({ identity: { name: "Iron Guard", count: 1 } }).headline).toBe("New trait: Iron Guard. Show your crew.");
+  expect(inviteMoment({ identity: { name: "Iron Guard", count: 3 } })).toBeNull();
+});

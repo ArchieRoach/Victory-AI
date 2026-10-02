@@ -83,11 +83,17 @@ export function FightFilm({ userId, isOwn }) {
 
 export function FighterReputation({ profile }) {
   const titles = profile?.titles || [];
+  const traits = profile?.identity_traits || [];
   const won = profile?.callouts_won || 0;
   const defended = profile?.callouts_defended || 0;
-  if (!titles.length && !won && !defended) return null;
+  if (!titles.length && !traits.length && !won && !defended) return null;
   return (
     <div className="flex flex-wrap gap-2" data-testid="fighter-reputation">
+      {traits.map((t) => (
+        <span key={t.name} className="flex items-center gap-1 bg-victory-teal/10 text-victory-teal border border-victory-teal/40 rounded-full px-2.5 py-1 text-xs font-heading font-bold">
+          {t.name} <span className="font-mono">×{t.count}</span>
+        </span>
+      ))}
       {titles.map((t) => (
         <span key={t} className="flex items-center gap-1 bg-victory-lime/15 text-victory-lime border border-victory-lime/40 rounded-full px-2.5 py-1 text-xs font-heading font-bold">
           {t}

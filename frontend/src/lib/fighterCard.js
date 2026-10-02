@@ -2,7 +2,7 @@
 // season rank come from the server; live counts are labelled as counted on the phone.
 export function fighterCardContent({ user, rewards, overall, liveStats }) {
   const name = (user?.display_name || user?.name || "Fighter").slice(0, 24);
-  const tags = [user?.weight_class, user?.stance].filter(Boolean).map((t) => String(t).toUpperCase());
+  const tags = [rewards?.identity?.name, user?.weight_class, user?.stance].filter(Boolean).map((t) => String(t).toUpperCase());
   const season = rewards?.season;
   const pbs = (rewards?.personal_bests?.new || []).filter((b) => b.name !== "Overall").slice(0, 3);
   const beaten = rewards?.callouts_beaten?.[0];
