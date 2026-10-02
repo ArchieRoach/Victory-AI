@@ -13,3 +13,23 @@ test("top rank is full and says so", () => {
 test("no season yet renders nothing", () => {
   expect(seasonProgress(null)).toBeNull();
 });
+
+import { inviteMoment } from "./rewards";
+
+test("no win, no invite", () => {
+  expect(inviteMoment({ personal_bests: { new: [], near: [{ name: "Jab" }], baselines: 16 } }, null)).toBeNull();
+  expect(inviteMoment(undefined, undefined)).toBeNull();
+  expect(inviteMoment({}, { rarity: "common" })).toBeNull();
+  expect(inviteMoment({}, { rarity: "epic", locked: true })).toBeNull();
+});
+
+test("a fresh skill PB beats Overall as the brag", () => {
+  const m = inviteMoment({ personal_bests: { new: [{ name: "Overall" }, { name: "Jab" }] } });
+  expect(m.dimension).toBe("Jab");
+});
+
+test("callouts, rank-ups and rare reports also count as wins", () => {
+  expect(inviteMoment({ callouts_beaten: [{ dimension: "Footwork" }] }).dimension).toBe("Footwork");
+  expect(inviteMoment({ season: { ranked_up: true, rank: "Contender" } })).toEqual({ dimension: null, headline: "You're Contender now. Bring your crew." });
+  expect(inviteMoment({}, { rarity: "rare" }).dimension).toBeNull();
+});

@@ -79,6 +79,8 @@ import StreamerDashboardPage from "@/pages/StreamerDashboardPage";
 import HighlightsPage from "@/pages/HighlightsPage";
 import RateRoundPage from "@/pages/RateRoundPage";
 import CalloutsPage from "@/pages/CalloutsPage";
+import JoinSquadPage from "@/pages/JoinSquadPage";
+import { takePendingInvite } from "@/lib/pendingInvite";
 import TokensPage from "@/pages/TokensPage";
 import DiscoverPage from "@/pages/DiscoverPage";
 import TokenSuccessPage from "@/pages/TokenSuccessPage";
@@ -294,6 +296,24 @@ const RootRedirect = () => {
   return <Navigate to={isAuthenticated ? "/live" : "/welcome"} replace />;
 };
 
+// Finishes a /join link that was opened while signed out, once sign-up is done.
+const PendingInvite = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const inviteId = takePendingInvite();
+    if (!inviteId) return;
+    axios.post(`${API}/invites/${inviteId}/accept`)
+      .then(({ data }) => {
+        analytics.capture("squad_invite_accepted", { already_member: data.already_member, after_signup: true });
+        toast.success(`You're in ${data.name}`, { action: { label: "View", onClick: () => navigate(`/squads/${data.squad_id}`) } });
+      })
+      .catch((err) => toast.error(err?.response?.data?.detail || "Couldn't join that squad"));
+  }, [isAuthenticated, navigate]);
+  return null;
+};
+
 const AppRouter = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -338,6 +358,7 @@ const AppRouter = () => {
     <>
       <TrialExpirationBanner />
       <PushPrompt />
+      <PendingInvite />
       <Routes>
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/login/*" element={<LoginPage />} />
@@ -387,6 +408,7 @@ const AppRouter = () => {
         <Route path="/highlights" element={<ProtectedRoute><HighlightsPage /></ProtectedRoute>} />
         <Route path="/rate/:highlightId" element={<ProtectedRoute><RateRoundPage /></ProtectedRoute>} />
         <Route path="/callouts" element={<ProtectedRoute><CalloutsPage /></ProtectedRoute>} />
+        <Route path="/join/:inviteId" element={<JoinSquadPage />} />
         <Route path="/tokens" element={<ProtectedRoute>{isNativeShell() ? <NativePurchaseNoticePage /> : <TokensPage />}</ProtectedRoute>} />
         <Route path="/tokens/success" element={<ProtectedRoute><TokenSuccessPage /></ProtectedRoute>} />
         <Route path="/clips" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />

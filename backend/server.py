@@ -3301,6 +3301,10 @@ async def join_squad_by_code(request: Request, user: dict = Depends(get_current_
     squad = await db.squads.find_one({"invite_code": invite_code})
     if not squad:
         raise HTTPException(status_code=404, detail="Invalid invite code")
+    await _join_squad(user, squad)
+    return {"message": "Joined squad", "squad_id": squad["squad_id"], "name": squad["name"]}
+
+async def _join_squad(user: dict, squad: dict):
     if user["user_id"] in squad.get("members", []):
         raise HTTPException(status_code=400, detail="Already a member")
     if len(squad.get("members", [])) >= MAX_SQUAD_SIZE:
@@ -3315,7 +3319,6 @@ async def join_squad_by_code(request: Request, user: dict = Depends(get_current_
     )
     if joined.modified_count == 0:
         raise HTTPException(status_code=400, detail="Already a member")
-    return {"message": "Joined squad", "squad_id": squad["squad_id"], "name": squad["name"]}
 
 @api_router.get("/squads/mine")
 async def get_my_squads(user: dict = Depends(get_current_user)):
@@ -3323,6 +3326,136 @@ async def get_my_squads(user: dict = Depends(get_current_user)):
     for sq in squads:
         sq["member_count"] = len(sq.get("members", []))
     return squads
+
+# ---- Invite links ----
+# Only offered straight after a win, never in onboarding: nobody vouches for an app they
+# haven't tried. The link carries the win itself (server-verified), so sharing it is a
+# brag first and an invite second.
+
+INVITE_TTL_DAYS = 14
+INVITES_PER_DAY = 20
+
+
+class InviteCreate(BaseModel):
+    dimension: Optional[str] = Field(None, max_length=40)
+    squad_id: Optional[str] = Field(None, max_length=40)
+
+
+def invite_brag(first_name: str, dimension: Optional[str], pb: Optional[float], rank: Optional[str]) -> str:
+    if dimension and isinstance(pb, (int, float)):
+        return f"{first_name} just set a {dimension} personal best of {pb:g}. Think you can beat it?"
+    if rank:
+        return f"{first_name} is ranked {rank} this season. Come and train with the squad."
+    return f"{first_name} wants you in their squad."
+
+
+async def _squad_for_invite(user: dict, squad_id: Optional[str]) -> dict:
+    uid = user["user_id"]
+    if squad_id:
+        squad = await db.squads.find_one({"squad_id": squad_id, "members": uid})
+        if not squad:
+            raise HTTPException(404, "Squad not found")
+        return squad
+    mine = await db.squads.find({"members": uid}).to_list(MAX_SQUADS_PER_USER)
+    open_squads = [sq for sq in mine if len(sq.get("members", [])) < MAX_SQUAD_SIZE]
+    if open_squads:
+        return next((sq for sq in open_squads if sq["owner_id"] == uid), open_squads[0])
+    if len(mine) >= MAX_SQUADS_PER_USER:
+        raise HTTPException(400, "All your squads are full")
+    first = (user.get("display_name") or user.get("name") or "My").split()[0][:30]
+    squad = {
+        "squad_id": f"squad_{uuid.uuid4().hex[:12]}",
+        "name": f"{first}'s Squad",
+        "owner_id": uid,
+        "members": [uid],
+        "invite_code": uuid.uuid4().hex[:8].upper(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.squads.insert_one(squad)
+    return squad
+
+
+@api_router.post("/squads/invites")
+async def create_squad_invite(data: InviteCreate, user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    if not await db.sessions.find_one({"user_id": uid, "scored": True}, {"_id": 1}):
+        raise HTTPException(400, "Finish a scored session first")
+    if _rate_limited(f"squad_invite:{uid}", INVITES_PER_DAY, 86400):
+        raise HTTPException(429, "That's enough invites for today")
+    pb = None
+    if data.dimension:
+        if data.dimension != "Overall" and data.dimension not in DIMENSIONS:
+            raise HTTPException(400, "Unknown skill")
+        fresh = await db.users.find_one({"user_id": uid}, {"personal_bests": 1}) or {}
+        pb = (fresh.get("personal_bests") or {}).get(_pb_key(data.dimension))
+    season = current_season()
+    stats = await db.season_stats.find_one({"user_id": uid, "season_id": season["season_id"]}, {"points": 1}) or {}
+    standing = season_rank(stats.get("points", 0))
+    rank = standing["rank"] if standing["rank_index"] > 0 else None
+    squad = await _squad_for_invite(user, data.squad_id)
+    first = (user.get("display_name") or user.get("name") or "Your mate").split()[0][:30]
+    now = datetime.now(timezone.utc)
+    invite = {
+        "invite_id": uuid.uuid4().hex[:10],
+        "squad_id": squad["squad_id"],
+        "inviter_id": uid,
+        "brag": invite_brag(first, data.dimension if isinstance(pb, (int, float)) else None, pb, rank),
+        "accepted": 0,
+        "created_at": now.isoformat(),
+        "expires_at": (now + timedelta(days=INVITE_TTL_DAYS)).isoformat(),
+    }
+    await db.squad_invites.insert_one(invite)
+    return {"invite_id": invite["invite_id"], "path": f"/join/{invite['invite_id']}",
+            "brag": invite["brag"], "squad": {"squad_id": squad["squad_id"], "name": squad["name"]}}
+
+
+async def _live_invite(invite_id: str) -> dict:
+    invite = await db.squad_invites.find_one({"invite_id": invite_id}, {"_id": 0})
+    if not invite or invite["expires_at"] < datetime.now(timezone.utc).isoformat():
+        raise HTTPException(404, "This invite has expired")
+    squad = await db.squads.find_one({"squad_id": invite["squad_id"]}, {"_id": 0})
+    if not squad:
+        raise HTTPException(404, "This squad no longer exists")
+    return {"invite": invite, "squad": squad}
+
+
+@api_router.get("/invites/{invite_id}")
+async def preview_invite(invite_id: str, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"invite_preview:{client_ip}", 30, 60):
+        raise HTTPException(429, "Too many requests — slow down")
+    found = await _live_invite(invite_id[:20])
+    invite, squad = found["invite"], found["squad"]
+    inviter = await db.users.find_one({"user_id": invite["inviter_id"]}, {"_id": 0, "display_name": 1, "name": 1, "picture": 1, "avatar_url": 1}) or {}
+    return {
+        "squad_name": squad["name"],
+        "member_count": len(squad.get("members", [])),
+        "full": len(squad.get("members", [])) >= MAX_SQUAD_SIZE,
+        "inviter_name": inviter.get("display_name") or inviter.get("name") or "A fighter",
+        "inviter_picture": inviter.get("avatar_url") or inviter.get("picture"),
+        "brag": invite["brag"],
+    }
+
+
+@api_router.post("/invites/{invite_id}/accept")
+async def accept_invite(invite_id: str, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"invite_accept:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many attempts — slow down")
+    found = await _live_invite(invite_id[:20])
+    invite, squad = found["invite"], found["squad"]
+    if user["user_id"] in squad.get("members", []):
+        return {"squad_id": squad["squad_id"], "name": squad["name"], "already_member": True}
+    await _join_squad(user, squad)
+    await db.squad_invites.update_one({"invite_id": invite["invite_id"]}, {"$inc": {"accepted": 1}})
+    await db.users.update_one({"user_id": user["user_id"], "invited_by": {"$exists": False}},
+                              {"$set": {"invited_by": invite["inviter_id"]}})
+    if invite["inviter_id"] != user["user_id"]:
+        name = (user.get("display_name") or user.get("name") or "Someone").split()[0][:30]
+        await _send_push(invite["inviter_id"], title=f"{name} joined {squad['name']}",
+                         body="Your invite worked. Now beat them this week.",
+                         url=f"/squads/{squad['squad_id']}", tag=f"squadjoin-{squad['squad_id']}")
+    return {"squad_id": squad["squad_id"], "name": squad["name"], "already_member": False}
+
 
 @api_router.get("/squads/{squad_id}")
 async def get_squad(squad_id: str, user: dict = Depends(get_current_user)):
