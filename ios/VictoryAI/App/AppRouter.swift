@@ -39,7 +39,7 @@ final class AppRouter: ObservableObject {
             let result = try await AuthService.shared.validateAccess()
             appState = result.accessGranted ? .app : stateForReason(result.reason)
             if result.accessGranted {
-                await PushNotificationManager.shared.enable()
+                await PushNotificationManager.shared.resume()
             }
         } catch AuthError.noSession, AuthError.tokenFetchFailed {
             appState = .signIn
