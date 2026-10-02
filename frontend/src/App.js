@@ -80,6 +80,7 @@ import HighlightsPage from "@/pages/HighlightsPage";
 import RateRoundPage from "@/pages/RateRoundPage";
 import CalloutsPage from "@/pages/CalloutsPage";
 import JoinSquadPage from "@/pages/JoinSquadPage";
+import BillingPage from "@/pages/BillingPage";
 import { takePendingInvite } from "@/lib/pendingInvite";
 import TokensPage from "@/pages/TokensPage";
 import DiscoverPage from "@/pages/DiscoverPage";
@@ -409,6 +410,7 @@ const AppRouter = () => {
         <Route path="/rate/:highlightId" element={<ProtectedRoute><RateRoundPage /></ProtectedRoute>} />
         <Route path="/callouts" element={<ProtectedRoute><CalloutsPage /></ProtectedRoute>} />
         <Route path="/join/:inviteId" element={<JoinSquadPage />} />
+        <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
         <Route path="/tokens" element={<ProtectedRoute>{isNativeShell() ? <NativePurchaseNoticePage /> : <TokensPage />}</ProtectedRoute>} />
         <Route path="/tokens/success" element={<ProtectedRoute><TokenSuccessPage /></ProtectedRoute>} />
         <Route path="/clips" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />

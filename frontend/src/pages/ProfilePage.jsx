@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban, Users, GraduationCap } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban, Users, GraduationCap, CreditCard } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FightFilm } from "@/components/FightFilm";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
@@ -861,6 +861,17 @@ export default function ProfilePage() {
         </section>
 
         {/* Tokens */}
+        {user?.has_subscription && (
+          <button
+            onClick={() => navigate("/billing")}
+            className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+            data-testid="billing-link"
+          >
+            <CreditCard className="w-5 h-5" />
+            Subscription
+          </button>
+        )}
+
         {!isNativeShell() && (
           <button
             onClick={() => navigate("/tokens", { state: { returnPath: "/profile" } })}

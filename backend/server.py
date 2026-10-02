@@ -1354,8 +1354,13 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
                     code=waitlist_entry["promo_code"],
                     limit=1,
                 )
-                if codes.data and codes.data[0].active:
-                    checkout_params["discounts"] = [{"promotion_code": codes.data[0].id}]
+                code = codes.data[0] if codes.data else None
+                # Single-use: a founder who cancelled has spent it, and Stripe would reject
+                # the whole checkout if we tried to apply it again.
+                limit = _sget(code, "max_redemptions")
+                spent = bool(limit) and (_sget(code, "times_redeemed") or 0) >= limit
+                if code and code.active and not spent:
+                    checkout_params["discounts"] = [{"promotion_code": code.id}]
                     founders_applied = True
             except Exception as e:
                 logger.warning(f"Founders discount lookup failed: {e}")
@@ -1437,6 +1442,154 @@ async def get_subscription_status(user: dict = Depends(get_current_user)):
     if not subscription:
         return {"has_subscription": False, "status": None}
     return {"has_subscription": subscription["status"] in ["active", "trialing"], "status": subscription["status"], "plan_id": subscription.get("plan_id")}
+
+# ---- Billing: founder price and cancellation ----
+# Goal: keep founders subscribed (lower churn) without making leaving any harder.
+# Psychology: loss aversion and the endowment effect — a price someone already owns weighs
+# far more than the same discount offered fresh, but only when it's salient at the moment of
+# decision. Design: name the locked-in price straight after purchase (ownership), and show
+# the exact cost of losing it on the cancel screen — one honest screen, then cancel works.
+
+_founder_coupon_cache: Dict[str, Any] = {}
+
+
+def _sget(obj, key):
+    if obj is None:
+        return None
+    if isinstance(obj, dict):
+        return obj.get(key)
+    try:
+        return obj[key]
+    except (KeyError, TypeError, AttributeError):
+        return getattr(obj, key, None)
+
+
+def coupon_ids_on(sub) -> set:
+    """Coupon ids on a Stripe subscription, across the old `discount` and newer
+    `discounts` (expanded) shapes."""
+    items = list(_sget(sub, "discounts") or [])
+    if _sget(sub, "discount"):
+        items.append(_sget(sub, "discount"))
+    ids = set()
+    for d in items:
+        if isinstance(d, str):
+            continue
+        coupon = _sget(d, "coupon") or _sget(_sget(d, "source"), "coupon")
+        cid = coupon if isinstance(coupon, str) else _sget(coupon, "id")
+        if cid:
+            ids.add(cid)
+    return ids
+
+
+def founder_pricing(plan_price: float, coupon: dict) -> Optional[dict]:
+    pct, off = coupon.get("percent_off"), coupon.get("amount_off")
+    if pct:
+        price = plan_price * (1 - pct / 100)
+    elif off:
+        price = max(0.0, plan_price - off / 100)
+    else:
+        return None
+    price = round(price, 2)
+    return {
+        "price": price,
+        "regular_price": round(plan_price, 2),
+        "saving": round(plan_price - price, 2),
+        "percent_off": pct,
+        # Only a "forever" coupon is a lifetime price; anything else must not be called one.
+        "lifetime": coupon.get("duration") == "forever",
+        "duration_in_months": coupon.get("duration_in_months"),
+    }
+
+
+async def _founder_coupon() -> Optional[dict]:
+    if not STRIPE_FOUNDERS_COUPON_ID:
+        return None
+    if "coupon" not in _founder_coupon_cache:
+        c = await asyncio.to_thread(stripe_lib.Coupon.retrieve, STRIPE_FOUNDERS_COUPON_ID)
+        _founder_coupon_cache["coupon"] = {k: _sget(c, k) for k in ("percent_off", "amount_off", "duration", "duration_in_months")}
+    return _founder_coupon_cache["coupon"]
+
+
+async def _billing_summary(user: dict) -> dict:
+    local = await db.subscriptions.find_one({"user_id": user["user_id"]}, {"_id": 0}) or {}
+    if not local:
+        return {"has_subscription": False}
+    plan = SUBSCRIPTION_PLANS.get(local.get("plan_id") or "monthly", SUBSCRIPTION_PLANS["monthly"])
+    out = {
+        "has_subscription": local.get("status") in ("active", "trialing"),
+        "status": local.get("status"),
+        "plan_id": local.get("plan_id"),
+        "interval": plan["interval"],
+        "currency": "usd",
+        "regular_price": plan["price"],
+        "price": plan["price"],
+        "current_period_end": local.get("current_period_end"),
+        "cancel_at_period_end": bool(local.get("cancel_at_period_end")),
+        "founder": None,
+        "manageable": False,
+    }
+    sub_id = local.get("subscription_id") or ""
+    if not (STRIPE_API_KEY and sub_id.startswith("sub_")):
+        return out
+    try:
+        sub = await asyncio.to_thread(stripe_lib.Subscription.retrieve, sub_id, expand=["discounts"])
+    except Exception as e:
+        logger.warning(f"Billing summary: Stripe lookup failed for {sub_id}: {e}")
+        return out
+    out["manageable"] = True
+    out["status"] = _sget(sub, "status") or out["status"]
+    out["cancel_at_period_end"] = bool(_sget(sub, "cancel_at_period_end"))
+    item = ((_sget(_sget(sub, "items"), "data") or [None])[0])
+    period_end = _sget(sub, "current_period_end") or _sget(item, "current_period_end")
+    if period_end:
+        out["current_period_end"] = datetime.fromtimestamp(period_end, tz=timezone.utc).isoformat()
+    if STRIPE_FOUNDERS_COUPON_ID and STRIPE_FOUNDERS_COUPON_ID in coupon_ids_on(sub):
+        try:
+            pricing = founder_pricing(plan["price"], await _founder_coupon() or {})
+        except Exception as e:
+            logger.warning(f"Founder coupon lookup failed: {e}")
+            pricing = None
+        if pricing:
+            out["founder"] = pricing
+            out["price"] = pricing["price"]
+    return out
+
+
+@api_router.get("/subscription/billing")
+async def get_billing(user: dict = Depends(get_current_user)):
+    return await _billing_summary(user)
+
+
+async def _set_cancel_at_period_end(user: dict, cancel: bool) -> dict:
+    if _rate_limited(f"sub_cancel:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many attempts — try again in a minute")
+    local = await db.subscriptions.find_one({"user_id": user["user_id"]}, {"subscription_id": 1})
+    sub_id = (local or {}).get("subscription_id") or ""
+    if not (STRIPE_API_KEY and sub_id.startswith("sub_")):
+        raise HTTPException(404, "No subscription to change")
+    try:
+        await asyncio.to_thread(stripe_lib.Subscription.modify, sub_id, cancel_at_period_end=cancel)
+    except Exception as e:
+        logger.error(f"Subscription cancel_at_period_end={cancel} failed for {sub_id}: {e}")
+        raise HTTPException(502, "Couldn't reach billing — try again in a moment")
+    await db.subscriptions.update_one({"subscription_id": sub_id}, {"$set": {
+        "cancel_at_period_end": cancel,
+        "cancel_requested_at" if cancel else "resumed_at": datetime.now(timezone.utc).isoformat(),
+    }})
+    return await _billing_summary(user)
+
+
+@api_router.post("/subscription/cancel")
+async def cancel_subscription(user: dict = Depends(get_current_user)):
+    # Cancels at the end of the paid period: access continues until then, and so does the
+    # founder price — which is why resuming before that date keeps it.
+    return await _set_cancel_at_period_end(user, True)
+
+
+@api_router.post("/subscription/resume")
+async def resume_subscription(user: dict = Depends(get_current_user)):
+    return await _set_cancel_at_period_end(user, False)
+
 
 @api_router.post("/subscription/restore")
 async def restore_subscription(user: dict = Depends(get_current_user)):
@@ -1524,7 +1677,7 @@ async def stripe_webhook(request: Request):
             if stripe_sub_id:
                 await db.subscriptions.update_one(
                     {"subscription_id": stripe_sub_id},
-                    {"$set": {"status": sub_status}}
+                    {"$set": {"status": sub_status, "cancel_at_period_end": bool(_sget(event_data, "cancel_at_period_end"))}}
                 )
         elif event_type == "invoice.payment_succeeded":
             stripe_sub_id = event_data.get("subscription") if isinstance(event_data, dict) else event_data.subscription
