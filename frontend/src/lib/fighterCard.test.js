@@ -35,3 +35,8 @@ test("long names are trimmed and missing data doesn't crash", () => {
   expect(c.stats).toEqual([]);
   expect(c.rank).toBeNull();
 });
+
+test("the earned trait leads the card's tags", () => {
+  const c = fighterCardContent({ user, rewards: { identity: { name: "Iron Guard" } } });
+  expect(c.tags).toEqual(["IRON GUARD", "WELTERWEIGHT", "ORTHODOX"]);
+});

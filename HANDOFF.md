@@ -218,6 +218,34 @@ for under-18s:
 `tools/habit_metrics.py` now shows a `% coach` column. The iOS camera permission text covers Live
 Coach as well as recording.
 
+## Fighter identity: positive coaching feedback (branch `feature/fighter-identity`)
+- **Goal:** fighters come back because they see themselves as boxers ("I'm an Iron Guard"),
+  not because they were reminded.
+- **Psychology:**
+  - **Self-perception theory:** people infer who they are from what they've seen themselves do.
+  - **Labelling effect:** a specific label someone has earned pulls their behaviour towards it.
+  - **Process praise:** praise the behaviour, not talent, to keep effort up.
+  - **Credibility:** praise needs evidence to be believed.
+  - **Primacy:** the first thing read frames everything after it.
+- **Design:**
+  - **Trait per session:** after each session the coach awards one trait it has evidence for
+    (`identity_evidence`).
+    - The traits: Iron Guard, Sharp Jab, Slick, Relentless, Combination Puncher, Finisher,
+      Clean Mover, Shows Up.
+    - The evidence: verified AI scores of 7 or more, live counts, or 3+ sessions this week.
+    - The least-earned trait wins, so the fighter's sense of themselves widens and a new trait
+      stays a surprise.
+    - Counts go in `users.identity_traits`.
+  - **`IdentityCard`** opens the results screen with the trait, the evidence ("Guard Position
+    8/10"), "4th time" and the fighter's top traits.
+  - **A first-time trait counts as a win,** so the fighter card and invite appear, and the card
+    shows the trait.
+  - **Between rounds,** Live Coach adds one specific line about the round (`lib/identity.js`).
+  - **Gemini's `what_did_well`** must name a timestamped moment and what it says about the
+    fighter they're becoming.
+  - **Public profiles** show the top 3 traits next to titles.
+- Tests: `backend/test_identity.py`, `lib/identity.test.js`, `lib/rewards.test.js`, `lib/fighterCard.test.js`.
+
 ---
 
 # Previous: Bug-Hunt Pass

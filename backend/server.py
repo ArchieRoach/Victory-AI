@@ -952,8 +952,10 @@ def video_analysis_prompt(round_number: int, partner_name: str, tone: str, focus
         "For every skill, evidence names the timestamp(s) you based it on. "
         "Set boxer_visible false if no one is boxing on camera.\n"
         f"Pay extra attention to: {', '.join(focus_areas) or 'overall technique'}.\n"
-        "what_did_well and what_to_improve: one or two sentences each, specific to a moment in this video, "
-        "spoken to the fighter."
+        "what_did_well: one specific moment, with its timestamp, and what it says about the fighter they're "
+        "becoming, e.g. 'At 0:42 you slipped and came straight back with the jab. That's a counter-puncher's "
+        "instinct.' Only praise what you actually saw. what_to_improve: one fix, framed as the next step "
+        "rather than a flaw. Speak to the fighter directly, one or two sentences each."
     )
 
 
@@ -2724,6 +2726,7 @@ async def get_public_profile(user_id: str, current_user: dict = Depends(get_curr
     profile["callouts_won"] = target.get("callouts_won", 0)
     profile["callouts_defended"] = target.get("callouts_defended", 0)
     profile["titles"] = target.get("titles", [])
+    profile["identity_traits"] = top_identity_traits(target.get("identity_traits"))
     profile["fight_film_count"] = len(target.get("fight_film") or [])
     profile["avg_score"] = _avg_score(sessions)
     profile["best_score"] = _best_score(sessions)
@@ -6426,6 +6429,98 @@ async def _weekly_percentiles(user_id: str, dims: list) -> dict:
     return result
 
 
+# ---- Fighter identity ----
+# Goal: fighters keep coming back because they see themselves as boxers, not app users.
+# Psychology: self-perception theory (people work out who they are from what they've seen
+# themselves do) and the labelling effect (an earned, specific label pulls behaviour towards
+# it). Praise works when it names the behaviour, not talent, and when it's believable.
+# Design: after each session the coach names one trait the fighter showed, quotes the
+# evidence and counts how many times they've shown it. A trait is only awarded on evidence:
+# a verified AI score, a live count, or sessions actually logged.
+
+IDENTITY_TRAITS = {
+    "iron_guard":    ("Iron Guard", "You keep your hands home. That's how you fight now."),
+    "sharp_jab":     ("Sharp Jab", "Your jab is turning into your weapon."),
+    "slick":         ("Slick", "You make shots miss. That's a slick fighter's instinct."),
+    "relentless":    ("Relentless", "You don't stop throwing. Nobody wants to face that."),
+    "combo_puncher": ("Combination Puncher", "You punch in bunches, not singles."),
+    "finisher":      ("Finisher", "You finish stronger than you start. That's a fighter's engine."),
+    "clean_mover":   ("Clean Mover", "Your feet put you in the right place."),
+    "shows_up":      ("Shows Up", "You turn up when it would be easier not to. That's what fighters are made of."),
+}
+TRAIT_SCORE = 7
+SHOWS_UP_PER_WEEK = 3
+
+
+def _round_avg(rnd: dict) -> Optional[float]:
+    vals = [d.get("score") for d in ((rnd.get("analysis") or {}).get("dimension_scores") or [])
+            if isinstance(d.get("score"), (int, float))]
+    return sum(vals) / len(vals) if vals else None
+
+
+def identity_evidence(session: dict, trusted_scores: bool, sessions_this_week: int) -> list:
+    """Every trait this session gives evidence for, as (key, evidence) in display order."""
+    dims = {d["dimension_name"]: d["score"] for d in session.get("dimension_scores") or []
+            if trusted_scores and isinstance(d.get("score"), (int, float))}
+    live = session.get("live_stats") or {}
+    minutes = (live.get("rounds") or 0) * ((session.get("training_config") or {}).get("round_duration") or 0) / 60
+    found = {}
+
+    def scored(key, *names):
+        best = max(((dims[n], n) for n in names if n in dims), default=None)
+        if best and best[0] >= TRAIT_SCORE:
+            found.setdefault(key, f"{best[1]} {best[0]:g}/10")
+
+    scored("iron_guard", "Guard Position")
+    scored("sharp_jab", "Jab")
+    scored("slick", "Head Movement", "Slip", "Roll")
+    scored("combo_puncher", "Combination Flow")
+    scored("clean_mover", "Footwork")
+    if isinstance(live.get("guard_pct"), int) and live["guard_pct"] >= 80:
+        found.setdefault("iron_guard", f"guard up {live['guard_pct']}% of the time")
+    if live.get("rounds") and live.get("head_moves", 0) / live["rounds"] >= 15:
+        found.setdefault("slick", f"{live['head_moves']} head movements")
+    if live.get("best_combo", 0) >= 5:
+        found.setdefault("combo_puncher", f"a {live['best_combo']}-punch combination")
+    if minutes and live.get("punches", 0) / minutes >= 45:
+        found["relentless"] = f"{round(live['punches'] / minutes)} punches a minute"
+    rounds = [r for r in (session.get("rounds") or []) if trusted_scores and _round_avg(r) is not None]
+    if len(rounds) >= 2 and _round_avg(rounds[-1]) > _round_avg(rounds[0]):
+        found["finisher"] = f"your last round scored higher than your first"
+    if sessions_this_week >= SHOWS_UP_PER_WEEK:
+        found["shows_up"] = f"{sessions_this_week} sessions this week"
+    return [(k, found[k]) for k in IDENTITY_TRAITS if k in found]
+
+
+def pick_identity_trait(evidence: list, counts: dict) -> Optional[tuple]:
+    # The least-earned trait wins, so the label a fighter hears keeps widening — and a
+    # new one is a surprise worth coming back for.
+    if not evidence:
+        return None
+    return min(evidence, key=lambda kv: counts.get(kv[0], 0))
+
+
+async def apply_identity(user_id: str, session: dict, trusted_scores: bool) -> Optional[dict]:
+    week_ago = (datetime.now(timezone.utc).date() - timedelta(days=6)).strftime("%Y-%m-%d")
+    this_week = await db.sessions.count_documents({"user_id": user_id, "date": {"$gte": week_ago}})
+    fresh = await db.users.find_one({"user_id": user_id}, {"identity_traits": 1}) or {}
+    counts = fresh.get("identity_traits") or {}
+    picked = pick_identity_trait(identity_evidence(session, trusted_scores, this_week), counts)
+    if not picked:
+        return None
+    key, evidence = picked
+    await db.users.update_one({"user_id": user_id}, {"$inc": {f"identity_traits.{key}": 1}})
+    counts = {**counts, key: counts.get(key, 0) + 1}
+    name, statement = IDENTITY_TRAITS[key]
+    return {"key": key, "name": name, "evidence": evidence, "statement": statement,
+            "count": counts[key], "traits": top_identity_traits(counts)}
+
+
+def top_identity_traits(counts: dict, n: int = 3) -> list:
+    ranked = sorted(((c, k) for k, c in (counts or {}).items() if k in IDENTITY_TRAITS and c > 0), reverse=True)
+    return [{"name": IDENTITY_TRAITS[k][0], "count": c} for c, k in ranked[:n]]
+
+
 async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool) -> dict:
     uid = user["user_id"]
     overall = session.get("overall_score") if trusted_scores else None
@@ -6461,8 +6556,10 @@ async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool)
 
     await _complete_bookings_for(uid)
     callouts_beaten = await _settle_callouts_for(user, overall, dims) if trusted_scores else []
+    identity = await apply_identity(uid, session, trusted_scores)
 
     return {
+        "identity": identity,
         "callouts_beaten": callouts_beaten,
         "personal_bests": {"new": pb["new"], "near": pb["near"], "baselines": pb["baselines"]},
         "season": {**season, **rank, "points": total, "earned": pts, "ranked_up": ranked_up},

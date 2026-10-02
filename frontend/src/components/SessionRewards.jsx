@@ -7,6 +7,7 @@ import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, C
 import { analytics } from "@/lib/analytics";
 import { seasonProgress, inviteMoment } from "@/lib/rewards";
 import { FighterCardButton } from "@/components/FighterCard";
+import { IdentityCard } from "@/components/IdentityCard";
 
 const RARITY = {
   common: { label: "SCOUTING REPORT", cls: "bg-victory-card-highlight text-victory-muted border-victory-border" },
@@ -260,6 +261,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats }) 
   const moment = inviteMoment(rewards, scoutingReport);
   return (
     <div className="space-y-3" data-testid="session-rewards">
+      <IdentityCard identity={rewards?.identity} />
       <CalloutsBeaten beaten={rewards?.callouts_beaten} />
       <PersonalBests pb={rewards?.personal_bests} />
       <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
