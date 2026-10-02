@@ -7119,6 +7119,7 @@ def summarise_habit_week(sessions: list) -> dict:
         "users_in_habit_zone": sum(1 for c in counts if lo <= c <= hi),
         "users_over_zone": sum(1 for c in counts if c > hi),
         "pct_recorded": round(100 * sum(1 for s in sessions if s.get("record_video")) / len(sessions)) if sessions else None,
+        "pct_live_coach": round(100 * sum(1 for s in sessions if s.get("live_stats")) / len(sessions)) if sessions else None,
     }
 
 
@@ -7146,7 +7147,7 @@ async def habit_metrics(request: Request, weeks: int = Query(8, ge=1, le=26)):
         end = start + timedelta(days=7)
         sessions = await db.sessions.find(
             {"created_at": {"$gte": start.isoformat(), "$lt": end.isoformat()}},
-            {"user_id": 1, "trigger": 1, "record_video": 1},
+            {"user_id": 1, "trigger": 1, "record_video": 1, "live_stats.punches": 1},
         ).to_list(100000)
         bookings = await db.bookings.find(
             {"at": {"$gte": start.isoformat(), "$lt": end.isoformat()}}, {"status": 1},

@@ -47,7 +47,7 @@ targets:
         CLERK_PUBLISHABLE_KEY: $(CLERK_PUBLISHABLE_KEY)
         CFBundleURLTypes:
           - CFBundleURLSchemes: [$(PRODUCT_BUNDLE_IDENTIFIER)]
-        NSCameraUsageDescription: Victory AI uses the camera to record your boxing sessions so the AI can score your technique.
+        NSCameraUsageDescription: Victory AI uses the camera to count your punches live during a round (on your phone — nothing is uploaded) and, only if you turn on recording, to record rounds for AI scoring.
         NSMicrophoneUsageDescription: Your session videos include audio so the AI can analyse rhythm and breathing.
         NSPhotoLibraryUsageDescription: Choose an existing training video to analyse instead of recording a new one.
         NSPhotoLibraryAddUsageDescription: Save your scorecard image to your photo library.

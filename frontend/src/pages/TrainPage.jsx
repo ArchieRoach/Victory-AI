@@ -21,7 +21,11 @@ import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel"
 import { nativeRound } from "@/lib/nativeBridge";
 
 const LIVE_COACH_KEY = "victory_live_coach";
-const readLiveCoach = () => { try { return localStorage.getItem(LIVE_COACH_KEY) === "1"; } catch { return false; } };
+// On unless the fighter switched it off: it runs on the phone and uploads nothing, so it's
+// safe as a default, and it means every session ends with something to show for it.
+const readLiveCoach = () => { try { return localStorage.getItem(LIVE_COACH_KEY) !== "0"; } catch { return true; } };
+// Two-minute rounds (the junior amateur standard) make a first session easy to finish.
+const DEFAULT_ROUND_SECONDS = 120;
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
@@ -81,7 +85,7 @@ export default function TrainPage() {
 
   // ── Config state ────────────────────────────────────────────────────────────
   const [isConfiguring, setIsConfiguring] = useState(true);
-  const [roundDuration, setRoundDuration] = useState(180);
+  const [roundDuration, setRoundDuration] = useState(DEFAULT_ROUND_SECONDS);
   const [restDuration,  setRestDuration]  = useState(60);
   const [totalRounds,   setTotalRounds]   = useState(3);
   const [sessionMode,   setSessionMode]   = useState("private"); // "private" | "public"
@@ -99,7 +103,7 @@ export default function TrainPage() {
   // ── Training state ───────────────────────────────────────────────────────────
   const [sessionId,         setSessionId]         = useState(null);
   const [currentRound,      setCurrentRound]      = useState(1);
-  const [timeLeft,          setTimeLeft]           = useState(180);
+  const [timeLeft,          setTimeLeft]           = useState(DEFAULT_ROUND_SECONDS);
   const [isResting,         setIsResting]          = useState(false);
   const [isPaused,          setIsPaused]           = useState(true);
   const [isComplete,        setIsComplete]         = useState(false);
@@ -142,7 +146,7 @@ export default function TrainPage() {
     const saved = localStorage.getItem("victory_train_config");
     if (saved) {
       const c = JSON.parse(saved);
-      setRoundDuration(c.roundDuration || 180);
+      setRoundDuration(c.roundDuration || DEFAULT_ROUND_SECONDS);
       setRestDuration(c.restDuration   || 60);
       setTotalRounds(c.totalRounds     || 3);
       setSessionMode(c.sessionMode     || "private");
@@ -752,7 +756,7 @@ export default function TrainPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => chooseVideo(false)} className="victory-btn-ghost min-h-[48px] text-sm">{t("train.videoAskNo", "Not now")}</button>
-                  <button onClick={() => chooseVideo(true)} className="victory-btn-secondary min-h-[48px] text-sm">{t("train.videoAskYes", "Turn on")}</button>
+                  <button onClick={() => chooseVideo(true)} className="victory-btn-primary min-h-[48px] text-sm">{t("train.videoAskYes", "Turn on")}</button>
                 </div>
               </div>
             )}

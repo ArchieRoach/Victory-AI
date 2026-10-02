@@ -35,6 +35,7 @@ export default function GoLivePage() {
   const [highlightCount, setHighlightCount] = useState(0);
   const [squadCount,   setSquadCount]   = useState(null);
   const [audience,     setAudience]     = useState("public");
+  const audienceTouched = useRef(false);
   const [notifySquad,  setNotifySquad]  = useState(true);
 
   const videoRef = useRef(null);
@@ -67,7 +68,13 @@ export default function GoLivePage() {
 
   useEffect(() => {
     axios.get(`${API}/squads/mine`)
-      .then((r) => setSquadCount((r.data || []).length))
+      .then((r) => {
+        const count = (r.data || []).length;
+        setSquadCount(count);
+        // Squad-only by default when there's a squad: a guaranteed audience of friends
+        // rather than strangers (and an empty room) — the fighter can still go public.
+        if (count > 0 && !audienceTouched.current) setAudience("squad");
+      })
       // Unknown ≠ none: a failed lookup must not lock the option; the server re-checks.
       .catch(() => setSquadCount(null));
   }, []);
@@ -400,6 +407,7 @@ export default function GoLivePage() {
                           });
                           return;
                         }
+                        audienceTouched.current = true;
                         setAudience(value);
                       }}
                       className={`min-h-[48px] rounded-xl border flex items-center justify-center gap-2 font-heading font-bold text-sm transition-colors ${needsSquad ? "opacity-40" : ""} ${

@@ -44,6 +44,7 @@ def test_weekly_summary():
     assert s["users_in_habit_zone"] == 1               # a: 3
     assert s["users_over_zone"] == 1                   # c: 6
     assert s["pct_recorded"] == 82
+    assert s["pct_live_coach"] == 0
     empty = summarise_habit_week([])
     assert empty["pct_direct"] is None and empty["median_sessions_per_user"] == 0
 

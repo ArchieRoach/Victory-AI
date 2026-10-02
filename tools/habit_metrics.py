@@ -26,13 +26,13 @@ def main():
         data = json.load(r)
 
     print(f"{'week of':<11}{'sessions':>9}{'users':>7}{'% direct':>10}{'median/wk':>11}"
-          f"{'2-4/wk':>8}{'>4/wk':>7}{'% video':>9}{'kept':>7}  top triggers")
+          f"{'2-4/wk':>8}{'>4/wk':>7}{'% video':>9}{'% coach':>9}{'kept':>7}  top triggers")
     for w in data["weeks"]:
         fmt = lambda v: "—" if v is None else v
         top = ", ".join(f"{k} {v}" for k, v in list(w["by_trigger"].items())[:4])
         print(f"{w['week_of']:<11}{w['sessions']:>9}{w['active_users']:>7}{fmt(w['pct_direct']):>10}"
               f"{w['median_sessions_per_user']:>11}{w['users_in_habit_zone']:>8}{w['users_over_zone']:>7}"
-              f"{fmt(w['pct_recorded']):>9}{fmt(w['bookings']['kept_rate']):>7}  {top}")
+              f"{fmt(w['pct_recorded']):>9}{fmt(w.get('pct_live_coach')):>9}{fmt(w['bookings']['kept_rate']):>7}  {top}")
 
 
 if __name__ == "__main__":
