@@ -395,7 +395,7 @@
     "restDuration": "休息时长",
     "numRounds": "回合数",
     "recordAnalyze": "录制并分析",
-    "recordDesc": "AI将使用GPT-4 Vision分析您的技术",
+    "recordDesc": "AI观看你的回合视频，只为它真正看到的动作打分",
     "voiceFeedback": "语音反馈",
     "voiceDesc": "您的训练伙伴大声朗读反馈",
     "total": "总计：",

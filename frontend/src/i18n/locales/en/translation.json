@@ -401,7 +401,7 @@
     "restDuration": "Rest Duration",
     "numRounds": "Number of Rounds",
     "recordAnalyze": "Record & Analyze",
-    "recordDesc": "AI will analyze your technique with GPT-4 Vision",
+    "recordDesc": "AI watches your round video and scores what it actually sees",
     "voiceFeedback": "Voice Feedback",
     "voiceDesc": "Your training partner speaks feedback aloud",
     "total": "Total:",

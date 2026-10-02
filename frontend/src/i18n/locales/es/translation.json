@@ -395,7 +395,7 @@
     "restDuration": "Duración del descanso",
     "numRounds": "Número de asaltos",
     "recordAnalyze": "Grabar y analizar",
-    "recordDesc": "La IA analizará tu técnica con GPT-4 Vision",
+    "recordDesc": "La IA ve el vídeo de tu asalto y puntúa lo que realmente ve",
     "voiceFeedback": "Retroalimentación por voz",
     "voiceDesc": "Tu compañero de entrenamiento habla en voz alta",
     "total": "Total:",

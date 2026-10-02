@@ -123,6 +123,47 @@ Put the same value in the Claude Code environment as `VICTORY_METRICS_TOKEN`, al
 `VICTORY_API_URL` (the backend base URL), then run `python3 tools/habit_metrics.py 8`. The token
 only opens `/api/admin/habit-metrics`.
 
+## iPhone push, post-win invites, video scoring (branch `feature/ios-push-invites-video-scoring`)
+- **iPhone push, App Store app:** APNs was already wired. The app no longer shows the system
+  prompt on launch (`PushNotificationManager.resume()` only re-registers if push is already
+  allowed). `Push/PushBridge.swift` exposes `window.webkit.messageHandlers.victoryPush`, accepted
+  only from the main frame of `WEB_APP_URL`, so the web app can ask at a good moment.
+  `usePushNotifications` uses the bridge inside the app. Switching push off in Profile deletes the
+  token, and that choice survives relaunches.
+- **iPhone push, Safari:** iOS only sends web push to Home Screen apps. Added
+  `public/manifest.json` (standalone) and icons made from the iOS app icon. In a Safari tab,
+  `lib/pushPlatform.js` returns `install-ios`, and the app shows Add-to-Home-Screen steps instead
+  of a toggle that doesn't work.
+- **When push is asked for:** straight after booking a round (`PushOptIn` under the booking
+  confirmation, which promises "we'll remind you"), and from the Profile switch.
+- **Squad invite link, only after a win:** `BringYourCrew` appears in `SessionRewards` only when
+  `inviteMoment()` finds a win (new PB, a callout beaten, a rank-up, or a rare/epic report). It
+  never appears in onboarding, and the server refuses to create an invite until the user has
+  completed a scored session. `POST /squads/invites` creates a squad if needed and builds the brag
+  from the stored PB (verified on the server, not sent by the client). The link is `/join/<id>`
+  and lasts 14 days. The public preview `GET /invites/{id}` is IP rate-limited and returns no
+  user IDs. Accepting runs `_join_squad`, which applies the same rules as join-by-code: cap,
+  blocks, and the 5-squad limit. It records `invited_by` and pushes "X joined your squad" to the
+  inviter. If the link is opened while signed out, the invite is kept until sign-up finishes
+  (`lib/pendingInvite.js`).
+- **AI scores come from video:** `/ai/analyze-video` sends the round itself to Gemini
+  (`analyze_round_video`): a Cloudinary 640px MP4, inline up to 15 MB and through the Files API
+  above that, at 4 fps, low media resolution, temperature 0, with a JSON schema.
+  - Each skill is scored on a written rubric with timestamped `evidence`, which is shown under
+    round scores.
+  - Skills the model didn't clearly see twice are `null`. Invented skills and duplicates are
+    dropped, and the drill comes from `DRILLS` for the weakest skill it saw.
+  - If the model fails or the boxer isn't on camera, the round is unscored and the AI tokens are
+    refunded.
+  - Competition AI judging used to give GPT-4o the URL as text, so it made scores up. It now
+    watches the uploaded video. If it can't, the competition stays open for votes.
+- **Railway vars:** `GEMINI_API_KEY` (required; until it's set every round is unscored).
+  Optional: `GEMINI_VIDEO_MODEL` (default `gemini-2.5-flash`; falls back to `gemini-flash-latest`
+  on 404), `GEMINI_VIDEO_FPS` (4), `GEMINI_MEDIA_RESOLUTION` (`low`/`medium`/`high`). Cost is
+  about 50k input tokens per 3-minute round at the defaults.
+- Tests: `backend/test_invites.py`, `backend/test_video_scoring.py` (mocked Gemini), and
+  `lib/pushPlatform.test.js`, `lib/pendingInvite.test.js`, `lib/rewards.test.js`.
+
 ---
 
 # Previous: Bug-Hunt Pass
