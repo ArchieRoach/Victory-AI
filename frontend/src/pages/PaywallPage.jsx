@@ -80,6 +80,17 @@ export default function PaywallPage() {
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [offer, setOffer] = useState(null);
+
+  // Founders see the price checkout will actually charge them, and that it's theirs for life
+  // (ownership is felt before purchase, not only after).
+  useEffect(() => {
+    axios.get(`${API}/payments/offer`).then((r) => setOffer(r.data)).catch(() => setOffer(null));
+  }, []);
+  const founder = offer?.founder;
+  const trialDays = offer?.trial_days ?? 14;
+  const planPrice = (id, fallback) => offer?.plans?.[id]?.price ?? fallback;
+  const perWeek = (yearly) => `$${(yearly / 52).toFixed(2)}/week`;
 
   // Funnel: which of the 3 steps people actually reach.
   useEffect(() => {
@@ -237,8 +248,19 @@ export default function PaywallPage() {
         {step === 3 && (
           <div className="flex flex-col animate-fade-in">
             <h1 className="text-2xl font-heading font-extrabold text-victory-text mt-2 mb-6">
-              {t("paywall.paymentHeadline")}
+              {founder ? `Start your ${trialDays}-day free trial` : t("paywall.paymentHeadline")}
             </h1>
+
+            {founder && (
+              <div className="victory-card p-3 mb-4 border-victory-lime/40 bg-victory-lime/5" data-testid="founder-offer">
+                <p className="text-victory-lime text-sm font-semibold">
+                  Founding member: {founder.percent_off}% off Pro{founder.lifetime ? ", locked in for life" : ""}
+                </p>
+                {founder.lifetime && (
+                  <p className="text-victory-muted text-xs mt-0.5">Yours for as long as you stay subscribed. If you cancel, it's gone for good.</p>
+                )}
+              </div>
+            )}
 
             <div className="space-y-3 mb-5">
               <button
@@ -260,8 +282,11 @@ export default function PaywallPage() {
                     <p className="text-victory-muted text-sm">{t("paywall.plans.annualSavings")}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-heading font-bold text-victory-text">$25</p>
-                    <p className="text-victory-lime text-xs font-semibold">{t("paywall.plans.weeklyAnnual")}</p>
+                    <p className="text-2xl font-heading font-bold text-victory-text">
+                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">$25</span>}
+                      ${planPrice("annual", 25)}
+                    </p>
+                    <p className="text-victory-lime text-xs font-semibold">{founder ? perWeek(planPrice("annual", 25)) : t("paywall.plans.weeklyAnnual")}</p>
                   </div>
                 </div>
               </button>
@@ -282,8 +307,11 @@ export default function PaywallPage() {
                     <p className="text-victory-muted text-sm">{t("paywall.plans.monthlyFlexible")}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-heading font-bold text-victory-text">$5</p>
-                    <p className="text-victory-muted text-xs">{t("paywall.plans.weeklyMonthly")}</p>
+                    <p className="text-2xl font-heading font-bold text-victory-text">
+                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">$5</span>}
+                      ${planPrice("monthly", 5)}
+                    </p>
+                    <p className="text-victory-muted text-xs">{founder ? `~${perWeek(planPrice("monthly", 5) * 12)}` : t("paywall.plans.weeklyMonthly")}</p>
                   </div>
                 </div>
               </button>
@@ -298,7 +326,11 @@ export default function PaywallPage() {
               ))}
             </div>
 
-            <p className="text-victory-muted text-xs mb-4 leading-relaxed">{t("paywall.paymentReassure")}</p>
+            <p className="text-victory-muted text-xs mb-4 leading-relaxed">
+              {founder
+                ? `${trialDays} days free, then your plan renews automatically. Cancel anytime before then and you pay nothing.`
+                : t("paywall.paymentReassure")}
+            </p>
 
             <button
               onClick={handleStartTrial}
@@ -309,7 +341,7 @@ export default function PaywallPage() {
               {loading ? (
                 <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
               ) : (
-                t("paywall.cta")
+                founder ? `Start ${trialDays}-Day Free Trial` : t("paywall.cta")
               )}
             </button>
 

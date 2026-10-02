@@ -246,6 +246,56 @@ Coach as well as recording.
   - **Public profiles** show the top 3 traits next to titles.
 - Tests: `backend/test_identity.py`, `lib/identity.test.js`, `lib/rewards.test.js`, `lib/fighterCard.test.js`.
 
+## Founder price reminders and the cancel flow (branch `feature/founder-price-billing`)
+- **Goal:** keep founders (waitlist users with the lifetime `STRIPE_FOUNDERS_COUPON_ID` discount)
+  subscribed, without making cancelling harder than one honest extra screen.
+- **Psychology:**
+  - **Endowment effect:** a price someone feels they already own is valued more. Ownership is
+    first felt straight after purchase.
+  - **Loss aversion:** a concrete loss shown at the moment of decision weighs about twice as much
+    as the same gain.
+- **Design:**
+  - **Straight after purchase:** `PaymentSuccess` shows `FounderLockedCard`: "$3/month ~~$5~~ ·
+    yours for life while you stay subscribed · cancel and it's gone, coming back costs $5,
+    about $24 more a year". It waits for a tap instead of auto-redirecting.
+  - **Cancelling:** `/billing` (Profile → Subscription) is the first subscription UI in the app.
+    It shows plan, price, founder badge and renewal date.
+    - "Cancel subscription" opens one confirm screen with the exact loss. "Keep my founder price"
+      is the primary button and "Cancel anyway" is one tap.
+    - Cancelling is cancel-at-period-end through Stripe, so access continues until then.
+    - Until that date there's a "Stay subscribed and keep $3/month" button (resume).
+- **Truthfulness:**
+  - The page only says "for life" when the subscription in Stripe actually carries the founders
+    coupon and that coupon's `duration` is `forever`. **Check this in the Stripe dashboard
+    (Products → Coupons).**
+  - Founder promo codes are single-use (`max_redemptions=1`), so the loss is real.
+  - Checkout previously re-applied a spent code, which Stripe rejects. It now skips spent codes,
+    so a returning founder can still subscribe at the regular price.
+- **Endpoints:** `GET /subscription/billing`, `POST /subscription/cancel`,
+  `POST /subscription/resume`. The `customer.subscription.updated` webhook now syncs
+  `cancel_at_period_end`.
+- **In the iOS app:** the page is read-only (no Stripe controls in the app, under Guideline
+  3.1.1).
+- Analytics events: `subscription_cancel_started`, `subscription_cancel_kept`,
+  `subscription_cancel_confirmed`, `subscription_resumed`. Save rate = kept ÷ started.
+- Tests: `backend/test_billing.py` (Stripe mocked), `lib/billing.test.js`.
+- **Matching the waitlist site (victoryai.co.uk):**
+  - **Already matching:** $5/month, $25/year ("Save 58%"), 10,000 free AI credits, and 40% off
+    for founders.
+  - **Trial length:** the site's form promises waitlist sign-ups a "30-day Pro trial", but checkout
+    gave everyone 14 days. Founders with an unspent code now get `FOUNDER_TRIAL_DAYS = 30`; everyone
+    else gets 14.
+  - **Paywall:** `GET /payments/offer` gives the paywall the exact price and trial checkout will
+    use. Founders see ~~$5~~ $3 and ~~$25~~ $15, "locked in for life", and the 30-day trial.
+  - **WhatsApp number:** the site sends `phone`, which the backend used to drop. It's now stored on
+    the `waitlist` entry and forwarded to n8n.
+- **Not fixable from this repo (the site is a Lovable project):**
+  - the footer's Terms of Service link (`/terms-of-service`) is a 404;
+  - "437 / 1,000 spots claimed" and "563 spots left" are hardcoded, not live;
+  - founder codes have no 1,000 cap in the backend, although the site says "first 1,000".
+- **Stripe products aren't used by checkout,** which builds prices inline (`price_data`). Products
+  in the dashboard with other prices are never charged.
+
 ---
 
 # Previous: Bug-Hunt Pass

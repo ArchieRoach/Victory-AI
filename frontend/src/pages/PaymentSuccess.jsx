@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { analytics } from "@/lib/analytics";
+import { FounderLockedCard } from "@/components/FounderPrice";
+import { founderTerms } from "@/lib/billing";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ export default function PaymentSuccess() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState("checking");
+  const [billing, setBilling] = useState(null);
 
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
@@ -41,7 +44,12 @@ export default function PaymentSuccess() {
           setStatus("success");
           analytics.capture("subscription_activated");
           toast.success(t("payment.successToast"));
-          redirectTimer = setTimeout(() => navigate("/home", { replace: true }), 2000);
+          // A founder sees their locked-in price before anything else, so the page waits
+          // for them instead of redirecting.
+          const b = await axios.get(`${API}/subscription/billing`).then((r) => r.data).catch(() => null);
+          if (cancelled) return;
+          setBilling(b);
+          if (!founderTerms(b)) redirectTimer = setTimeout(() => navigate("/home", { replace: true }), 2000);
           return;
         } else if (response.data.status === "expired") {
           setStatus("expired");
@@ -83,7 +91,16 @@ export default function PaymentSuccess() {
             <p className="text-victory-muted mb-4">
               {t("payment.trialStarted")}
             </p>
-            <p className="text-victory-muted text-sm">{t("payment.redirecting")}</p>
+            {founderTerms(billing) ? (
+              <div className="space-y-4">
+                <FounderLockedCard billing={billing} />
+                <button onClick={() => navigate("/home", { replace: true })} className="victory-btn-primary">
+                  {t("payment.goToApp")}
+                </button>
+              </div>
+            ) : (
+              <p className="text-victory-muted text-sm">{t("payment.redirecting")}</p>
+            )}
           </>
         )}
 
