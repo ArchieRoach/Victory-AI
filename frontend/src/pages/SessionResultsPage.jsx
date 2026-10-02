@@ -424,7 +424,7 @@ export default function SessionResultsPage() {
           </p>
         )}
 
-        <SessionRewards rewards={session.rewards} scoutingReport={session.scouting_report} />
+        <SessionRewards rewards={session.rewards} scoutingReport={session.scouting_report} overall={session.overall_score} liveStats={session.live_stats} />
         <LiveSessionStats stats={session.live_stats} records={session.live_records} />
 
         {/* Category scores — three real, meaningful numbers beat sixteen tiny
