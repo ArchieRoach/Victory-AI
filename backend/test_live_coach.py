@@ -72,6 +72,46 @@ def test_rejects_other_users_sessions_and_silly_numbers():
     assert client.post(f"/api/training/{sid}/live-round", json={"round_number": 1, "punches": 999999}).status_code == 422
 
 
+def test_live_activity_payload_uses_swift_date_epoch():
+    from datetime import datetime, timezone
+    from server import live_activity_payload
+    ends = datetime(2026, 10, 3, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 10, 3, 17, 30, tzinfo=timezone.utc)
+    p = live_activity_payload("booking", "Footwork round", "PB to beat: 6", ends, "t", "b", now=now)["aps"]
+    assert p["event"] == "start" and p["attributes-type"] == "VictoryActivityAttributes"
+    assert p["content-state"]["endsAt"] == ends.timestamp() - 978307200
+    assert p["stale-date"] == int(ends.timestamp()) and p["timestamp"] == int(now.timestamp())
+    assert p["alert"] == {"title": "t", "body": "b"}
+
+
+def test_countdowns_start_once_for_the_right_people():
+    from datetime import datetime, timedelta, timezone
+    sent = []
+
+    async def fake_la(user_id, payload):
+        sent.append((user_id, payload["aps"]["attributes"]["kind"]))
+
+    server._send_live_activity = fake_la
+    now = datetime(2026, 10, 3, 12, 0, tzinfo=timezone.utc)
+    run(server.db.bookings.insert_many([
+        {"booking_id": "b1", "user_id": "u1", "status": "pending", "focus": "Jab", "focus_pb": 7,
+         "at": (now + timedelta(minutes=20)).isoformat()},
+        {"booking_id": "b2", "user_id": "u1", "status": "pending", "at": (now + timedelta(hours=3)).isoformat()},
+    ]))
+    run(server.db.users.insert_one({"user_id": "u2", "tz_offset_minutes": 0}))
+    run(server.db.callouts.insert_many([
+        {"callout_id": "c1", "status": "open", "challenger_name": "Sam", "dimension": "Jab", "score": 8,
+         "accepted_ids": ["u2"], "expires_at": (now + timedelta(hours=5)).isoformat()},
+        {"callout_id": "c2", "status": "open", "challenger_name": "Sam", "dimension": "Cross", "score": 8,
+         "accepted_ids": ["u2"], "expires_at": (now + timedelta(days=3)).isoformat()},
+    ]))
+    run(server._start_booking_countdowns(now))
+    run(server._start_callout_countdowns(now))
+    run(server._start_booking_countdowns(now))
+    run(server._start_callout_countdowns(now))
+    assert sent == [("u1", "booking"), ("u2", "callout")]
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:

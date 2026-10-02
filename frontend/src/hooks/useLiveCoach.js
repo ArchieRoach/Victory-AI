@@ -95,7 +95,8 @@ export function useLiveCoach({ enabled, videoRef, running, voice }) {
       trackerRef.current.addHeadMove();
       setAirpods(true);
     };
-    Promise.resolve(nativeMotion("start")).then((r) => setAirpods(!!r?.available)).catch(() => {});
+    setAirpods(false);
+    Promise.resolve(nativeMotion("start")).catch(() => {});
 
     return () => {
       cancelled = true;

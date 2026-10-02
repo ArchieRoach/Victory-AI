@@ -2018,6 +2018,9 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.streams.delete_many({"user_id": user_id})
     await db.push_subscriptions.delete_many({"user_id": user_id})
     await db.apns_tokens.delete_many({"user_id": user_id})
+    await db.live_activity_tokens.delete_many({"user_id": user_id})
+    await db.ghost_rounds.delete_many({"user_id": user_id})
+    await db.squad_invites.delete_many({"inviter_id": user_id})
     await db.waitlist.delete_many({"email": user["email"]})
     own_highlights = await db.highlights.find({"streamer_id": user_id}, {"highlight_id": 1, "share_video_url": 1}).to_list(1000)
     for hl in own_highlights:
@@ -3147,6 +3150,81 @@ async def _send_apns(user_id: str, title: str, body: str, url: str, tag: str):
         logger.warning(f"APNs {r.status_code} {reason} for {user_id}")
         if r.status_code == 410 or reason in ("BadDeviceToken", "DeviceTokenNotForTopic"):
             await db.apns_tokens.delete_one({"device_token": t["device_token"]})
+
+# ---- Live Activities (Lock Screen / Dynamic Island countdowns) ----
+# Started remotely with an ActivityKit push-to-start token (iOS 17.2+). The app renders
+# them with VictoryActivityAttributes (ios/VictoryAI/Shared/VictoryActivityAttributes.swift).
+
+APPLE_EPOCH_OFFSET = 978307200  # Swift's default Date coding counts from 2001-01-01
+
+
+class LiveActivityTokenRequest(BaseModel):
+    token: str = Field(pattern=r"^[0-9a-fA-F]{32,400}$")
+    environment: Literal["production", "sandbox"] = "production"
+
+
+@api_router.post("/push/live-activity-token")
+async def register_live_activity_token(req: LiveActivityTokenRequest, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"la_token:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many requests — slow down")
+    token = req.token.lower()
+    await db.live_activity_tokens.update_one(
+        {"token": token},
+        {"$set": {"user_id": user["user_id"], "token": token, "environment": req.environment,
+                  "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"ok": True}
+
+
+@api_router.delete("/push/live-activity-token")
+async def unregister_live_activity_token(user: dict = Depends(get_current_user)):
+    await db.live_activity_tokens.delete_many({"user_id": user["user_id"]})
+    return {"ok": True}
+
+
+def live_activity_payload(kind: str, headline: str, detail: str, ends_at: datetime, title: str, body: str,
+                          now: Optional[datetime] = None) -> dict:
+    now = now or datetime.now(timezone.utc)
+    ends = ends_at.timestamp()
+    return {"aps": {
+        "timestamp": int(now.timestamp()),
+        "event": "start",
+        "content-state": {"headline": headline, "detail": detail,
+                          "endsAt": ends - APPLE_EPOCH_OFFSET, "paused": False},
+        "attributes-type": "VictoryActivityAttributes",
+        "attributes": {"kind": kind},
+        "alert": {"title": title, "body": body},
+        "stale-date": int(ends),
+        "dismissal-date": int(ends) + 15 * 60,
+    }}
+
+
+async def _send_live_activity(user_id: str, payload: dict):
+    if not _apns_configured():
+        return
+    tokens = await db.live_activity_tokens.find({"user_id": user_id}, {"_id": 0}).to_list(10)
+    client = _apns_http() if tokens else None
+    if client is None:
+        return
+    headers = {
+        "authorization": f"bearer {_apns_provider_token()}",
+        "apns-topic": f"{APNS_BUNDLE_ID}.push-type.liveactivity",
+        "apns-push-type": "liveactivity",
+        "apns-priority": "10",
+    }
+    for t in tokens:
+        host = "api.sandbox.push.apple.com" if t.get("environment") == "sandbox" else "api.push.apple.com"
+        try:
+            r = await client.post(f"https://{host}/3/device/{t['token']}", json=payload, headers=headers)
+        except httpx.HTTPError as exc:
+            logger.warning(f"Live Activity push failed for {user_id}: {exc}")
+            continue
+        if r.status_code == 410 or (r.status_code == 400 and "BadDeviceToken" in r.text):
+            await db.live_activity_tokens.delete_one({"token": t["token"]})
+        elif r.status_code != 200:
+            logger.warning(f"Live Activity push {r.status_code} for {user_id}: {r.text[:200]}")
+
 
 _PUSH_KIND_RE = re.compile(r"[^a-z]")
 
@@ -6677,6 +6755,48 @@ async def _send_due_bookings(now: datetime):
             await _send_push(b["user_id"], title=title, body=body, url=url, tag=f"booking-{b['booking_id']}")
 
 
+BOOKING_COUNTDOWN_MINUTES = 30
+CALLOUT_COUNTDOWN_HOURS = 8
+
+
+async def _start_booking_countdowns(now: datetime):
+    soon = (now + timedelta(minutes=BOOKING_COUNTDOWN_MINUTES)).isoformat()
+    due = await db.bookings.find({"status": "pending", "la_started": {"$ne": True},
+                                  "at": {"$gt": now.isoformat(), "$lte": soon}}, {"_id": 0}).to_list(500)
+    for b in due:
+        claimed = await db.bookings.update_one({"booking_id": b["booking_id"], "la_started": {"$ne": True}},
+                                               {"$set": {"la_started": True}})
+        if not claimed.modified_count:
+            continue
+        _, detail, _ = booking_push(b)
+        headline = f"{b['focus']} round" if b.get("focus") else "Your round"
+        await _send_live_activity(b["user_id"], live_activity_payload(
+            "booking", headline, detail, _parse_utc(b["at"]),
+            title=f"{headline} in {BOOKING_COUNTDOWN_MINUTES} min", body=detail, now=now))
+
+
+async def _start_callout_countdowns(now: datetime):
+    """The last hours of a callout, ticking on the Lock Screen of everyone who accepted it."""
+    soon = (now + timedelta(hours=CALLOUT_COUNTDOWN_HOURS)).isoformat()
+    due = await db.callouts.find({"status": "open", "la_started": {"$ne": True},
+                                  "expires_at": {"$gt": now.isoformat(), "$lte": soon}}, {"_id": 0}).to_list(500)
+    for c in due:
+        claimed = await db.callouts.update_one({"callout_id": c["callout_id"], "la_started": {"$ne": True}},
+                                               {"$set": {"la_started": True}})
+        if not claimed.modified_count:
+            continue
+        ends = _parse_utc(c["expires_at"])
+        users = await db.users.find({"user_id": {"$in": c.get("accepted_ids") or []}},
+                                    {"user_id": 1, "tz_offset_minutes": 1}).to_list(50)
+        for u in users:
+            if in_quiet_hours(now, u.get("tz_offset_minutes") or 0):
+                continue
+            headline = f"Beat {c['challenger_name']}'s {c['dimension']} {c['score']:g}"
+            await _send_live_activity(u["user_id"], live_activity_payload(
+                "callout", headline, "Callout closes when the clock hits zero", ends,
+                title="Final hours on your callout", body=headline, now=now))
+
+
 async def _complete_bookings_for(user_id: str):
     # Training within 6h of (or before) the booked time counts as keeping the booking —
     # no reminder for a round they already did.
@@ -7049,6 +7169,8 @@ async def _investment_loop():
         try:
             await _send_due_bookings(now)
             await _expire_callouts(now)
+            await _start_booking_countdowns(now)
+            await _start_callout_countdowns(now)
             hour_key = now.strftime("%Y%m%d%H")
             if hour_key != last_hourly:
                 last_hourly = hour_key

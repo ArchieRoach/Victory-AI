@@ -20,12 +20,17 @@ env:
   BACKEND_URL: ${{ vars.BACKEND_URL }}
   WEB_APP_URL: ${{ vars.WEB_APP_URL || 'https://victory-ai-alpha.vercel.app' }}
   BUILD_NUMBER: ${{ github.run_number }}
+  # Live Activities ship only once their extension's profile is set up (ios/SETUP.md).
+  WIDGET_PROFILE_NAME: ${{ vars.WIDGET_PROFILE_NAME }}
+  ENABLE_LIVE_ACTIVITIES: ${{ vars.WIDGET_PROFILE_NAME != '' && 'true' || 'false' }}
 
 jobs:
   compile:
     if: github.event_name == 'push'
     runs-on: macos-26
     timeout-minutes: 30
+    env:
+      ENABLE_LIVE_ACTIVITIES: "true"
     steps:
       - uses: actions/checkout@v4
       - name: Generate Xcode project
@@ -54,6 +59,7 @@ jobs:
         env:
           HAS_CERT: ${{ secrets.DIST_CERT_P12_BASE64 != '' }}
           HAS_PROFILE: ${{ secrets.PROFILE_BASE64 != '' }}
+          HAS_WIDGET_PROFILE: ${{ secrets.WIDGET_PROFILE_BASE64 != '' }}
           HAS_ASC_KEY: ${{ secrets.ASC_KEY_P8 != '' && secrets.ASC_KEY_ID != '' && secrets.ASC_ISSUER_ID != '' }}
         run: |
           missing=()
@@ -64,6 +70,9 @@ jobs:
           [ "$HAS_CERT" = "true" ] || missing+=("secret DIST_CERT_P12_BASE64")
           [ "$HAS_PROFILE" = "true" ] || missing+=("secret PROFILE_BASE64")
           [ "$HAS_ASC_KEY" = "true" ] || missing+=("secrets ASC_KEY_P8 / ASC_KEY_ID / ASC_ISSUER_ID")
+          if [ "$ENABLE_LIVE_ACTIVITIES" = "true" ] && [ "$HAS_WIDGET_PROFILE" != "true" ]; then
+            missing+=("secret WIDGET_PROFILE_BASE64 (variable WIDGET_PROFILE_NAME is set)")
+          fi
           if [ ${#missing[@]} -gt 0 ]; then
             printf '::error::Missing %s\n' "${missing[@]}"
             exit 1
@@ -74,6 +83,7 @@ jobs:
           DIST_CERT_P12_BASE64: ${{ secrets.DIST_CERT_P12_BASE64 }}
           DIST_CERT_PASSWORD: ${{ secrets.DIST_CERT_PASSWORD }}
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
+          WIDGET_PROFILE_BASE64: ${{ secrets.WIDGET_PROFILE_BASE64 }}
         run: |
           KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
           KC_PASS="$(openssl rand -base64 24)"
@@ -89,6 +99,9 @@ jobs:
           for dir in "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" "$HOME/Library/MobileDevice/Provisioning Profiles"; do
             mkdir -p "$dir"
             echo "$PROFILE_BASE64" | base64 --decode > "$dir/victoryai_appstore.mobileprovision"
+            if [ -n "$WIDGET_PROFILE_BASE64" ]; then
+              echo "$WIDGET_PROFILE_BASE64" | base64 --decode > "$dir/victoryai_widgets_appstore.mobileprovision"
+            fi
           done
 
       - name: Generate Xcode project
@@ -115,6 +128,10 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+          WIDGET_ENTRY=""
+          if [ "$ENABLE_LIVE_ACTIVITIES" = "true" ]; then
+            WIDGET_ENTRY="<key>${{ vars.IOS_BUNDLE_ID }}.widgets</key><string>${WIDGET_PROFILE_NAME}</string>"
+          fi
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -126,7 +143,7 @@ jobs:
             <key>signingStyle</key><string>manual</string>
             <key>signingCertificate</key><string>Apple Distribution</string>
             <key>provisioningProfiles</key>
-            <dict><key>${{ vars.IOS_BUNDLE_ID }}</key><string>${IOS_PROFILE_NAME}</string></dict>
+            <dict><key>${{ vars.IOS_BUNDLE_ID }}</key><string>${IOS_PROFILE_NAME}</string>${WIDGET_ENTRY}</dict>
             <key>uploadSymbols</key><true/>
             <key>manageAppVersionAndBuildNumber</key><false/>
           </dict>
