@@ -18,7 +18,7 @@ const toLocalInput = (d) => {
 export function BookNextRound({ focusOptions = [] }) {
   const chips = useMemo(() => bookingChips(), []);
   const [existing, setExisting] = useState(undefined);
-  const [chip,     setChip]     = useState(null);
+  const [chip,     setChip]     = useState(chips[0]?.key ?? null);
   const [custom,   setCustom]   = useState("");
   const [focus,    setFocus]    = useState(focusOptions[0] || null);
   const [saving,   setSaving]   = useState(false);

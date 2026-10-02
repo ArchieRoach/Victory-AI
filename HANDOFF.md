@@ -166,7 +166,7 @@ only opens `/api/admin/habit-metrics`.
 
 ## New-interface hooks (branch `feature/live-coach-and-native-hooks`)
 None of these add a per-use cost.
-- **Live Coach** (Train → toggle, off by default, remembered on the device):
+- **Live Coach** (Train → toggle, on by default since `feature/smart-defaults`, remembered on the device):
   - `hooks/useLiveCoach.js` runs MediaPipe Pose (lite) on the camera preview, on the phone
     itself. It's loaded from jsDelivr at a pinned version (1.0.1), not bundled. No frame is
     uploaded, and the camera can be on with recording off.
@@ -197,6 +197,26 @@ None of these add a per-use cost.
 - **Not built:** an Apple Watch app (a separate watchOS target and profile; worth doing after
   launch) and a live voice coach (costs money per minute).
 - Account deletion now also removes `live_activity_tokens`, `ghost_rounds` and `squad_invites`.
+
+## Defaults (branch `feature/smart-defaults`)
+Most people never change a default, so each one is set to the choice that helps both the
+fighter and the scaling metrics:
+
+| Default | Was | Now | Metric it serves |
+|---|---|---|---|
+| Live Coach | off | **on** (runs on the phone, uploads nothing) | sessions with a reward, return rate, `pct_live_coach` |
+| Next-round booking | nothing selected | **"Same time tomorrow"** selected, so it's one tap | bookings made and kept (`kept_rate`), share of sessions started without a push (`pct_direct`) |
+| Go Live audience | Everyone | **Squad only** when the fighter has a squad | reactions per stream, safeguarding |
+| Round length (new fighters) | 3 min | **2 min** (junior amateur standard) | first-session completion |
+| "Get scored by AI?" | equal buttons | **"Turn on" is the primary button**, still a real choice | `pct_recorded` |
+
+**Deliberately unchanged,** because they're high-privacy defaults the UK Children's Code expects
+for under-18s:
+- video upload stays opt-in;
+- streams and clips are never public without a choice.
+
+`tools/habit_metrics.py` now shows a `% coach` column. The iOS camera permission text covers Live
+Coach as well as recording.
 
 ---
 
