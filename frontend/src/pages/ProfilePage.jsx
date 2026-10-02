@@ -15,6 +15,7 @@ import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
 import { isNativeShell } from "@/lib/nativeShell";
+import { InstallSteps } from "@/components/PushOptIn";
 import {
   Select,
   SelectContent,
@@ -62,7 +63,7 @@ export default function ProfilePage() {
       toast.error("Couldn't save — try again");
     }
   };
-  const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
+  const { mode: pushMode, supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const EXPERIENCE_LEVELS = [
     "Total beginner",
@@ -801,6 +802,11 @@ export default function ProfilePage() {
           </div>
 
           {/* Push notifications */}
+          {pushMode === 'install-ios' && (
+            <div className="mt-4 pt-4 border-t border-victory-border">
+              <InstallSteps />
+            </div>
+          )}
           {pushSupported && pushPermission !== 'denied' && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-victory-border">
               <div className="flex items-center gap-3">
@@ -819,9 +825,8 @@ export default function ProfilePage() {
                 disabled={pushLoading}
                 onCheckedChange={async (on) => {
                   if (on) {
-                    const ok = await pushSubscribe();
-                    if (!ok && Notification.permission === 'denied') {
-                      toast.error('Notifications are blocked — enable them in browser settings.');
+                    if (await pushSubscribe() === 'denied') {
+                      toast.error('Notifications are blocked — turn them on in Settings.');
                     }
                   } else {
                     await pushUnsubscribe();

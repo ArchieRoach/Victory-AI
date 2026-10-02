@@ -26,12 +26,12 @@ export function PushPrompt() {
   };
 
   const handleEnable = async () => {
-    const ok = await subscribe();
-    if (ok) {
+    const result = await subscribe();
+    if (result === 'subscribed') {
       toast.success('Notifications enabled — we\'ll keep you in the fight.');
       dismiss();
-    } else if (Notification.permission === 'denied') {
-      toast.error('Notifications blocked — enable them in your browser settings.');
+    } else if (result === 'denied') {
+      toast.error('Notifications blocked — turn them on in Settings.');
       dismiss();
     }
   };

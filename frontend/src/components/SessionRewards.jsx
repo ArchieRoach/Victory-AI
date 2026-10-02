@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
-import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown } from "lucide-react";
+import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown, UserPlus, Check } from "lucide-react";
 import { analytics } from "@/lib/analytics";
-import { seasonProgress } from "@/lib/rewards";
+import { seasonProgress, inviteMoment } from "@/lib/rewards";
 
 const RARITY = {
   common: { label: "SCOUTING REPORT", cls: "bg-victory-card-highlight text-victory-muted border-victory-border" },
@@ -206,13 +206,64 @@ function CalloutsBeaten({ beaten }) {
   );
 }
 
+// Asked only here, straight after a win — never during onboarding. Someone who has just
+// tried it and has a score to show off is vouching for it; someone who hasn't is spamming.
+function BringYourCrew({ moment }) {
+  const [state, setState] = useState("idle");
+  const invite = async () => {
+    setState("working");
+    try {
+      const { data } = await axios.post(`${API}/squads/invites`, { dimension: moment.dimension });
+      const url = `${window.location.origin}${data.path}`;
+      let via = "copy";
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: `Join ${data.squad.name} on Victory AI`, text: data.brag, url });
+          via = "share";
+        } catch (err) {
+          if (err?.name === "AbortError") { setState("idle"); return; }
+          await navigator.clipboard?.writeText(`${data.brag} ${url}`);
+        }
+      } else {
+        await navigator.clipboard?.writeText(`${data.brag} ${url}`);
+        toast.success("Invite link copied");
+      }
+      analytics.capture("squad_invite_sent", { via, has_skill: !!moment.dimension });
+      setState("sent");
+    } catch (err) {
+      setState("idle");
+      toast.error(err?.response?.data?.detail || "Couldn't make the invite — try again");
+    }
+  };
+  return (
+    <section className="victory-card p-4 flex items-center gap-3" data-testid="bring-your-crew">
+      <div className="w-10 h-10 rounded-2xl bg-victory-teal/10 border border-victory-teal/30 flex items-center justify-center flex-shrink-0">
+        {state === "sent" ? <Check className="w-5 h-5 text-victory-teal" /> : <UserPlus className="w-5 h-5 text-victory-teal" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-victory-text text-sm font-semibold">{state === "sent" ? "Invite sent" : moment.headline}</p>
+        <p className="text-victory-muted text-xs">
+          {state === "sent" ? "You'll get a ping when they join your squad." : "Send a mate the link. They land straight in your squad."}
+        </p>
+      </div>
+      {state !== "sent" && (
+        <button onClick={invite} disabled={state === "working"} className="victory-btn-secondary w-auto px-4 min-h-[44px] text-sm disabled:opacity-50">
+          {state === "working" ? "…" : "Invite"}
+        </button>
+      )}
+    </section>
+  );
+}
+
 export function SessionRewards({ rewards, scoutingReport }) {
+  const moment = inviteMoment(rewards, scoutingReport);
   return (
     <div className="space-y-3" data-testid="session-rewards">
       <CalloutsBeaten beaten={rewards?.callouts_beaten} />
       <PersonalBests pb={rewards?.personal_bests} />
       <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
       <SeasonProgress season={rewards?.season} />
+      {moment && <BringYourCrew moment={moment} />}
     </div>
   );
 }

@@ -75,9 +75,9 @@ APNS_BUNDLE_ID = os.environ.get('APNS_BUNDLE_ID', '')
 # 10,000 free tokens/month ≈ 5 video analyses OR 6 TTS sessions OR any mix.
 FREE_MONTHLY_AI_TOKENS = 10_000
 AI_TOKEN_COSTS = {
-    "analyze_video":  2_000,   # GPT-4o vision: ~600 input + 400 output tokens
+    "analyze_video":  2_000,   # Gemini watching one round of video
     "tts_generate":   1_500,   # ElevenLabs TTS: ~100 chars, cost-normalised
-    "ai_competition": 2_000,   # GPT-4o judge: ~600 input + 400 output tokens
+    "ai_competition": 2_000,   # Gemini judging one uploaded video
 }
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -868,6 +868,15 @@ async def check_and_consume_ai_tokens(user: dict, feature: str) -> dict:
     return {"allowed": True, "tokens_remaining": max(0, FREE_MONTHLY_AI_TOKENS - used)}
 
 
+async def refund_ai_tokens(user: dict, feature: str):
+    if user.get("has_subscription"):
+        return
+    await db.users.update_one(
+        {"user_id": user["user_id"], "ai_tokens_used": {"$gte": AI_TOKEN_COSTS.get(feature, 1_000)}},
+        {"$inc": {"ai_tokens_used": -AI_TOKEN_COSTS.get(feature, 1_000)}},
+    )
+
+
 @api_router.get("/usage")
 async def get_ai_usage(user: dict = Depends(get_current_user)):
     if user.get("has_subscription"):
@@ -884,40 +893,161 @@ async def get_ai_usage(user: dict = Depends(get_current_user)):
     }
 
 
-# ============== GPT-4 VISION VIDEO ANALYSIS ==============
+# ============== VIDEO ANALYSIS (GEMINI) ==============
+# Scores come from the model watching the whole round — motion, rhythm, guard recovery
+# between punches — not from a few still frames, which can't show a punch at all.
 
-async def _extract_video_frames(public_id: str, count: int = 3) -> list:
-    """Sample `count` still frames from a Cloudinary video via its frame-extraction
-    URL transform (so_<seconds>), fetch them, and base64-encode as data URLs GPT-4o
-    can actually see. Best-effort — returns [] on any failure rather than raising,
-    since the caller falls back to simulated analysis when frames aren't available.
-    """
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_VIDEO_MODEL = os.environ.get("GEMINI_VIDEO_MODEL", "gemini-2.5-flash")
+GEMINI_VIDEO_FALLBACK_MODEL = "gemini-flash-latest"
+GEMINI_VIDEO_FPS = float(os.environ.get("GEMINI_VIDEO_FPS", "4"))
+GEMINI_MEDIA_RESOLUTION = os.environ.get("GEMINI_MEDIA_RESOLUTION", "low").upper()
+VIDEO_ANALYSIS_MAX_SECONDS = 300
+GEMINI_INLINE_MAX_BYTES = 15 * 1024 * 1024
+
+_genai_client = None
+
+
+def _gemini():
+    global _genai_client
+    if _genai_client is None:
+        from google import genai
+        _genai_client = genai.Client(api_key=GEMINI_API_KEY)
+    return _genai_client
+
+
+class _DimensionScore(BaseModel):
+    dimension_name: Literal[tuple(DIMENSIONS)]
+    score: Optional[int] = Field(None, description="1-10, or null if not clearly seen at least twice")
+    evidence: str = Field(description="Timestamp (m:ss) and what was seen, e.g. '0:42 jab lands, right hand drops'")
+
+
+class _RoundAnalysis(BaseModel):
+    boxer_visible: bool
+    dimension_scores: List[_DimensionScore]
+    what_did_well: str
+    what_to_improve: str
+
+
+def analysis_video_url(public_id: str) -> str:
+    url, _ = cloudinary.utils.cloudinary_url(
+        public_id, resource_type="video", format="mp4", secure=True,
+        transformation=[{"width": 640, "height": 640, "crop": "limit", "quality": "auto:low",
+                         "video_codec": "h264"}],
+    )
+    return url
+
+
+def video_analysis_prompt(round_number: int, partner_name: str, tone: str, focus_areas: List[str]) -> str:
+    return (
+        f"You are {partner_name}, a boxing coach with a {tone} style, watching round {round_number} of a "
+        "fighter's solo training (shadowboxing, bag or pads). Watch the whole video.\n"
+        "Score each skill 1-10 only from what you actually see:\n"
+        "1-3: the technique breaks down on most attempts.\n"
+        "4-6: correct shape most of the time, with a fault that keeps recurring.\n"
+        "7-8: consistent, small faults only under fatigue or in combinations.\n"
+        "9-10: competitive-amateur standard on nearly every attempt. Rare.\n"
+        "If a skill isn't clearly shown at least twice (no uppercuts thrown, no partner to slip or parry, "
+        "the fighter out of frame), its score MUST be null. A missing score is honest; a guessed one is not.\n"
+        "For every skill, evidence names the timestamp(s) you based it on. "
+        "Set boxer_visible false if no one is boxing on camera.\n"
+        f"Pay extra attention to: {', '.join(focus_areas) or 'overall technique'}.\n"
+        "what_did_well and what_to_improve: one or two sentences each, specific to a moment in this video, "
+        "spoken to the fighter."
+    )
+
+
+def clean_video_analysis(raw: dict) -> Optional[dict]:
+    if not isinstance(raw, dict) or not raw.get("boxer_visible"):
+        return None
+    scores, seen = [], set()
+    for d in raw.get("dimension_scores") or []:
+        name = d.get("dimension_name")
+        if name not in DIMENSIONS or name in seen:
+            continue
+        seen.add(name)
+        score = d.get("score")
+        score = max(1, min(10, int(score))) if isinstance(score, (int, float)) else None
+        scores.append({"dimension_name": name, "score": score, "evidence": str(d.get("evidence") or "")[:200]})
+    scored = [d for d in scores if d["score"] is not None]
+    if not scored:
+        return None
+    weakest = min(scored, key=lambda d: d["score"])["dimension_name"]
+    return {
+        "dimension_scores": scores,
+        "what_did_well": str(raw.get("what_did_well") or "")[:400],
+        "what_to_improve": str(raw.get("what_to_improve") or "")[:400],
+        "drill_recommendation": DRILLS.get(weakest, {}),
+        "source": "video",
+    }
+
+
+async def _gemini_video_part(video_bytes: bytes):
+    from google.genai import types
+    meta = types.VideoMetadata(fps=GEMINI_VIDEO_FPS, end_offset=f"{VIDEO_ANALYSIS_MAX_SECONDS}s")
+    if len(video_bytes) <= GEMINI_INLINE_MAX_BYTES:
+        return types.Part(inline_data=types.Blob(data=video_bytes, mime_type="video/mp4"), video_metadata=meta)
+    import io
+    client = _gemini()
+    f = await client.aio.files.upload(file=io.BytesIO(video_bytes), config=types.UploadFileConfig(mime_type="video/mp4"))
+    for _ in range(30):
+        if f.state and f.state.name == "ACTIVE":
+            break
+        if f.state and f.state.name == "FAILED":
+            raise ValueError("Gemini could not process the video")
+        await asyncio.sleep(2)
+        f = await client.aio.files.get(name=f.name)
+    return types.Part(file_data=types.FileData(file_uri=f.uri, mime_type="video/mp4"), video_metadata=meta)
+
+
+async def analyze_round_video(public_id: str, round_number: int, partner_name: str, tone: str,
+                              focus_areas: List[str]) -> Optional[dict]:
+    from google.genai import types, errors as genai_errors
+    async with httpx.AsyncClient(timeout=90, follow_redirects=True) as http_client:
+        res = await http_client.get(analysis_video_url(public_id))
+    if res.status_code != 200 or not res.content:
+        raise ValueError(f"Cloudinary video fetch failed ({res.status_code})")
+    video = await _gemini_video_part(res.content)
+    config = types.GenerateContentConfig(
+        temperature=0,
+        response_mime_type="application/json",
+        response_schema=_RoundAnalysis,
+        media_resolution=getattr(types.MediaResolution, f"MEDIA_RESOLUTION_{GEMINI_MEDIA_RESOLUTION}",
+                                 types.MediaResolution.MEDIA_RESOLUTION_LOW),
+    )
+    contents = [video, video_analysis_prompt(round_number, partner_name, tone, focus_areas)]
     try:
-        resource = await asyncio.to_thread(cloudinary.api.resource, public_id, resource_type="video")
-        duration = resource.get("duration") or 0
-    except Exception as e:
-        logger.warning(f"Could not fetch video duration for {public_id}: {e}")
-        duration = 0
+        response = await _gemini().aio.models.generate_content(model=GEMINI_VIDEO_MODEL, contents=contents, config=config)
+    except genai_errors.ClientError as e:
+        if getattr(e, "code", None) != 404:
+            raise
+        logger.warning(f"{GEMINI_VIDEO_MODEL} not found — falling back to {GEMINI_VIDEO_FALLBACK_MODEL}")
+        response = await _gemini().aio.models.generate_content(model=GEMINI_VIDEO_FALLBACK_MODEL, contents=contents, config=config)
+    return clean_video_analysis(json.loads(response.text))
 
-    if duration > 1:
-        offsets = [duration * frac for frac in (0.15, 0.5, 0.85)][:count]
-    else:
-        # Duration lookup failed — best-effort fixed offsets rather than giving up.
-        offsets = [0.5, 2.0, 4.0][:count]
 
-    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME", "")
-    frame_urls = [f"https://res.cloudinary.com/{cloud_name}/video/upload/so_{offset:.1f}/{public_id}.jpg" for offset in offsets]
+_CLOUDINARY_VIDEO_RE = re.compile(r"^https://res\.cloudinary\.com/([^/]+)/video/upload/(?:v\d+/)?([^?#]+?)\.[A-Za-z0-9]+$")
 
-    data_urls = []
-    async with httpx.AsyncClient(timeout=15) as http_client:
-        for url in frame_urls:
-            try:
-                res = await http_client.get(url)
-                if res.status_code == 200 and res.content:
-                    data_urls.append(f"data:image/jpeg;base64,{base64.b64encode(res.content).decode()}")
-            except Exception:
-                continue
-    return data_urls
+
+def cloudinary_video_public_id(url: Optional[str]) -> Optional[str]:
+    m = _CLOUDINARY_VIDEO_RE.match(url or "")
+    if not m or m.group(1) != os.environ.get("CLOUDINARY_CLOUD_NAME", ""):
+        return None
+    return m.group(2)
+
+
+def competition_result(analysis: dict) -> dict:
+    scored = [d for d in analysis["dimension_scores"] if d["score"] is not None]
+    best = max(scored, key=lambda d: d["score"])
+    return {
+        "scores": {d["dimension_name"]: d["score"] for d in scored},
+        "overall": round(sum(d["score"] for d in scored) / len(scored), 1),
+        "feedback": analysis["what_did_well"],
+        "highlight": f"{best['dimension_name']} {best['score']}/10 — {best['evidence']}".rstrip(" —"),
+        "improve": analysis["what_to_improve"],
+        "source": "video",
+    }
+
 
 @api_router.post("/ai/analyze-video")
 async def analyze_video_with_vision(request: Request, user: dict = Depends(get_current_user)):
@@ -930,57 +1060,38 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
     if not video_url.startswith("https://res.cloudinary.com/"):
         raise HTTPException(status_code=400, detail="video_url must be a Cloudinary URL")
 
-    quota = await check_and_consume_ai_tokens(user, "analyze_video")
-    if not quota["allowed"]:
-        raise HTTPException(status_code=402, detail="ai_quota_exceeded")
-
     training_partner = user.get("training_partner", {})
     partner_name = training_partner.get("name", "Coach")
     feedback_tone = training_partner.get("feedback_tone", "encouraging")
     focus_areas = training_partner.get("focus_areas", ["Guard Position", "Head Movement"])
 
-    if not OPENAI_API_KEY:
+    if not GEMINI_API_KEY:
         return generate_simulated_analysis(round_number, partner_name, focus_areas)
 
     video_doc = await db.round_videos.find_one({"video_url": video_url, "user_id": user["user_id"]})
     public_id = video_doc.get("public_id") if video_doc else None
+    if not public_id:
+        return generate_simulated_analysis(round_number, partner_name, focus_areas)
+
+    quota = await check_and_consume_ai_tokens(user, "analyze_video")
+    if not quota["allowed"]:
+        raise HTTPException(status_code=402, detail="ai_quota_exceeded")
 
     try:
-        frames = await _extract_video_frames(public_id) if public_id else []
-        if not frames:
-            raise ValueError("No frames could be extracted for vision analysis")
-
-        import json as _json
-        prompt_text = (
-            f"You are {partner_name}, an expert boxing technique analyst with a {feedback_tone} style. "
-            f"These are {len(frames)} frames sampled across round {round_number} of a boxing training session. "
-            f"Focus especially on: {', '.join(focus_areas)}. "
-            f"Provide scores 1-10 for: Jab, Cross, Guard Position, Head Movement, Footwork, Combination Flow. "
-            f'Respond in JSON with keys: dimension_scores (array of {{dimension_name, score}}), what_did_well, what_to_improve, drill_recommendation.'
-        )
-        content = [{"type": "text", "text": prompt_text}] + [
-            {"type": "image_url", "image_url": {"url": frame}} for frame in frames
-        ]
-        async with httpx.AsyncClient() as http_client:
-            res = await http_client.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"},
-                json={"model": "gpt-4o", "messages": [{"role": "user", "content": content}], "response_format": {"type": "json_object"}},
-                timeout=45,
-            )
-        if res.status_code != 200:
-            raise ValueError(f"OpenAI error {res.status_code}")
-        analysis = _json.loads(res.json()["choices"][0]["message"]["content"])
-
-        await db.round_videos.update_one(
-            {"video_url": video_url, "user_id": user["user_id"]},
-            {"$set": {"analyzed": True, "analysis_results": analysis, "analyzed_at": datetime.now(timezone.utc).isoformat()}}
-        )
-        return {"analysis": analysis, "partner_name": partner_name}
-
+        analysis = await analyze_round_video(public_id, round_number, partner_name, feedback_tone, focus_areas)
     except Exception as e:
         logger.error(f"Video analysis error: {e}")
+        analysis = None
+    if not analysis:
+        # An unscored round shouldn't cost the fighter anything.
+        await refund_ai_tokens(user, "analyze_video")
         return generate_simulated_analysis(round_number, partner_name, focus_areas)
+
+    await db.round_videos.update_one(
+        {"video_url": video_url, "user_id": user["user_id"]},
+        {"$set": {"analyzed": True, "analysis_results": analysis, "analyzed_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"analysis": analysis, "partner_name": partner_name}
 
 def generate_simulated_analysis(round_number: int, partner_name: str, focus_areas: List[str]) -> dict:
     # Analysis failed or isn't configured. Returning no analysis (rather than invented
@@ -2035,7 +2146,7 @@ async def get_session_replay(session_id: str, user: dict = Depends(get_current_u
     for video in videos:
         analysis = video.get("analysis_results") or {}
         if isinstance(analysis, dict) and "dimension_scores" in analysis:
-            dimension_scores = analysis["dimension_scores"]
+            dimension_scores = [d for d in analysis["dimension_scores"] if isinstance(d.get("score"), (int, float))]
         else:
             dimension_scores = []
 
@@ -3301,6 +3412,10 @@ async def join_squad_by_code(request: Request, user: dict = Depends(get_current_
     squad = await db.squads.find_one({"invite_code": invite_code})
     if not squad:
         raise HTTPException(status_code=404, detail="Invalid invite code")
+    await _join_squad(user, squad)
+    return {"message": "Joined squad", "squad_id": squad["squad_id"], "name": squad["name"]}
+
+async def _join_squad(user: dict, squad: dict):
     if user["user_id"] in squad.get("members", []):
         raise HTTPException(status_code=400, detail="Already a member")
     if len(squad.get("members", [])) >= MAX_SQUAD_SIZE:
@@ -3315,7 +3430,6 @@ async def join_squad_by_code(request: Request, user: dict = Depends(get_current_
     )
     if joined.modified_count == 0:
         raise HTTPException(status_code=400, detail="Already a member")
-    return {"message": "Joined squad", "squad_id": squad["squad_id"], "name": squad["name"]}
 
 @api_router.get("/squads/mine")
 async def get_my_squads(user: dict = Depends(get_current_user)):
@@ -3323,6 +3437,136 @@ async def get_my_squads(user: dict = Depends(get_current_user)):
     for sq in squads:
         sq["member_count"] = len(sq.get("members", []))
     return squads
+
+# ---- Invite links ----
+# Only offered straight after a win, never in onboarding: nobody vouches for an app they
+# haven't tried. The link carries the win itself (server-verified), so sharing it is a
+# brag first and an invite second.
+
+INVITE_TTL_DAYS = 14
+INVITES_PER_DAY = 20
+
+
+class InviteCreate(BaseModel):
+    dimension: Optional[str] = Field(None, max_length=40)
+    squad_id: Optional[str] = Field(None, max_length=40)
+
+
+def invite_brag(first_name: str, dimension: Optional[str], pb: Optional[float], rank: Optional[str]) -> str:
+    if dimension and isinstance(pb, (int, float)):
+        return f"{first_name} just set a {dimension} personal best of {pb:g}. Think you can beat it?"
+    if rank:
+        return f"{first_name} is ranked {rank} this season. Come and train with the squad."
+    return f"{first_name} wants you in their squad."
+
+
+async def _squad_for_invite(user: dict, squad_id: Optional[str]) -> dict:
+    uid = user["user_id"]
+    if squad_id:
+        squad = await db.squads.find_one({"squad_id": squad_id, "members": uid})
+        if not squad:
+            raise HTTPException(404, "Squad not found")
+        return squad
+    mine = await db.squads.find({"members": uid}).to_list(MAX_SQUADS_PER_USER)
+    open_squads = [sq for sq in mine if len(sq.get("members", [])) < MAX_SQUAD_SIZE]
+    if open_squads:
+        return next((sq for sq in open_squads if sq["owner_id"] == uid), open_squads[0])
+    if len(mine) >= MAX_SQUADS_PER_USER:
+        raise HTTPException(400, "All your squads are full")
+    first = (user.get("display_name") or user.get("name") or "My").split()[0][:30]
+    squad = {
+        "squad_id": f"squad_{uuid.uuid4().hex[:12]}",
+        "name": f"{first}'s Squad",
+        "owner_id": uid,
+        "members": [uid],
+        "invite_code": uuid.uuid4().hex[:8].upper(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.squads.insert_one(squad)
+    return squad
+
+
+@api_router.post("/squads/invites")
+async def create_squad_invite(data: InviteCreate, user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    if not await db.sessions.find_one({"user_id": uid, "scored": True}, {"_id": 1}):
+        raise HTTPException(400, "Finish a scored session first")
+    if _rate_limited(f"squad_invite:{uid}", INVITES_PER_DAY, 86400):
+        raise HTTPException(429, "That's enough invites for today")
+    pb = None
+    if data.dimension:
+        if data.dimension != "Overall" and data.dimension not in DIMENSIONS:
+            raise HTTPException(400, "Unknown skill")
+        fresh = await db.users.find_one({"user_id": uid}, {"personal_bests": 1}) or {}
+        pb = (fresh.get("personal_bests") or {}).get(_pb_key(data.dimension))
+    season = current_season()
+    stats = await db.season_stats.find_one({"user_id": uid, "season_id": season["season_id"]}, {"points": 1}) or {}
+    standing = season_rank(stats.get("points", 0))
+    rank = standing["rank"] if standing["rank_index"] > 0 else None
+    squad = await _squad_for_invite(user, data.squad_id)
+    first = (user.get("display_name") or user.get("name") or "Your mate").split()[0][:30]
+    now = datetime.now(timezone.utc)
+    invite = {
+        "invite_id": uuid.uuid4().hex[:10],
+        "squad_id": squad["squad_id"],
+        "inviter_id": uid,
+        "brag": invite_brag(first, data.dimension if isinstance(pb, (int, float)) else None, pb, rank),
+        "accepted": 0,
+        "created_at": now.isoformat(),
+        "expires_at": (now + timedelta(days=INVITE_TTL_DAYS)).isoformat(),
+    }
+    await db.squad_invites.insert_one(invite)
+    return {"invite_id": invite["invite_id"], "path": f"/join/{invite['invite_id']}",
+            "brag": invite["brag"], "squad": {"squad_id": squad["squad_id"], "name": squad["name"]}}
+
+
+async def _live_invite(invite_id: str) -> dict:
+    invite = await db.squad_invites.find_one({"invite_id": invite_id}, {"_id": 0})
+    if not invite or invite["expires_at"] < datetime.now(timezone.utc).isoformat():
+        raise HTTPException(404, "This invite has expired")
+    squad = await db.squads.find_one({"squad_id": invite["squad_id"]}, {"_id": 0})
+    if not squad:
+        raise HTTPException(404, "This squad no longer exists")
+    return {"invite": invite, "squad": squad}
+
+
+@api_router.get("/invites/{invite_id}")
+async def preview_invite(invite_id: str, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"invite_preview:{client_ip}", 30, 60):
+        raise HTTPException(429, "Too many requests — slow down")
+    found = await _live_invite(invite_id[:20])
+    invite, squad = found["invite"], found["squad"]
+    inviter = await db.users.find_one({"user_id": invite["inviter_id"]}, {"_id": 0, "display_name": 1, "name": 1, "picture": 1, "avatar_url": 1}) or {}
+    return {
+        "squad_name": squad["name"],
+        "member_count": len(squad.get("members", [])),
+        "full": len(squad.get("members", [])) >= MAX_SQUAD_SIZE,
+        "inviter_name": inviter.get("display_name") or inviter.get("name") or "A fighter",
+        "inviter_picture": inviter.get("avatar_url") or inviter.get("picture"),
+        "brag": invite["brag"],
+    }
+
+
+@api_router.post("/invites/{invite_id}/accept")
+async def accept_invite(invite_id: str, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"invite_accept:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many attempts — slow down")
+    found = await _live_invite(invite_id[:20])
+    invite, squad = found["invite"], found["squad"]
+    if user["user_id"] in squad.get("members", []):
+        return {"squad_id": squad["squad_id"], "name": squad["name"], "already_member": True}
+    await _join_squad(user, squad)
+    await db.squad_invites.update_one({"invite_id": invite["invite_id"]}, {"$inc": {"accepted": 1}})
+    await db.users.update_one({"user_id": user["user_id"], "invited_by": {"$exists": False}},
+                              {"$set": {"invited_by": invite["inviter_id"]}})
+    if invite["inviter_id"] != user["user_id"]:
+        name = (user.get("display_name") or user.get("name") or "Someone").split()[0][:30]
+        await _send_push(invite["inviter_id"], title=f"{name} joined {squad['name']}",
+                         body="Your invite worked. Now beat them this week.",
+                         url=f"/squads/{squad['squad_id']}", tag=f"squadjoin-{squad['squad_id']}")
+    return {"squad_id": squad["squad_id"], "name": squad["name"], "already_member": False}
+
 
 @api_router.get("/squads/{squad_id}")
 async def get_squad(squad_id: str, user: dict = Depends(get_current_user)):
@@ -3841,30 +4085,21 @@ async def create_competition(data: CompetitionCreate, user: dict = Depends(get_c
         ai_quota = await check_and_consume_ai_tokens(user, "ai_competition")
         if not ai_quota["allowed"]:
             raise HTTPException(status_code=402, detail="ai_quota_exceeded")
-        try:
-            import json as _json
-            headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-            prompt = (
-                f"You are a professional boxing judge. Score this boxing video on: "
-                f"Jab, Cross, Left Hook, Right Hook, Guard Position, Head Movement, Footwork, Combination Flow, Punch Accuracy. "
-                f"Video URL: {data.video_url}. "
-                f'Respond in JSON: {{"scores":{{"Jab":7,...}},"overall":7.5,"feedback":"...","highlight":"...","improve":"..."}}'
-            )
-            async with httpx.AsyncClient() as http_client:
-                res = await http_client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers=headers,
-                    json={"model": "gpt-4o", "messages": [{"role": "user", "content": prompt}], "response_format": {"type": "json_object"}},
-                    timeout=30,
-                )
-                if res.status_code == 200:
-                    ai_result = _json.loads(res.json()["choices"][0]["message"]["content"])
-                    comp_doc["ai_result"] = ai_result
-                    comp_doc["avg_score"] = ai_result.get("overall")
-                    comp_doc["dimension_averages"] = ai_result.get("scores", {})
-                    comp_doc["status"] = "closed"
-        except Exception as e:
-            logger.error(f"AI judging error: {e}")
+        # The judge watches the uploaded video; if it can't, the competition stays open for
+        # human votes rather than getting a score nobody watched.
+        public_id = cloudinary_video_public_id(data.video_url)
+        analysis = None
+        if GEMINI_API_KEY and public_id:
+            try:
+                analysis = await analyze_round_video(public_id, 1, "Judge", "neutral, precise", [])
+            except Exception as e:
+                logger.error(f"AI judging error: {e}")
+        if analysis:
+            result = competition_result(analysis)
+            comp_doc.update({"ai_result": result, "avg_score": result["overall"],
+                             "dimension_averages": result["scores"], "status": "closed"})
+        else:
+            await refund_ai_tokens(user, "ai_competition")
     await db.competitions.insert_one(comp_doc)
     comp_doc.pop("_id", None)
     comp_doc["challenger"] = safe_user(user)

@@ -81,8 +81,9 @@ open VictoryAI.xcodeproj
 
 The camera / microphone / photo-library purpose strings in `project.yml` are required — the upload
 is rejected if a framework touches one of these and the string is missing. Notifications need no
-Info.plist string; the system prompt appears the first time a signed-in user with access reaches the
-app. Contacts are **not** accessed on iOS — the "find friends from contacts" feature relies on the
+Info.plist string. The system prompt is **not** shown on launch: iOS only lets us ask once, so the
+web app asks through `PushBridge` at a moment that earns it (straight after booking a round, or the
+Profile switch). Contacts are **not** accessed on iOS — the "find friends from contacts" feature relies on the
 browser Contact Picker API, which WKWebView does not expose. Do not add `NSContactsUsageDescription`
 unless that changes.
 
@@ -99,7 +100,7 @@ App launch (no session)       → SignInView
 Sign in complete              → validate  → .app / .paywall / .lapsed / .networkError
 Network unreachable           → NetworkErrorView (retry button, never locks user out)
 .paywall / .lapsed           → Restore Access → re-validate (no purchase or portal link — Guideline 3.1.1)
-.app                          → PushNotificationManager.enable() → APNs token POSTed to /api/push/apns
+.app                          → PushNotificationManager.resume() → re-registers if already allowed (never prompts)
 Any screen → Sign Out         → DELETE /api/push/apns → Clerk.shared.auth.signOut() → SignInView
 ```
 
@@ -165,6 +166,11 @@ The capability, background mode and `@UIApplicationDelegateAdaptor` are already 
    download `AuthKey_XXXXXXXXXX.p8` (it can only be downloaded once). One key can have both APNs
    and Sign in with Apple enabled.
 3. Set the four `APNS_*` Railway variables below. Until all four exist, iOS push silently no-ops.
+
+**When the prompt appears:** `Push/PushBridge.swift` exposes `window.webkit.messageHandlers.victoryPush`
+to the web app (main frame of `WEB_APP_URL` only). `frontend/src/hooks/usePushNotifications.js` uses it
+in the app, so the booking card's "Turn on" and the Profile switch drive the native prompt and APNs
+registration. Switching it off in Profile deletes the token and is remembered across launches.
 
 Debug builds register **sandbox** tokens; TestFlight / App Store builds register **production**
 tokens. The backend sends each token to the matching APNs host. Tapping a notification opens its

@@ -31,6 +31,9 @@ private struct WebAppContainer: UIViewRepresentable {
         // The web app hides every Stripe purchase surface when it sees this tag
         // (frontend/src/lib/nativeShell.js) — App Store Guideline 3.1.1.
         config.applicationNameForUserAgent = "Mobile/15E148 VictoryAI-iOS"
+        config.userContentController.addScriptMessageHandler(
+            PushBridge(allowedHost: Self.webAppURL.host), contentWorld: .page, name: PushBridge.name
+        )
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator

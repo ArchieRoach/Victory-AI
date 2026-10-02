@@ -27,20 +27,49 @@ final class PushNotificationManager: NSObject {
         #endif
     }
 
-    /// Call once the user is signed in with access. Prompts for permission the first time only.
-    func enable() async {
-        let center = UNUserNotificationCenter.current()
-        let settings = await center.notificationSettings()
-        switch settings.authorizationStatus {
-        case .notDetermined:
-            let granted = (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
-            guard granted else { return }
-        case .denied:
-            return
-        default:
-            break
+    private static let optOutKey = "pushOptedOut"
+
+    /// Set when the fighter switches notifications off in the web app's Profile.
+    private var optedOut: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.optOutKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.optOutKey) }
+    }
+
+    /// Call on every signed-in launch. Re-registers if already allowed; never prompts —
+    /// iOS only lets us ask once, so the web app asks at a moment that makes sense (PushBridge).
+    func resume() async {
+        guard !optedOut else { return }
+        let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+        if status == .authorized || status == .provisional || status == .ephemeral {
+            UIApplication.shared.registerForRemoteNotifications()
         }
-        UIApplication.shared.registerForRemoteNotifications()
+    }
+
+    func request() async -> [String: Any] {
+        optedOut = false
+        let center = UNUserNotificationCenter.current()
+        if await center.notificationSettings().authorizationStatus == .notDetermined {
+            _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
+        }
+        await resume()
+        return await state()
+    }
+
+    func optOut() async -> [String: Any] {
+        optedOut = true
+        await disable()
+        return await state()
+    }
+
+    /// Shaped like the web Notification API so the web app treats both the same.
+    func state() async -> [String: Any] {
+        let permission: String
+        switch await UNUserNotificationCenter.current().notificationSettings().authorizationStatus {
+        case .denied: permission = "denied"
+        case .notDetermined: permission = "default"
+        default: permission = "granted"
+        }
+        return ["permission": permission, "subscribed": permission == "granted" && !optedOut]
     }
 
     func didRegister(deviceToken data: Data) {

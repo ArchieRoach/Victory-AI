@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { CalendarClock, Check, X } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { bookingChips, isQuietHour, formatBooking } from "@/lib/booking";
+import { PushOptIn } from "@/components/PushOptIn";
 
 const toLocalInput = (d) => {
   const pad = (n) => String(n).padStart(2, "0");
@@ -65,6 +66,7 @@ export function BookNextRound({ focusOptions = [] }) {
 
   if (existing) {
     return (
+      <div className="space-y-3">
       <section className="victory-card p-4 flex items-center gap-3 border-victory-lime/30 bg-victory-lime/5" data-testid="booking-confirmed">
         <div className="w-11 h-11 rounded-2xl bg-victory-lime flex items-center justify-center flex-shrink-0">
           <Check className="w-5 h-5 text-victory-bg" strokeWidth={2.5} />
@@ -79,6 +81,8 @@ export function BookNextRound({ focusOptions = [] }) {
           <X className="w-4 h-4" />
         </button>
       </section>
+      <PushOptIn reason="booking" />
+      </div>
     );
   }
 

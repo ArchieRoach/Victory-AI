@@ -306,9 +306,12 @@ export default function SessionDetailPage() {
                           <div className="space-y-1">
                             <p className="text-victory-muted text-xs font-medium">{t("sessionDetail.roundScores")}</p>
                             {round.dimension_scores.map(d => (
-                              <div key={d.dimension_name} className="flex justify-between text-sm">
-                                <span className="text-victory-muted">{d.dimension_name}</span>
-                                <span className="font-mono text-victory-lime">{d.score}/10</span>
+                              <div key={d.dimension_name}>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-victory-muted">{d.dimension_name}</span>
+                                  <span className="font-mono text-victory-lime">{d.score}/10</span>
+                                </div>
+                                {d.evidence && <p className="text-victory-muted text-[11px] leading-snug">{d.evidence}</p>}
                               </div>
                             ))}
                           </div>

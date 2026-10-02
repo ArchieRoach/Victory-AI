@@ -395,7 +395,7 @@
     "restDuration": "Pausendauer",
     "numRounds": "Anzahl der Runden",
     "recordAnalyze": "Aufnehmen und analysieren",
-    "recordDesc": "KI analysiert deine Technik mit GPT-4 Vision",
+    "recordDesc": "Die KI schaut sich das Video deiner Runde an und bewertet, was sie wirklich sieht",
     "voiceFeedback": "Sprachfeedback",
     "voiceDesc": "Dein Trainingspartner spricht Feedback laut aus",
     "total": "Gesamt:",

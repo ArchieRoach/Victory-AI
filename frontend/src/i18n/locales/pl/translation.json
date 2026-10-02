@@ -395,7 +395,7 @@
     "restDuration": "Czas odpoczynku",
     "numRounds": "Liczba rund",
     "recordAnalyze": "Nagraj i analizuj",
-    "recordDesc": "AI przeanalizuje Twoją technikę z GPT-4 Vision",
+    "recordDesc": "AI ogląda nagranie Twojej rundy i ocenia to, co faktycznie widzi",
     "voiceFeedback": "Informacje głosowe",
     "voiceDesc": "Twój partner mówi informacje na głos",
     "total": "Łącznie:",

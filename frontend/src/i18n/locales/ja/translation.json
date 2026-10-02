@@ -395,7 +395,7 @@
     "restDuration": "休憩時間",
     "numRounds": "ラウンド数",
     "recordAnalyze": "録画して分析",
-    "recordDesc": "AIがGPT-4 Visionであなたの技術を分析します",
+    "recordDesc": "AIがラウンドの動画を見て、実際に見えたものだけを採点します",
     "voiceFeedback": "音声フィードバック",
     "voiceDesc": "トレーニングパートナーがフィードバックを読み上げます",
     "total": "合計：",
