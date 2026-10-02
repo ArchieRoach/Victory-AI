@@ -38,7 +38,26 @@ class FakeCoupon:
         return {"id": cid, "percent_off": 40, "amount_off": None, "duration": "forever", "duration_in_months": None}
 
 
-server.stripe_lib = SimpleNamespace(Subscription=FakeSubscription, Coupon=FakeCoupon)
+PROMO = {"redeemed": 0}
+checkouts = []
+
+
+class FakePromotionCode:
+    @staticmethod
+    def list(code, limit):
+        return SimpleNamespace(data=[{"id": "promo_1", "code": code, "active": True, "max_redemptions": 1,
+                                      "times_redeemed": PROMO["redeemed"]}])
+
+
+class FakeCheckoutSession:
+    @staticmethod
+    def create(**params):
+        checkouts.append(params)
+        return SimpleNamespace(id="cs_1", url="https://checkout.stripe.test/cs_1")
+
+
+server.stripe_lib = SimpleNamespace(Subscription=FakeSubscription, Coupon=FakeCoupon, PromotionCode=FakePromotionCode,
+                                    checkout=SimpleNamespace(Session=FakeCheckoutSession))
 
 
 def run(coro):
@@ -86,6 +105,56 @@ def test_no_subscription():
     assert client.get("/api/subscription/billing").json() == {"has_subscription": False}
     assert client.post("/api/subscription/cancel").status_code == 404
     server.app.dependency_overrides[server.get_current_user] = lambda: USER
+
+
+def test_founder_offer_and_checkout_match_the_waitlist_promise():
+    run(server.db.waitlist.insert_one({"email": "a@b.co", "promo_code": "FOUNDERAB12"}))
+    offer = client.get("/api/payments/offer").json()
+    assert offer["trial_days"] == 30 and offer["founder"] == {"percent_off": 40, "lifetime": True}
+    assert offer["plans"]["monthly"] == {"price": 3.0, "regular_price": 5.0, "interval": "month"}
+    assert offer["plans"]["annual"]["price"] == 15.0
+
+    r = client.post("/api/payments/checkout", json={"plan_id": "monthly", "origin_url": "https://victory-ai-alpha.vercel.app"})
+    assert r.status_code == 200, r.text
+    params = checkouts[-1]
+    assert params["discounts"] == [{"promotion_code": "promo_1"}] and "allow_promotion_codes" not in params
+    assert params["subscription_data"]["trial_period_days"] == 30
+    txn = run(server.db.payment_transactions.find_one({"session_id": "cs_1"}))
+    assert txn["founder"] is True and txn["trial_days"] == 30
+
+
+def test_spent_founder_code_falls_back_to_regular_offer():
+    PROMO["redeemed"] = 1
+    offer = client.get("/api/payments/offer").json()
+    assert offer["founder"] is None and offer["trial_days"] == 14 and offer["plans"]["monthly"]["price"] == 5.0
+    client.post("/api/payments/checkout", json={"plan_id": "monthly", "origin_url": "https://victory-ai-alpha.vercel.app"})
+    params = checkouts[-1]
+    assert "discounts" not in params and params["allow_promotion_codes"] is True
+    assert params["subscription_data"]["trial_period_days"] == 14
+    PROMO["redeemed"] = 0
+
+
+def test_waitlist_keeps_the_whatsapp_number():
+    server.STRIPE_FOUNDERS_COUPON_ID = ""
+    import httpx
+
+    class NoN8n:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def post(self, *a, **k): return None
+
+    real = server.httpx.AsyncClient
+    server.httpx.AsyncClient = NoN8n
+    try:
+        r = client.post("/api/waitlist/signup", json={"name": "Alex", "email": "alex@example.com", "phone": "+447700900000"})
+    finally:
+        server.httpx.AsyncClient = real
+        server.STRIPE_FOUNDERS_COUPON_ID = "FOUNDERS"
+    assert r.status_code == 200, r.text
+    assert run(server.db.waitlist.find_one({"email": "alex@example.com"}))["phone"] == "+447700900000"
+    too_long = client.post("/api/waitlist/signup", json={"email": "b@example.com", "phone": "1" * 40})
+    assert too_long.status_code == 422
 
 
 if __name__ == "__main__":

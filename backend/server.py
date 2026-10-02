@@ -1314,6 +1314,55 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
 
 # ============== STRIPE PAYMENT ENDPOINTS ==============
 
+STANDARD_TRIAL_DAYS = 14
+# The waitlist site promises founders "early access + 30-day Pro trial" on sign-up.
+FOUNDER_TRIAL_DAYS = 30
+
+
+async def _unspent_founder_promo(user: dict):
+    """The founder's own single-use Stripe promotion code, if they have one they haven't
+    used yet. A founder who cancelled has spent it — Stripe would reject it, and the price
+    is gone, which is what the cancel screen warns about."""
+    if not (STRIPE_FOUNDERS_COUPON_ID and user.get("email")):
+        return None
+    entry = await db.waitlist.find_one({"email": user["email"]})
+    if not (entry and entry.get("promo_code")):
+        return None
+    try:
+        codes = await asyncio.to_thread(stripe_lib.PromotionCode.list, code=entry["promo_code"], limit=1)
+    except Exception as e:
+        logger.warning(f"Founders discount lookup failed: {e}")
+        return None
+    code = codes.data[0] if codes.data else None
+    limit = _sget(code, "max_redemptions")
+    spent = bool(limit) and (_sget(code, "times_redeemed") or 0) >= limit
+    return code if code is not None and _sget(code, "active") and not spent else None
+
+
+@api_router.get("/payments/offer")
+async def get_payment_offer(user: dict = Depends(get_current_user)):
+    """What this person would pay today: the founder price and 30-day trial for an unspent
+    founder code, otherwise the regular plans — so the paywall never shows a price that
+    checkout won't charge."""
+    promo = await _unspent_founder_promo(user)
+    coupon = None
+    if promo is not None:
+        try:
+            coupon = await _founder_coupon()
+        except Exception as e:
+            logger.warning(f"Founder coupon lookup failed: {e}")
+    plans = {}
+    for plan_id, plan in SUBSCRIPTION_PLANS.items():
+        pricing = founder_pricing(plan["price"], coupon) if coupon else None
+        plans[plan_id] = {"price": pricing["price"] if pricing else plan["price"], "regular_price": plan["price"],
+                          "interval": plan["interval"]}
+    founder = None
+    if coupon:
+        founder = {"percent_off": coupon.get("percent_off"), "lifetime": coupon.get("duration") == "forever"}
+    return {"currency": "usd", "trial_days": FOUNDER_TRIAL_DAYS if founder else STANDARD_TRIAL_DAYS,
+            "founder": founder, "plans": plans}
+
+
 @api_router.post("/payments/checkout")
 async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(get_current_user)):
     import asyncio
@@ -1335,7 +1384,7 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
             },
             "quantity": 1,
         }],
-        "subscription_data": {"trial_period_days": 14},
+        "subscription_data": {"trial_period_days": STANDARD_TRIAL_DAYS},
         "success_url": f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
         "cancel_url": f"{host_url}/paywall",
         "customer_email": user.get("email") or None,
@@ -1345,25 +1394,11 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
     # Auto-apply founders discount for waitlist users — Stripe forbids mixing
     # allow_promotion_codes=True with discounts[], so only one path runs.
     founders_applied = False
-    if STRIPE_FOUNDERS_COUPON_ID and user.get("email"):
-        waitlist_entry = await db.waitlist.find_one({"email": user["email"]})
-        if waitlist_entry and waitlist_entry.get("promo_code"):
-            try:
-                codes = await asyncio.to_thread(
-                    stripe_lib.PromotionCode.list,
-                    code=waitlist_entry["promo_code"],
-                    limit=1,
-                )
-                code = codes.data[0] if codes.data else None
-                # Single-use: a founder who cancelled has spent it, and Stripe would reject
-                # the whole checkout if we tried to apply it again.
-                limit = _sget(code, "max_redemptions")
-                spent = bool(limit) and (_sget(code, "times_redeemed") or 0) >= limit
-                if code and code.active and not spent:
-                    checkout_params["discounts"] = [{"promotion_code": code.id}]
-                    founders_applied = True
-            except Exception as e:
-                logger.warning(f"Founders discount lookup failed: {e}")
+    promo = await _unspent_founder_promo(user)
+    if promo is not None:
+        checkout_params["discounts"] = [{"promotion_code": _sget(promo, "id")}]
+        checkout_params["subscription_data"]["trial_period_days"] = FOUNDER_TRIAL_DAYS
+        founders_applied = True
 
     if not founders_applied:
         checkout_params["allow_promotion_codes"] = True
@@ -1381,6 +1416,7 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
         "transaction_id": f"txn_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"],
         "session_id": session.id, "plan_id": checkout_req.plan_id,
         "amount": float(plan["price"]), "currency": "usd", "payment_status": "pending",
+        "founder": founders_applied, "trial_days": checkout_params["subscription_data"]["trial_period_days"],
         "created_at": datetime.now(timezone.utc).isoformat()
     })
 
@@ -1415,7 +1451,7 @@ async def get_payment_status(session_id: str, user: dict = Depends(get_current_u
     if is_complete and session.mode == "subscription" and not await db.subscriptions.find_one({"session_id": session_id}):
         transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
         plan_id = (transaction or {}).get("plan_id", "monthly")
-        trial_end = datetime.now(timezone.utc) + timedelta(days=14)
+        trial_end = datetime.now(timezone.utc) + timedelta(days=(transaction or {}).get("trial_days") or STANDARD_TRIAL_DAYS)
         subscription_end = trial_end + timedelta(days=365 if plan_id == "annual" else 30)
 
         await db.subscriptions.insert_one({
@@ -2016,7 +2052,8 @@ async def create_ad_checkout(request: Request, req: AdCampaignRequest):
 
 class WaitlistSignup(BaseModel):
     email: EmailStr
-    name: Optional[str] = None
+    name: Optional[str] = Field(None, max_length=100)
+    phone: Optional[str] = Field(None, max_length=30)
 
 @api_router.post("/waitlist/signup")
 async def waitlist_signup(request: Request, data: WaitlistSignup):
@@ -2047,6 +2084,7 @@ async def waitlist_signup(request: Request, data: WaitlistSignup):
     await db.waitlist.insert_one({
         "email": data.email,
         "name": data.name or "",
+        "phone": (data.phone or "").strip() or None,
         "promo_code": promo_code_str,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
