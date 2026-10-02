@@ -164,6 +164,40 @@ only opens `/api/admin/habit-metrics`.
 - Tests: `backend/test_invites.py`, `backend/test_video_scoring.py` (mocked Gemini), and
   `lib/pushPlatform.test.js`, `lib/pendingInvite.test.js`, `lib/rewards.test.js`.
 
+## New-interface hooks (branch `feature/live-coach-and-native-hooks`)
+None of these add a per-use cost.
+- **Live Coach** (Train → toggle, off by default, remembered on the device):
+  - `hooks/useLiveCoach.js` runs MediaPipe Pose (lite) on the camera preview, on the phone
+    itself. It's loaded from jsDelivr at a pinned version (1.0.1), not bundled. No frame is
+    uploaded, and the camera can be on with recording off.
+  - `lib/liveCoach.js` (unit tested) counts punches (elbow straightening), combos (≤800 ms
+    apart), guard drops (wrists below shoulder height for 400 ms or more) and head movement
+    (nose off the shoulder midline).
+  - Spoken cues ("Hands up", "That's it") use the browser's free `speechSynthesis`, at most one
+    per kind every 8 seconds.
+  - Each round is saved with `POST /training/{id}/live-round`. On complete the session gets
+    `live_stats`, plus `live_records` for most punches in a round and longest combo.
+  - **These counts never touch scores, personal bests or seasons.**
+- **Ghost round:** the best live round at each round length is stored in `ghost_rounds`
+  (`GET /training/ghost`). During a round the overlay shows the fighter's punch count against
+  the ghost's count at the same second.
+- **Fighter card:** after a win (`inviteMoment`), "Share your fighter card" draws a 1080×1920 PNG
+  on a canvas (`components/FighterCard.jsx`, content from `lib/fighterCard.js`). It uses only
+  server-verified numbers; live punches are marked "*counted on the phone". It's shared with the
+  Web Share API, or downloaded where that isn't available.
+- **iOS app** (see `ios/SETUP.md`):
+  - AirPods head tracking (`victoryMotion` bridge).
+  - The round clock as a Live Activity (`victoryRound` bridge).
+  - Push-to-start countdowns: a booked round 30 minutes before, and a callout's last 8 hours for
+    everyone who accepted it, skipped in quiet hours (`_start_booking_countdowns`,
+    `_start_callout_countdowns`).
+  - Siri shortcuts.
+  - The widget extension needs its own profile; until `WIDGET_PROFILE_NAME` is set, TestFlight
+    builds leave it out.
+- **Not built:** an Apple Watch app (a separate watchOS target and profile; worth doing after
+  launch) and a live voice coach (costs money per minute).
+- Account deletion now also removes `live_activity_tokens`, `ghost_rounds` and `squad_invites`.
+
 ---
 
 # Previous: Bug-Hunt Pass
