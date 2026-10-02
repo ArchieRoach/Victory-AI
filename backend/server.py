@@ -1171,6 +1171,87 @@ async def start_training_session(session_config: TrainingSessionCreate, user: di
     await db.training_sessions.insert_one(session_doc)
     return {"session_id": session_id, "status": "started"}
 
+# ---- Live Coach ----
+# Counted on the fighter's phone from the camera preview (nothing uploaded). These are
+# activity counts, not technique: they never touch scores, personal bests or seasons.
+
+class LiveRound(BaseModel):
+    round_number: int = Field(..., ge=1, le=30)
+    punches: int = Field(0, ge=0, le=3000)
+    left: int = Field(0, ge=0, le=3000)
+    right: int = Field(0, ge=0, le=3000)
+    best_combo: int = Field(0, ge=0, le=300)
+    guard_drops: int = Field(0, ge=0, le=1000)
+    guard_pct: Optional[int] = Field(None, ge=0, le=100)
+    head_moves: int = Field(0, ge=0, le=2000)
+    airpods: bool = False
+    timeline: List[float] = Field(default_factory=list, max_length=3000)
+
+
+@api_router.post("/training/{session_id}/live-round")
+async def save_live_round(session_id: str, data: LiveRound, user: dict = Depends(get_current_user)):
+    session = await db.training_sessions.find_one({"session_id": session_id, "user_id": user["user_id"]},
+                                                  {"_id": 0, "round_duration": 1, "status": 1})
+    if not session:
+        raise HTTPException(404, "Session not found")
+    duration = session.get("round_duration", 180)
+    rnd = data.model_dump()
+    rnd["timeline"] = sorted(round(t, 1) for t in data.timeline if 0 <= t <= duration)[:data.punches]
+    await db.training_sessions.update_one({"session_id": session_id}, {"$pull": {"live_rounds": {"round_number": data.round_number}}})
+    await db.training_sessions.update_one({"session_id": session_id}, {"$push": {"live_rounds": rnd}})
+    return {"ok": True}
+
+
+def summarize_live_rounds(rounds: list) -> Optional[dict]:
+    if not rounds:
+        return None
+    pcts = [r["guard_pct"] for r in rounds if isinstance(r.get("guard_pct"), int)]
+    return {
+        "rounds": len(rounds),
+        "punches": sum(r.get("punches", 0) for r in rounds),
+        "best_round_punches": max(r.get("punches", 0) for r in rounds),
+        "best_combo": max(r.get("best_combo", 0) for r in rounds),
+        "guard_drops": sum(r.get("guard_drops", 0) for r in rounds),
+        "head_moves": sum(r.get("head_moves", 0) for r in rounds),
+        "guard_pct": round(sum(pcts) / len(pcts)) if pcts else None,
+        "airpods": any(r.get("airpods") for r in rounds),
+    }
+
+
+async def apply_live_records(user_id: str, rounds: list, round_duration: int) -> list:
+    """Most punches in a round and longest combo are the fighter's own records — and the
+    best round becomes the ghost they race next time at the same round length."""
+    if not rounds:
+        return []
+    best = max(rounds, key=lambda r: r.get("punches", 0))
+    fresh = await db.users.find_one({"user_id": user_id}, {"live_records": 1}) or {}
+    prev = fresh.get("live_records") or {}
+    combo = max(r.get("best_combo", 0) for r in rounds)
+    new = []
+    if best.get("punches", 0) > prev.get("most_punches", 0):
+        new.append({"name": "Most punches in a round", "value": best["punches"], "prev": prev.get("most_punches")})
+    if combo > prev.get("best_combo", 0):
+        new.append({"name": "Longest combo", "value": combo, "prev": prev.get("best_combo")})
+    await db.users.update_one({"user_id": user_id}, {"$max": {"live_records.most_punches": best.get("punches", 0),
+                                                             "live_records.best_combo": combo}})
+    current = await db.ghost_rounds.find_one({"user_id": user_id, "round_duration": round_duration}, {"punches": 1}) or {}
+    if best.get("punches", 0) > current.get("punches", 0):
+        await db.ghost_rounds.update_one(
+            {"user_id": user_id, "round_duration": round_duration},
+            {"$set": {"punches": best["punches"], "timeline": best.get("timeline", []),
+                      "set_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True,
+        )
+    return new
+
+
+@api_router.get("/training/ghost")
+async def get_ghost(round_duration: int = Query(180, ge=30, le=600), user: dict = Depends(get_current_user)):
+    ghost = await db.ghost_rounds.find_one({"user_id": user["user_id"], "round_duration": round_duration},
+                                           {"_id": 0, "punches": 1, "timeline": 1, "set_at": 1})
+    return ghost or {}
+
+
 @api_router.post("/training/{session_id}/complete")
 async def complete_training_session(session_id: str, user: dict = Depends(get_current_user)):
     session = await db.training_sessions.find_one({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0})
@@ -1207,6 +1288,7 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
         "dimension_scores": final_dimension_scores,
         "rounds": [{"round_number": v["round_number"], "video_url": v["video_url"], "analysis": v.get("analysis_results")} for v in videos],
         "training_config": {"round_duration": session["round_duration"], "rest_duration": session["rest_duration"], "total_rounds": session["total_rounds"]},
+        "live_stats": summarize_live_rounds(session.get("live_rounds") or []),
         "created_at": session["created_at"], "completed_at": datetime.now(timezone.utc).isoformat()
     }
     
@@ -1221,6 +1303,11 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
     result["new_belts"] = new_belts
     result["rewards"] = rewards
     result["scouting_report"] = rewards.get("scouting_report")
+    try:
+        result["live_records"] = await apply_live_records(user["user_id"], session.get("live_rounds") or [], session["round_duration"])
+    except Exception as e:
+        logger.error(f"Live records failed for {session_id}: {e}")
+        result["live_records"] = []
     return result
 
 # ============== STRIPE PAYMENT ENDPOINTS ==============
@@ -1931,6 +2018,9 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.streams.delete_many({"user_id": user_id})
     await db.push_subscriptions.delete_many({"user_id": user_id})
     await db.apns_tokens.delete_many({"user_id": user_id})
+    await db.live_activity_tokens.delete_many({"user_id": user_id})
+    await db.ghost_rounds.delete_many({"user_id": user_id})
+    await db.squad_invites.delete_many({"inviter_id": user_id})
     await db.waitlist.delete_many({"email": user["email"]})
     own_highlights = await db.highlights.find({"streamer_id": user_id}, {"highlight_id": 1, "share_video_url": 1}).to_list(1000)
     for hl in own_highlights:
@@ -3060,6 +3150,81 @@ async def _send_apns(user_id: str, title: str, body: str, url: str, tag: str):
         logger.warning(f"APNs {r.status_code} {reason} for {user_id}")
         if r.status_code == 410 or reason in ("BadDeviceToken", "DeviceTokenNotForTopic"):
             await db.apns_tokens.delete_one({"device_token": t["device_token"]})
+
+# ---- Live Activities (Lock Screen / Dynamic Island countdowns) ----
+# Started remotely with an ActivityKit push-to-start token (iOS 17.2+). The app renders
+# them with VictoryActivityAttributes (ios/VictoryAI/Shared/VictoryActivityAttributes.swift).
+
+APPLE_EPOCH_OFFSET = 978307200  # Swift's default Date coding counts from 2001-01-01
+
+
+class LiveActivityTokenRequest(BaseModel):
+    token: str = Field(pattern=r"^[0-9a-fA-F]{32,400}$")
+    environment: Literal["production", "sandbox"] = "production"
+
+
+@api_router.post("/push/live-activity-token")
+async def register_live_activity_token(req: LiveActivityTokenRequest, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"la_token:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many requests — slow down")
+    token = req.token.lower()
+    await db.live_activity_tokens.update_one(
+        {"token": token},
+        {"$set": {"user_id": user["user_id"], "token": token, "environment": req.environment,
+                  "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"ok": True}
+
+
+@api_router.delete("/push/live-activity-token")
+async def unregister_live_activity_token(user: dict = Depends(get_current_user)):
+    await db.live_activity_tokens.delete_many({"user_id": user["user_id"]})
+    return {"ok": True}
+
+
+def live_activity_payload(kind: str, headline: str, detail: str, ends_at: datetime, title: str, body: str,
+                          now: Optional[datetime] = None) -> dict:
+    now = now or datetime.now(timezone.utc)
+    ends = ends_at.timestamp()
+    return {"aps": {
+        "timestamp": int(now.timestamp()),
+        "event": "start",
+        "content-state": {"headline": headline, "detail": detail,
+                          "endsAt": ends - APPLE_EPOCH_OFFSET, "paused": False},
+        "attributes-type": "VictoryActivityAttributes",
+        "attributes": {"kind": kind},
+        "alert": {"title": title, "body": body},
+        "stale-date": int(ends),
+        "dismissal-date": int(ends) + 15 * 60,
+    }}
+
+
+async def _send_live_activity(user_id: str, payload: dict):
+    if not _apns_configured():
+        return
+    tokens = await db.live_activity_tokens.find({"user_id": user_id}, {"_id": 0}).to_list(10)
+    client = _apns_http() if tokens else None
+    if client is None:
+        return
+    headers = {
+        "authorization": f"bearer {_apns_provider_token()}",
+        "apns-topic": f"{APNS_BUNDLE_ID}.push-type.liveactivity",
+        "apns-push-type": "liveactivity",
+        "apns-priority": "10",
+    }
+    for t in tokens:
+        host = "api.sandbox.push.apple.com" if t.get("environment") == "sandbox" else "api.push.apple.com"
+        try:
+            r = await client.post(f"https://{host}/3/device/{t['token']}", json=payload, headers=headers)
+        except httpx.HTTPError as exc:
+            logger.warning(f"Live Activity push failed for {user_id}: {exc}")
+            continue
+        if r.status_code == 410 or (r.status_code == 400 and "BadDeviceToken" in r.text):
+            await db.live_activity_tokens.delete_one({"token": t["token"]})
+        elif r.status_code != 200:
+            logger.warning(f"Live Activity push {r.status_code} for {user_id}: {r.text[:200]}")
+
 
 _PUSH_KIND_RE = re.compile(r"[^a-z]")
 
@@ -6590,6 +6755,48 @@ async def _send_due_bookings(now: datetime):
             await _send_push(b["user_id"], title=title, body=body, url=url, tag=f"booking-{b['booking_id']}")
 
 
+BOOKING_COUNTDOWN_MINUTES = 30
+CALLOUT_COUNTDOWN_HOURS = 8
+
+
+async def _start_booking_countdowns(now: datetime):
+    soon = (now + timedelta(minutes=BOOKING_COUNTDOWN_MINUTES)).isoformat()
+    due = await db.bookings.find({"status": "pending", "la_started": {"$ne": True},
+                                  "at": {"$gt": now.isoformat(), "$lte": soon}}, {"_id": 0}).to_list(500)
+    for b in due:
+        claimed = await db.bookings.update_one({"booking_id": b["booking_id"], "la_started": {"$ne": True}},
+                                               {"$set": {"la_started": True}})
+        if not claimed.modified_count:
+            continue
+        _, detail, _ = booking_push(b)
+        headline = f"{b['focus']} round" if b.get("focus") else "Your round"
+        await _send_live_activity(b["user_id"], live_activity_payload(
+            "booking", headline, detail, _parse_utc(b["at"]),
+            title=f"{headline} in {BOOKING_COUNTDOWN_MINUTES} min", body=detail, now=now))
+
+
+async def _start_callout_countdowns(now: datetime):
+    """The last hours of a callout, ticking on the Lock Screen of everyone who accepted it."""
+    soon = (now + timedelta(hours=CALLOUT_COUNTDOWN_HOURS)).isoformat()
+    due = await db.callouts.find({"status": "open", "la_started": {"$ne": True},
+                                  "expires_at": {"$gt": now.isoformat(), "$lte": soon}}, {"_id": 0}).to_list(500)
+    for c in due:
+        claimed = await db.callouts.update_one({"callout_id": c["callout_id"], "la_started": {"$ne": True}},
+                                               {"$set": {"la_started": True}})
+        if not claimed.modified_count:
+            continue
+        ends = _parse_utc(c["expires_at"])
+        users = await db.users.find({"user_id": {"$in": c.get("accepted_ids") or []}},
+                                    {"user_id": 1, "tz_offset_minutes": 1}).to_list(50)
+        for u in users:
+            if in_quiet_hours(now, u.get("tz_offset_minutes") or 0):
+                continue
+            headline = f"Beat {c['challenger_name']}'s {c['dimension']} {c['score']:g}"
+            await _send_live_activity(u["user_id"], live_activity_payload(
+                "callout", headline, "Callout closes when the clock hits zero", ends,
+                title="Final hours on your callout", body=headline, now=now))
+
+
 async def _complete_bookings_for(user_id: str):
     # Training within 6h of (or before) the booked time counts as keeping the booking —
     # no reminder for a round they already did.
@@ -6962,6 +7169,8 @@ async def _investment_loop():
         try:
             await _send_due_bookings(now)
             await _expire_callouts(now)
+            await _start_booking_countdowns(now)
+            await _start_callout_countdowns(now)
             hour_key = now.strftime("%Y%m%d%H")
             if hour_key != last_hourly:
                 last_hourly = hour_key

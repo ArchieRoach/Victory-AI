@@ -31,9 +31,14 @@ private struct WebAppContainer: UIViewRepresentable {
         // The web app hides every Stripe purchase surface when it sees this tag
         // (frontend/src/lib/nativeShell.js) — App Store Guideline 3.1.1.
         config.applicationNameForUserAgent = "Mobile/15E148 VictoryAI-iOS"
-        config.userContentController.addScriptMessageHandler(
-            PushBridge(allowedHost: Self.webAppURL.host), contentWorld: .page, name: PushBridge.name
-        )
+        let host = Self.webAppURL.host
+        let scripts = config.userContentController
+        scripts.addScriptMessageHandler(PushBridge(allowedHost: host), contentWorld: .page, name: PushBridge.name)
+        scripts.addScriptMessageHandler(MotionBridge(allowedHost: host), contentWorld: .page, name: MotionBridge.name)
+        scripts.addScriptMessageHandler(RoundBridge(allowedHost: host), contentWorld: .page, name: RoundBridge.name)
+        // Live Coach watches the camera preview in the page, so it must play inline.
+        config.allowsInlineMediaPlayback = true
+        config.mediaTypesRequiringUserActionForPlayback = []
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator

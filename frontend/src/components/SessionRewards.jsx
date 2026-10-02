@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown, UserPlus, Check } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { seasonProgress, inviteMoment } from "@/lib/rewards";
+import { FighterCardButton } from "@/components/FighterCard";
 
 const RARITY = {
   common: { label: "SCOUTING REPORT", cls: "bg-victory-card-highlight text-victory-muted border-victory-border" },
@@ -255,7 +256,7 @@ function BringYourCrew({ moment }) {
   );
 }
 
-export function SessionRewards({ rewards, scoutingReport }) {
+export function SessionRewards({ rewards, scoutingReport, overall, liveStats }) {
   const moment = inviteMoment(rewards, scoutingReport);
   return (
     <div className="space-y-3" data-testid="session-rewards">
@@ -263,6 +264,7 @@ export function SessionRewards({ rewards, scoutingReport }) {
       <PersonalBests pb={rewards?.personal_bests} />
       <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
       <SeasonProgress season={rewards?.season} />
+      {moment && <FighterCardButton rewards={rewards} overall={overall} liveStats={liveStats} />}
       {moment && <BringYourCrew moment={moment} />}
     </div>
   );

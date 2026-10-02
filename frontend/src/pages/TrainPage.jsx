@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
-  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target,
+  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
@@ -15,6 +15,13 @@ import { currentEntry } from "@/lib/entrySource";
 import { getVideoPref, setVideoPref } from "@/lib/videoPref";
 import { analytics } from "@/lib/analytics";
 import { FirstUseTip } from "@/components/FirstUseTip";
+import { useLiveCoach } from "@/hooks/useLiveCoach";
+import { ghostCount } from "@/lib/liveCoach";
+import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
+import { nativeRound } from "@/lib/nativeBridge";
+
+const LIVE_COACH_KEY = "victory_live_coach";
+const readLiveCoach = () => { try { return localStorage.getItem(LIVE_COACH_KEY) === "1"; } catch { return false; } };
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
@@ -82,6 +89,9 @@ export default function TrainPage() {
   // Opt-in, off by default (privacy by default) — but remembered once the fighter answers.
   const [videoPref,     setVideoPrefState] = useState(() => getVideoPref());
   const [recordVideo,   setRecordVideo]   = useState(() => getVideoPref() === "on");
+  const [liveCoach,     setLiveCoach]     = useState(readLiveCoach);
+  const [ghost,         setGhost]         = useState(null);
+  const [lastLiveRound, setLastLiveRound] = useState(null);
   const [cameraReady,   setCameraReady]   = useState(false);
   const [cameraError,   setCameraError]   = useState(null);
   const [startingSession, setStartingSession] = useState(false);
@@ -110,6 +120,13 @@ export default function TrainPage() {
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
   const videoPreviewRef = useRef(null);
+
+  const coach = useLiveCoach({
+    enabled: liveCoach && cameraReady && !isConfiguring,
+    videoRef: videoPreviewRef,
+    running: !isPaused && !isResting && !isComplete && !isConfiguring,
+    voice: voiceEnabled,
+  });
 
   // Simulated progress while waiting on AI round feedback — caps at 90% so
   // it never looks "done" before the response actually lands.
@@ -148,6 +165,24 @@ export default function TrainPage() {
       videoPreviewRef.current.srcObject = cameraStreamRef.current;
     }
   }, [cameraReady, isConfiguring]);
+
+  // The App Store app mirrors the round clock to the Lock Screen and Dynamic Island, so
+  // the timer stays visible when the fighter switches to their music.
+  useEffect(() => {
+    if (isConfiguring || isComplete) return;
+    nativeRound(isPaused ? "pause" : "update", {
+      round: currentRound, total: totalRounds, resting: isResting,
+      ends_at: Date.now() + timeLeft * 1000, seconds_left: timeLeft,
+    });
+    // timeLeft is read at each phase change only; the native timer counts down itself.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConfiguring, isComplete, isPaused, isResting, currentRound, totalRounds]);
+
+  const chooseLiveCoach = (on) => {
+    setLiveCoach(on);
+    try { localStorage.setItem(LIVE_COACH_KEY, on ? "1" : "0"); } catch {}
+    analytics.capture("live_coach_choice", { on });
+  };
 
   const chooseVideo = (on) => {
     setRecordVideo(on);
@@ -258,6 +293,18 @@ export default function TrainPage() {
   };
 
   // ── AI Feedback ──────────────────────────────────────────────────────────────
+  const saveLiveRound = (roundNum) => {
+    if (!liveCoach) return;
+    const snap = coach.takeRound();
+    setLastLiveRound(snap);
+    if (!sessionId) return;
+    axios.post(`${API}/training/${sessionId}/live-round`, {
+      round_number: roundNum, punches: snap.punches, left: snap.left, right: snap.right,
+      best_combo: snap.bestCombo, guard_drops: snap.guardDrops, guard_pct: snap.guardPct,
+      head_moves: snap.headMoves, airpods: coach.airpods, timeline: snap.timeline,
+    }).catch(() => {});
+  };
+
   const generateFeedback = async (roundNum) => {
     setLoadingFeedback(true);
 
@@ -345,9 +392,14 @@ export default function TrainPage() {
       toast.error(t("train.startOffline", "Couldn't reach the server — this session won't be saved."));
     }
 
-    if (recordVideo) {
+    if (recordVideo || liveCoach) {
       const granted = await requestCamera();
-      if (granted) startRoundRecording();
+      if (granted && recordVideo) startRoundRecording();
+    }
+    if (liveCoach) {
+      axios.get(`${API}/training/ghost`, { params: { round_duration: roundDuration } })
+        .then((r) => setGhost(r.data?.timeline?.length ? r.data : null))
+        .catch(() => setGhost(null));
     }
 
     setStartingSession(false);
@@ -409,10 +461,14 @@ export default function TrainPage() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isPaused, isComplete, isConfiguring, isResting, currentRound, totalRounds, roundDuration, restDuration]);
 
-  const handleRoundEnd = () => generateFeedback(currentRound);
+  const handleRoundEnd = () => {
+    saveLiveRound(currentRound);
+    generateFeedback(currentRound);
+  };
 
   const handleComplete = async () => {
     setIsComplete(true);
+    nativeRound("end");
     stopHypeCycle();
     stopCamera();
     if (sessionId) {
@@ -726,6 +782,25 @@ export default function TrainPage() {
               </div>
             )}
 
+            {sessionMode === "private" && (
+              <div className="victory-card p-4" data-testid="live-coach-toggle">
+                <button onClick={() => chooseLiveCoach(!liveCoach)} className="w-full flex items-center justify-between touch-target">
+                  <div className="flex items-center gap-3">
+                    <ScanEye className={`w-6 h-6 ${liveCoach ? "text-victory-lime" : "text-victory-muted"}`} />
+                    <div className="text-left">
+                      <p className="text-victory-text font-medium">{t("train.liveCoach", "Live Coach")}</p>
+                      <p className="text-victory-muted text-sm">
+                        {t("train.liveCoachDesc", "Counts punches, combos and guard drops as you go, and races your best round. Runs on your phone — nothing is uploaded.")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`w-12 h-6 rounded-full transition-colors flex-shrink-0 ${liveCoach ? "bg-victory-lime" : "bg-victory-border"}`}>
+                    <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${liveCoach ? "translate-x-6" : "translate-x-0.5"}`} />
+                  </div>
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-center gap-2 text-sm">
               <span className="text-victory-muted">{t("train.total")}</span>
               <span className="text-victory-lime font-bold font-mono">{getTotalWorkoutTime()}</span>
@@ -758,7 +833,7 @@ export default function TrainPage() {
             {/* Live camera preview — only when the fighter opted in on the config
                 screen. Mirrored like a gym mirror; visibly on so recording is never
                 a surprise. */}
-            {recordVideo && cameraReady && (
+            {(recordVideo || liveCoach) && cameraReady && (
               <div className="relative w-full max-w-sm aspect-video rounded-xl overflow-hidden bg-black mb-4">
                 <video
                   ref={videoPreviewRef}
@@ -768,11 +843,24 @@ export default function TrainPage() {
                   className="w-full h-full object-cover"
                   style={{ transform: "scaleX(-1)" }}
                 />
-                {!isResting && (
+                {!isResting && recordVideo && (
                   <span className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
                     <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                     {t("train.recording")}
                   </span>
+                )}
+                {!recordVideo && (
+                  <span className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                    {t("train.liveCoachOnly", "Live Coach · nothing is recorded")}
+                  </span>
+                )}
+                {liveCoach && !isResting && (
+                  <LiveCoachOverlay
+                    status={coach.status}
+                    stats={coach.stats}
+                    airpods={coach.airpods}
+                    ghost={ghost ? ghostCount(ghost.timeline, roundDuration - timeLeft) : null}
+                  />
                 )}
               </div>
             )}
@@ -856,6 +944,7 @@ export default function TrainPage() {
             {/* ── Rest period: AI feedback card ──────────────────────────────── */}
             {isResting && (
               <div className="w-full max-w-md">
+                {liveCoach && <LiveRoundSummary round={lastLiveRound} ghostPunches={ghost?.punches ?? null} />}
                 <div className="victory-card p-4">
                   {/* Partner header */}
                   <div className="flex items-center gap-3 mb-4">

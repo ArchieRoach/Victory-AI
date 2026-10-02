@@ -12,11 +12,13 @@ final class PushNotificationManager: NSObject {
     /// Set when a notification is tapped before the web view exists (cold launch).
     private var pendingPath: String?
 
-    private static let endpoint: URL = {
+    private static let backend: String = {
         let raw = Bundle.main.object(forInfoDictionaryKey: "BACKEND_URL") as? String
             ?? "https://YOUR_RAILWAY_BACKEND_URL"
-        return URL(string: raw.trimmingCharacters(in: .whitespaces) + "/api/push/apns")!
+        return raw.trimmingCharacters(in: .whitespaces)
     }()
+    private static let endpoint = URL(string: backend + "/api/push/apns")!
+    private static let liveActivityEndpoint = URL(string: backend + "/api/push/live-activity-token")!
 
     // Debug builds from Xcode get sandbox tokens; TestFlight and App Store builds get production ones.
     private static var environment: String {
@@ -42,6 +44,12 @@ final class PushNotificationManager: NSObject {
         let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
         if status == .authorized || status == .provisional || status == .ephemeral {
             UIApplication.shared.registerForRemoteNotifications()
+            LiveActivityController.shared.observePushToStartTokens { token in
+                await PushNotificationManager.shared.post(
+                    method: "POST", url: Self.liveActivityEndpoint,
+                    body: ["token": token, "environment": Self.environment]
+                )
+            }
         }
     }
 
@@ -75,13 +83,14 @@ final class PushNotificationManager: NSObject {
     func didRegister(deviceToken data: Data) {
         let token = data.map { String(format: "%02x", $0) }.joined()
         deviceToken = token
-        Task { await send(method: "POST", token: token) }
+        Task { await post(method: "POST", url: Self.endpoint, body: ["device_token": token, "environment": Self.environment]) }
     }
 
     /// Call before signing out so the next account on this device doesn't get this user's pushes.
     func disable() async {
+        await post(method: "DELETE", url: Self.liveActivityEndpoint, body: [:])
         guard let token = deviceToken else { return }
-        await send(method: "DELETE", token: token)
+        await post(method: "DELETE", url: Self.endpoint, body: ["device_token": token, "environment": Self.environment])
         deviceToken = nil
     }
 
@@ -90,19 +99,22 @@ final class PushNotificationManager: NSObject {
         return pendingPath
     }
 
-    fileprivate func open(path: String) {
+    /// Opens a path in the web view — from a notification tap or a Siri shortcut.
+    func open(path: String) {
         pendingPath = path
         NotificationCenter.default.post(name: Self.openPathNotification, object: nil, userInfo: ["path": path])
     }
 
-    private func send(method: String, token: String) async {
+    private func post(method: String, url: URL, body: [String: String]) async {
         guard let jwt = await ClerkSession.token() else { return }
 
-        var request = URLRequest(url: Self.endpoint, timeoutInterval: 10)
+        var request = URLRequest(url: url, timeoutInterval: 10)
         request.httpMethod = method
         request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONEncoder().encode(["device_token": token, "environment": Self.environment])
+        if !body.isEmpty {
+            request.httpBody = try? JSONEncoder().encode(body)
+        }
         _ = try? await URLSession.shared.data(for: request)
     }
 }

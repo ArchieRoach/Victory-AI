@@ -2,6 +2,9 @@
 # ${VARS} are read from the environment at generation time; CI sets them from GitHub
 # repository variables (.github/workflows/ios.yml).
 name: VictoryAI
+include:
+  - path: widgets.yml
+    enable: ${ENABLE_LIVE_ACTIVITIES}
 options:
   deploymentTarget:
     iOS: "17.0"
@@ -38,6 +41,7 @@ targets:
         UIUserInterfaceStyle: Dark
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIBackgroundModes: [remote-notification]
+        NSSupportsLiveActivities: true
         BACKEND_URL: $(BACKEND_URL)
         WEB_APP_URL: $(WEB_APP_URL)
         CLERK_PUBLISHABLE_KEY: $(CLERK_PUBLISHABLE_KEY)
@@ -47,6 +51,7 @@ targets:
         NSMicrophoneUsageDescription: Your session videos include audio so the AI can analyse rhythm and breathing.
         NSPhotoLibraryUsageDescription: Choose an existing training video to analyse instead of recording a new one.
         NSPhotoLibraryAddUsageDescription: Save your scorecard image to your photo library.
+        NSMotionUsageDescription: Live Coach uses your AirPods' motion sensors to count head movement — slips, rolls and pulls — during a round. Nothing is recorded.
     entitlements:
       path: Config/VictoryAI.entitlements
       properties:

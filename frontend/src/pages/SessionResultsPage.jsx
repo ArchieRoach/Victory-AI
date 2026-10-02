@@ -10,6 +10,7 @@ import { ArrowUp, ArrowDown, Share2, Home, Target, Star, Flame, Swords, Shield, 
 import { HighlightShareSheet } from "@/components/HighlightShareSheet";
 import { SessionRewards } from "@/components/SessionRewards";
 import { BookNextRound } from "@/components/BookNextRound";
+import { LiveSessionStats } from "@/components/LiveCoachPanel";
 import { analytics } from "@/lib/analytics";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -423,7 +424,8 @@ export default function SessionResultsPage() {
           </p>
         )}
 
-        <SessionRewards rewards={session.rewards} scoutingReport={session.scouting_report} />
+        <SessionRewards rewards={session.rewards} scoutingReport={session.scouting_report} overall={session.overall_score} liveStats={session.live_stats} />
+        <LiveSessionStats stats={session.live_stats} records={session.live_records} />
 
         {/* Category scores — three real, meaningful numbers beat sixteen tiny
             radar-chart spokes nobody can actually read on a phone. */}

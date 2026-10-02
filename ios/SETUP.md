@@ -79,7 +79,7 @@ open VictoryAI.xcodeproj
 
 ## Purpose strings and privacy
 
-The camera / microphone / photo-library purpose strings in `project.yml` are required — the upload
+The camera / microphone / photo-library / motion purpose strings in `project.yml` are required — the upload
 is rejected if a framework touches one of these and the string is missing. Notifications need no
 Info.plist string. The system prompt is **not** shown on launch: iOS only lets us ask once, so the
 web app asks through `PushBridge` at a moment that earns it (straight after booking a round, or the
@@ -175,6 +175,45 @@ registration. Switching it off in Profile deletes the token and is remembered ac
 Debug builds register **sandbox** tokens; TestFlight / App Store builds register **production**
 tokens. The backend sends each token to the matching APNs host. Tapping a notification opens its
 `url` path inside the web view.
+
+## Live Activities (Lock Screen + Dynamic Island)
+
+`VictoryWidgets/` is a widget extension that draws three countdowns:
+
+- **Round clock** while training. The web app sends it through `victoryRound` (`App/NativeBridges.swift`).
+- **Booked round,** starting 30 minutes before the time the fighter booked.
+- **Callout,** for the last 8 hours, shown to everyone who accepted it.
+
+The backend starts the last two with ActivityKit push-to-start (iOS 17.2+). The app posts its
+push-to-start token to `/api/push/live-activity-token`, and the backend sends to it with the same
+APNs key as push notifications. Nothing new is needed on Railway.
+
+**The extension needs its own App ID and profile,** so it is only built into TestFlight once these
+exist. Until then the app ships without it, and Live Activities quietly do nothing.
+
+1. Apple Developer → Identifiers → **+** → App ID `<your bundle id>.widgets`. No capabilities are needed.
+2. Profiles → **+** → App Store Connect → pick that App ID and your distribution certificate →
+   name it (e.g. `VictoryAI Widgets App Store`) → download.
+3. GitHub → Settings → Secrets and variables → Actions:
+   - variable `WIDGET_PROFILE_NAME` = the exact profile name;
+   - secret `WIDGET_PROFILE_BASE64` = `base64 -i <file>.mobileprovision`.
+
+The `compile` job always builds the extension, so it is checked on every push. For a local
+build, set `ENABLE_LIVE_ACTIVITIES=true` (or `false`) and `WIDGET_PROFILE_NAME` before running
+`xcodegen generate`.
+
+## AirPods head tracking
+
+During a Live Coach round, `Motion/HeadMotionTracker.swift` reads AirPods motion
+(`CMHeadphoneMotionManager`). Each slip, roll or pull past about 15° is reported to the page as
+`window.__victoryHeadMove()`, and the web app then stops estimating head movement from the camera.
+The Info.plist key `NSMotionUsageDescription` covers the permission prompt. No motion data is
+stored or sent anywhere.
+
+## Siri / Shortcuts
+
+`App/AppShortcuts.swift` adds two shortcuts with no setup: "Start a round in Victory AI" (opens
+`/train`) and "Check my callouts in Victory AI". They also appear in Spotlight and the Shortcuts app.
 
 ## Environment variables on Railway (already set — confirm they exist)
 
