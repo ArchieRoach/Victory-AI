@@ -1171,6 +1171,87 @@ async def start_training_session(session_config: TrainingSessionCreate, user: di
     await db.training_sessions.insert_one(session_doc)
     return {"session_id": session_id, "status": "started"}
 
+# ---- Live Coach ----
+# Counted on the fighter's phone from the camera preview (nothing uploaded). These are
+# activity counts, not technique: they never touch scores, personal bests or seasons.
+
+class LiveRound(BaseModel):
+    round_number: int = Field(..., ge=1, le=30)
+    punches: int = Field(0, ge=0, le=3000)
+    left: int = Field(0, ge=0, le=3000)
+    right: int = Field(0, ge=0, le=3000)
+    best_combo: int = Field(0, ge=0, le=300)
+    guard_drops: int = Field(0, ge=0, le=1000)
+    guard_pct: Optional[int] = Field(None, ge=0, le=100)
+    head_moves: int = Field(0, ge=0, le=2000)
+    airpods: bool = False
+    timeline: List[float] = Field(default_factory=list, max_length=3000)
+
+
+@api_router.post("/training/{session_id}/live-round")
+async def save_live_round(session_id: str, data: LiveRound, user: dict = Depends(get_current_user)):
+    session = await db.training_sessions.find_one({"session_id": session_id, "user_id": user["user_id"]},
+                                                  {"_id": 0, "round_duration": 1, "status": 1})
+    if not session:
+        raise HTTPException(404, "Session not found")
+    duration = session.get("round_duration", 180)
+    rnd = data.model_dump()
+    rnd["timeline"] = sorted(round(t, 1) for t in data.timeline if 0 <= t <= duration)[:data.punches]
+    await db.training_sessions.update_one({"session_id": session_id}, {"$pull": {"live_rounds": {"round_number": data.round_number}}})
+    await db.training_sessions.update_one({"session_id": session_id}, {"$push": {"live_rounds": rnd}})
+    return {"ok": True}
+
+
+def summarize_live_rounds(rounds: list) -> Optional[dict]:
+    if not rounds:
+        return None
+    pcts = [r["guard_pct"] for r in rounds if isinstance(r.get("guard_pct"), int)]
+    return {
+        "rounds": len(rounds),
+        "punches": sum(r.get("punches", 0) for r in rounds),
+        "best_round_punches": max(r.get("punches", 0) for r in rounds),
+        "best_combo": max(r.get("best_combo", 0) for r in rounds),
+        "guard_drops": sum(r.get("guard_drops", 0) for r in rounds),
+        "head_moves": sum(r.get("head_moves", 0) for r in rounds),
+        "guard_pct": round(sum(pcts) / len(pcts)) if pcts else None,
+        "airpods": any(r.get("airpods") for r in rounds),
+    }
+
+
+async def apply_live_records(user_id: str, rounds: list, round_duration: int) -> list:
+    """Most punches in a round and longest combo are the fighter's own records — and the
+    best round becomes the ghost they race next time at the same round length."""
+    if not rounds:
+        return []
+    best = max(rounds, key=lambda r: r.get("punches", 0))
+    fresh = await db.users.find_one({"user_id": user_id}, {"live_records": 1}) or {}
+    prev = fresh.get("live_records") or {}
+    combo = max(r.get("best_combo", 0) for r in rounds)
+    new = []
+    if best.get("punches", 0) > prev.get("most_punches", 0):
+        new.append({"name": "Most punches in a round", "value": best["punches"], "prev": prev.get("most_punches")})
+    if combo > prev.get("best_combo", 0):
+        new.append({"name": "Longest combo", "value": combo, "prev": prev.get("best_combo")})
+    await db.users.update_one({"user_id": user_id}, {"$max": {"live_records.most_punches": best.get("punches", 0),
+                                                             "live_records.best_combo": combo}})
+    current = await db.ghost_rounds.find_one({"user_id": user_id, "round_duration": round_duration}, {"punches": 1}) or {}
+    if best.get("punches", 0) > current.get("punches", 0):
+        await db.ghost_rounds.update_one(
+            {"user_id": user_id, "round_duration": round_duration},
+            {"$set": {"punches": best["punches"], "timeline": best.get("timeline", []),
+                      "set_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True,
+        )
+    return new
+
+
+@api_router.get("/training/ghost")
+async def get_ghost(round_duration: int = Query(180, ge=30, le=600), user: dict = Depends(get_current_user)):
+    ghost = await db.ghost_rounds.find_one({"user_id": user["user_id"], "round_duration": round_duration},
+                                           {"_id": 0, "punches": 1, "timeline": 1, "set_at": 1})
+    return ghost or {}
+
+
 @api_router.post("/training/{session_id}/complete")
 async def complete_training_session(session_id: str, user: dict = Depends(get_current_user)):
     session = await db.training_sessions.find_one({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0})
@@ -1207,6 +1288,7 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
         "dimension_scores": final_dimension_scores,
         "rounds": [{"round_number": v["round_number"], "video_url": v["video_url"], "analysis": v.get("analysis_results")} for v in videos],
         "training_config": {"round_duration": session["round_duration"], "rest_duration": session["rest_duration"], "total_rounds": session["total_rounds"]},
+        "live_stats": summarize_live_rounds(session.get("live_rounds") or []),
         "created_at": session["created_at"], "completed_at": datetime.now(timezone.utc).isoformat()
     }
     
@@ -1221,6 +1303,11 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
     result["new_belts"] = new_belts
     result["rewards"] = rewards
     result["scouting_report"] = rewards.get("scouting_report")
+    try:
+        result["live_records"] = await apply_live_records(user["user_id"], session.get("live_rounds") or [], session["round_duration"])
+    except Exception as e:
+        logger.error(f"Live records failed for {session_id}: {e}")
+        result["live_records"] = []
     return result
 
 # ============== STRIPE PAYMENT ENDPOINTS ==============
