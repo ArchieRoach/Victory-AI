@@ -13,7 +13,9 @@ import urllib.request
 
 
 def main():
-    base = os.environ.get("VICTORY_API_URL", "").rstrip("/")
+    base = os.environ.get("VICTORY_API_URL", "").strip().rstrip("/")
+    if base and "://" not in base:
+        base = f"https://{base}"
     token = os.environ.get("VICTORY_METRICS_TOKEN", "")
     if not base or not token:
         sys.exit("Set VICTORY_API_URL and VICTORY_METRICS_TOKEN first.")
