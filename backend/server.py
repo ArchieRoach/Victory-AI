@@ -214,10 +214,16 @@ cloudinary.config(
 )
 
 # Subscription Plans
+# Must match the Victory AI Pro prices in the Stripe product catalogue (GBP). When the
+# catalogue's Price IDs are set, checkout charges those Prices directly instead.
+PLAN_CURRENCY = "gbp"
 SUBSCRIPTION_PLANS = {
-    "monthly": {"price": 5.00, "name": "Monthly", "interval": "month"},
-    "annual": {"price": 25.00, "name": "Annual", "interval": "year", "savings": "Save 58%"}
+    "monthly": {"price": 3.99, "name": "Monthly", "interval": "month",
+                "stripe_price_id": os.environ.get("STRIPE_PRICE_MONTHLY", "")},
+    "annual": {"price": 24.99, "name": "Annual", "interval": "year", "savings": "Save 48%",
+               "stripe_price_id": os.environ.get("STRIPE_PRICE_ANNUAL", "")},
 }
+FOUNDER_SPOTS_LIMIT = int(os.environ.get("FOUNDER_SPOTS_LIMIT", "1000"))
 
 # Create the main app
 app = FastAPI(title="Victory AI API")
@@ -1359,7 +1365,7 @@ async def get_payment_offer(user: dict = Depends(get_current_user)):
     founder = None
     if coupon:
         founder = {"percent_off": coupon.get("percent_off"), "lifetime": coupon.get("duration") == "forever"}
-    return {"currency": "usd", "trial_days": FOUNDER_TRIAL_DAYS if founder else STANDARD_TRIAL_DAYS,
+    return {"currency": PLAN_CURRENCY, "trial_days": FOUNDER_TRIAL_DAYS if founder else STANDARD_TRIAL_DAYS,
             "founder": founder, "plans": plans}
 
 
@@ -1375,11 +1381,11 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
     checkout_params = {
         "mode": "subscription",
         "payment_method_types": ["card"],
-        "line_items": [{
+        "line_items": [{"price": plan["stripe_price_id"], "quantity": 1} if plan.get("stripe_price_id") else {
             "price_data": {
-                "currency": "usd",
-                "product_data": {"name": f"Victory AI {plan['name']}"},
-                "unit_amount": int(plan["price"] * 100),
+                "currency": PLAN_CURRENCY,
+                "product_data": {"name": f"Victory AI Pro {plan['name']}"},
+                "unit_amount": round(plan["price"] * 100),
                 "recurring": {"interval": plan["interval"]},
             },
             "quantity": 1,
@@ -1415,7 +1421,7 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
     await db.payment_transactions.insert_one({
         "transaction_id": f"txn_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"],
         "session_id": session.id, "plan_id": checkout_req.plan_id,
-        "amount": float(plan["price"]), "currency": "usd", "payment_status": "pending",
+        "amount": float(plan["price"]), "currency": PLAN_CURRENCY, "payment_status": "pending",
         "founder": founders_applied, "trial_days": checkout_params["subscription_data"]["trial_period_days"],
         "created_at": datetime.now(timezone.utc).isoformat()
     })
@@ -1556,7 +1562,7 @@ async def _billing_summary(user: dict) -> dict:
         "status": local.get("status"),
         "plan_id": local.get("plan_id"),
         "interval": plan["interval"],
-        "currency": "usd",
+        "currency": PLAN_CURRENCY,
         "regular_price": plan["price"],
         "price": plan["price"],
         "current_period_end": local.get("current_period_end"),
@@ -2050,6 +2056,102 @@ async def create_ad_checkout(request: Request, req: AdCampaignRequest):
 
 # ============== WAITLIST ENDPOINTS ==============
 
+# ---- Founder spots (first FOUNDER_SPOTS_LIMIT waitlist sign-ups) ----
+# The site promises founding pricing to the first 1,000. One counter document is claimed
+# atomically, so two sign-ups at the same moment can't both take the last spot.
+
+async def _founder_spots_claimed() -> int:
+    doc = await db.counters.find_one({"_id": "founder_spots"})
+    if doc is None:
+        existing = await db.waitlist.count_documents({"promo_code": {"$nin": [None, ""]}})
+        await db.counters.update_one({"_id": "founder_spots"}, {"$setOnInsert": {"n": existing}}, upsert=True)
+        doc = await db.counters.find_one({"_id": "founder_spots"})
+    return doc.get("n", 0)
+
+
+async def _claim_founder_spot() -> bool:
+    await _founder_spots_claimed()
+    claimed = await db.counters.find_one_and_update(
+        {"_id": "founder_spots", "n": {"$lt": FOUNDER_SPOTS_LIMIT}}, {"$inc": {"n": 1}})
+    return claimed is not None
+
+
+async def _release_founder_spot():
+    await db.counters.update_one({"_id": "founder_spots", "n": {"$gt": 0}}, {"$inc": {"n": -1}})
+
+
+async def founder_spots() -> dict:
+    claimed = min(await _founder_spots_claimed(), FOUNDER_SPOTS_LIMIT)
+    return {"limit": FOUNDER_SPOTS_LIMIT, "claimed": claimed, "remaining": FOUNDER_SPOTS_LIMIT - claimed}
+
+
+@api_router.get("/waitlist/stats")
+async def waitlist_stats(request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"waitlist_stats:{client_ip}", 60, 60):
+        raise HTTPException(429, "Too many requests — slow down")
+    return await founder_spots()
+
+
+_fx_cache: Dict[str, Any] = {"at": 0.0, "data": None}
+FX_TTL_SECONDS = 12 * 3600
+
+
+async def gbp_rates() -> Optional[dict]:
+    """Daily GBP exchange rates (exchangerate-api.com open endpoint, attribution required),
+    cached for 12 hours. Only used to show visitors an approximate local price — Stripe
+    always charges the GBP amount."""
+    if _fx_cache["data"] and time.time() - _fx_cache["at"] < FX_TTL_SECONDS:
+        return _fx_cache["data"]
+    try:
+        async with httpx.AsyncClient(timeout=8) as http_client:
+            r = await http_client.get("https://open.er-api.com/v6/latest/GBP")
+        body = r.json()
+        if body.get("result") != "success":
+            raise ValueError(body.get("error-type", "bad response"))
+        data = {"rates": body["rates"], "updated": body.get("time_last_update_utc"),
+                "source": "https://www.exchangerate-api.com"}
+        _fx_cache.update(at=time.time(), data=data)
+    except Exception as e:
+        logger.warning(f"FX rates fetch failed: {e}")
+    return _fx_cache["data"]
+
+
+@api_router.get("/pricing")
+async def public_pricing(request: Request):
+    """Everything the waitlist site needs to show prices that match Stripe: the GBP plans,
+    the founder discount, live founder spots, and rates for an approximate local price."""
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"pricing:{client_ip}", 60, 60):
+        raise HTTPException(429, "Too many requests — slow down")
+    coupon = None
+    if STRIPE_API_KEY and STRIPE_FOUNDERS_COUPON_ID:
+        try:
+            coupon = await _founder_coupon()
+        except Exception as e:
+            logger.warning(f"Founder coupon lookup failed: {e}")
+    monthly, annual = SUBSCRIPTION_PLANS["monthly"]["price"], SUBSCRIPTION_PLANS["annual"]["price"]
+    founder = None
+    if coupon:
+        fm, fa = founder_pricing(monthly, coupon), founder_pricing(annual, coupon)
+        if fm and fa:
+            founder = {"percent_off": coupon.get("percent_off"), "lifetime": fm["lifetime"],
+                       "monthly": fm["price"], "annual": fa["price"]}
+    return {
+        "currency": PLAN_CURRENCY.upper(),
+        "plans": {
+            "monthly": {"price": monthly, "interval": "month"},
+            "annual": {"price": annual, "interval": "year",
+                       "saving_percent": round(100 * (1 - annual / (monthly * 12)))},
+        },
+        "trial_days": STANDARD_TRIAL_DAYS,
+        "founder_trial_days": FOUNDER_TRIAL_DAYS,
+        "founder": founder,
+        "founder_spots": await founder_spots(),
+        "fx": await gbp_rates(),
+    }
+
+
 class WaitlistSignup(BaseModel):
     email: EmailStr
     name: Optional[str] = Field(None, max_length=100)
@@ -2067,18 +2169,23 @@ async def waitlist_signup(request: Request, data: WaitlistSignup):
     if existing:
         return {"message": "Already on the waitlist", "already_registered": True}
 
-    # Create a unique Stripe promotion code for this person
-    promo_code_str = f"FOUNDER{uuid.uuid4().hex[:8].upper()}"
-    try:
-        promo = await asyncio.to_thread(
-            stripe_lib.PromotionCode.create,
-            coupon=STRIPE_FOUNDERS_COUPON_ID,
-            code=promo_code_str,
-            max_redemptions=1,
-        )
-        promo_code_str = promo.code
-    except Exception as e:
-        logger.error(f"Stripe promo code creation failed: {e}")
+    # Founding pricing is for the first FOUNDER_SPOTS_LIMIT only; after that people still
+    # join the waitlist (the free tier is open to everyone) but get no founder code.
+    promo_code_str = None
+    if await _claim_founder_spot():
+        promo_code_str = f"FOUNDER{uuid.uuid4().hex[:8].upper()}"
+        try:
+            promo = await asyncio.to_thread(
+                stripe_lib.PromotionCode.create,
+                coupon=STRIPE_FOUNDERS_COUPON_ID,
+                code=promo_code_str,
+                max_redemptions=1,
+            )
+            promo_code_str = promo.code
+        except Exception as e:
+            logger.error(f"Stripe promo code creation failed: {e}")
+            await _release_founder_spot()
+            promo_code_str = None
 
     # Store in waitlist collection
     await db.waitlist.insert_one({
@@ -2102,7 +2209,8 @@ async def waitlist_signup(request: Request, data: WaitlistSignup):
     except Exception as e:
         logger.error(f"n8n forward failed: {e}")
 
-    return {"message": "Signed up successfully", "promo_code": promo_code_str}
+    return {"message": "Signed up successfully", "promo_code": promo_code_str,
+            "founder": promo_code_str is not None, "founder_spots": await founder_spots()}
 
 # ============== SESSION & STATIC ENDPOINTS ==============
 

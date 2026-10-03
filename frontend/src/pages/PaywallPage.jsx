@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { money } from "@/lib/billing";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
 import { Check, Zap, Trophy, Target, Shield, ArrowLeft } from "lucide-react";
@@ -89,8 +90,10 @@ export default function PaywallPage() {
   }, []);
   const founder = offer?.founder;
   const trialDays = offer?.trial_days ?? 14;
+  const currency = offer?.currency || "gbp";
   const planPrice = (id, fallback) => offer?.plans?.[id]?.price ?? fallback;
-  const perWeek = (yearly) => `$${(yearly / 52).toFixed(2)}/week`;
+  const regularPrice = (id, fallback) => offer?.plans?.[id]?.regular_price ?? fallback;
+  const perWeek = (yearly) => `${money(yearly / 52, currency, true)}/week`;
 
   // Funnel: which of the 3 steps people actually reach.
   useEffect(() => {
@@ -283,10 +286,10 @@ export default function PaywallPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-heading font-bold text-victory-text">
-                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">$25</span>}
-                      ${planPrice("annual", 25)}
+                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">{money(regularPrice("annual", 24.99), currency)}</span>}
+                      {money(planPrice("annual", 24.99), currency)}
                     </p>
-                    <p className="text-victory-lime text-xs font-semibold">{founder ? perWeek(planPrice("annual", 25)) : t("paywall.plans.weeklyAnnual")}</p>
+                    <p className="text-victory-lime text-xs font-semibold">{perWeek(planPrice("annual", 24.99))}</p>
                   </div>
                 </div>
               </button>
@@ -308,10 +311,10 @@ export default function PaywallPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-heading font-bold text-victory-text">
-                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">$5</span>}
-                      ${planPrice("monthly", 5)}
+                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">{money(regularPrice("monthly", 3.99), currency)}</span>}
+                      {money(planPrice("monthly", 3.99), currency)}
                     </p>
-                    <p className="text-victory-muted text-xs">{founder ? `~${perWeek(planPrice("monthly", 5) * 12)}` : t("paywall.plans.weeklyMonthly")}</p>
+                    <p className="text-victory-muted text-xs">~{perWeek(planPrice("monthly", 3.99) * 12)}</p>
                   </div>
                 </div>
               </button>

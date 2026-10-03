@@ -293,8 +293,30 @@ Coach as well as recording.
   - the footer's Terms of Service link (`/terms-of-service`) is a 404;
   - "437 / 1,000 spots claimed" and "563 spots left" are hardcoded, not live;
   - founder codes have no 1,000 cap in the backend, although the site says "first 1,000".
-- **Stripe products aren't used by checkout,** which builds prices inline (`price_data`). Products
-  in the dashboard with other prices are never charged.
+- **Stripe products were ignored by checkout** until `feature/gbp-pricing-founder-cap`; see below.
+
+## GBP pricing, founder cap and the public pricing API (branch `feature/gbp-pricing-founder-cap`)
+- **Prices now match the Stripe catalogue:** Victory AI Pro is £3.99/month and £24.99/year
+  (`PLAN_CURRENCY = "gbp"`). The old $5/$25 was wrong. The founders coupon is 40% off forever, so
+  founders pay £2.39 and £14.99. "Save 48%" replaces "Save 58%".
+  - **Charging the catalogue Prices directly:** set `STRIPE_PRICE_MONTHLY` and `STRIPE_PRICE_ANNUAL`
+    on Railway to the catalogue's Price IDs.
+  - **Without those IDs,** checkout falls back to inline GBP `price_data` at the same amounts.
+  - **Not touched:** token packs, gifts and ad checkouts are still USD; they aren't Pro plans.
+- **App copy:** all 10 locales changed from $ to £ (including languages that write the symbol after
+  the number). The paywall now renders every price from `GET /payments/offer`, not hard-coded
+  numbers. The Terms page states GBP.
+- **Founder cap:** `FOUNDER_SPOTS_LIMIT` (default 1000), enforced with an atomic counter
+  (`counters/founder_spots`). The counter is seeded from existing waitlist entries that have codes.
+  After the cap, people still join the waitlist but get no founder code. A failed Stripe code gives
+  its spot back.
+- **Public endpoints for the waitlist site:**
+  - `GET /api/waitlist/stats` returns `{limit, claimed, remaining}`.
+  - `GET /api/pricing` returns the GBP plans, founder pricing, live spots and daily GBP rates
+    (open.er-api.com, cached 12 hours, attribution required) for showing an approximate local price.
+  - Signup responses now include `founder` and `founder_spots`.
+- **Lovable prompt** for the site changes is in `docs/lovable-waitlist-prompt.md`: the Terms 404, the
+  live counter, prices from the API in the visitor's currency, and consistent trial copy.
 
 ---
 

@@ -83,12 +83,13 @@ def test_coupon_ids_across_stripe_shapes():
 def test_billing_cancel_and_resume_keep_founder_price_visible():
     run(server.db.subscriptions.insert_one({"user_id": "u1", "subscription_id": "sub_123", "plan_id": "monthly", "status": "active"}))
     b = client.get("/api/subscription/billing").json()
-    assert b["founder"]["lifetime"] is True and b["price"] == 3.0 and b["regular_price"] == 5.0
+    assert b["founder"]["lifetime"] is True and b["price"] == 2.39 and b["regular_price"] == 3.99
+    assert b["currency"] == "gbp"
     assert b["manageable"] is True and b["cancel_at_period_end"] is False
 
     b = client.post("/api/subscription/cancel").json()
     assert calls[-1] == ("modify", "sub_123", True)
-    assert b["cancel_at_period_end"] is True and b["founder"]["price"] == 3.0, "still a founder until the period ends"
+    assert b["cancel_at_period_end"] is True and b["founder"]["price"] == 2.39, "still a founder until the period ends"
 
     b = client.post("/api/subscription/resume").json()
     assert calls[-1] == ("modify", "sub_123", False) and b["cancel_at_period_end"] is False
@@ -97,7 +98,7 @@ def test_billing_cancel_and_resume_keep_founder_price_visible():
 def test_non_founder_gets_no_lifetime_claim():
     STATE["discounts"] = []
     b = client.get("/api/subscription/billing").json()
-    assert b["founder"] is None and b["price"] == 5.0
+    assert b["founder"] is None and b["price"] == 3.99
 
 
 def test_no_subscription():
@@ -111,13 +112,15 @@ def test_founder_offer_and_checkout_match_the_waitlist_promise():
     run(server.db.waitlist.insert_one({"email": "a@b.co", "promo_code": "FOUNDERAB12"}))
     offer = client.get("/api/payments/offer").json()
     assert offer["trial_days"] == 30 and offer["founder"] == {"percent_off": 40, "lifetime": True}
-    assert offer["plans"]["monthly"] == {"price": 3.0, "regular_price": 5.0, "interval": "month"}
-    assert offer["plans"]["annual"]["price"] == 15.0
+    assert offer["plans"]["monthly"] == {"price": 2.39, "regular_price": 3.99, "interval": "month"}
+    assert offer["plans"]["annual"]["price"] == 14.99 and offer["currency"] == "gbp"
 
     r = client.post("/api/payments/checkout", json={"plan_id": "monthly", "origin_url": "https://victory-ai-alpha.vercel.app"})
     assert r.status_code == 200, r.text
     params = checkouts[-1]
     assert params["discounts"] == [{"promotion_code": "promo_1"}] and "allow_promotion_codes" not in params
+    item = params["line_items"][0]["price_data"]
+    assert item["currency"] == "gbp" and item["unit_amount"] == 399
     assert params["subscription_data"]["trial_period_days"] == 30
     txn = run(server.db.payment_transactions.find_one({"session_id": "cs_1"}))
     assert txn["founder"] is True and txn["trial_days"] == 30
@@ -126,7 +129,7 @@ def test_founder_offer_and_checkout_match_the_waitlist_promise():
 def test_spent_founder_code_falls_back_to_regular_offer():
     PROMO["redeemed"] = 1
     offer = client.get("/api/payments/offer").json()
-    assert offer["founder"] is None and offer["trial_days"] == 14 and offer["plans"]["monthly"]["price"] == 5.0
+    assert offer["founder"] is None and offer["trial_days"] == 14 and offer["plans"]["monthly"]["price"] == 3.99
     client.post("/api/payments/checkout", json={"plan_id": "monthly", "origin_url": "https://victory-ai-alpha.vercel.app"})
     params = checkouts[-1]
     assert "discounts" not in params and params["allow_promotion_codes"] is True
@@ -155,6 +158,68 @@ def test_waitlist_keeps_the_whatsapp_number():
     assert run(server.db.waitlist.find_one({"email": "alex@example.com"}))["phone"] == "+447700900000"
     too_long = client.post("/api/waitlist/signup", json={"email": "b@example.com", "phone": "1" * 40})
     assert too_long.status_code == 422
+
+
+def test_checkout_uses_catalogue_price_ids_when_set():
+    server.SUBSCRIPTION_PLANS["annual"]["stripe_price_id"] = "price_annual_gbp"
+    try:
+        client.post("/api/payments/checkout", json={"plan_id": "annual", "origin_url": "https://victory-ai-alpha.vercel.app"})
+    finally:
+        server.SUBSCRIPTION_PLANS["annual"]["stripe_price_id"] = ""
+    assert checkouts[-1]["line_items"] == [{"price": "price_annual_gbp", "quantity": 1}]
+
+
+class FakePromoCreate:
+    n = 0
+
+    @staticmethod
+    def create(coupon, code, max_redemptions):
+        FakePromoCreate.n += 1
+        return SimpleNamespace(code=code)
+
+
+class NoHttp:
+    def __init__(self, *a, **k): pass
+    async def __aenter__(self): return self
+    async def __aexit__(self, *a): return False
+    async def post(self, *a, **k): return None
+    async def get(self, *a, **k):
+        return SimpleNamespace(json=lambda: {"result": "success", "rates": {"USD": 1.32, "EUR": 1.18},
+                                             "time_last_update_utc": "today"})
+
+
+def test_founder_spots_are_capped_and_counted_live():
+    server.FOUNDER_SPOTS_LIMIT = 2
+    server.stripe_lib.PromotionCode.create = FakePromoCreate.create
+    real, server.httpx.AsyncClient = server.httpx.AsyncClient, NoHttp
+    server._rate_buckets.clear()
+    try:
+        before = client.get("/api/waitlist/stats").json()
+        assert before["limit"] == 2 and before["claimed"] == 1, before  # the earlier founder; a failed Stripe code gave its spot back
+        first = client.post("/api/waitlist/signup", json={"email": "c1@example.com"}).json()
+        assert first["founder"] is True and first["promo_code"].startswith("FOUNDER")
+        assert first["founder_spots"] == {"limit": 2, "claimed": 2, "remaining": 0}
+        late = client.post("/api/waitlist/signup", json={"email": "c2@example.com"}).json()
+        assert late["founder"] is False and late["promo_code"] is None, "after the cap: on the waitlist, no code"
+        assert run(server.db.waitlist.find_one({"email": "c2@example.com"})) is not None
+        assert client.get("/api/waitlist/stats").json()["remaining"] == 0
+    finally:
+        server.httpx.AsyncClient = real
+        server.FOUNDER_SPOTS_LIMIT = 1000
+
+
+def test_public_pricing_matches_stripe_catalogue():
+    real, server.httpx.AsyncClient = server.httpx.AsyncClient, NoHttp
+    server._fx_cache.update(at=0.0, data=None)
+    try:
+        p = client.get("/api/pricing").json()
+    finally:
+        server.httpx.AsyncClient = real
+    assert p["currency"] == "GBP"
+    assert p["plans"]["monthly"]["price"] == 3.99 and p["plans"]["annual"]["price"] == 24.99
+    assert p["plans"]["annual"]["saving_percent"] == 48
+    assert p["founder"] == {"percent_off": 40, "lifetime": True, "monthly": 2.39, "annual": 14.99}
+    assert p["fx"]["rates"]["USD"] == 1.32 and p["founder_spots"]["limit"] == 1000
 
 
 if __name__ == "__main__":

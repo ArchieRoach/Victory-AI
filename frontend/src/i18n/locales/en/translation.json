@@ -53,7 +53,7 @@
     "freePlan": {
       "title": "Free",
       "subtitle": "Forever, no card required",
-      "price": "$0",
+      "price": "£0",
       "cta": "Continue with Free",
       "features": {
         "timer": "Round timer",
@@ -66,21 +66,21 @@
     },
     "plans": {
       "annual": "Annual",
-      "annualSavings": "Save 58% vs monthly",
+      "annualSavings": "Save 48% vs monthly",
       "monthly": "Monthly",
       "monthlyFlexible": "Flexible option",
       "bestValue": "BEST VALUE",
       "perYear": "/year",
       "perMonth": "/month",
-      "weeklyAnnual": "$0.48/week",
-      "weeklyMonthly": "~$1.15/week"
+      "weeklyAnnual": "£0.48/week",
+      "weeklyMonthly": "~£0.92/week"
     },
     "viewDetails": "View plan details",
     "hideDetails": "Hide plan details",
     "planDetails": {
       "title": "Plan Details",
-      "monthlyLine": "Monthly ($5/mo): Unlimited AI + ad-free, cancel anytime",
-      "annualLine": "Annual ($25/yr): Same features, 58% savings",
+      "monthlyLine": "Monthly (£3.99/mo): Unlimited AI + ad-free, cancel anytime",
+      "annualLine": "Annual (£24.99/yr): Same features, 48% savings",
       "trial": "14-day free trial on both paid plans",
       "billing": "Card required upfront — billing starts automatically after trial"
     },

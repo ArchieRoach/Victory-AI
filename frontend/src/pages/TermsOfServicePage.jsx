@@ -59,7 +59,7 @@ export default function TermsOfServicePage() {
             Core features are free. Optional paid plans ("Pro") are billed through our payment
             processor, Stripe. Paid plans start with a 14-day free trial; unless you cancel
             before the trial ends, the plan renews automatically at the price shown at checkout
-            ($5/month or $25/year) and continues to renew each period until cancelled.
+            (£3.99/month or £24.99/year, charged in GBP) and continues to renew each period until cancelled.
           </p>
           <p>
             You can cancel any time from Profile settings or your Stripe billing portal;

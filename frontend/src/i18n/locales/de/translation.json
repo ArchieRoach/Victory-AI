@@ -52,7 +52,7 @@
     "freePlan": {
       "title": "Kostenlos",
       "subtitle": "Für immer, keine Karte erforderlich",
-      "price": "0 $",
+      "price": "0 £",
       "cta": "Kostenlos beitreten",
       "features": {
         "timer": "Rundentimer",
@@ -65,21 +65,21 @@
     },
     "plans": {
       "annual": "Jährlich",
-      "annualSavings": "58 % Ersparnis gegenüber monatlich",
+      "annualSavings": "48% Ersparnis gegenüber monatlich",
       "monthly": "Monatlich",
       "monthlyFlexible": "Flexible Option",
       "bestValue": "BESTES ANGEBOT",
       "perYear": "/Jahr",
       "perMonth": "/Monat",
-      "weeklyAnnual": "0,48 $/Woche",
-      "weeklyMonthly": "~1,15 $/Woche"
+      "weeklyAnnual": "0,48 £/Woche",
+      "weeklyMonthly": "~0,92 £/Woche"
     },
     "viewDetails": "Plandetails anzeigen",
     "hideDetails": "Details ausblenden",
     "planDetails": {
       "title": "Plandetails",
-      "monthlyLine": "Monatlich (5 $/Monat): Unbegrenzte KI + werbefrei, jederzeit kündbar",
-      "annualLine": "Jährlich (25 $/Jahr): Gleiche Funktionen, 58 % Ersparnis",
+      "monthlyLine": "Monatlich (3,99 £/Monat): Unbegrenzte KI + werbefrei, jederzeit kündbar",
+      "annualLine": "Jährlich (24,99 £/Jahr): Gleiche Funktionen, 48% Ersparnis",
       "trial": "14-tägige kostenlose Testphase bei beiden kostenpflichtigen Plänen",
       "billing": "Karte erforderlich — Abrechnung startet automatisch nach der Testphase"
     },
