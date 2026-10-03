@@ -52,7 +52,7 @@
     "freePlan": {
       "title": "Gratuit",
       "subtitle": "Pour toujours, sans carte requise",
-      "price": "0 $",
+      "price": "0 £",
       "cta": "Rejoindre gratuitement",
       "features": {
         "timer": "Minuteur de round",
@@ -65,21 +65,21 @@
     },
     "plans": {
       "annual": "Annuel",
-      "annualSavings": "Économisez 58 % par rapport au mensuel",
+      "annualSavings": "Économisez 48% par rapport au mensuel",
       "monthly": "Mensuel",
       "monthlyFlexible": "Option flexible",
       "bestValue": "MEILLEUR RAPPORT",
       "perYear": "/an",
       "perMonth": "/mois",
-      "weeklyAnnual": "0,48 $/semaine",
-      "weeklyMonthly": "~1,15 $/semaine"
+      "weeklyAnnual": "0,48 £/semaine",
+      "weeklyMonthly": "~0,92 £/semaine"
     },
     "viewDetails": "Voir les détails du plan",
     "hideDetails": "Masquer les détails",
     "planDetails": {
       "title": "Détails du plan",
-      "monthlyLine": "Mensuel (5 $/mois) : IA illimitée + sans publicité, annulable à tout moment",
-      "annualLine": "Annuel (25 $/an) : Mêmes fonctionnalités, 58 % d'économies",
+      "monthlyLine": "Mensuel (3,99 £/mois) : IA illimitée + sans publicité, annulable à tout moment",
+      "annualLine": "Annuel (24,99 £/an) : Mêmes fonctionnalités, 48% d'économies",
       "trial": "Essai gratuit de 14 jours sur les deux plans payants",
       "billing": "Carte requise — la facturation démarre automatiquement après l'essai"
     },

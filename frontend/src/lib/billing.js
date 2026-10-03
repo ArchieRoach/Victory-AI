@@ -1,8 +1,10 @@
-export const money = (amount, currency = "usd") => {
+// Pro is priced and charged in GBP (it must match the Stripe catalogue).
+export const money = (amount, currency = "gbp", alwaysPence = false) => {
   try {
-    return new Intl.NumberFormat("en", { style: "currency", currency: currency.toUpperCase(), minimumFractionDigits: amount % 1 ? 2 : 0 }).format(amount);
+    const cents = alwaysPence || Math.round(amount * 100) % 100 !== 0;
+    return new Intl.NumberFormat("en-GB", { style: "currency", currency: currency.toUpperCase(), minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: 2 }).format(amount);
   } catch {
-    return `$${amount}`;
+    return `£${amount}`;
   }
 };
 

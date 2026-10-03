@@ -52,7 +52,7 @@
     "freePlan": {
       "title": "無料",
       "subtitle": "永久無料、カード登録不要",
-      "price": "$0",
+      "price": "£0",
       "cta": "無料で参加",
       "features": {
         "timer": "ラウンドタイマー",
@@ -65,21 +65,21 @@
     },
     "plans": {
       "annual": "年間",
-      "annualSavings": "月払いより58%節約",
+      "annualSavings": "月払いより48%節約",
       "monthly": "月間",
       "monthlyFlexible": "柔軟なオプション",
       "bestValue": "最高のコスパ",
       "perYear": "/年",
       "perMonth": "/月",
-      "weeklyAnnual": "$0.48/週",
-      "weeklyMonthly": "約$1.15/週"
+      "weeklyAnnual": "£0.48/週",
+      "weeklyMonthly": "約£0.92/週"
     },
     "viewDetails": "プラン詳細を見る",
     "hideDetails": "詳細を隠す",
     "planDetails": {
       "title": "プラン詳細",
-      "monthlyLine": "月額（$5/月）：AI無制限 + 広告なし、いつでも解約可能",
-      "annualLine": "年間（$25/年）：同じ機能、58%節約",
+      "monthlyLine": "月額（£3.99/月）：AI無制限 + 広告なし、いつでも解約可能",
+      "annualLine": "年間（£24.99/年）：同じ機能、48%節約",
       "trial": "両有料プランとも14日間無料トライアル",
       "billing": "カードが必要 — トライアル終了後に自動的に請求が開始"
     },

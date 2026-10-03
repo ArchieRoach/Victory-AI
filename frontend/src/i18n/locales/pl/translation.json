@@ -52,7 +52,7 @@
     "freePlan": {
       "title": "Darmowy",
       "subtitle": "Na zawsze, bez karty",
-      "price": "$0",
+      "price": "£0",
       "cta": "Dołącz za darmo",
       "features": {
         "timer": "Minutnik rund",
@@ -65,21 +65,21 @@
     },
     "plans": {
       "annual": "Roczny",
-      "annualSavings": "Oszczędź 58% vs miesięczny",
+      "annualSavings": "Oszczędź 48% vs miesięczny",
       "monthly": "Miesięczny",
       "monthlyFlexible": "Elastyczna opcja",
       "bestValue": "NAJLEPSZA WARTOŚĆ",
       "perYear": "/rok",
       "perMonth": "/miesiąc",
-      "weeklyAnnual": "$0,48/tydzień",
-      "weeklyMonthly": "~$1,15/tydzień"
+      "weeklyAnnual": "£0.48/tydzień",
+      "weeklyMonthly": "~£0.92/tydzień"
     },
     "viewDetails": "Zobacz szczegóły planu",
     "hideDetails": "Ukryj szczegóły",
     "planDetails": {
       "title": "Szczegóły planu",
-      "monthlyLine": "Miesięczny ($5/mies.): Nieograniczone AI + bez reklam, anuluj kiedy chcesz",
-      "annualLine": "Roczny ($25/rok): Te same funkcje, 58% oszczędności",
+      "monthlyLine": "Miesięczny (£3.99/mies.): Nieograniczone AI + bez reklam, anuluj kiedy chcesz",
+      "annualLine": "Roczny (£24.99/rok): Te same funkcje, 48% oszczędności",
       "trial": "14-dniowy bezpłatny okres próbny dla obu płatnych planów",
       "billing": "Karta wymagana — rozliczenie rozpoczyna się automatycznie po okresie próbnym"
     },

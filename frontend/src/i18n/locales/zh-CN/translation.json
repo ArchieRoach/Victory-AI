@@ -52,7 +52,7 @@
     "freePlan": {
       "title": "免费版",
       "subtitle": "永久免费，无需绑卡",
-      "price": "$0",
+      "price": "£0",
       "cta": "免费加入",
       "features": {
         "timer": "回合计时器",
@@ -65,21 +65,21 @@
     },
     "plans": {
       "annual": "年度",
-      "annualSavings": "比月付节省58%",
+      "annualSavings": "比月付节省48%",
       "monthly": "月度",
       "monthlyFlexible": "灵活选择",
       "bestValue": "最优价值",
       "perYear": "/年",
       "perMonth": "/月",
-      "weeklyAnnual": "$0.48/周",
-      "weeklyMonthly": "约$1.15/周"
+      "weeklyAnnual": "£0.48/周",
+      "weeklyMonthly": "约£0.92/周"
     },
     "viewDetails": "查看方案详情",
     "hideDetails": "隐藏详情",
     "planDetails": {
       "title": "方案详情",
-      "monthlyLine": "月度（$5/月）：无限AI + 无广告，随时取消",
-      "annualLine": "年度（$25/年）：相同功能，节省58%",
+      "monthlyLine": "月度（£3.99/月）：无限AI + 无广告，随时取消",
+      "annualLine": "年度（£24.99/年）：相同功能，节省48%",
       "trial": "两种付费方案均享14天免费试用",
       "billing": "需要提前绑定银行卡 — 试用期结束后自动开始计费"
     },

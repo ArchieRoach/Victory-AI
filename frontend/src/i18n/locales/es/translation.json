@@ -52,7 +52,7 @@
     "freePlan": {
       "title": "Gratis",
       "subtitle": "Para siempre, sin tarjeta",
-      "price": "$0",
+      "price": "£0",
       "cta": "Unirse gratis",
       "features": {
         "timer": "Temporizador de asaltos",
@@ -65,21 +65,21 @@
     },
     "plans": {
       "annual": "Anual",
-      "annualSavings": "Ahorra 58% vs mensual",
+      "annualSavings": "Ahorra 48% vs mensual",
       "monthly": "Mensual",
       "monthlyFlexible": "Opción flexible",
       "bestValue": "MEJOR VALOR",
       "perYear": "/año",
       "perMonth": "/mes",
-      "weeklyAnnual": "$0.48/semana",
-      "weeklyMonthly": "~$1.15/semana"
+      "weeklyAnnual": "£0.48/semana",
+      "weeklyMonthly": "~£0.92/semana"
     },
     "viewDetails": "Ver detalles del plan",
     "hideDetails": "Ocultar detalles del plan",
     "planDetails": {
       "title": "Detalles del plan",
-      "monthlyLine": "Mensual ($5/mes): IA ilimitada + sin anuncios, cancela cuando quieras",
-      "annualLine": "Anual ($25/año): Mismas funciones, 58% de ahorro",
+      "monthlyLine": "Mensual (£3.99/mes): IA ilimitada + sin anuncios, cancela cuando quieras",
+      "annualLine": "Anual (£24.99/año): Mismas funciones, 48% de ahorro",
       "trial": "Prueba gratuita de 14 días en ambos planes pagos",
       "billing": "Tarjeta requerida — la facturación comienza automáticamente después del período de prueba"
     },

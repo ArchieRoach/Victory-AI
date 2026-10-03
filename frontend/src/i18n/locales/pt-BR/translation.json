@@ -52,7 +52,7 @@
     "freePlan": {
       "title": "Grátis",
       "subtitle": "Para sempre, sem cartão necessário",
-      "price": "$0",
+      "price": "£0",
       "cta": "Participar grátis",
       "features": {
         "timer": "Cronômetro de round",
@@ -65,21 +65,21 @@
     },
     "plans": {
       "annual": "Anual",
-      "annualSavings": "Economize 58% vs mensal",
+      "annualSavings": "Economize 48% vs mensal",
       "monthly": "Mensal",
       "monthlyFlexible": "Opção flexível",
       "bestValue": "MELHOR CUSTO",
       "perYear": "/ano",
       "perMonth": "/mês",
-      "weeklyAnnual": "$0,48/semana",
-      "weeklyMonthly": "~$1,15/semana"
+      "weeklyAnnual": "£0.48/semana",
+      "weeklyMonthly": "~£0.92/semana"
     },
     "viewDetails": "Ver detalhes do plano",
     "hideDetails": "Ocultar detalhes",
     "planDetails": {
       "title": "Detalhes do plano",
-      "monthlyLine": "Mensal ($5/mês): IA ilimitada + sem anúncios, cancele quando quiser",
-      "annualLine": "Anual ($25/ano): Mesmos recursos, 58% de economia",
+      "monthlyLine": "Mensal (£3.99/mês): IA ilimitada + sem anúncios, cancele quando quiser",
+      "annualLine": "Anual (£24.99/ano): Mesmos recursos, 48% de economia",
       "trial": "Teste grátis de 14 dias em ambos os planos pagos",
       "billing": "Cartão necessário — cobrança inicia automaticamente após o teste"
     },
