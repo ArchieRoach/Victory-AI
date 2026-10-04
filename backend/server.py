@@ -7771,6 +7771,17 @@ async def _retention_cleanup_loop():
         await _run_retention_cleanup()
         await _aio.sleep(86400)
 
+async def run_once_migrations():
+    # The first 19 founder spots were all pre-launch test sign-ups, so the public counter
+    # starts again from 0. The marker makes it run exactly once, on the first deploy.
+    marker = "reset_founder_spots_2026_10_04"
+    if await db.migrations.find_one({"_id": marker}):
+        return
+    await db.counters.update_one({"_id": "founder_spots"}, {"$set": {"n": 0}}, upsert=True)
+    await db.migrations.insert_one({"_id": marker, "ran_at": datetime.now(timezone.utc).isoformat()})
+    logger.info("Migration: founder spot counter reset to 0")
+
+
 @app.on_event("startup")
 async def startup():
     import asyncio as _aio
@@ -7780,6 +7791,7 @@ async def startup():
     )
     if result.modified_count:
         logger.info(f"Migration: backfilled access_granted=True on {result.modified_count} users")
+    await run_once_migrations()
     _aio.create_task(_scheduled_stream_reminder_loop())
     _aio.create_task(_retention_cleanup_loop())
     _aio.create_task(_reengagement_loop())

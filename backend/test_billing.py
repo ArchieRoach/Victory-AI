@@ -222,6 +222,15 @@ def test_public_pricing_matches_stripe_catalogue():
     assert p["fx"]["rates"]["USD"] == 1.32 and p["founder_spots"]["limit"] == 1000
 
 
+def test_founder_counter_reset_runs_once():
+    run(server.db.counters.update_one({"_id": "founder_spots"}, {"$set": {"n": 19}}, upsert=True))
+    run(server.run_once_migrations())
+    assert run(server.db.counters.find_one({"_id": "founder_spots"}))["n"] == 0
+    run(server.db.counters.update_one({"_id": "founder_spots"}, {"$set": {"n": 1}}))
+    run(server.run_once_migrations())
+    assert run(server.db.counters.find_one({"_id": "founder_spots"}))["n"] == 1, "never resets real sign-ups later"
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:
