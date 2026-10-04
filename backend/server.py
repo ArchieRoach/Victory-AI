@@ -2167,7 +2167,11 @@ async def waitlist_signup(request: Request, data: WaitlistSignup):
     # Prevent duplicate signups
     existing = await db.waitlist.find_one({"email": data.email})
     if existing:
-        return {"message": "Already on the waitlist", "already_registered": True}
+        # Same shape as a new sign-up, so the site shows the right message to someone
+        # signing up twice (a founder stays a founder).
+        return {"message": "Already on the waitlist", "already_registered": True,
+                "promo_code": None, "founder": bool(existing.get("promo_code")),
+                "founder_spots": await founder_spots()}
 
     # Founding pricing is for the first FOUNDER_SPOTS_LIMIT only; after that people still
     # join the waitlist (the free tier is open to everyone) but get no founder code.
@@ -6589,6 +6593,34 @@ class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 app.add_middleware(_SecurityHeadersMiddleware)
+
+# Prices and the founder-spot count are public, read-only and carry no user data, so any
+# site may read them — including the waitlist site's Lovable preview, whose address isn't
+# in CORS_ORIGINS. Everything else (sign-ups included) stays limited to our own origins.
+PUBLIC_READ_PATHS = {"/api/pricing", "/api/waitlist/stats"}
+
+
+class _PublicReadCorsMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        if request.url.path not in PUBLIC_READ_PATHS or request.method not in ("GET", "HEAD", "OPTIONS"):
+            return await call_next(request)
+        if request.method == "OPTIONS":
+            return Response(status_code=204, headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Max-Age": "86400",
+            })
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        if "access-control-allow-credentials" in response.headers:
+            del response.headers["access-control-allow-credentials"]
+        if "vary" in response.headers:
+            del response.headers["vary"]
+        return response
+
+
+app.add_middleware(_PublicReadCorsMiddleware)
 # ============== VARIABLE REWARDS ==============
 # Three reward loops that make every session end on something the fighter couldn't
 # predict: personal bests across 16 dimensions (self), a scouting report of varying type
