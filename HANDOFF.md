@@ -317,6 +317,11 @@ Coach as well as recording.
   - Signup responses now include `founder` and `founder_spots`.
 - **Lovable prompt** for the site changes is in `docs/lovable-waitlist-prompt.md`: the Terms 404, the
   live counter, prices from the API in the visitor's currency, and consistent trial copy.
+- **Public-read CORS:** `GET /api/pricing` and `GET /api/waitlist/stats` return
+  `Access-Control-Allow-Origin: *` (`_PublicReadCorsMiddleware`), so Lovable's preview can read them.
+  Every other endpoint, sign-ups included, stays limited to `CORS_ORIGINS`.
+- **Repeat sign-ups:** a second sign-up with the same email now returns `founder` and `founder_spots`
+  too, so the site doesn't show the "founding pricing has run out" message to an existing founder.
 
 ---
 
