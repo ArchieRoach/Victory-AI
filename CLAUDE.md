@@ -29,6 +29,8 @@ praise and labels must be earned from real evidence, and high-privacy defaults f
 - `git push origin main` auto-deploys **both** Vercel (frontend) and Railway (backend).
 - On `main`, branch first; commit/push only when asked — pushing `main` = a production deploy.
 - Run `/deploy-preflight` before pushing to catch build-breakers in one pass.
+- Railway has **Wait for CI** on: it deploys `main` only after the `Backend tests` GitHub check
+  (`.github/workflows/backend-tests.yml`, every `backend/test_*.py`) passes.
 
 ## Deploy gotchas (learned the hard way)
 - **Railway env vars** (`DB_NAME`, `MONGO_URL`, `STRIPE_*`, `LIVEPEER_*`) must be set in Railway's

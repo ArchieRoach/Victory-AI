@@ -1,0 +1,37 @@
+name: Backend tests
+
+# Railway waits for this check ("Wait for CI") before deploying main, so a failing backend
+# test never reaches production. Each test_*.py is a self-check script that mocks MongoDB,
+# Stripe, email and the data feed, so no secrets or services are needed.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install
+        run: pip install -r requirements.txt mongomock-motor==0.0.36
+      - name: Run every self-check
+        env:
+          MONGO_URL: mongodb://unused
+          DB_NAME: test
+        run: |
+          failed=0
+          for f in test_*.py; do
+            echo "::group::$f"
+            if python "$f"; then echo "::endgroup::"; else echo "::endgroup::"; echo "::error::$f failed"; failed=1; fi
+          done
+          exit $failed
