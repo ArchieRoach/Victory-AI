@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { ArrowLeft, RefreshCw, ShieldAlert } from "lucide-react";
 import { API } from "@/App";
+import { parseCard } from "@/lib/parseCard";
 
 // Admin desk for deals agreed by email: sponsor a card, feature a promoter's show, grant a
 // bought cosmetic, add an amateur card, and correct a result the feed couldn't map. Pro
@@ -123,6 +124,14 @@ function AdminCardRow({ card, post }) {
         <p className="text-victory-text font-semibold">{card.title} <span className="text-victory-muted font-normal">· {card.status} · {card.reason} · {(card.date || "").slice(0, 10)}</span></p>
         <p className="text-victory-muted">{card.card_id}{card.featured ? " · featured" : ""}{card.sponsor?.name ? ` · ${card.sponsor.name}` : ""}</p>
       </button>
+      {card.pending_review && (
+        <button className="victory-btn-primary w-auto px-4" onClick={async () => {
+          const r = await post(`/admin/fantasy/cards/${card.card_id}/publish`, {}, "Published — the promoter has their results link");
+          if (r?.results_link) navigator.clipboard?.writeText(r.results_link).catch(() => {});
+        }}>
+          Checked — publish (promoter sent this)
+        </button>
+      )}
       {open && (
         <div className="space-y-2">
           <div className="flex gap-2">
@@ -133,14 +142,14 @@ function AdminCardRow({ card, post }) {
           {card.source === "manual" && card.status === "upcoming" && (
             <button className="victory-btn-ghost w-auto px-3 min-h-[44px]" onClick={() => post(`/admin/fantasy/cards/${card.card_id}/start`, {}, "Picks locked")}>First bell — lock picks</button>
           )}
-          {full?.bouts.map((b) => <ResultRow key={b.bout_id} card={card} bout={b} post={post} />)}
+          {full?.bouts.map((b) => <ResultRow key={b.bout_id} bout={b} onSave={(body) => post(`/admin/fantasy/cards/${card.card_id}/bouts/${b.bout_id}/result`, body, "Result saved")} />)}
         </div>
       )}
     </div>
   );
 }
 
-function ResultRow({ card, bout, post }) {
+export function ResultRow({ bout, onSave }) {
   const [r, setR] = useState({ winner_index: 0, method: "UD", round: bout.scheduled_rounds, clean_sweep: false });
   const noWinner = ["TD", "NC", "D"].includes(r.method);
   return (
@@ -161,7 +170,7 @@ function ResultRow({ card, bout, post }) {
           <input type="checkbox" className="accent-victory-lime" checked={r.clean_sweep} onChange={(e) => setR({ ...r, clean_sweep: e.target.checked })} /> Won every round
         </label>
         <button className="victory-btn-secondary w-auto px-3"
-          onClick={() => post(`/admin/fantasy/cards/${card.card_id}/bouts/${bout.bout_id}/result`, { ...r, winner_index: noWinner ? null : r.winner_index }, "Result saved")}>
+          onClick={() => onSave({ ...r, winner_index: noWinner ? null : r.winner_index })}>
           Save result
         </button>
       </div>
@@ -204,7 +213,15 @@ function ManualCardForm({ post }) {
   return (
     <section className="space-y-2">
       <p className="section-label">Add an amateur (or off-feed) card</p>
-      <p className="text-victory-muted text-[11px]">Type each boxer's record from the club or promoter sheet. Prices use the same formula as pro cards.</p>
+      <p className="text-victory-muted text-[11px]">Type each boxer's record from the club or promoter sheet, or paste the card below. Prices use the same formula as pro cards.</p>
+      <textarea className="victory-input min-h-[88px] py-3 font-mono text-[12px]" aria-label="Paste a fight card"
+        placeholder={"Paste a card: one fight per line\nLee Smith (8-0) vs Kay Jones (3-5-1), 6 rounds"}
+        onBlur={(e) => {
+          const { bouts, skipped } = parseCard(e.target.value, 3);
+          if (!bouts.length) return;
+          setCard((c) => ({ ...c, bouts }));
+          toast(`${bouts.length} fights filled in${skipped.length ? ` · ${skipped.length} line(s) skipped` : ""}`);
+        }} />
       <div className="grid grid-cols-2 gap-2">
         <input className="victory-input" placeholder="Title" value={card.title} onChange={(e) => setCard({ ...card, title: e.target.value })} />
         <input className="victory-input" type="date" value={card.date} onChange={(e) => setCard({ ...card, date: e.target.value })} aria-label="Date" />

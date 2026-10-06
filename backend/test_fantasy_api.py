@@ -11,6 +11,7 @@ import server
 
 server.db = AsyncMongoMockClient()["test"]
 server.BOXING_DATA_API_KEY = "test-key"
+server.FANTASY_FEED_SCOPE = "all"
 server.RESEND_API_KEY = ""
 ME = {"user_id": "u1", "email": "kid@x.co", "name": "Kid"}
 ADMIN = {"user_id": "admin", "email": "hello@victoryai.co.uk", "name": "Admin"}
@@ -86,7 +87,7 @@ def test_sync_imports_only_qualifying_cards_with_formula_prices():
 
 
 def test_save_stable_enforces_cap_and_lock():
-    r = client.put("/api/fantasy/cards/fc_ev1/stable", json={"picks": ["fa", "fb", "fc"]})
+    r = client.put("/api/fantasy/cards/fc_ev1/stable", json={"picks": ["fa", "fc"]})
     assert r.status_code == 200, r.text
     listing = client.get("/api/fantasy/cards").json()
     assert listing[0]["card_id"] == "fc_ev1" and listing[0]["entered"]
@@ -102,7 +103,7 @@ def test_results_sync_scores_and_flags_unknown_outcomes():
     card = run(server.db.fantasy_cards.find_one({"card_id": "fc_ev1"}, {"_id": 0}))
     assert card["status"] == "live", "the unknown result is held back, not guessed"
     assert emails and emails[-1][0] == "Result needs a check"
-    locked = client.put("/api/fantasy/cards/fc_ev1/stable", json={"picks": ["fa", "fb", "fc"]})
+    locked = client.put("/api/fantasy/cards/fc_ev1/stable", json={"picks": ["fa", "fc"]})
     assert locked.status_code == 400
     board = client.get("/api/fantasy/cards/fc_ev1/leaderboard").json()
     assert board[0]["total"] == 30 and board[0]["isMe"], "KO win (20) + early finish (10)"

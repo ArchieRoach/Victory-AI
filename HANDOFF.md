@@ -411,6 +411,31 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Low-cost data mode (default)
+- **Feed scope:** `FANTASY_FEED_SCOPE=world_title` (default) imports world-title cards only. UK
+  small-hall cards come from promoters instead. Set `all` to import UK shows from the feed too.
+- **Request budget:** `BOXING_DATA_MONTHLY_LIMIT` (default 100, the free plan).
+  - Every feed call is counted in `counters/boxing_data_YYYY-MM`.
+  - At the limit the feed pauses until next month, so there's never an overage bill.
+  - The admin is emailed at 80% and at 100%.
+- **Fewer calls:**
+  - The schedule is imported every `FANTASY_IMPORT_HOURS` (24).
+  - Records are cached for `FANTASY_FIGHTER_TTL_DAYS` (30).
+  - Picks lock on the clock at the card's start time, with no feed call.
+  - Results are checked only from the start to +12h, every `FANTASY_RESULTS_MINUTES` (90), plus
+    one check the morning after.
+  - Expected cost is roughly 60–100 requests a month for about 4 world-title cards.
+- **Small cards:** a card with 1 bout picks 1 boxer with 50 coins, and 2 bouts pick 2 with 80
+  coins. This matters because cheaper feed plans only return the top fights on a card.
+- **Promoter-supplied cards:**
+  - On `/fantasy/partners`, a promoter can paste their card, one fight per line with records
+    (`lib/parseCard.js`). It becomes a hidden draft (`fp_…`), and the admin is emailed.
+  - The admin taps **Publish** in `/fantasy/admin`. The promoter is then emailed a private link,
+    `/fantasy/results/{card_id}?t=…`, where they lock picks at the first bell and enter each
+    result.
+  - Admins can also paste a card into the manual card form.
+- **Tests:** `backend/test_fantasy_lowcost.py` (5) and `frontend/src/lib/parseCard.test.js` (2).
+
 ## My boxing: fight camp, amateur record and training buddy (same branch)
 - **Page:** `/camp` ("My boxing", linked from Profile). Backend section: `FIGHT CAMP + AMATEUR
   RECORD` in `server.py`.

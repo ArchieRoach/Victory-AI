@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional, Dict, Any, Literal
 import re
 import html
+import secrets
 import uuid
 import hashlib
 from datetime import datetime, timezone, timedelta, date
@@ -7626,7 +7627,16 @@ BOXING_DATA_API_KEY = os.environ.get("BOXING_DATA_API_KEY", "")
 BOXING_DATA_HOST = os.environ.get("BOXING_DATA_HOST", "boxing-data-api.p.rapidapi.com")
 FANTASY_ADMIN_EMAIL = os.environ.get("FANTASY_ADMIN_EMAIL", "hello@victoryai.co.uk")
 FANTASY_LOOKAHEAD_DAYS = 14
-FANTASY_FIGHTER_TTL_DAYS = 7
+# Low-cost defaults: the feed is used for world-title cards only, the schedule is checked
+# once a day, records are kept a month, and results are only checked on fight night.
+# UK small-hall cards come from promoters (partners form) and admins instead. Raise these
+# on Railway when the budget allows (e.g. FANTASY_FEED_SCOPE=all, a bigger monthly limit).
+FANTASY_FEED_SCOPE = os.environ.get("FANTASY_FEED_SCOPE", "world_title")  # world_title | all
+BOXING_DATA_MONTHLY_LIMIT = int(os.environ.get("BOXING_DATA_MONTHLY_LIMIT", "100"))
+FANTASY_IMPORT_HOURS = float(os.environ.get("FANTASY_IMPORT_HOURS", "24"))
+FANTASY_RESULTS_MINUTES = float(os.environ.get("FANTASY_RESULTS_MINUTES", "90"))
+FANTASY_FIGHTER_TTL_DAYS = int(os.environ.get("FANTASY_FIGHTER_TTL_DAYS", "30"))
+FANTASY_FIGHT_NIGHT_HOURS = 12
 FANTASY_SEASON_DAYS = 90
 FANTASY_LEAGUE_MAX_MEMBERS = 50
 FANTASY_LEAGUES_PER_OWNER = 5
@@ -7667,7 +7677,28 @@ async def _email_fantasy_admin(subject: str, rows: dict, reply_to: Optional[str]
 
 # ── Boxing Data API client ──────────────────────────────────────────────────
 
+class FeedBudgetSpent(Exception):
+    pass
+
+
+async def _bd_reserve_request():
+    """Counts every call against the plan's monthly quota and stops at the limit, so a
+    busy month can never run up an overage bill. Emails the admin at 80% and 100%."""
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    doc = await db.counters.find_one_and_update(
+        {"_id": f"boxing_data_{month}"}, {"$inc": {"n": 1}}, upsert=True, return_document=True)
+    n = doc["n"]
+    if n > BOXING_DATA_MONTHLY_LIMIT:
+        raise FeedBudgetSpent(month)
+    if n in (int(BOXING_DATA_MONTHLY_LIMIT * 0.8), BOXING_DATA_MONTHLY_LIMIT):
+        await _email_fantasy_admin(f"Data feed: {n} of {BOXING_DATA_MONTHLY_LIMIT} requests used", {
+            "Month": month, "What happens at the limit": "The feed pauses until next month. Pro cards stay playable; "
+            "enter any missing results at /fantasy/admin.", "To raise it": "Set BOXING_DATA_MONTHLY_LIMIT on Railway "
+            "(and upgrade the RapidAPI plan to match)."})
+
+
 async def _bd_get(url_or_path: str, params: Optional[dict] = None) -> dict:
+    await _bd_reserve_request()
     url = url_or_path if url_or_path.startswith("http") else f"https://{BOXING_DATA_HOST}{url_or_path}"
     async with httpx.AsyncClient(timeout=20) as http_client:
         r = await http_client.get(url, params=params, headers={
@@ -7749,6 +7780,10 @@ async def sync_fantasy_cards(force_event_ids: Optional[set] = None) -> dict:
     for event_id, ev_fights in by_event.items():
         ev = events[event_id]
         reason = fx.card_qualifies(ev.get("location") or ev_fights[0].get("location"), ev_fights)
+        if reason == "uk" and FANTASY_FEED_SCOPE != "all" and not any(fx.is_world_title(f.get("titles")) for f in ev_fights):
+            reason = None  # low-cost mode: UK shows come from promoters, not the feed
+        elif reason == "uk" and any(fx.is_world_title(f.get("titles")) for f in ev_fights) and FANTASY_FEED_SCOPE != "all":
+            reason = "world_title"
         if not reason and event_id not in force_event_ids:
             continue
         card_id = f"fc_{event_id}"
@@ -7761,6 +7796,7 @@ async def sync_fantasy_cards(force_event_ids: Optional[set] = None) -> dict:
             "title": ev.get("title") or ev_fights[0].get("title"), "date": ev.get("date"),
             "location": ev.get("location"), "venue": ev.get("venue") or ev_fights[0].get("venue"),
             "status": fx.card_status(bouts), "bouts": bouts, "updated_at": datetime.now(timezone.utc).isoformat(),
+            **dict(zip(("stable_size", "salary_cap"), fx.team_rules(len(bouts)))),
         }, "$setOnInsert": {"featured": False, "sponsor": None, "created_at": datetime.now(timezone.utc).isoformat()}},
             upsert=True)
         imported += 1
@@ -7788,6 +7824,8 @@ async def sync_fantasy_results(card: dict) -> bool:
             status, result = "live", None
         if bout.get("manual_result"):
             continue  # an admin's correction always wins over the feed
+        if status == "upcoming" and bout.get("status") != "upcoming":
+            status = bout["status"]  # picks locked on the clock stay locked
         if status != bout.get("status") or result != bout.get("result"):
             bout["status"], bout["result"] = status, result
             changed = True
@@ -7810,6 +7848,38 @@ async def _notify_fantasy_card_done(card: dict):
                          url="/fantasy", tag=f"fantasy-{card['card_id']}")
 
 
+def _card_start(card: dict) -> datetime:
+    raw = card.get("date") or ""
+    try:
+        start = datetime.fromisoformat(raw) if "T" in raw else datetime.fromisoformat(f"{raw[:10]}T17:00:00")
+    except ValueError:
+        return datetime.max.replace(tzinfo=timezone.utc)
+    return start if start.tzinfo else start.replace(tzinfo=timezone.utc)
+
+
+async def lock_started_cards(now: Optional[datetime] = None) -> int:
+    """Locks picks when a card's start time passes, with no feed call needed."""
+    now, locked = now or datetime.now(timezone.utc), 0
+    for card in await db.fantasy_cards.find({"source": "boxing_data", "status": "upcoming", "bouts.0": {"$exists": True}},
+                                            {"_id": 0}).to_list(200):
+        if _card_start(card) <= now:
+            card["bouts"][0]["status"] = "live"
+            await db.fantasy_cards.update_one({"card_id": card["card_id"]}, {"$set": {"bouts": card["bouts"], "status": "live"}})
+            locked += 1
+    return locked
+
+
+def results_due(card: dict, now: datetime) -> bool:
+    """Only on fight night (start → +12h), and once more the next morning for late results."""
+    start = _card_start(card)
+    last = card.get("results_checked_at")
+    since_last = (now - datetime.fromisoformat(last)).total_seconds() / 60 if last else 1e9
+    if start <= now <= start + timedelta(hours=FANTASY_FIGHT_NIGHT_HOURS):
+        return since_last >= FANTASY_RESULTS_MINUTES
+    morning_after = start + timedelta(hours=FANTASY_FIGHT_NIGHT_HOURS + 6)
+    return now >= morning_after and (not last or datetime.fromisoformat(last) < morning_after) and now <= start + timedelta(days=3)
+
+
 async def _fantasy_loop():
     last_import = 0.0
     while True:
@@ -7817,14 +7887,18 @@ async def _fantasy_loop():
         if not BOXING_DATA_API_KEY:
             continue
         try:
-            if time.time() - last_import > 3600:
+            await lock_started_cards()
+            if time.time() - last_import > FANTASY_IMPORT_HOURS * 3600:
                 last_import = time.time()
                 logger.info(f"[fantasy] import: {await sync_fantasy_cards()}")
             now = datetime.now(timezone.utc)
-            window = {"$gte": (now - timedelta(days=1)).isoformat()[:10], "$lte": (now + timedelta(days=1)).isoformat()[:10] + "T23:59"}
-            for card in await db.fantasy_cards.find({"source": "boxing_data", "status": {"$ne": "complete"}, "date": window},
-                                                    {"_id": 0}).to_list(50):
-                await sync_fantasy_results(card)
+            for card in await db.fantasy_cards.find({"source": "boxing_data", "status": {"$ne": "complete"},
+                                                     "date": {"$gte": (now - timedelta(days=3)).isoformat()[:10]}}, {"_id": 0}).to_list(50):
+                if results_due(card, now):
+                    await db.fantasy_cards.update_one({"card_id": card["card_id"]}, {"$set": {"results_checked_at": now.isoformat()}})
+                    await sync_fantasy_results(card)
+        except FeedBudgetSpent as month:
+            logger.warning(f"[fantasy] monthly feed budget spent for {month}; pausing until next month")
         except Exception as exc:
             logger.warning(f"[fantasy] loop error: {exc}")
 
@@ -8037,6 +8111,27 @@ async def equip_fantasy_cosmetic(cosmetic_id: str, data: CosmeticEquip, user: di
 
 # ── Sponsors and promoters (public enquiry form → admin inbox) ──
 
+class ManualFighter(BaseModel):
+    name: str = Field(..., max_length=80)
+    nickname: Optional[str] = Field(None, max_length=40)
+    wins: int = Field(0, ge=0, le=500)
+    losses: int = Field(0, ge=0, le=500)
+    draws: int = Field(0, ge=0, le=200)
+    ko_wins: int = Field(0, ge=0, le=500)
+
+
+class ManualBout(BaseModel):
+    division: str = Field("", max_length=40)
+    scheduled_rounds: int = Field(3, ge=1, le=12)
+    fighters: List[ManualFighter] = Field(..., min_length=2, max_length=2)
+
+
+class PromoterCardIn(BaseModel):
+    date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
+    location: str = Field("", max_length=120)
+    bouts: List[ManualBout] = Field(..., min_length=1, max_length=20)
+
+
 class FantasyEnquiry(BaseModel):
     kind: Literal["sponsor", "promoter"]
     name: str = Field(..., min_length=2, max_length=80)
@@ -8045,6 +8140,7 @@ class FantasyEnquiry(BaseModel):
     message: str = Field("", max_length=1500)
     event_name: Optional[str] = Field(None, max_length=120)
     halal_confirmed: bool = False
+    card: Optional[PromoterCardIn] = None  # promoters can send their whole card with records
     website: Optional[str] = None  # honeypot: real people never fill this in
 
 
@@ -8057,14 +8153,31 @@ async def fantasy_enquiry(data: FantasyEnquiry, request: Request):
         return {"ok": True}
     if data.kind == "sponsor" and not data.halal_confirmed:
         raise HTTPException(400, "We can only accept sponsors outside gambling, alcohol and interest-based lending.")
-    doc = {**data.model_dump(exclude={"website"}), "status": "new", "created_at": datetime.now(timezone.utc).isoformat()}
+    doc = {**data.model_dump(exclude={"website", "card"}), "status": "new", "created_at": datetime.now(timezone.utc).isoformat()}
+    draft_id = None
+    if data.kind == "promoter" and data.card:
+        for text in [data.event_name or "", *(f.name for b in data.card.bouts for f in b.fighters)]:
+            if text and await is_content_flagged(text):
+                raise HTTPException(400, "Something on the card isn't allowed — check the names")
+        # A draft: hidden until an admin publishes it, then the promoter enters results by link.
+        draft_id = f"fp_{uuid.uuid4().hex[:10]}"
+        bouts = _priced_bouts(draft_id, data.card.bouts)
+        size, cap = fx.team_rules(len(bouts))
+        await db.fantasy_cards.insert_one({
+            "card_id": draft_id, "source": "promoter", "reason": "promoter", "title": data.event_name or f"{data.company} show",
+            "date": data.card.date, "location": data.card.location, "venue": "", "promoter": data.company,
+            "promoter_email": data.email, "results_token": secrets.token_urlsafe(24), "featured": True, "sponsor": None,
+            "status": "upcoming", "bouts": bouts, "stable_size": size, "salary_cap": cap, "hidden": True,
+            "pending_review": True, "created_at": doc["created_at"]})
+        doc["card_id"] = draft_id
     await db.fantasy_enquiries.insert_one(doc)
     label = "Sponsored league enquiry" if data.kind == "sponsor" else "Promoter: feature our card"
     await _email_fantasy_admin(f"{label} — {data.company}", {
         "Name": data.name, "Company": data.company, "Email": data.email, "Event": data.event_name or "—",
-        "Halal-sector confirmed": "yes" if data.halal_confirmed else "n/a", "Message": data.message or "—"},
+        "Halal-sector confirmed": "yes" if data.halal_confirmed else "n/a", "Message": data.message or "—",
+        **({"Card sent": f"{len(data.card.bouts)} bouts on {data.card.date} — check and publish at /fantasy/admin ({draft_id})"} if draft_id else {})},
         reply_to=data.email)
-    return {"ok": True}
+    return {"ok": True, "card_submitted": bool(draft_id)}
 
 
 # ── Admin (ADMIN_EMAIL / FANTASY_ADMIN_EMAIL accounts) ──
@@ -8124,19 +8237,18 @@ async def admin_feature_card(data: FeatureCard, user: dict = Depends(require_fan
     return {"ok": True, "card": await db.fantasy_cards.find_one({"card_id": card_id}, {"_id": 0, "bouts": 0})}
 
 
-class ManualFighter(BaseModel):
-    name: str = Field(..., max_length=80)
-    nickname: Optional[str] = Field(None, max_length=40)
-    wins: int = Field(0, ge=0, le=500)
-    losses: int = Field(0, ge=0, le=500)
-    draws: int = Field(0, ge=0, le=200)
-    ko_wins: int = Field(0, ge=0, le=500)
-
-
-class ManualBout(BaseModel):
-    division: str = Field("", max_length=40)
-    scheduled_rounds: int = Field(3, ge=1, le=12)
-    fighters: List[ManualFighter] = Field(..., min_length=2, max_length=2)
+def _priced_bouts(card_id: str, bouts: list) -> list:
+    out = []
+    for i, b in enumerate(bouts):
+        stats = [{"wins": f.wins, "losses": f.losses, "draws": f.draws, "total_bouts": f.wins + f.losses + f.draws,
+                  "ko_wins": f.ko_wins} for f in b.fighters]
+        prices = fx.bout_prices(*stats)
+        out.append({"bout_id": f"{card_id}_b{i + 1}", "order": i + 1, "division": b.division,
+                    "scheduled_rounds": b.scheduled_rounds, "status": "upcoming", "result": None, "titles": [],
+                    "fighters": [{"fighter_id": f"{card_id}_b{i + 1}_{j}", "name": f.name, "nickname": f.nickname,
+                                  "record": f"{f.wins}-{f.losses}-{f.draws}", "salary": prices[j]}
+                                 for j, f in enumerate(b.fighters)]})
+    return out
 
 
 class ManualCard(BaseModel):
@@ -8154,17 +8266,8 @@ async def admin_create_card(data: ManualCard, user: dict = Depends(require_fanta
     """Amateur (or any off-feed) cards. Records come from the club/promoter sheet and are
     priced with the same formula as pro cards."""
     card_id = f"fm_{uuid.uuid4().hex[:10]}"
-    bouts = []
-    for i, b in enumerate(data.bouts):
-        stats = [{"wins": f.wins, "losses": f.losses, "draws": f.draws, "total_bouts": f.wins + f.losses + f.draws,
-                  "ko_wins": f.ko_wins} for f in b.fighters]
-        prices = fx.bout_prices(*stats)
-        bouts.append({"bout_id": f"{card_id}_b{i + 1}", "order": i + 1, "division": b.division,
-                      "scheduled_rounds": b.scheduled_rounds, "status": "upcoming", "result": None, "titles": [],
-                      "fighters": [{"fighter_id": f"{card_id}_b{i + 1}_{j}", "name": f.name, "nickname": f.nickname,
-                                    "record": f"{f.wins}-{f.losses}-{f.draws}", "salary": prices[j]}
-                                   for j, f in enumerate(b.fighters)]})
-    card = {"card_id": card_id, "source": "manual", "reason": "amateur" if data.amateur else "promoter",
+    bouts = _priced_bouts(card_id, data.bouts)
+    card = {"stable_size": fx.team_rules(len(bouts))[0], "salary_cap": fx.team_rules(len(bouts))[1],"card_id": card_id, "source": "manual", "reason": "amateur" if data.amateur else "promoter",
             "title": data.title, "date": data.date, "location": data.location, "venue": data.venue,
             "promoter": data.promoter, "featured": bool(data.promoter), "sponsor": None, "status": "upcoming",
             "bouts": bouts, "created_at": datetime.now(timezone.utc).isoformat()}
@@ -8182,7 +8285,11 @@ class ManualResult(BaseModel):
 
 @api_router.post("/admin/fantasy/cards/{card_id}/bouts/{bout_id}/result")
 async def admin_set_result(card_id: str, bout_id: str, data: ManualResult, user: dict = Depends(require_fantasy_admin)):
-    card = await _get_card(card_id)
+    return await _apply_manual_result(await _get_card(card_id), bout_id, data)
+
+
+async def _apply_manual_result(card: dict, bout_id: str, data: "ManualResult") -> dict:
+    card_id = card["card_id"]
     bout = next((b for b in card["bouts"] if b["bout_id"] == bout_id), None)
     if not bout:
         raise HTTPException(404, "Bout not found")
@@ -8204,7 +8311,11 @@ async def admin_set_result(card_id: str, bout_id: str, data: ManualResult, user:
 @api_router.post("/admin/fantasy/cards/{card_id}/start")
 async def admin_start_card(card_id: str, user: dict = Depends(require_fantasy_admin)):
     """Locks picks on a manual card when the first bell goes."""
-    card = await _get_card(card_id)
+    return await _start_card(await _get_card(card_id))
+
+
+async def _start_card(card: dict) -> dict:
+    card_id = card["card_id"]
     for b in card["bouts"]:
         if b["status"] == "upcoming":
             b["status"] = "live"
@@ -8212,6 +8323,58 @@ async def admin_start_card(card_id: str, user: dict = Depends(require_fantasy_ad
     card["status"] = fx.card_status(card["bouts"])
     await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"bouts": card["bouts"], "status": card["status"]}})
     return {"ok": True, "card_status": card["status"]}
+
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://victory-ai-alpha.vercel.app")
+
+
+@api_router.post("/admin/fantasy/cards/{card_id}/publish")
+async def admin_publish_card(card_id: str, user: dict = Depends(require_fantasy_admin)):
+    """Publishes a promoter's submitted card and emails them their results link."""
+    card = await _get_card(card_id)
+    await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"hidden": False, "pending_review": False}})
+    link = f"{FRONTEND_URL}/fantasy/results/{card_id}?t={card.get('results_token', '')}"
+    if card.get("promoter_email") and RESEND_API_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=10) as http_client:
+                await http_client.post("https://api.resend.com/emails", headers={"Authorization": f"Bearer {RESEND_API_KEY}"}, json={
+                    "from": RESEND_FROM, "to": [card["promoter_email"]], "reply_to": FANTASY_ADMIN_EMAIL,
+                    "subject": f"{card['title']} is live on Victory Fantasy",
+                    "html": f"<p>Your card is live in the Victory Fantasy fixture list.</p>"
+                            f"<p>On fight night, tap <b>First bell</b> at <a href='{html.escape(link)}'>this private link</a> "
+                            f"and add each result as it happens. Keep the link private — anyone with it can enter results.</p>"})
+        except Exception as e:
+            logger.warning(f"[fantasy] promoter email failed: {e}")
+    return {"ok": True, "results_link": link}
+
+
+async def _promoter_card(card_id: str, t: str, request: Request) -> dict:
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"promoter_link:{client_ip}", 60, 3600):
+        raise HTTPException(429, "Too many requests")
+    card = await db.fantasy_cards.find_one({"card_id": card_id, "source": "promoter"}, {"_id": 0})
+    if not card or not t or not secrets.compare_digest(card.get("results_token") or "", t):
+        raise HTTPException(404, "Link not recognised")
+    return card
+
+
+@api_router.get("/fantasy/promoter/{card_id}")
+async def promoter_card(card_id: str, request: Request, t: str = Query("", max_length=64)):
+    card = await _promoter_card(card_id, t, request)
+    return {k: card.get(k) for k in ("card_id", "title", "date", "status", "bouts", "hidden")}
+
+
+@api_router.post("/fantasy/promoter/{card_id}/start")
+async def promoter_start(card_id: str, request: Request, t: str = Query("", max_length=64)):
+    return await _start_card(await _promoter_card(card_id, t, request))
+
+
+@api_router.post("/fantasy/promoter/{card_id}/bouts/{bout_id}/result")
+async def promoter_result(card_id: str, bout_id: str, data: ManualResult, request: Request, t: str = Query("", max_length=64)):
+    card = await _promoter_card(card_id, t, request)
+    if card.get("hidden"):
+        raise HTTPException(400, "This card isn't published yet")
+    return await _apply_manual_result(card, bout_id, data)
 
 
 class CosmeticGrant(BaseModel):
@@ -8235,7 +8398,10 @@ async def admin_grant_cosmetic(data: CosmeticGrant, user: dict = Depends(require
 async def admin_fantasy_sync(user: dict = Depends(require_fantasy_admin)):
     if not BOXING_DATA_API_KEY:
         raise HTTPException(400, "Set BOXING_DATA_API_KEY on Railway first")
-    return await sync_fantasy_cards()
+    try:
+        return await sync_fantasy_cards()
+    except FeedBudgetSpent:
+        raise HTTPException(400, "This month's data-feed budget is used up (BOXING_DATA_MONTHLY_LIMIT)")
 
 
 

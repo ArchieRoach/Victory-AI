@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { ArrowLeft, Handshake, Megaphone, ShieldCheck, Check } from "lucide-react";
 import { API } from "@/App";
+import { parseCard } from "@/lib/parseCard";
 
 // Goal: turn promoters and brands into revenue without charging a single player.
 // Psychology: a short form that says exactly what happens next ("we reply by email")
@@ -21,13 +22,18 @@ export default function FantasyPartnersPage() {
   const [form, setForm] = useState({ kind: "promoter", name: "", company: "", email: "", event_name: "", message: "", halal_confirmed: false, website: "" });
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [card, setCard] = useState({ date: "", location: "", text: "" });
+  const parsed = parseCard(card.text);
+  const sendCard = form.kind === "promoter" && card.date && parsed.bouts.length > 0;
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
 
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true);
     try {
-      await axios.post(`${API}/fantasy/enquiries`, form);
+      await axios.post(`${API}/fantasy/enquiries`, {
+        ...form, card: sendCard ? { date: card.date, location: card.location, bouts: parsed.bouts } : null,
+      });
       setSent(true);
     } catch (err) {
       const detail = err?.response?.data?.detail;
@@ -88,6 +94,27 @@ export default function FantasyPartnersPage() {
             <label className="victory-label" htmlFor="fp-msg">Anything else</label>
             <textarea id="fp-msg" className="victory-input min-h-[96px] py-3" maxLength={1500} value={form.message} onChange={set("message")} />
             <input type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" value={form.website} onChange={set("website")} />
+
+            {form.kind === "promoter" && (
+              <div className="victory-card p-3 space-y-2" data-testid="promoter-card">
+                <p className="text-victory-text text-sm font-semibold">Your fight card (optional, but it gets you listed fastest)</p>
+                <p className="text-victory-muted text-[11px]">One fight per line, with records if you have them. You'll get a private link to add the results on the night.</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="date" className="victory-input" aria-label="Show date" value={card.date} onChange={(e) => setCard({ ...card, date: e.target.value })} />
+                  <input className="victory-input" maxLength={120} placeholder="Town, England" aria-label="Town" value={card.location} onChange={(e) => setCard({ ...card, location: e.target.value })} />
+                </div>
+                <textarea className="victory-input min-h-[120px] py-3 font-mono text-[12px]" aria-label="Fight card"
+                  placeholder={"Lee Smith (8-0) vs Kay Jones (3-5-1), 6 rounds\nMax Hill 1-0 v Rob Day, 4 rounds"}
+                  value={card.text} onChange={(e) => setCard({ ...card, text: e.target.value })} />
+                {card.text && (
+                  <p className={`text-[11px] ${parsed.skipped.length ? "text-victory-orange" : "text-victory-teal"}`}>
+                    {parsed.bouts.length} fight{parsed.bouts.length === 1 ? "" : "s"} read
+                    {parsed.skipped.length ? ` · couldn't read: ${parsed.skipped.slice(0, 2).join("; ")}` : ""}
+                    {!card.date && parsed.bouts.length ? " · add the date to send it" : ""}
+                  </p>
+                )}
+              </div>
+            )}
 
             {form.kind === "sponsor" && (
               <label className="flex items-start gap-2 text-[12px] text-victory-text min-h-[44px]">

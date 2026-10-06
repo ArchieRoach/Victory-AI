@@ -2,6 +2,7 @@
 
     python3 backend/test_fantasy_engine.py
 """
+import fantasy_engine as fx
 from fantasy_engine import (
     fighter_rating, win_probability, bout_prices, card_qualifies, clean_sweep, map_result,
     score_fighter, check_stable, stable_score, card_status, rank_entries, SALARY_CAP,
@@ -90,6 +91,14 @@ def test_stables_status_and_ranks():
     assert card_status(card["bouts"]) == "live" and card_status([]) == "upcoming"
     ranked = rank_entries([{"name": "Zed", "total": 30}, {"name": "amy", "total": 30}, {"name": "Bo", "total": 5}])
     assert [(e["name"], e["rank"]) for e in ranked] == [("amy", 1), ("Zed", 1), ("Bo", 3)]
+
+
+
+def test_small_cards_pick_fewer_boxers():
+    assert fx.team_rules(1) == (1, 50) and fx.team_rules(2) == (2, 80) and fx.team_rules(9) == (3, 100)
+    card = {"stable_size": 1, "salary_cap": 50, "bouts": [{"fighters": [{"fighter_id": "a", "salary": 48}, {"fighter_id": "b", "salary": 12}]}]}
+    assert fx.check_stable(["a"], card) is None
+    assert fx.check_stable(["a", "b"], card) == "Pick 1 boxer."
 
 
 if __name__ == "__main__":

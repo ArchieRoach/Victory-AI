@@ -199,9 +199,10 @@ def check_stable(picks: list, card: dict) -> Optional[str]:
 
 def team_rules(bout_count: int) -> tuple:
     """(boxers to pick, coin budget) for a card. A one-bout card is "pick the winner" with
-    50 coins, so even the favourite (max 50) is affordable."""
+    50 coins, so even the favourite (max 50) is affordable. Two boxers get 80, enough for a
+    favourite plus an even fight; three get the usual 100."""
     size = max(1, min(STABLE_SIZE, bout_count))
-    return size, max(PRICE_MAX, round(SALARY_CAP * size / STABLE_SIZE))
+    return size, {1: PRICE_MAX, 2: 80}.get(size, SALARY_CAP)
 
 
 def stable_score(picks: list, card: dict) -> int:
