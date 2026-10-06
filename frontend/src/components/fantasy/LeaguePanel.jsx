@@ -1,4 +1,4 @@
-import { ArrowUp, ArrowDown, Users } from "lucide-react";
+import { ArrowUp, ArrowDown, Users, Sparkles, Trophy, Circle } from "lucide-react";
 
 // Goal: the reason to play with friends — where you stand, right now.
 // Psychology: a small group you know (not a global table of strangers) makes rank changes
@@ -30,7 +30,11 @@ export function LeaguePanel({ league, movement }) {
           >
             <span className={`font-mono font-bold w-6 text-center ${m.rank === 1 ? "text-victory-lime" : "text-victory-muted"}`}>{m.rank}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-victory-text text-sm font-semibold truncate">{m.isMe ? `${m.name} (you)` : m.name}</p>
+              <p className="text-victory-text text-sm font-semibold truncate">
+                {m.isMe ? `${m.name} (you)` : m.name}
+                {m.cosmetic && <CosmeticBadge style={m.cosmetic} />}
+              </p>
+              {m.team_name && <p className="text-victory-teal text-[10px] truncate">{m.team_name}</p>}
               <p className="text-victory-muted text-[10px] truncate">
                 {m.breakdown.map((b) => b.fighter?.name.split(" ").slice(-1)[0]).join(" · ")}
               </p>
@@ -46,4 +50,18 @@ export function LeaguePanel({ league, movement }) {
       })}
     </div>
   );
+}
+
+// Bought cosmetics are looks only: the badge never changes a score or a rank.
+const COSMETIC = {
+  gold: { Icon: Sparkles, className: "text-victory-orange", title: "Gold Gloves" },
+  belt: { Icon: Trophy, className: "text-victory-orange", title: "Title Belt" },
+  red: { Icon: Circle, className: "text-victory-danger fill-current", title: "Red Corner" },
+  blue: { Icon: Circle, className: "text-victory-teal fill-current", title: "Blue Corner" },
+};
+
+function CosmeticBadge({ style }) {
+  const c = COSMETIC[style];
+  if (!c) return null;
+  return <c.Icon className={`inline ml-1 w-3 h-3 align-[-1px] ${c.className}`} aria-label={c.title} />;
 }

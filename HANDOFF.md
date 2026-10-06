@@ -359,6 +359,58 @@ Coach as well as recording.
     picked" count, and errors that say how to fix them.
   - **Admin:** the admin tab keeps the boxing codes, because results-desk staff use them.
 
+## Fantasy Boxing on real fights (same branch)
+- **Data source:** the **Boxing Data API** (boxing-data.com via RapidAPI), not BoxRec. BoxRec has
+  no licence for automated use and blocks scraping.
+  - It covers **pro** records and results only. No licensed amateur feed exists, so amateur cards
+    are entered by an admin at `/fantasy/admin` from the club or promoter sheet.
+  - **Plan needed:** at least **Ultra ($99/month)**; **Mega ($249/month)** if UK small-hall
+    cards aren't fully covered.
+  - **Railway env:** `BOXING_DATA_API_KEY` (required), `BOXING_DATA_HOST` (default
+    `boxing-data-api.p.rapidapi.com`), `FANTASY_ADMIN_EMAIL` (default `hello@victoryai.co.uk`).
+    `RESEND_API_KEY` is needed for the admin emails.
+- **Automatic** (`_fantasy_loop` in `server.py`, logic in `backend/fantasy_engine.py`):
+  - **Hourly import:** every UK card and every world-title card (WBC, WBA, IBF, WBO, undisputed or
+    Ring) in the next 14 days. Fighter records are cached for 7 days.
+  - **Prices** come from records only, never betting odds. A smoothed win rate, KO rate,
+    experience and how often a boxer was stopped give a rating. A logistic curve (25 rating points
+    ≈ 10:1) turns that into a price from 10 to 50 coins. Prices freeze when the card starts.
+  - **Every 5 minutes:** statuses and official results for cards from yesterday to tomorrow.
+    - PTS scores as UD and RTD as TKO.
+    - A clean sweep is any judge's card where the winner scored 10 × the rounds.
+    - An outcome the feed can't map is never guessed: the bout is held and the admin is emailed.
+    - An admin's result always overrides the feed.
+  - **When a card finishes,** each player gets a push with their score.
+- **Player API:**
+  - `GET /api/fantasy/cards` and `GET /api/fantasy/cards/{id}`;
+  - `PUT /api/fantasy/cards/{id}/stable` (the server repeats the cap and lock checks);
+  - `GET /api/fantasy/cards/{id}/leaderboard?league=squad|<league_id>` (squad = squad mates).
+- **Pro perks** (`check_subscription`):
+  - **Private leagues:** `POST /api/fantasy/leagues`, up to 5 per owner and 50 members. Joining by
+    code is free (`POST /api/fantasy/leagues/join`).
+  - **Season standings:** `GET /api/fantasy/season`, over 90 days.
+- **Monetisation.** Every deal is agreed by email to `FANTASY_ADMIN_EMAIL` and then switched on by
+  hand:
+  - **Sponsored leagues:** sponsors use the public form at `/fantasy/partners`
+    (`POST /api/fantasy/enquiries`, rate-limited and honeypotted). Sponsors must confirm they aren't
+    in gambling, alcohol or interest-based lending. The admin then sets a "Presented by" credit.
+  - **Promoter deals:** the admin features a card, or imports any event by its Boxing Data id
+    (`POST /api/admin/fantasy/feature`).
+  - **Cosmetics, bought outright:** Gold Gloves, Title Belt, corner colours and team name, priced
+    £0.99–£2.99. A player taps a price, the admin is emailed and sends a payment link, then grants
+    the item (`POST /api/admin/fantasy/cosmetics/grant`). Cosmetics never change points. The
+    purchase button is hidden in the native app (App Store rule 3.1.1).
+  - **Never:** entry fees, prizes paid for by players, paid boosts or random boxes. Any prize a
+    sponsor funds needs scholar and legal review first.
+- **Frontend:**
+  - `/fantasy`: fixture list, the same Pick, My team and Friends game, a league switcher, Season
+    (Pro) and Team looks. There's a "Fantasy" pill on the Live page.
+  - `/fantasy/partners` (public) and `/fantasy/admin` (admin accounts only).
+  - `lib/fantasyApi.js` is the live service. It polls every 15 s while fights are on and every
+    60 s before. The stream sidecar still uses the mock until streams are linked to cards.
+- **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
+  and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
+
 ---
 
 # Previous: Bug-Hunt Pass

@@ -7609,6 +7609,632 @@ async def _investment_loop():
             logger.warning(f"Investment loop error: {exc}")
 
 
+# ============== FANTASY BOXING ==============
+# Free-to-play fantasy on real fight cards. No entry fee, no prizes from players, nothing
+# bought affects points (halal: no maysir; UK: not gambling). See fantasy_engine.py for
+# the price formula, result mapping and scoring.
+#
+# Automatic:  cards (UK pro shows + world-title cards worldwide, next 14 days), fighter
+#             records, prices, picks locking, results and scoring — from the Boxing Data API.
+# By email:   sponsored leagues, promoter-featured cards and cosmetics are agreed with
+#             FANTASY_ADMIN_EMAIL, then switched on with the admin endpoints below.
+# Manual:     amateur cards (no licensed amateur data feed exists) — entered by an admin.
+import fantasy_engine as fx
+
+BOXING_DATA_API_KEY = os.environ.get("BOXING_DATA_API_KEY", "")
+BOXING_DATA_HOST = os.environ.get("BOXING_DATA_HOST", "boxing-data-api.p.rapidapi.com")
+FANTASY_ADMIN_EMAIL = os.environ.get("FANTASY_ADMIN_EMAIL", "hello@victoryai.co.uk")
+FANTASY_LOOKAHEAD_DAYS = 14
+FANTASY_FIGHTER_TTL_DAYS = 7
+FANTASY_SEASON_DAYS = 90
+FANTASY_LEAGUE_MAX_MEMBERS = 50
+FANTASY_LEAGUES_PER_OWNER = 5
+
+# Bought outright (no random boxes), purely cosmetic — they never change points.
+# Sold by email: the player asks, the admin sends a payment link, then grants it.
+FANTASY_COSMETICS = {
+    "gold_gloves":  {"name": "Gold Gloves",    "price_gbp": 1.99, "style": "gold",   "description": "Gold gloves next to your name on every leaderboard."},
+    "title_belt":   {"name": "Title Belt",     "price_gbp": 2.99, "style": "belt",   "description": "A championship belt badge on your team."},
+    "corner_red":   {"name": "Red Corner",     "price_gbp": 0.99, "style": "red",    "description": "Red-corner team colours."},
+    "corner_blue":  {"name": "Blue Corner",    "price_gbp": 0.99, "style": "blue",   "description": "Blue-corner team colours."},
+    "team_name":    {"name": "Custom Team Name", "price_gbp": 1.49, "style": "name", "description": "Give your team its own name on leaderboards."},
+}
+
+
+def is_fantasy_admin(user: dict) -> bool:
+    return (user.get("email") or "").lower() in {ADMIN_EMAIL.lower(), FANTASY_ADMIN_EMAIL.lower()}
+
+
+async def _email_fantasy_admin(subject: str, rows: dict, reply_to: Optional[str] = None):
+    """Monetisation and data-review notices go to the admin inbox (hello@victoryai.co.uk)."""
+    if not RESEND_API_KEY:
+        logger.info(f"[fantasy] email skipped (no RESEND_API_KEY): {subject}")
+        return
+    body = "".join(f"<tr><td style='padding:4px 12px 4px 0;color:#888'>{html.escape(str(k))}</td>"
+                   f"<td style='padding:4px 0'>{html.escape(str(v))}</td></tr>" for k, v in rows.items())
+    payload = {"from": RESEND_FROM, "to": [FANTASY_ADMIN_EMAIL], "subject": f"[Victory Fantasy] {subject}",
+               "html": f"<h3>{html.escape(subject)}</h3><table>{body}</table>"}
+    if reply_to:
+        payload["reply_to"] = reply_to
+    try:
+        async with httpx.AsyncClient(timeout=10) as http_client:
+            await http_client.post("https://api.resend.com/emails", json=payload,
+                                   headers={"Authorization": f"Bearer {RESEND_API_KEY}"})
+    except Exception as e:
+        logger.warning(f"[fantasy] admin email failed: {e}")
+
+
+# ── Boxing Data API client ──────────────────────────────────────────────────
+
+async def _bd_get(url_or_path: str, params: Optional[dict] = None) -> dict:
+    url = url_or_path if url_or_path.startswith("http") else f"https://{BOXING_DATA_HOST}{url_or_path}"
+    async with httpx.AsyncClient(timeout=20) as http_client:
+        r = await http_client.get(url, params=params, headers={
+            "X-RapidAPI-Key": BOXING_DATA_API_KEY, "X-RapidAPI-Host": BOXING_DATA_HOST})
+    r.raise_for_status()
+    return r.json()
+
+
+async def _bd_all(path: str, params: dict, max_pages: int = 20) -> list:
+    out, page = [], await _bd_get(path, params)
+    for _ in range(max_pages):
+        out.extend(page.get("data") or [])
+        nxt = (page.get("pagination") or {}).get("next_page")
+        if not nxt:
+            break
+        # The feed's next_page URL uses its own host; keep our configured one.
+        page = await _bd_get(re.sub(r"^https://[^/]+", f"https://{BOXING_DATA_HOST}", nxt))
+    return out
+
+
+async def _fighter_stats(fighter_id: str) -> dict:
+    """A boxer's record, cached for a week (records change at most once per fight)."""
+    cached = await db.fantasy_fighters.find_one({"fighter_id": fighter_id}, {"_id": 0})
+    fresh_after = (datetime.now(timezone.utc) - timedelta(days=FANTASY_FIGHTER_TTL_DAYS)).isoformat()
+    if cached and cached.get("fetched_at", "") > fresh_after:
+        return cached
+    try:
+        data = (await _bd_get(f"/v2/fighters/{fighter_id}")).get("data") or {}
+    except Exception as e:
+        logger.warning(f"[fantasy] fighter {fighter_id} fetch failed: {e}")
+        return cached or {"fighter_id": fighter_id, "stats": {}}
+    doc = {"fighter_id": fighter_id, "name": data.get("name"), "nickname": data.get("nickname"),
+           "nationality": data.get("nationality_code") or data.get("nationality"),
+           "stats": data.get("stats") or {}, "fetched_at": datetime.now(timezone.utc).isoformat()}
+    await db.fantasy_fighters.update_one({"fighter_id": fighter_id}, {"$set": doc}, upsert=True)
+    return doc
+
+
+def _record_str(stats: dict) -> str:
+    return f"{stats.get('wins', 0)}-{stats.get('losses', 0)}-{stats.get('draws', 0)}"
+
+
+async def _build_bout(fight: dict, order: int) -> dict:
+    f1 = (fight.get("fighters") or {}).get("fighter_1") or {}
+    f2 = (fight.get("fighters") or {}).get("fighter_2") or {}
+    s1, s2 = await _fighter_stats(f1.get("fighter_id")), await _fighter_stats(f2.get("fighter_id"))
+    p1, p2 = fx.bout_prices(s1.get("stats"), s2.get("stats"))
+    person = lambda f, s, price: {
+        "fighter_id": f.get("fighter_id"), "name": f.get("full_name") or f.get("name") or s.get("name") or "TBC",
+        "nickname": s.get("nickname"), "record": _record_str(s.get("stats") or {}),
+        "ko_wins": (s.get("stats") or {}).get("ko_wins", 0), "nationality": s.get("nationality"), "salary": price,
+    }
+    return {
+        "bout_id": fight.get("id"), "provider_fight_id": fight.get("id"), "order": order,
+        "division": (fight.get("division") or {}).get("name") or "", "scheduled_rounds": fight.get("scheduled_rounds") or 0,
+        "titles": [t.get("name") for t in fight.get("titles") or []],
+        "status": fx.map_status(fight), "result": None,
+        "fighters": [person(f1, s1, p1), person(f2, s2, p2)],
+    }
+
+
+async def sync_fantasy_cards(force_event_ids: Optional[set] = None) -> dict:
+    """Imports qualifying cards from the schedule. Prices are recalculated until the card
+    starts, then frozen; promoter-featured cards are kept even outside the UK."""
+    if not BOXING_DATA_API_KEY:
+        return {"skipped": "BOXING_DATA_API_KEY not set"}
+    fights = await _bd_all("/v2/fights/schedule", {"days": FANTASY_LOOKAHEAD_DAYS, "page_size": 100, "date_sort": "ASC"})
+    by_event: Dict[str, list] = {}
+    events: Dict[str, dict] = {}
+    for f in fights:
+        ev = f.get("event") or {}
+        if ev.get("id"):
+            by_event.setdefault(ev["id"], []).append(f)
+            events[ev["id"]] = ev
+    featured = {c["provider_event_id"] for c in await db.fantasy_cards.find(
+        {"featured": True, "provider_event_id": {"$ne": None}}, {"provider_event_id": 1}).to_list(500)}
+    force_event_ids = (force_event_ids or set()) | featured
+    imported = 0
+    for event_id, ev_fights in by_event.items():
+        ev = events[event_id]
+        reason = fx.card_qualifies(ev.get("location") or ev_fights[0].get("location"), ev_fights)
+        if not reason and event_id not in force_event_ids:
+            continue
+        card_id = f"fc_{event_id}"
+        existing = await db.fantasy_cards.find_one({"card_id": card_id}, {"_id": 0, "status": 1})
+        if existing and existing.get("status") != "upcoming":
+            continue  # prices and line-up are frozen once the card starts
+        bouts = [await _build_bout(f, i + 1) for i, f in enumerate(ev_fights)]
+        await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {
+            "card_id": card_id, "source": "boxing_data", "provider_event_id": event_id, "reason": reason or "promoter",
+            "title": ev.get("title") or ev_fights[0].get("title"), "date": ev.get("date"),
+            "location": ev.get("location"), "venue": ev.get("venue") or ev_fights[0].get("venue"),
+            "status": fx.card_status(bouts), "bouts": bouts, "updated_at": datetime.now(timezone.utc).isoformat(),
+        }, "$setOnInsert": {"featured": False, "sponsor": None, "created_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True)
+        imported += 1
+    return {"events_seen": len(by_event), "cards_imported": imported}
+
+
+async def sync_fantasy_results(card: dict) -> bool:
+    """Pulls statuses and official results for one card. Returns True if anything changed."""
+    fights = await _bd_all("/v2/fights", {"event_id": card["provider_event_id"], "page_size": 100})
+    by_id = {f.get("id"): f for f in fights}
+    changed = False
+    for bout in card["bouts"]:
+        f = by_id.get(bout.get("provider_fight_id"))
+        if not f:
+            continue
+        status, result = fx.map_status(f), fx.map_result(f)
+        if result and result.get("needs_review"):
+            if not bout.get("review_sent"):
+                bout["review_sent"] = True
+                changed = True
+                await _email_fantasy_admin("Result needs a check", {
+                    "Card": card.get("title"), "Bout": " vs ".join(x["name"] for x in bout["fighters"]),
+                    "Outcome from feed": result.get("raw_outcome"), "Card id": card["card_id"], "Bout id": bout["bout_id"],
+                    "Fix": "POST /api/admin/fantasy/cards/{card_id}/bouts/{bout_id}/result"})
+            status, result = "live", None
+        if bout.get("manual_result"):
+            continue  # an admin's correction always wins over the feed
+        if status != bout.get("status") or result != bout.get("result"):
+            bout["status"], bout["result"] = status, result
+            changed = True
+    if changed:
+        before = card.get("status")
+        card["status"] = fx.card_status(card["bouts"])
+        await db.fantasy_cards.update_one({"card_id": card["card_id"]}, {"$set": {
+            "bouts": card["bouts"], "status": card["status"], "updated_at": datetime.now(timezone.utc).isoformat()}})
+        if before != "complete" and card["status"] == "complete":
+            await _notify_fantasy_card_done(card)
+    return changed
+
+
+async def _notify_fantasy_card_done(card: dict):
+    entries = await db.fantasy_entries.find({"card_id": card["card_id"]}, {"_id": 0}).to_list(10000)
+    for e in entries:
+        pts = fx.stable_score(e["picks"], card)
+        await _send_push(e["user_id"], title=f"Your team scored {pts} points",
+                         body=f"{card.get('title')} is over — see who won your friends league.",
+                         url="/fantasy", tag=f"fantasy-{card['card_id']}")
+
+
+async def _fantasy_loop():
+    last_import = 0.0
+    while True:
+        await asyncio.sleep(300)
+        if not BOXING_DATA_API_KEY:
+            continue
+        try:
+            if time.time() - last_import > 3600:
+                last_import = time.time()
+                logger.info(f"[fantasy] import: {await sync_fantasy_cards()}")
+            now = datetime.now(timezone.utc)
+            window = {"$gte": (now - timedelta(days=1)).isoformat()[:10], "$lte": (now + timedelta(days=1)).isoformat()[:10] + "T23:59"}
+            for card in await db.fantasy_cards.find({"source": "boxing_data", "status": {"$ne": "complete"}, "date": window},
+                                                    {"_id": 0}).to_list(50):
+                await sync_fantasy_results(card)
+        except Exception as exc:
+            logger.warning(f"[fantasy] loop error: {exc}")
+
+
+# ── Player endpoints ────────────────────────────────────────────────────────
+
+def _public_card(card: dict) -> dict:
+    return {k: card.get(k) for k in ("card_id", "title", "date", "location", "venue", "status", "reason",
+                                     "featured", "promoter", "sponsor", "bouts", "source")}
+
+
+async def _get_card(card_id: str) -> dict:
+    card = await db.fantasy_cards.find_one({"card_id": card_id}, {"_id": 0})
+    if not card:
+        raise HTTPException(404, "Card not found")
+    return card
+
+
+@api_router.get("/fantasy/cards")
+async def list_fantasy_cards(user: dict = Depends(get_current_user)):
+    since = (datetime.now(timezone.utc) - timedelta(days=3)).isoformat()[:10]
+    cards = await db.fantasy_cards.find({"date": {"$gte": since}, "hidden": {"$ne": True}},
+                                        {"_id": 0, "bouts.fighters.ko_wins": 0}).to_list(200)
+    order = {"live": 0, "upcoming": 1, "complete": 2}
+    cards.sort(key=lambda c: (order.get(c.get("status"), 3), not c.get("featured"), c.get("date") or ""))
+    mine = {e["card_id"] for e in await db.fantasy_entries.find({"user_id": user["user_id"]}, {"card_id": 1}).to_list(500)}
+    return [{**{k: c.get(k) for k in ("card_id", "title", "date", "location", "status", "reason", "featured", "promoter", "sponsor")},
+             "bout_count": len(c.get("bouts") or []), "entered": c["card_id"] in mine} for c in cards]
+
+
+@api_router.get("/fantasy/cards/{card_id}")
+async def get_fantasy_card(card_id: str, user: dict = Depends(get_current_user)):
+    card = await _get_card(card_id)
+    entry = await db.fantasy_entries.find_one({"card_id": card_id, "user_id": user["user_id"]}, {"_id": 0})
+    return {"card": _public_card(card), "me": {"user_id": user["user_id"], "picks": (entry or {}).get("picks", []),
+                                                "saved": bool(entry)}}
+
+
+class FantasyStable(BaseModel):
+    picks: List[str] = Field(..., min_length=1, max_length=fx.STABLE_SIZE)
+
+
+@api_router.put("/fantasy/cards/{card_id}/stable")
+async def save_fantasy_stable(card_id: str, data: FantasyStable, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"fantasy_stable:{user['user_id']}", 20, 60):
+        raise HTTPException(429, "Slow down a little")
+    card = await _get_card(card_id)
+    if card.get("status") != "upcoming":
+        raise HTTPException(400, "The fights have started, so teams can't change now.")
+    problem = fx.check_stable(data.picks, card)
+    if problem:
+        raise HTTPException(400, problem)
+    now = datetime.now(timezone.utc).isoformat()
+    await db.fantasy_entries.update_one({"card_id": card_id, "user_id": user["user_id"]}, {
+        "$set": {"picks": data.picks, "saved_at": now}, "$setOnInsert": {"created_at": now}}, upsert=True)
+    return {"ok": True, "picks": data.picks}
+
+
+async def _league_member_ids(user: dict, league: str) -> List[str]:
+    if league == "squad":
+        return list({user["user_id"], *await _squad_mate_ids(user["user_id"])})
+    lg = await db.fantasy_leagues.find_one({"league_id": league, "members": user["user_id"]}, {"members": 1})
+    if not lg:
+        raise HTTPException(404, "League not found")
+    return lg["members"]
+
+
+async def _people(user_ids: List[str]) -> Dict[str, dict]:
+    users = await db.users.find({"user_id": {"$in": user_ids}},
+                                {"_id": 0, "user_id": 1, "name": 1, "display_name": 1, "picture": 1,
+                                 "fantasy_equipped": 1, "fantasy_team_name": 1}).to_list(len(user_ids) or 1)
+    return {u["user_id"]: u for u in users}
+
+
+def _person_row(u: dict, me_id: str) -> dict:
+    eq = u.get("fantasy_equipped")
+    return {"user_id": u["user_id"], "name": u.get("display_name") or u.get("name") or "Fighter",
+            "picture": u.get("picture"), "isMe": u["user_id"] == me_id,
+            "cosmetic": FANTASY_COSMETICS.get(eq, {}).get("style") if eq else None,
+            "team_name": u.get("fantasy_team_name")}
+
+
+@api_router.get("/fantasy/cards/{card_id}/leaderboard")
+async def fantasy_leaderboard(card_id: str, league: str = Query("squad", max_length=40), user: dict = Depends(get_current_user)):
+    card = await _get_card(card_id)
+    ids = await _league_member_ids(user, league)
+    entries = await db.fantasy_entries.find({"card_id": card_id, "user_id": {"$in": ids}}, {"_id": 0}).to_list(len(ids))
+    people = await _people([e["user_id"] for e in entries])
+    rows = [{**_person_row(people.get(e["user_id"], {"user_id": e["user_id"]}), user["user_id"]),
+             "picks": e["picks"], "total": fx.stable_score(e["picks"], card)} for e in entries]
+    return fx.rank_entries(rows)
+
+
+# ── Pro perks: private leagues and season standings ──
+
+class LeagueCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=40)
+
+
+@api_router.post("/fantasy/leagues")
+async def create_fantasy_league(data: LeagueCreate, user: dict = Depends(get_current_user)):
+    if not await check_subscription(user):
+        raise HTTPException(403, "Private leagues are a Pro perk")
+    if await is_content_flagged(data.name):
+        raise HTTPException(400, "Pick another league name")
+    if await db.fantasy_leagues.count_documents({"owner_id": user["user_id"]}) >= FANTASY_LEAGUES_PER_OWNER:
+        raise HTTPException(400, f"You can run up to {FANTASY_LEAGUES_PER_OWNER} leagues")
+    league = {"league_id": f"fl_{uuid.uuid4().hex[:10]}", "name": data.name, "owner_id": user["user_id"],
+              "code": uuid.uuid4().hex[:6].upper(), "members": [user["user_id"]],
+              "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.fantasy_leagues.insert_one(league)
+    league.pop("_id", None)
+    return league
+
+
+class LeagueJoin(BaseModel):
+    code: str = Field(..., min_length=4, max_length=12)
+
+
+@api_router.post("/fantasy/leagues/join")
+async def join_fantasy_league(data: LeagueJoin, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"fantasy_join:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many attempts — slow down")
+    lg = await db.fantasy_leagues.find_one({"code": data.code.upper().strip()})
+    if not lg:
+        raise HTTPException(404, "No league with that code")
+    if user["user_id"] not in lg["members"]:
+        if len(lg["members"]) >= FANTASY_LEAGUE_MAX_MEMBERS:
+            raise HTTPException(400, "That league is full")
+        if await _is_blocked(user["user_id"], lg["owner_id"]):
+            raise HTTPException(403, "Can't join this league")
+        await db.fantasy_leagues.update_one({"league_id": lg["league_id"]}, {"$addToSet": {"members": user["user_id"]}})
+    return {"league_id": lg["league_id"], "name": lg["name"]}
+
+
+@api_router.get("/fantasy/leagues/mine")
+async def my_fantasy_leagues(user: dict = Depends(get_current_user)):
+    leagues = await db.fantasy_leagues.find({"members": user["user_id"]}, {"_id": 0}).to_list(50)
+    return [{"league_id": l["league_id"], "name": l["name"], "member_count": len(l["members"]),
+             "code": l["code"] if l["owner_id"] == user["user_id"] else None, "is_owner": l["owner_id"] == user["user_id"]}
+            for l in leagues]
+
+
+@api_router.get("/fantasy/season")
+async def fantasy_season(league: str = Query("squad", max_length=40), user: dict = Depends(get_current_user)):
+    if not await check_subscription(user):
+        raise HTTPException(403, "Season standings are a Pro perk")
+    ids = await _league_member_ids(user, league)
+    since = (datetime.now(timezone.utc) - timedelta(days=FANTASY_SEASON_DAYS)).isoformat()[:10]
+    cards = {c["card_id"]: c for c in await db.fantasy_cards.find(
+        {"date": {"$gte": since}, "status": {"$ne": "upcoming"}}, {"_id": 0}).to_list(500)}
+    totals: Dict[str, dict] = {}
+    for e in await db.fantasy_entries.find({"user_id": {"$in": ids}, "card_id": {"$in": list(cards)}}, {"_id": 0}).to_list(20000):
+        t = totals.setdefault(e["user_id"], {"total": 0, "cards": 0})
+        t["total"] += fx.stable_score(e["picks"], cards[e["card_id"]])
+        t["cards"] += 1
+    people = await _people(list(totals))
+    rows = [{**_person_row(people.get(uid, {"user_id": uid}), user["user_id"]), **t} for uid, t in totals.items()]
+    return {"days": FANTASY_SEASON_DAYS, "standings": fx.rank_entries(rows)}
+
+
+# ── Cosmetics (bought outright by email, never affect points) ──
+
+@api_router.get("/fantasy/cosmetics")
+async def fantasy_cosmetics(user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"fantasy_cosmetics": 1, "fantasy_equipped": 1}) or {}
+    owned = set(fresh.get("fantasy_cosmetics") or [])
+    return {"items": [{"id": k, **v, "owned": k in owned} for k, v in FANTASY_COSMETICS.items()],
+            "equipped": fresh.get("fantasy_equipped"), "contact": FANTASY_ADMIN_EMAIL}
+
+
+@api_router.post("/fantasy/cosmetics/{cosmetic_id}/request")
+async def request_fantasy_cosmetic(cosmetic_id: str, user: dict = Depends(get_current_user)):
+    item = FANTASY_COSMETICS.get(cosmetic_id)
+    if not item:
+        raise HTTPException(404, "Unknown item")
+    if _rate_limited(f"fantasy_cosmetic_req:{user['user_id']}", 5, 3600):
+        raise HTTPException(429, "You've already asked — we'll email you")
+    await db.fantasy_enquiries.insert_one({"kind": "cosmetic", "cosmetic_id": cosmetic_id, "user_id": user["user_id"],
+                                           "email": user.get("email"), "status": "new",
+                                           "created_at": datetime.now(timezone.utc).isoformat()})
+    await _email_fantasy_admin(f"Cosmetic request: {item['name']} (£{item['price_gbp']:.2f})", {
+        "Player": user.get("display_name") or user.get("name"), "Email": user.get("email"),
+        "Item": f"{item['name']} — £{item['price_gbp']:.2f}", "Next": "Email a payment link, then grant it with "
+        "POST /api/admin/fantasy/cosmetics/grant"}, reply_to=user.get("email"))
+    return {"ok": True, "message": f"We'll email {user.get('email') or 'you'} a payment link."}
+
+
+class CosmeticEquip(BaseModel):
+    team_name: Optional[str] = Field(None, max_length=24)
+
+
+@api_router.post("/fantasy/cosmetics/{cosmetic_id}/equip")
+async def equip_fantasy_cosmetic(cosmetic_id: str, data: CosmeticEquip, user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"fantasy_cosmetics": 1}) or {}
+    if cosmetic_id not in (fresh.get("fantasy_cosmetics") or []):
+        raise HTTPException(403, "You don't own that yet")
+    updates = {"fantasy_equipped": cosmetic_id if cosmetic_id != "team_name" else None}
+    if cosmetic_id == "team_name":
+        name = (data.team_name or "").strip()
+        if not name or await is_content_flagged(name):
+            raise HTTPException(400, "Pick another team name")
+        updates = {"fantasy_team_name": name}
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": updates})
+    return {"ok": True}
+
+
+# ── Sponsors and promoters (public enquiry form → admin inbox) ──
+
+class FantasyEnquiry(BaseModel):
+    kind: Literal["sponsor", "promoter"]
+    name: str = Field(..., min_length=2, max_length=80)
+    company: str = Field(..., min_length=2, max_length=120)
+    email: EmailStr
+    message: str = Field("", max_length=1500)
+    event_name: Optional[str] = Field(None, max_length=120)
+    halal_confirmed: bool = False
+    website: Optional[str] = None  # honeypot: real people never fill this in
+
+
+@api_router.post("/fantasy/enquiries")
+async def fantasy_enquiry(data: FantasyEnquiry, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"fantasy_enquiry:{client_ip}", 5, 3600):
+        raise HTTPException(429, "Too many enquiries — email us instead")
+    if data.website:
+        return {"ok": True}
+    if data.kind == "sponsor" and not data.halal_confirmed:
+        raise HTTPException(400, "We can only accept sponsors outside gambling, alcohol and interest-based lending.")
+    doc = {**data.model_dump(exclude={"website"}), "status": "new", "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.fantasy_enquiries.insert_one(doc)
+    label = "Sponsored league enquiry" if data.kind == "sponsor" else "Promoter: feature our card"
+    await _email_fantasy_admin(f"{label} — {data.company}", {
+        "Name": data.name, "Company": data.company, "Email": data.email, "Event": data.event_name or "—",
+        "Halal-sector confirmed": "yes" if data.halal_confirmed else "n/a", "Message": data.message or "—"},
+        reply_to=data.email)
+    return {"ok": True}
+
+
+# ── Admin (ADMIN_EMAIL / FANTASY_ADMIN_EMAIL accounts) ──
+
+async def require_fantasy_admin(user: dict = Depends(get_current_user)) -> dict:
+    if not is_fantasy_admin(user):
+        raise HTTPException(403, "Admins only")
+    return user
+
+
+@api_router.get("/admin/fantasy/enquiries")
+async def admin_fantasy_enquiries(user: dict = Depends(require_fantasy_admin)):
+    return await db.fantasy_enquiries.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+
+
+@api_router.get("/admin/fantasy/cards")
+async def admin_fantasy_cards(user: dict = Depends(require_fantasy_admin)):
+    return await db.fantasy_cards.find({}, {"_id": 0, "bouts": 0}).sort("date", -1).to_list(300)
+
+
+class SponsorSet(BaseModel):
+    name: Optional[str] = Field(None, max_length=80)
+    url: Optional[str] = Field(None, max_length=300)
+    logo_url: Optional[str] = Field(None, max_length=500)
+
+
+@api_router.post("/admin/fantasy/cards/{card_id}/sponsor")
+async def admin_set_sponsor(card_id: str, data: SponsorSet, user: dict = Depends(require_fantasy_admin)):
+    await _get_card(card_id)
+    sponsor = data.model_dump() if data.name else None
+    if sponsor and sponsor.get("url") and not sponsor["url"].startswith("https://"):
+        raise HTTPException(400, "Sponsor links must be https://")
+    await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"sponsor": sponsor}})
+    return {"ok": True, "sponsor": sponsor}
+
+
+class FeatureCard(BaseModel):
+    card_id: Optional[str] = None
+    provider_event_id: Optional[str] = None
+    promoter: Optional[str] = Field(None, max_length=80)
+    featured: bool = True
+
+
+@api_router.post("/admin/fantasy/feature")
+async def admin_feature_card(data: FeatureCard, user: dict = Depends(require_fantasy_admin)):
+    """Promoter deals: feature an existing card, or import any event from the feed by id."""
+    card_id = data.card_id or (f"fc_{data.provider_event_id}" if data.provider_event_id else None)
+    if not card_id:
+        raise HTTPException(400, "card_id or provider_event_id required")
+    if data.provider_event_id and not await db.fantasy_cards.find_one({"card_id": card_id}):
+        await db.fantasy_cards.insert_one({"card_id": card_id, "provider_event_id": data.provider_event_id, "source": "boxing_data",
+                                           "status": "upcoming", "bouts": [], "featured": True, "promoter": data.promoter,
+                                           "date": datetime.now(timezone.utc).isoformat()[:10], "hidden": True})
+        await sync_fantasy_cards(force_event_ids={data.provider_event_id})
+        await db.fantasy_cards.update_one({"card_id": card_id, "bouts.0": {"$exists": True}}, {"$unset": {"hidden": ""}})
+    await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"featured": data.featured, "promoter": data.promoter}})
+    return {"ok": True, "card": await db.fantasy_cards.find_one({"card_id": card_id}, {"_id": 0, "bouts": 0})}
+
+
+class ManualFighter(BaseModel):
+    name: str = Field(..., max_length=80)
+    nickname: Optional[str] = Field(None, max_length=40)
+    wins: int = Field(0, ge=0, le=500)
+    losses: int = Field(0, ge=0, le=500)
+    draws: int = Field(0, ge=0, le=200)
+    ko_wins: int = Field(0, ge=0, le=500)
+
+
+class ManualBout(BaseModel):
+    division: str = Field("", max_length=40)
+    scheduled_rounds: int = Field(3, ge=1, le=12)
+    fighters: List[ManualFighter] = Field(..., min_length=2, max_length=2)
+
+
+class ManualCard(BaseModel):
+    title: str = Field(..., max_length=120)
+    date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}")
+    location: str = Field("", max_length=120)
+    venue: str = Field("", max_length=120)
+    amateur: bool = True
+    promoter: Optional[str] = Field(None, max_length=80)
+    bouts: List[ManualBout] = Field(..., min_length=2, max_length=20)
+
+
+@api_router.post("/admin/fantasy/cards")
+async def admin_create_card(data: ManualCard, user: dict = Depends(require_fantasy_admin)):
+    """Amateur (or any off-feed) cards. Records come from the club/promoter sheet and are
+    priced with the same formula as pro cards."""
+    card_id = f"fm_{uuid.uuid4().hex[:10]}"
+    bouts = []
+    for i, b in enumerate(data.bouts):
+        stats = [{"wins": f.wins, "losses": f.losses, "draws": f.draws, "total_bouts": f.wins + f.losses + f.draws,
+                  "ko_wins": f.ko_wins} for f in b.fighters]
+        prices = fx.bout_prices(*stats)
+        bouts.append({"bout_id": f"{card_id}_b{i + 1}", "order": i + 1, "division": b.division,
+                      "scheduled_rounds": b.scheduled_rounds, "status": "upcoming", "result": None, "titles": [],
+                      "fighters": [{"fighter_id": f"{card_id}_b{i + 1}_{j}", "name": f.name, "nickname": f.nickname,
+                                    "record": f"{f.wins}-{f.losses}-{f.draws}", "salary": prices[j]}
+                                   for j, f in enumerate(b.fighters)]})
+    card = {"card_id": card_id, "source": "manual", "reason": "amateur" if data.amateur else "promoter",
+            "title": data.title, "date": data.date, "location": data.location, "venue": data.venue,
+            "promoter": data.promoter, "featured": bool(data.promoter), "sponsor": None, "status": "upcoming",
+            "bouts": bouts, "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.fantasy_cards.insert_one(card)
+    card.pop("_id", None)
+    return card
+
+
+class ManualResult(BaseModel):
+    winner_index: Optional[int] = Field(None, ge=0, le=1)
+    method: Literal["KO", "TKO", "DQ", "UD", "SD", "MD", "TD", "NC", "D"]
+    round: int = Field(..., ge=1, le=12)
+    clean_sweep: bool = False
+
+
+@api_router.post("/admin/fantasy/cards/{card_id}/bouts/{bout_id}/result")
+async def admin_set_result(card_id: str, bout_id: str, data: ManualResult, user: dict = Depends(require_fantasy_admin)):
+    card = await _get_card(card_id)
+    bout = next((b for b in card["bouts"] if b["bout_id"] == bout_id), None)
+    if not bout:
+        raise HTTPException(404, "Bout not found")
+    no_winner = data.method in fx.NO_DECISION
+    if no_winner != (data.winner_index is None):
+        raise HTTPException(400, "Draws and no contests have no winner; every other result needs one")
+    if data.round > bout["scheduled_rounds"]:
+        raise HTTPException(400, f"This bout is {bout['scheduled_rounds']} rounds")
+    bout["result"] = {"winner_id": None if no_winner else bout["fighters"][data.winner_index]["fighter_id"],
+                      "method": data.method, "round": data.round, "clean_sweep": data.clean_sweep and not no_winner}
+    bout["status"], bout["manual_result"] = "complete", True
+    before, card["status"] = card["status"], fx.card_status(card["bouts"])
+    await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"bouts": card["bouts"], "status": card["status"]}})
+    if before != "complete" and card["status"] == "complete":
+        await _notify_fantasy_card_done(card)
+    return {"ok": True, "card_status": card["status"]}
+
+
+@api_router.post("/admin/fantasy/cards/{card_id}/start")
+async def admin_start_card(card_id: str, user: dict = Depends(require_fantasy_admin)):
+    """Locks picks on a manual card when the first bell goes."""
+    card = await _get_card(card_id)
+    for b in card["bouts"]:
+        if b["status"] == "upcoming":
+            b["status"] = "live"
+            break
+    card["status"] = fx.card_status(card["bouts"])
+    await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"bouts": card["bouts"], "status": card["status"]}})
+    return {"ok": True, "card_status": card["status"]}
+
+
+class CosmeticGrant(BaseModel):
+    email: EmailStr
+    cosmetic_id: str
+
+
+@api_router.post("/admin/fantasy/cosmetics/grant")
+async def admin_grant_cosmetic(data: CosmeticGrant, user: dict = Depends(require_fantasy_admin)):
+    if data.cosmetic_id not in FANTASY_COSMETICS:
+        raise HTTPException(404, "Unknown item")
+    res = await db.users.update_one({"email": data.email}, {"$addToSet": {"fantasy_cosmetics": data.cosmetic_id}})
+    if not res.matched_count:
+        raise HTTPException(404, "No player with that email")
+    await db.fantasy_enquiries.update_many({"kind": "cosmetic", "email": data.email, "cosmetic_id": data.cosmetic_id},
+                                           {"$set": {"status": "granted"}})
+    return {"ok": True}
+
+
+@api_router.post("/admin/fantasy/sync")
+async def admin_fantasy_sync(user: dict = Depends(require_fantasy_admin)):
+    if not BOXING_DATA_API_KEY:
+        raise HTTPException(400, "Set BOXING_DATA_API_KEY on Railway first")
+    return await sync_fantasy_cards()
+
+
+
 app.include_router(api_router)
 
 async def _scheduled_stream_reminder_loop():
@@ -7796,6 +8422,7 @@ async def startup():
     _aio.create_task(_retention_cleanup_loop())
     _aio.create_task(_reengagement_loop())
     _aio.create_task(_investment_loop())
+    _aio.create_task(_fantasy_loop())
 
 @app.on_event("shutdown")
 async def shutdown():

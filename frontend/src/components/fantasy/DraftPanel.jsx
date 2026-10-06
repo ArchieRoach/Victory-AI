@@ -102,7 +102,7 @@ export function DraftPanel({ card, me, service }) {
                       <p className="text-victory-text text-xs font-semibold leading-tight">{f.name}</p>
                       {picked && <Check className="w-3.5 h-3.5 text-victory-lime flex-shrink-0" />}
                     </div>
-                    <p className="text-victory-muted text-[10px] truncate">"{f.nickname}"</p>
+                    <p className="text-victory-muted text-[10px] truncate">{plainRecord(f.record)}{f.nickname ? ` · "${f.nickname}"` : ""}</p>
                     <p className={`font-mono font-bold text-xs mt-1 flex items-center gap-1 ${tooDear ? "text-victory-orange" : "text-victory-teal"}`}>
                       <Coins className="w-3 h-3" /> {f.salary}
                     </p>
@@ -121,4 +121,10 @@ export function DraftPanel({ card, me, service }) {
       )}
     </div>
   );
+}
+
+// "22-2-0" means nothing to a child; "Won 22 · Lost 2" does.
+function plainRecord(record) {
+  const [won, lost] = (record || "").split("-").map(Number);
+  return Number.isFinite(won) && Number.isFinite(lost) ? `Won ${won} · Lost ${lost}` : "";
 }

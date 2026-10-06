@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFantasyService } from "@/lib/fantasyService";
+import { createApiFantasyService } from "@/lib/fantasyApi";
 import { rankLeague, scoreStable } from "@/lib/fantasyScoring";
 
-// Connects the sidecar UI to the fantasy service and derives everything the panels show.
-// REAL-TIME HOOK-UP: when the backend exists, create the service with your API client and
-// feed WebSocket messages into service.applyServerBout / applyServerLeague (see
-// lib/fantasyService.js). This hook and the components don't need to change.
-export function useFantasyLeague({ cardId, user }) {
+// Connects the sidecar UI to a fantasy service and derives everything the panels show.
+// `api` given → real cards from the backend (lib/fantasyApi.js); otherwise the mock demo.
+export function useFantasyLeague({ cardId, user, api, league: leagueId = "squad" }) {
   const me = useMemo(
     () => ({ user_id: user?.user_id || "guest", name: user?.display_name || user?.name || "You" }),
     [user?.user_id, user?.display_name, user?.name],
   );
-  const service = useMemo(() => createFantasyService({ cardId, me }), [cardId, me]);
+  const service = useMemo(
+    () => (api ? createApiFantasyService({ cardId, me, api, league: leagueId }) : createFantasyService({ cardId, me })),
+    [cardId, me, api, leagueId],
+  );
   const [snap, setSnap] = useState(() => service.getSnapshot());
   const prevRanks = useRef({});
   const [movement, setMovement] = useState({});

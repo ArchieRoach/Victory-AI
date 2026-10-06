@@ -86,6 +86,9 @@ import TokensPage from "@/pages/TokensPage";
 import DiscoverPage from "@/pages/DiscoverPage";
 import TokenSuccessPage from "@/pages/TokenSuccessPage";
 import TrendingClipsPage from "@/pages/TrendingClipsPage";
+import FantasyPage from "@/pages/FantasyPage";
+import FantasyPartnersPage from "@/pages/FantasyPartnersPage";
+import FantasyAdminPage from "@/pages/FantasyAdminPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -415,6 +418,9 @@ const AppRouter = () => {
         <Route path="/tokens/success" element={<ProtectedRoute><TokenSuccessPage /></ProtectedRoute>} />
         <Route path="/clips" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />
         <Route path="/clip/:postId" element={<ProtectedRoute><TrendingClipsPage /></ProtectedRoute>} />
+        <Route path="/fantasy" element={<ProtectedRoute><FantasyPage /></ProtectedRoute>} />
+        <Route path="/fantasy/admin" element={<ProtectedRoute><FantasyAdminPage /></ProtectedRoute>} />
+        <Route path="/fantasy/partners" element={<FantasyPartnersPage />} />
 
         {/* Public — no auth required */}
         <Route path="/privacy" element={<PrivacyPolicyPage />} />

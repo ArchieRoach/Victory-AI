@@ -4,7 +4,7 @@ import axios from "axios";
 import Hls from "hls.js";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
-import { Radio, Users, Volume2, VolumeX, Plus, Tv } from "lucide-react";
+import { Radio, Users, Volume2, VolumeX, Plus, Tv, Swords } from "lucide-react";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmtViewers(n = 0) {
@@ -296,6 +296,12 @@ export default function LiveFeedPage() {
               {pill.label}
             </button>
           ))}
+          <button
+            onClick={() => navigate("/fantasy")}
+            className="flex-shrink-0 flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full text-victory-lime border border-victory-lime/40"
+          >
+            <Swords className="w-3.5 h-3.5" /> Fantasy
+          </button>
           {liveCount > 0 && (
             <span className="flex-shrink-0 ml-auto flex items-center gap-1 text-victory-danger text-xs font-semibold">
               <span className="w-1.5 h-1.5 bg-victory-danger rounded-full animate-pulse" />
