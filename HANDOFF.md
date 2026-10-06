@@ -367,7 +367,7 @@ Coach as well as recording.
   - **Plan needed:** at least **Ultra ($99/month)**; **Mega ($249/month)** if UK small-hall
     cards aren't fully covered.
   - **Railway env:** `BOXING_DATA_API_KEY` (required), `BOXING_DATA_HOST` (default
-    `boxing-data-api.p.rapidapi.com`), `FANTASY_ADMIN_EMAIL` (default `hello@victoryai.co.uk`).
+    `boxing-data-api.p.rapidapi.com`), `ADMIN_INBOX_EMAIL` (default `hello@victoryai.co.uk`).
     `RESEND_API_KEY` is needed for the admin emails.
 - **Automatic** (`_fantasy_loop` in `server.py`, logic in `backend/fantasy_engine.py`):
   - **Hourly import:** every UK card and every world-title card (WBC, WBA, IBF, WBO, undisputed or
@@ -389,7 +389,11 @@ Coach as well as recording.
   - **Private leagues:** `POST /api/fantasy/leagues`, up to 5 per owner and 50 members. Joining by
     code is free (`POST /api/fantasy/leagues/join`).
   - **Season standings:** `GET /api/fantasy/season`, over 90 days.
-- **Monetisation.** Every deal is agreed by email to `FANTASY_ADMIN_EMAIL` and then switched on by
+- **Admin emails:** `ADMIN_EMAIL` (archieroach2013@gmail.com) is the only admin **login**.
+  `ADMIN_INBOX_EMAIL` (hello@victoryai.co.uk) is the **official inbox**: feedback, crash reports,
+  content reports and all fantasy notices go there, and it's the address shown to the public.
+  It can't sign in to admin tools.
+- **Monetisation.** Every deal is agreed by email to `ADMIN_INBOX_EMAIL` and then switched on by
   hand:
   - **Sponsored leagues:** sponsors use the public form at `/fantasy/partners`
     (`POST /api/fantasy/enquiries`, rate-limited and honeypotted). Sponsors must confirm they aren't

@@ -4844,7 +4844,10 @@ class FeedbackCreate(BaseModel):
     rating: Optional[int] = None  # 1-5
     page: Optional[str] = None
 
+# Two different jobs: ADMIN_EMAIL is the account that signs in to admin tools; the official
+# inbox is where every admin notice goes and the address the public is given.
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'archieroach2013@gmail.com')
+ADMIN_INBOX_EMAIL = os.environ.get('ADMIN_INBOX_EMAIL') or os.environ.get('FANTASY_ADMIN_EMAIL') or 'hello@victoryai.co.uk'
 
 @api_router.post("/feedback")
 async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current_user)):
@@ -4882,7 +4885,7 @@ async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current
                 await client.post(
                     "https://api.resend.com/emails",
                     headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
-                    json={"from": RESEND_FROM, "to": [ADMIN_EMAIL], "subject": f"[Victory AI] {type_label} from {doc['user_name']}", "html": email_html},
+                    json={"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL], "subject": f"[Victory AI] {type_label} from {doc['user_name']}", "html": email_html},
                     timeout=5,
                 )
         except Exception:
@@ -4970,7 +4973,7 @@ async def report_crash(data: CrashReportCreate, request: Request):
                 await client.post(
                     "https://api.resend.com/emails",
                     headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
-                    json={"from": RESEND_FROM, "to": [ADMIN_EMAIL], "subject": f"[Victory AI] Crash: {data.message[:100]}", "html": email_html},
+                    json={"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL], "subject": f"[Victory AI] Crash: {data.message[:100]}", "html": email_html},
                     timeout=5,
                 )
         except Exception:
@@ -5044,7 +5047,7 @@ async def create_report(data: ReportCreate, user: dict = Depends(get_current_use
                         headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
                         json={
                             "from": RESEND_FROM,
-                            "to": [ADMIN_EMAIL],
+                            "to": [ADMIN_INBOX_EMAIL],
                             "subject": f"[Victory AI] {data.content_type} auto-hidden after {report_count} reports",
                             "html": f"<p>{html.escape(data.content_type)} <code>{html.escape(data.content_id)}</code> was auto-hidden after reaching {report_count} reports. Review in the <code>reports</code> and <code>{collection}</code> collections.</p>",
                         },
@@ -7625,7 +7628,7 @@ import fantasy_engine as fx
 
 BOXING_DATA_API_KEY = os.environ.get("BOXING_DATA_API_KEY", "")
 BOXING_DATA_HOST = os.environ.get("BOXING_DATA_HOST", "boxing-data-api.p.rapidapi.com")
-FANTASY_ADMIN_EMAIL = os.environ.get("FANTASY_ADMIN_EMAIL", "hello@victoryai.co.uk")
+FANTASY_ADMIN_EMAIL = ADMIN_INBOX_EMAIL
 FANTASY_LOOKAHEAD_DAYS = 14
 # Low-cost defaults: the feed is used for world-title cards only, the schedule is checked
 # once a day, records are kept a month, and results are only checked on fight night.
@@ -7653,7 +7656,7 @@ FANTASY_COSMETICS = {
 
 
 def is_fantasy_admin(user: dict) -> bool:
-    return (user.get("email") or "").lower() in {ADMIN_EMAIL.lower(), FANTASY_ADMIN_EMAIL.lower()}
+    return (user.get("email") or "").lower() == ADMIN_EMAIL.lower()
 
 
 async def _email_fantasy_admin(subject: str, rows: dict, reply_to: Optional[str] = None):
@@ -8180,7 +8183,7 @@ async def fantasy_enquiry(data: FantasyEnquiry, request: Request):
     return {"ok": True, "card_submitted": bool(draft_id)}
 
 
-# ── Admin (ADMIN_EMAIL / FANTASY_ADMIN_EMAIL accounts) ──
+# ── Admin (signed in as ADMIN_EMAIL; notices go to ADMIN_INBOX_EMAIL) ──
 
 async def require_fantasy_admin(user: dict = Depends(get_current_user)) -> dict:
     if not is_fantasy_admin(user):

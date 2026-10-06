@@ -14,7 +14,7 @@ server.BOXING_DATA_API_KEY = "test-key"
 server.FANTASY_FEED_SCOPE = "all"
 server.RESEND_API_KEY = ""
 ME = {"user_id": "u1", "email": "kid@x.co", "name": "Kid"}
-ADMIN = {"user_id": "admin", "email": "hello@victoryai.co.uk", "name": "Admin"}
+ADMIN = {"user_id": "admin", "email": "archieroach2013@gmail.com", "name": "Admin"}
 CURRENT = {"user": ME}
 server.app.dependency_overrides[server.get_current_user] = lambda: CURRENT["user"]
 client = TestClient(server.app)
@@ -125,6 +125,12 @@ def test_admin_fixes_flagged_result_and_card_completes():
 
 def test_admin_endpoints_are_admin_only():
     assert client.post("/api/admin/fantasy/sync").status_code == 403
+    CURRENT["user"] = {"user_id": "inbox", "email": "hello@victoryai.co.uk"}
+    try:
+        assert client.get("/api/admin/fantasy/cards").status_code == 403, "the official inbox is not a login"
+    finally:
+        CURRENT["user"] = ME
+    assert server.ADMIN_INBOX_EMAIL == "hello@victoryai.co.uk" and server.FANTASY_ADMIN_EMAIL == server.ADMIN_INBOX_EMAIL
 
 
 def test_private_leagues_are_a_pro_perk_but_joining_is_free():
