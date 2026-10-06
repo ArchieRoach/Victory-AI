@@ -323,6 +323,33 @@ Coach as well as recording.
 - **Repeat sign-ups:** a second sign-up with the same email now returns `founder` and `founder_spots`
   too, so the site doesn't show the "founding pricing has run out" message to an existing founder.
 
+## Fantasy Boxing sidecar (branch `feature/fantasy-boxing-sidecar`)
+- **What it is:** a free, zero-wagering fantasy game on the stream page, shown as a Chat | Fantasy
+  tab under the player. Draft a stable of 3 from the fight card on a fictional 100M budget, score on
+  official results only, and rank against friends.
+  - No entry fee, tokens, prizes or paid boosts, so it stays halal (no maysir) and safe for teens.
+- **Scoring** is in `lib/fantasyScoring.js` (pure functions, unit tested):
+  - **Base:** KO/TKO/DQ win +20, UD +15, SD/MD +10, TD/NC +5, loss 0.
+  - **Knockout bonuses (KO/TKO only, not DQ):** R1–4 +10, R5–8 +5, R9–12 +2.
+  - **Clean sweep:** +10.
+  - **Assumption:** an ordinary draw scores like TD/NC (+5).
+  - Picks lock when the first bout starts. Ties share a rank.
+- **Data** comes from `lib/fantasyService.js`, currently an in-memory mock: a fictional 5-bout card
+  and 5 mock friends. Locked picks are saved in localStorage.
+  - **The interface** is `getSnapshot`, `subscribe`, `saveStable`, `admin.*`,
+    `applyServerBout` and `applyServerLeague`.
+  - **Going live:** swap the mock internals for the REST endpoints and WebSocket messages
+    documented at the top of the file. The components and `hooks/useFantasyLeague.js` don't
+    change.
+- **UI:** `components/fantasy/`. `FantasySidecar` holds the tabs; the panels are `DraftPanel`,
+  `ScorecardPanel`, `LeaguePanel` and `AdminPanel`.
+- **Off for viewers by default** while it runs on mock data:
+  - set `REACT_APP_FANTASY_ENABLED=true` on Vercel, or add `?fantasy=1` to a stream URL, to show it;
+  - the Admin test tab needs `?fantasyAdmin=1` (always on in dev builds).
+- Tests: `lib/fantasyScoring.test.js` (10) and `lib/fantasyService.test.js` (6). The full flow was
+  checked in Chromium in light and dark mode: over-cap warning, lock-in, a KO R2 with clean sweep
+  scoring 40, and a simulated card moving the league.
+
 ---
 
 # Previous: Bug-Hunt Pass
