@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { ArrowLeft, RefreshCw, ShieldAlert } from "lucide-react";
-import { API } from "@/App";
+import { API, useAuth } from "@/App";
 import { parseCard } from "@/lib/parseCard";
 
 // Admin desk for deals agreed by email: sponsor a card, feature a promoter's show, grant a
@@ -16,6 +16,7 @@ const errMsg = (err) => {
 
 export default function FantasyAdminPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [cards, setCards] = useState(null);
   const [enquiries, setEnquiries] = useState([]);
   const [denied, setDenied] = useState(false);
@@ -51,7 +52,10 @@ export default function FantasyAdminPage() {
           <ShieldAlert className="w-8 h-8 text-victory-lime/60" />
         </div>
         <p className="text-victory-text font-bold text-lg mb-1">Admins only</p>
-        <p className="text-victory-muted text-sm">Sign in with the admin account.</p>
+        <p className="text-victory-muted text-sm">
+          You're signed in as <span className="text-victory-text">{user?.email || "an account with no saved email"}</span>.
+          Sign in with the admin account, or check ADMIN_EMAIL on Railway.
+        </p>
       </div>
     );
   }
