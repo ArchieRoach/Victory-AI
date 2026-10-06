@@ -25,7 +25,7 @@ export const BottomNav = () => {
             location.pathname === path ||
             (path === "/train"    && (location.pathname.startsWith("/score") || location.pathname.startsWith("/timer"))) ||
             (path === "/discover" && location.pathname.startsWith("/profile/")) ||
-            (path === "/live"     && (location.pathname.startsWith("/stream") || location.pathname === "/go-live"));
+            (path === "/live"     && (location.pathname.startsWith("/stream") || location.pathname === "/go-live" || location.pathname.startsWith("/fantasy")));
 
           return (
             <NavLink

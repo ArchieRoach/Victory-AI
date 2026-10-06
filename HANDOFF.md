@@ -323,6 +323,161 @@ Coach as well as recording.
 - **Repeat sign-ups:** a second sign-up with the same email now returns `founder` and `founder_spots`
   too, so the site doesn't show the "founding pricing has run out" message to an existing founder.
 
+## Fantasy Boxing sidecar (branch `feature/fantasy-boxing-sidecar`)
+- **What it is:** a free, zero-wagering fantasy game on the stream page, shown as a Chat | Fantasy
+  tab under the player. Draft a stable of 3 from the fight card on a fictional 100M budget, score on
+  official results only, and rank against friends.
+  - No entry fee, tokens, prizes or paid boosts, so it stays halal (no maysir) and safe for teens.
+- **Scoring** is in `lib/fantasyScoring.js` (pure functions, unit tested):
+  - **Base:** KO/TKO/DQ win +20, UD +15, SD/MD +10, TD/NC +5, loss 0.
+  - **Knockout bonuses (KO/TKO only, not DQ):** R1–4 +10, R5–8 +5, R9–12 +2.
+  - **Clean sweep:** +10.
+  - **Assumption:** an ordinary draw scores like TD/NC (+5).
+  - Picks lock when the first bout starts. Ties share a rank.
+- **Data** comes from `lib/fantasyService.js`, currently an in-memory mock: a fictional 5-bout card
+  and 5 mock friends. Locked picks are saved in localStorage.
+  - **The interface** is `getSnapshot`, `subscribe`, `saveStable`, `admin.*`,
+    `applyServerBout` and `applyServerLeague`.
+  - **Going live:** swap the mock internals for the REST endpoints and WebSocket messages
+    documented at the top of the file. The components and `hooks/useFantasyLeague.js` don't
+    change.
+- **UI:** `components/fantasy/`. `FantasySidecar` holds the tabs; the panels are `DraftPanel`,
+  `ScorecardPanel`, `LeaguePanel` and `AdminPanel`.
+- **Off for viewers by default** while it runs on mock data:
+  - set `REACT_APP_FANTASY_ENABLED=true` on Vercel, or add `?fantasy=1` to a stream URL, to show it;
+  - the Admin test tab needs `?fantasyAdmin=1` (always on in dev builds).
+- Tests: `lib/fantasyScoring.test.js` (10) and `lib/fantasyService.test.js` (6). The full flow was
+  checked in Chromium in light and dark mode: over-cap warning, lock-in, a KO R2 with clean sweep
+  scoring 40, and a simulated card moving the league.
+- **Simplified so a 7-year-old understands it** (Fogg's simplicity factor "brain cycles" plus
+  Hick's law):
+  - **Words:** "boxers" and "team" instead of fighters and stable, pretend "coins" instead of
+    "$100M", and plain result wording ("Won by knockout in round 2", "Won on points — all judges
+    agreed"). A test checks no boxing codes reach players.
+  - **Tabs:** named in order, "1. Pick", "2. My team", "3. Friends".
+  - **Guidance:** a three-step "how to play" with a five-row points table, a "2 of 3 boxers
+    picked" count, and errors that say how to fix them.
+  - **Admin:** the admin tab keeps the boxing codes, because results-desk staff use them.
+
+## Fantasy Boxing on real fights (same branch)
+- **Data source:** the **Boxing Data API** (boxing-data.com via RapidAPI), not BoxRec. BoxRec has
+  no licence for automated use and blocks scraping.
+  - It covers **pro** records and results only. No licensed amateur feed exists, so amateur cards
+    are entered by an admin at `/fantasy/admin` from the club or promoter sheet.
+  - **Plan needed:** at least **Ultra ($99/month)**; **Mega ($249/month)** if UK small-hall
+    cards aren't fully covered.
+  - **Railway env:** `BOXING_DATA_API_KEY` (required), `BOXING_DATA_HOST` (default
+    `boxing-data-api.p.rapidapi.com`), `ADMIN_INBOX_EMAIL` (default `hello@victoryai.co.uk`).
+    `RESEND_API_KEY` is needed for the admin emails.
+- **Automatic** (`_fantasy_loop` in `server.py`, logic in `backend/fantasy_engine.py`):
+  - **Hourly import:** every UK card and every world-title card (WBC, WBA, IBF, WBO, undisputed or
+    Ring) in the next 14 days. Fighter records are cached for 7 days.
+  - **Prices** come from records only, never betting odds. A smoothed win rate, KO rate,
+    experience and how often a boxer was stopped give a rating. A logistic curve (25 rating points
+    ≈ 10:1) turns that into a price from 10 to 50 coins. Prices freeze when the card starts.
+  - **Every 5 minutes:** statuses and official results for cards from yesterday to tomorrow.
+    - PTS scores as UD and RTD as TKO.
+    - A clean sweep is any judge's card where the winner scored 10 × the rounds.
+    - An outcome the feed can't map is never guessed: the bout is held and the admin is emailed.
+    - An admin's result always overrides the feed.
+  - **When a card finishes,** each player gets a push with their score.
+- **Player API:**
+  - `GET /api/fantasy/cards` and `GET /api/fantasy/cards/{id}`;
+  - `PUT /api/fantasy/cards/{id}/stable` (the server repeats the cap and lock checks);
+  - `GET /api/fantasy/cards/{id}/leaderboard?league=squad|<league_id>` (squad = squad mates).
+- **Pro perks** (`check_subscription`):
+  - **Private leagues:** `POST /api/fantasy/leagues`, up to 5 per owner and 50 members. Joining by
+    code is free (`POST /api/fantasy/leagues/join`).
+  - **Season standings:** `GET /api/fantasy/season`, over 90 days.
+- **Admin emails:** `ADMIN_EMAIL` (archieroach2013@gmail.com) is the only admin **login**.
+  `ADMIN_INBOX_EMAIL` (hello@victoryai.co.uk) is the **official inbox**: feedback, crash reports,
+  content reports and all fantasy notices go there, and it's the address shown to the public.
+  It can't sign in to admin tools.
+- **Monetisation.** Every deal is agreed by email to `ADMIN_INBOX_EMAIL` and then switched on by
+  hand:
+  - **Sponsored leagues:** sponsors use the public form at `/fantasy/partners`
+    (`POST /api/fantasy/enquiries`, rate-limited and honeypotted). Sponsors must confirm they aren't
+    in gambling, alcohol or interest-based lending. The admin then sets a "Presented by" credit.
+  - **Promoter deals:** the admin features a card, or imports any event by its Boxing Data id
+    (`POST /api/admin/fantasy/feature`).
+  - **Cosmetics, bought outright:** Gold Gloves, Title Belt, corner colours and team name, priced
+    £0.99–£2.99. A player taps a price, the admin is emailed and sends a payment link, then grants
+    the item (`POST /api/admin/fantasy/cosmetics/grant`). Cosmetics never change points. The
+    purchase button is hidden in the native app (App Store rule 3.1.1).
+  - **Never:** entry fees, prizes paid for by players, paid boosts or random boxes. Any prize a
+    sponsor funds needs scholar and legal review first.
+- **Frontend:**
+  - `/fantasy`: fixture list, the same Pick, My team and Friends game, a league switcher, Season
+    (Pro) and Team looks. There's a "Fantasy" pill on the Live page.
+  - `/fantasy/partners` (public) and `/fantasy/admin` (admin accounts only).
+  - `lib/fantasyApi.js` is the live service. It polls every 15 s while fights are on and every
+    60 s before. The stream sidecar still uses the mock until streams are linked to cards.
+- **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
+  and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
+
+## Low-cost data mode (default)
+- **Feed scope:** `FANTASY_FEED_SCOPE=world_title` (default) imports world-title cards only. UK
+  small-hall cards come from promoters instead. Set `all` to import UK shows from the feed too.
+- **Request budget:** `BOXING_DATA_MONTHLY_LIMIT` (default 100, the free plan).
+  - Every feed call is counted in `counters/boxing_data_YYYY-MM`.
+  - At the limit the feed pauses until next month, so there's never an overage bill.
+  - The admin is emailed at 80% and at 100%.
+- **Fewer calls:**
+  - The schedule is imported every `FANTASY_IMPORT_HOURS` (24).
+  - Records are cached for `FANTASY_FIGHTER_TTL_DAYS` (30).
+  - Picks lock on the clock at the card's start time, with no feed call.
+  - Results are checked only from the start to +12h, every `FANTASY_RESULTS_MINUTES` (90), plus
+    one check the morning after.
+  - Expected cost is roughly 60–100 requests a month for about 4 world-title cards.
+- **Small cards:** a card with 1 bout picks 1 boxer with 50 coins, and 2 bouts pick 2 with 80
+  coins. This matters because cheaper feed plans only return the top fights on a card.
+- **Promoter-supplied cards:**
+  - On `/fantasy/partners`, a promoter can paste their card, one fight per line with records
+    (`lib/parseCard.js`). It becomes a hidden draft (`fp_…`), and the admin is emailed.
+  - The admin taps **Publish** in `/fantasy/admin`. The promoter is then emailed a private link,
+    `/fantasy/results/{card_id}?t=…`, where they lock picks at the first bell and enter each
+    result.
+  - Admins can also paste a card into the manual card form.
+- **Tests:** `backend/test_fantasy_lowcost.py` (5) and `frontend/src/lib/parseCard.test.js` (2).
+
+## My boxing: fight camp, amateur record and training buddy (same branch)
+- **Page:** `/camp` ("My boxing", linked from Profile). Backend section: `FIGHT CAMP + AMATEUR
+  RECORD` in `server.py`.
+- **Booking:** the boxer adds their next fight: date, show, opponent and their record, rounds,
+  fight weight, up to 3 camp goals, and an opt-in to Fantasy. Up to 3 fights can be booked at once.
+- **Buddy timetable** (`_buddy_loop`, hourly, only 08:00–20:00 UK time):
+  - **Camp check-ins:** at 42, 28, 21, 14, 10, 7, 4 and 2 days out. Each one asks about one of the
+    camp goals in turn. Checkpoints that had already passed when the fight was booked never fire
+    late.
+  - **Results:** "How did it go?" the day after the fight, and once more 3 days after.
+  - **Messages:** stored in `buddy_messages`, sent as a push from the training partner's name, and
+    shown on `/camp`.
+- **Check-in replies** are built only from what the boxer entered: sessions against last time,
+  total sparring rounds this camp, kg against fight weight, and low energy.
+  - The buddy never coaches weight cutting. Adults are told "plan it with your coach — never by
+    drying out"; under-18s are told "tell your coach".
+- **Results:**
+  - `POST /api/amateur/fights/{id}/result` adds one to the record. It only works from fight day,
+    and is guarded so a double tap can't count twice.
+  - The same result scores the fantasy card.
+- **Records:**
+  - Records are self-reported until the gym owner verifies them on `/camp`
+    (`/api/amateur/verify-queue`, `/api/amateur/verify/{user_id}`).
+  - Any later change shows as unverified, with the last verified record kept.
+  - Public profiles say "Verified by {gym}" or "Self-reported".
+- **Fantasy:**
+  - There is one card per gym per week of fights (`fa_{gym}_{week}`). Prices use the same formula
+    as pro cards. Team size and budget shrink on small cards (1 bout means pick 1 boxer with
+    50 coins). Picks lock on fight day.
+  - **Under-18 (or unknown age), or a private profile:** the card is visible only to the boxer's
+    gym and squad. The venue is never shown.
+- **Training partners:**
+  - **Opt-in flags:** sparring, pad work, training partner, promoting together
+    (`PUT /api/amateur/open-to`).
+  - **Search:** `GET /api/amateur/partners`. Gym-mates come first; under-18s appear only to their
+    own gym.
+- **Tests:** `backend/test_amateur_camp.py` (7).
+
 ---
 
 # Previous: Bug-Hunt Pass

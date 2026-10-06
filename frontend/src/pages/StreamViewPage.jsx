@@ -8,6 +8,7 @@ import { ShareSheet } from "@/components/ShareSheet";
 import { ReportModal } from "@/components/ReportModal";
 import LivePlayer from "@/components/LivePlayer";
 import LiveChat from "@/components/LiveChat";
+import { FantasySidecar, fantasyEnabled, fantasyAdminAllowed } from "@/components/fantasy/FantasySidecar";
 import { TipModal }           from "@/components/streaming/TipModal";
 import { PunchAlert }         from "@/components/streaming/PunchAlert";
 import { TopKnockouts }       from "@/components/streaming/TopKnockouts";
@@ -56,6 +57,9 @@ export default function StreamViewPage() {
   const [showTopUp,   setShowTopUp]   = useState(false);
   const [showEmotes,  setShowEmotes]  = useState(false);
   const [showReport,  setShowReport]  = useState(false);
+  // Chat | Fantasy switcher under the player (Fantasy only when the flag is on).
+  const [sideTab,     setSideTab]     = useState("chat");
+  const showFantasy = fantasyEnabled();
 
   // PunchAlert queue: array of tip/gift events awaiting display
   const [alertQueue, setAlertQueue] = useState([]);
@@ -396,8 +400,33 @@ export default function StreamViewPage() {
         </div>
       </div>
 
-      {/* ── Chat section ── */}
+      {/* ── Chat / Fantasy section ── */}
       <div className="flex-1 bg-victory-bg p-3 space-y-3">
+        {showFantasy && (
+          <div className="flex gap-1.5" role="tablist" aria-label="Side panel">
+            {[["chat", "Chat"], ["fantasy", "Fantasy"]].map(([key, label]) => (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={sideTab === key}
+                onClick={() => setSideTab(key)}
+                className={`filter-pill ${sideTab === key ? "filter-pill-active" : "filter-pill-inactive"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Fantasy sidecar. REAL BACKEND: pass the card this stream is showing, e.g.
+            cardId={stream.fight_card_id}, and forward "fantasy.*" WebSocket messages
+            (see lib/fantasyService.js). */}
+        {showFantasy && sideTab === "fantasy" && (
+          <FantasySidecar user={user} showAdmin={fantasyAdminAllowed()} />
+        )}
+
+        {/* Chat stays mounted while Fantasy is open so its WebSocket, tips and hype keep working. */}
+        <div className={showFantasy && sideTab === "fantasy" ? "hidden" : "space-y-3"}>
         {/* Leaderboard widget */}
         <TopKnockouts streamId={streamId} refreshTrigger={tipTick} />
 
@@ -426,6 +455,7 @@ export default function StreamViewPage() {
             Top up tokens to tip the streamer
           </button>
         )}
+        </div>
       </div>
 
       {/* ── Modals ── */}
