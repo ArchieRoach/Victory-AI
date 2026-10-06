@@ -349,6 +349,15 @@ Coach as well as recording.
 - Tests: `lib/fantasyScoring.test.js` (10) and `lib/fantasyService.test.js` (6). The full flow was
   checked in Chromium in light and dark mode: over-cap warning, lock-in, a KO R2 with clean sweep
   scoring 40, and a simulated card moving the league.
+- **Simplified so a 7-year-old understands it** (Fogg's simplicity factor "brain cycles" plus
+  Hick's law):
+  - **Words:** "boxers" and "team" instead of fighters and stable, pretend "coins" instead of
+    "$100M", and plain result wording ("Won by knockout in round 2", "Won on points — all judges
+    agreed"). A test checks no boxing codes reach players.
+  - **Tabs:** named in order, "1. Pick", "2. My team", "3. Friends".
+  - **Guidance:** a three-step "how to play" with a five-row points table, a "2 of 3 boxers
+    picked" count, and errors that say how to fix them.
+  - **Admin:** the admin tab keeps the boxing codes, because results-desk staff use them.
 
 ---
 

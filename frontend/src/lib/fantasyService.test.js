@@ -12,7 +12,7 @@ test("every mock friend's stable is a legal stable", () => {
 
 test("saving picks enforces the cap, joins the league and survives a reload", async () => {
   const svc = createFantasyService({ me });
-  await expect(svc.saveStable(["f_okafor", "f_rahman", "f_brennan"])).rejects.toThrow(/Over the cap/);
+  await expect(svc.saveStable(["f_okafor", "f_rahman", "f_brennan"])).rejects.toThrow(/Too many coins/);
   expect(svc.getSnapshot().league.some((m) => m.isMe)).toBe(false);
   await svc.saveStable(["f_okafor", "f_varga", "f_ali"]);
   expect(svc.getSnapshot().league.find((m) => m.isMe).picks).toEqual(["f_okafor", "f_varga", "f_ali"]);
@@ -26,7 +26,7 @@ test("picks lock once a bout starts, and results move the leaderboard live", asy
   const unsub = svc.subscribe((s) => seen.push(s));
 
   svc.admin.startBout("bout_1");
-  await expect(svc.saveStable(["f_okafor", "f_varga", "f_ali"])).rejects.toThrow(/locked/);
+  await expect(svc.saveStable(["f_okafor", "f_varga", "f_ali"])).rejects.toThrow(/fights have started/);
 
   svc.admin.applyResult("bout_1", { winner_id: "f_okafor", method: "KO", round: 2, clean_sweep: false });
   const ranked = rankLeague(seen.at(-1).league, seen.at(-1).card);

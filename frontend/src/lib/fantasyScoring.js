@@ -13,7 +13,7 @@
 // later (port these functions 1:1 to Python when results move server-side).
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const SALARY_CAP = 100; // in millions of a fictional currency — never real money
+export const SALARY_CAP = 100; // pretend coins to spend on a team — never real money
 export const STABLE_SIZE = 3;
 
 // Official result methods. Feed these codes from your results feed / admin panel.
@@ -27,6 +27,14 @@ export const METHODS = {
   TD: "TD", // technical draw
   NC: "NC", // no contest
   D: "D",   // ordinary draw (split/majority/unanimous draw)
+};
+
+// Plain words for players (a 7-year-old should understand every line). Boxing codes like
+// "UD" or "TKO" stay in METHOD_LABEL for the admin/results desk only.
+export const PLAIN_RESULT = {
+  KO: "Won by knockout", TKO: "Won by knockout", DQ: "Won — other boxer broke the rules",
+  UD: "Won on points — all judges agreed", SD: "Won on points — close call", MD: "Won on points — close call",
+  TD: "Fight stopped early — no winner", NC: "Fight didn't count — no winner", D: "It was a draw",
 };
 
 export const METHOD_LABEL = {
@@ -72,30 +80,30 @@ export function scoreFighter(fighterId, bout) {
   if (NO_DECISION.has(method)) {
     // Spec: "Technical Draw / No Contest: +5". An ordinary draw is treated the same way
     // (neither fighter lost) — change POINTS.TD_NC handling here if you'd rather score it 0.
-    lines.push({ label: METHOD_LABEL[method], pts: POINTS.TD_NC, kind: "base" });
+    lines.push({ label: PLAIN_RESULT[method], pts: POINTS.TD_NC, kind: "base" });
     return { total: POINTS.TD_NC, lines, outcome: "draw" };
   }
 
   if (winner_id !== fighterId) {
-    lines.push({ label: `Loss · ${METHOD_LABEL[method] || method}`, pts: POINTS.LOSS, kind: "base" });
+    lines.push({ label: "Lost this one", pts: POINTS.LOSS, kind: "base" });
     return { total: 0, lines, outcome: "loss" };
   }
 
   if (STOPPAGES.has(method)) {
-    lines.push({ label: `Win · ${METHOD_LABEL[method]}${round ? ` R${round}` : ""}`, pts: POINTS.WIN_STOPPAGE, kind: "base" });
+    lines.push({ label: `${PLAIN_RESULT[method]}${round && method !== METHODS.DQ ? ` in round ${round}` : ""}`, pts: POINTS.WIN_STOPPAGE, kind: "base" });
   } else if (method === METHODS.UD) {
-    lines.push({ label: "Win · Unanimous decision", pts: POINTS.WIN_UD, kind: "base" });
+    lines.push({ label: PLAIN_RESULT.UD, pts: POINTS.WIN_UD, kind: "base" });
   } else if (method === METHODS.SD || method === METHODS.MD) {
-    lines.push({ label: `Win · ${METHOD_LABEL[method]}`, pts: POINTS.WIN_SD_MD, kind: "base" });
+    lines.push({ label: PLAIN_RESULT[method], pts: POINTS.WIN_SD_MD, kind: "base" });
   }
 
   if (KNOCKOUTS.has(method) && Number.isInteger(round)) {
-    if (round >= 1 && round <= 4) lines.push({ label: "Early finish (R1–4)", pts: POINTS.EARLY_FINISH, kind: "bonus" });
-    else if (round >= 5 && round <= 8) lines.push({ label: "Mid-fight finish (R5–8)", pts: POINTS.MID_FINISH, kind: "bonus" });
-    else if (round >= 9 && round <= 12) lines.push({ label: "Late finish (R9–12)", pts: POINTS.LATE_FINISH, kind: "bonus" });
+    if (round >= 1 && round <= 4) lines.push({ label: "Super-fast knockout bonus", pts: POINTS.EARLY_FINISH, kind: "bonus" });
+    else if (round >= 5 && round <= 8) lines.push({ label: "Fast knockout bonus", pts: POINTS.MID_FINISH, kind: "bonus" });
+    else if (round >= 9 && round <= 12) lines.push({ label: "Late knockout bonus", pts: POINTS.LATE_FINISH, kind: "bonus" });
   }
 
-  if (clean_sweep) lines.push({ label: "Clean sweep on a scorecard", pts: POINTS.CLEAN_SWEEP, kind: "bonus" });
+  if (clean_sweep) lines.push({ label: "Won every round bonus", pts: POINTS.CLEAN_SWEEP, kind: "bonus" });
 
   return { total: lines.reduce((s, l) => s + l.pts, 0), lines, outcome: "win" };
 }
@@ -120,10 +128,10 @@ export function checkStable(pickIds, card) {
   const spent = picks.reduce((s, f) => s + f.salary, 0);
   const remaining = SALARY_CAP - spent;
   const errors = [];
-  if (picks.length !== pickIds.length) errors.push("A picked fighter is no longer on this card.");
-  if (remaining < 0) errors.push(`Over the cap by ${formatMoney(-remaining)}.`);
-  if (picks.length < STABLE_SIZE) errors.push(`Pick ${STABLE_SIZE - picks.length} more fighter${STABLE_SIZE - picks.length === 1 ? "" : "s"}.`);
-  if (picks.length > STABLE_SIZE) errors.push(`A stable is ${STABLE_SIZE} fighters.`);
+  if (picks.length !== pickIds.length) errors.push("One of your boxers isn't fighting any more. Pick another.");
+  if (remaining < 0) errors.push(`Too many coins! You're ${-remaining} over. Swap a boxer for a cheaper one.`);
+  if (picks.length < STABLE_SIZE) errors.push(`Pick ${STABLE_SIZE - picks.length} more boxer${STABLE_SIZE - picks.length === 1 ? "" : "s"}.`);
+  if (picks.length > STABLE_SIZE) errors.push(`Your team is ${STABLE_SIZE} boxers.`);
   return {
     spent,
     remaining,
@@ -169,4 +177,6 @@ export function rankLeague(members, card) {
 /** Picks lock once the first bout of the card starts. */
 export const isCardLocked = (card) => card?.status !== "upcoming";
 
-export const formatMoney = (millions) => `${Number.isInteger(millions) ? millions : millions.toFixed(1)}M`;
+// The budget is shown as pretend "coins" (100 to spend) — easier than "$100M", and plainly
+// not real money. They can't be bought, earned or swapped for anything.
+export const formatCoins = (n) => `${n} coin${n === 1 ? "" : "s"}`;

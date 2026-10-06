@@ -24,10 +24,11 @@ import { AdminPanel } from "@/components/fantasy/AdminPanel";
 //   showAdmin — shows the test controls (mock data only; see fantasyAdminAllowed below).
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Three tabs named for what you do there, in the order you do it.
 const TABS = [
-  { key: "draft", label: "Draft" },
-  { key: "score", label: "My stable" },
-  { key: "league", label: "League" },
+  { key: "draft", label: "1. Pick" },
+  { key: "score", label: "2. My team" },
+  { key: "league", label: "3. Friends" },
 ];
 
 export function FantasySidecar({ cardId = "card_demo", user, showAdmin = false }) {
@@ -44,17 +45,17 @@ export function FantasySidecar({ cardId = "card_demo", user, showAdmin = false }
             {card.title} <span className="text-victory-muted font-body font-normal text-xs">· {card.venue}</span>
           </h2>
           <p className="text-[11px] text-victory-teal flex items-center gap-1 mt-0.5" data-testid="free-to-play">
-            <ShieldCheck className="w-3.5 h-3.5" /> 100% free to play · no entry fee · no prizes · no wagering
+            <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" /> Free game · no money, ever · just for fun with friends
           </p>
         </div>
         <span className={`text-[10px] font-heading font-bold uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${
           card.status === "live" ? "bg-victory-danger/15 text-victory-danger" : card.status === "complete" ? "bg-victory-card-highlight text-victory-muted" : "bg-victory-lime/15 text-victory-lime"
         }`}>
-          {card.status === "upcoming" ? "Picks open" : card.status}
+          {card.status === "upcoming" ? "Pick now" : card.status === "live" ? "Fights on" : "Finished"}
         </span>
       </header>
 
-      <div className="flex gap-1.5" role="tablist">
+      <div className="flex gap-1.5 overflow-x-auto no-scrollbar" role="tablist">
         {tabs.map((t) => (
           <button
             key={t.key}

@@ -12,15 +12,15 @@ export function LeaguePanel({ league, movement }) {
         <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
           <Users className="w-8 h-8 text-victory-lime/60" />
         </div>
-        <p className="text-victory-text font-bold text-lg mb-1">No league yet</p>
-        <p className="text-victory-muted text-sm">Lock in a stable and your squad shows up here.</p>
+        <p className="text-victory-text font-bold text-lg mb-1">No friends here yet</p>
+        <p className="text-victory-muted text-sm">Save your team and you'll see how you rank against your friends.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-1.5" data-testid="fantasy-league">
-      <p className="section-label mb-2">Friends league</p>
+      <p className="section-label mb-2">Who's winning</p>
       {league.map((m) => {
         const move = movement[m.user_id];
         return (

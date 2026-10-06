@@ -162,7 +162,7 @@ export function createFantasyService({ cardId = "card_demo", me }) {
 
     // REAL BACKEND: PUT /api/fantasy/cards/:cardId/stable — the server repeats both checks.
     async saveStable(pickIds) {
-      if (isCardLocked(card)) throw new Error("Picks are locked — the card has started.");
+      if (isCardLocked(card)) throw new Error("The fights have started, so teams can't change now.");
       const check = checkStable(pickIds, card);
       if (!check.valid) throw new Error(check.errors[0]);
       myPicks = [...pickIds];

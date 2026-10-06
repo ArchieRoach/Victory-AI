@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Radio, Trophy, Clock, Sparkles } from "lucide-react";
-import { formatMoney } from "@/lib/fantasyScoring";
+import { formatCoins } from "@/lib/fantasyScoring";
 
 // Goal: see your stable's night unfold next to the stream.
 // Psychology: points that land the moment a bout ends (and visibly flash) are the reward;
@@ -15,8 +15,8 @@ export function ScorecardPanel({ myStable, me }) {
         <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
           <Trophy className="w-8 h-8 text-victory-lime/60" />
         </div>
-        <p className="text-victory-text font-bold text-lg mb-1">No stable yet</p>
-        <p className="text-victory-muted text-sm">Pick 3 fighters in Draft and lock them in before the first bell.</p>
+        <p className="text-victory-text font-bold text-lg mb-1">No team yet</p>
+        <p className="text-victory-muted text-sm">Go to Pick, choose 3 boxers, and save your team before the first fight.</p>
       </div>
     );
   }
@@ -25,10 +25,10 @@ export function ScorecardPanel({ myStable, me }) {
     <div className="space-y-3" data-testid="fantasy-scorecard">
       <div className={`victory-card p-4 flex items-center justify-between transition-colors ${flash ? "border-victory-lime bg-victory-lime/10" : ""}`}>
         <div>
-          <p className="section-label">Your stable</p>
-          <p className="text-victory-muted text-xs">{myStable.decided}/{myStable.fighters.length} fights decided</p>
+          <p className="section-label">Your team</p>
+          <p className="text-victory-muted text-xs">{myStable.decided} of {myStable.fighters.length} fights finished</p>
         </div>
-        <p className="font-mono font-bold text-3xl text-victory-lime" aria-live="polite">{myStable.total}<span className="text-sm text-victory-muted ml-1">pts</span></p>
+        <p className="font-mono font-bold text-3xl text-victory-lime" aria-live="polite">{myStable.total}<span className="text-sm text-victory-muted ml-1">points</span></p>
       </div>
 
       {myStable.fighters.map(({ fighter_id, fighter, bout, score }) => (
@@ -37,7 +37,7 @@ export function ScorecardPanel({ myStable, me }) {
             <div className="min-w-0">
               <p className="text-victory-text text-sm font-semibold truncate">{fighter?.name}</p>
               <p className="text-victory-muted text-[10px]">
-                vs {bout?.fighters.find((f) => f.fighter_id !== fighter_id)?.name} · {formatMoney(fighter?.salary || 0)}
+                fighting {bout?.fighters.find((f) => f.fighter_id !== fighter_id)?.name} · {formatCoins(fighter?.salary || 0)}
               </p>
             </div>
             <BoutStatus bout={bout} score={score} />
@@ -73,11 +73,11 @@ function BoutStatus({ bout, score }) {
   if (bout?.status === "live") {
     return (
       <span className="flex items-center gap-1 text-victory-danger text-[10px] font-heading font-bold uppercase">
-        <Radio className="w-3 h-3 animate-pulse" /> Live
+        <Radio className="w-3 h-3 animate-pulse" /> Fighting now
       </span>
     );
   }
-  return <span className="flex items-center gap-1 text-victory-muted text-[10px]"><Clock className="w-3 h-3" /> Bout {bout?.order}</span>;
+  return <span className="flex items-center gap-1 text-victory-muted text-[10px]"><Clock className="w-3 h-3" /> Fight {bout?.order}</span>;
 }
 
 // True for a moment whenever the value goes up.
