@@ -821,6 +821,9 @@ export default function PublicProfilePage() {
                   <p className="text-victory-muted text-xs mt-1">{t("publicProfile.draws")}</p>
                 </div>
               </div>
+              <p className={`text-center text-[11px] mt-3 ${profile.amateur_verified_by ? "text-victory-teal" : "text-victory-muted"}`}>
+                {profile.amateur_verified_by ? `Verified by ${profile.amateur_verified_by}` : "Self-reported"}
+              </p>
             </section>
           )}
 

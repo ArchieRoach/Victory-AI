@@ -411,6 +411,44 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## My boxing: fight camp, amateur record and training buddy (same branch)
+- **Page:** `/camp` ("My boxing", linked from Profile). Backend section: `FIGHT CAMP + AMATEUR
+  RECORD` in `server.py`.
+- **Booking:** the boxer adds their next fight: date, show, opponent and their record, rounds,
+  fight weight, up to 3 camp goals, and an opt-in to Fantasy. Up to 3 fights can be booked at once.
+- **Buddy timetable** (`_buddy_loop`, hourly, only 08:00–20:00 UK time):
+  - **Camp check-ins:** at 42, 28, 21, 14, 10, 7, 4 and 2 days out. Each one asks about one of the
+    camp goals in turn. Checkpoints that had already passed when the fight was booked never fire
+    late.
+  - **Results:** "How did it go?" the day after the fight, and once more 3 days after.
+  - **Messages:** stored in `buddy_messages`, sent as a push from the training partner's name, and
+    shown on `/camp`.
+- **Check-in replies** are built only from what the boxer entered: sessions against last time,
+  total sparring rounds this camp, kg against fight weight, and low energy.
+  - The buddy never coaches weight cutting. Adults are told "plan it with your coach — never by
+    drying out"; under-18s are told "tell your coach".
+- **Results:**
+  - `POST /api/amateur/fights/{id}/result` adds one to the record. It only works from fight day,
+    and is guarded so a double tap can't count twice.
+  - The same result scores the fantasy card.
+- **Records:**
+  - Records are self-reported until the gym owner verifies them on `/camp`
+    (`/api/amateur/verify-queue`, `/api/amateur/verify/{user_id}`).
+  - Any later change shows as unverified, with the last verified record kept.
+  - Public profiles say "Verified by {gym}" or "Self-reported".
+- **Fantasy:**
+  - There is one card per gym per week of fights (`fa_{gym}_{week}`). Prices use the same formula
+    as pro cards. Team size and budget shrink on small cards (1 bout means pick 1 boxer with
+    50 coins). Picks lock on fight day.
+  - **Under-18 (or unknown age), or a private profile:** the card is visible only to the boxer's
+    gym and squad. The venue is never shown.
+- **Training partners:**
+  - **Opt-in flags:** sparring, pad work, training partner, promoting together
+    (`PUT /api/amateur/open-to`).
+  - **Search:** `GET /api/amateur/partners`. Gym-mates come first; under-18s appear only to their
+    own gym.
+- **Tests:** `backend/test_amateur_camp.py` (7).
+
 ---
 
 # Previous: Bug-Hunt Pass

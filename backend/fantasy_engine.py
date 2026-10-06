@@ -184,16 +184,24 @@ def index_card(card: dict) -> dict:
 def check_stable(picks: list, card: dict) -> Optional[str]:
     """None if the stable is legal, else a plain-English reason (shown to players)."""
     index = index_card(card)
+    size, cap = card.get("stable_size") or STABLE_SIZE, card.get("salary_cap") or SALARY_CAP
     if len(set(picks)) != len(picks):
         return "You picked the same boxer twice."
-    if len(picks) != STABLE_SIZE:
-        return f"Pick {STABLE_SIZE} boxers."
+    if len(picks) != size:
+        return f"Pick {size} boxer{'s' if size != 1 else ''}."
     if any(p not in index for p in picks):
         return "One of your boxers isn't fighting any more. Pick another."
     spent = sum(index[p][0]["salary"] for p in picks)
-    if spent > SALARY_CAP:
-        return f"Too many coins! You're {spent - SALARY_CAP} over. Swap a boxer for a cheaper one."
+    if spent > cap:
+        return f"Too many coins! You're {spent - cap} over. Swap a boxer for a cheaper one."
     return None
+
+
+def team_rules(bout_count: int) -> tuple:
+    """(boxers to pick, coin budget) for a card. A one-bout card is "pick the winner" with
+    50 coins, so even the favourite (max 50) is affordable."""
+    size = max(1, min(STABLE_SIZE, bout_count))
+    return size, max(PRICE_MAX, round(SALARY_CAP * size / STABLE_SIZE))
 
 
 def stable_score(picks: list, card: dict) -> int:

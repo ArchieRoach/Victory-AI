@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Check, Lock, AlertTriangle, Coins } from "lucide-react";
-import { checkStable, formatCoins, isCardLocked, SALARY_CAP, STABLE_SIZE } from "@/lib/fantasyScoring";
+import { checkStable, formatCoins, isCardLocked, teamSize, coinCap } from "@/lib/fantasyScoring";
 import { HowToPlay } from "@/components/fantasy/HowToPlay";
 
 // Goal: anyone, even a 7-year-old, can pick a team first time, with no help.
@@ -13,6 +13,8 @@ import { HowToPlay } from "@/components/fantasy/HowToPlay";
 //   red only when something is wrong, and the warning says exactly how to fix it.
 export function DraftPanel({ card, me, service }) {
   const locked = isCardLocked(card);
+  const STABLE_SIZE = teamSize(card);
+  const SALARY_CAP = coinCap(card);
   const [picks, setPicks] = useState(me.picks);
   const [saving, setSaving] = useState(false);
 

@@ -89,6 +89,7 @@ import TrendingClipsPage from "@/pages/TrendingClipsPage";
 import FantasyPage from "@/pages/FantasyPage";
 import FantasyPartnersPage from "@/pages/FantasyPartnersPage";
 import FantasyAdminPage from "@/pages/FantasyAdminPage";
+import FightCampPage from "@/pages/FightCampPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -421,6 +422,7 @@ const AppRouter = () => {
         <Route path="/fantasy" element={<ProtectedRoute><FantasyPage /></ProtectedRoute>} />
         <Route path="/fantasy/admin" element={<ProtectedRoute><FantasyAdminPage /></ProtectedRoute>} />
         <Route path="/fantasy/partners" element={<FantasyPartnersPage />} />
+        <Route path="/camp" element={<ProtectedRoute><FightCampPage /></ProtectedRoute>} />
 
         {/* Public — no auth required */}
         <Route path="/privacy" element={<PrivacyPolicyPage />} />

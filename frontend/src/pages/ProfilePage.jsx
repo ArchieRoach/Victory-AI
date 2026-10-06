@@ -902,6 +902,14 @@ export default function ProfilePage() {
           {t("schools.title")}
         </button>
 
+        <button
+          onClick={() => navigate("/camp")}
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+        >
+          <CalendarDays className="w-5 h-5" />
+          My boxing: record, fights &amp; camp
+        </button>
+
         {/* Streamer tools */}
         <button
           onClick={() => navigate("/dashboard")}

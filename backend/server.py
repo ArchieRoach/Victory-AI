@@ -2818,6 +2818,7 @@ def safe_user(user: dict) -> dict:
         "amateur_wins": user.get("amateur_wins", 0),
         "amateur_losses": user.get("amateur_losses", 0),
         "amateur_draws": user.get("amateur_draws", 0),
+        "amateur_verified_by": _record_status(user)["verified_by"],
         "competition_wins": user.get("competition_wins", 0),
         "competition_losses": user.get("competition_losses", 0),
         "badges": user.get("badges", []),
@@ -7832,12 +7833,13 @@ async def _fantasy_loop():
 
 def _public_card(card: dict) -> dict:
     return {k: card.get(k) for k in ("card_id", "title", "date", "location", "venue", "status", "reason",
-                                     "featured", "promoter", "sponsor", "bouts", "source")}
+                                     "featured", "promoter", "sponsor", "bouts", "source", "stable_size", "salary_cap")}
 
 
-async def _get_card(card_id: str) -> dict:
+async def _get_card(card_id: str, user: Optional[dict] = None) -> dict:
     card = await db.fantasy_cards.find_one({"card_id": card_id}, {"_id": 0})
-    if not card:
+    # Private cards (under-18 amateur fights) only exist for the boxer's gym and squad.
+    if not card or (user and "private_to" in card and user["user_id"] not in card["private_to"] and not is_fantasy_admin(user)):
         raise HTTPException(404, "Card not found")
     return card
 
@@ -7845,18 +7847,20 @@ async def _get_card(card_id: str) -> dict:
 @api_router.get("/fantasy/cards")
 async def list_fantasy_cards(user: dict = Depends(get_current_user)):
     since = (datetime.now(timezone.utc) - timedelta(days=3)).isoformat()[:10]
-    cards = await db.fantasy_cards.find({"date": {"$gte": since}, "hidden": {"$ne": True}},
+    cards = await db.fantasy_cards.find({"date": {"$gte": since}, "hidden": {"$ne": True},
+                                         "$or": [{"private_to": {"$exists": False}}, {"private_to": user["user_id"]}]},
                                         {"_id": 0, "bouts.fighters.ko_wins": 0}).to_list(200)
     order = {"live": 0, "upcoming": 1, "complete": 2}
     cards.sort(key=lambda c: (order.get(c.get("status"), 3), not c.get("featured"), c.get("date") or ""))
     mine = {e["card_id"] for e in await db.fantasy_entries.find({"user_id": user["user_id"]}, {"card_id": 1}).to_list(500)}
-    return [{**{k: c.get(k) for k in ("card_id", "title", "date", "location", "status", "reason", "featured", "promoter", "sponsor")},
+    return [{**{k: c.get(k) for k in ("card_id", "title", "date", "location", "status", "reason", "featured", "promoter", "sponsor", "stable_size")},
+             "private": "private_to" in c,
              "bout_count": len(c.get("bouts") or []), "entered": c["card_id"] in mine} for c in cards]
 
 
 @api_router.get("/fantasy/cards/{card_id}")
 async def get_fantasy_card(card_id: str, user: dict = Depends(get_current_user)):
-    card = await _get_card(card_id)
+    card = await _get_card(card_id, user)
     entry = await db.fantasy_entries.find_one({"card_id": card_id, "user_id": user["user_id"]}, {"_id": 0})
     return {"card": _public_card(card), "me": {"user_id": user["user_id"], "picks": (entry or {}).get("picks", []),
                                                 "saved": bool(entry)}}
@@ -7870,7 +7874,7 @@ class FantasyStable(BaseModel):
 async def save_fantasy_stable(card_id: str, data: FantasyStable, user: dict = Depends(get_current_user)):
     if _rate_limited(f"fantasy_stable:{user['user_id']}", 20, 60):
         raise HTTPException(429, "Slow down a little")
-    card = await _get_card(card_id)
+    card = await _get_card(card_id, user)
     if card.get("status") != "upcoming":
         raise HTTPException(400, "The fights have started, so teams can't change now.")
     problem = fx.check_stable(data.picks, card)
@@ -7908,7 +7912,7 @@ def _person_row(u: dict, me_id: str) -> dict:
 
 @api_router.get("/fantasy/cards/{card_id}/leaderboard")
 async def fantasy_leaderboard(card_id: str, league: str = Query("squad", max_length=40), user: dict = Depends(get_current_user)):
-    card = await _get_card(card_id)
+    card = await _get_card(card_id, user)
     ids = await _league_member_ids(user, league)
     entries = await db.fantasy_entries.find({"card_id": card_id, "user_id": {"$in": ids}}, {"_id": 0}).to_list(len(ids))
     people = await _people([e["user_id"] for e in entries])
@@ -8235,6 +8239,465 @@ async def admin_fantasy_sync(user: dict = Depends(require_fantasy_admin)):
 
 
 
+# ============== FIGHT CAMP + AMATEUR RECORD ==============
+# Goal: the app becomes the amateur boxer's admin desk: record, next fight, camp, gym and the
+#   people they train with. Their fights feed the fantasy game, so friends play along.
+# Psychology: a coach-like buddy who asks at the right moments ("10 days out, how's camp?")
+#   makes logging feel like being looked after, not paperwork. Each answer gets a reply
+#   built from what they told it (visible progress), and the record grows with every result
+#   (identity: "I'm a 6-2 boxer").
+# Design: the boxer adds their next fight once. The buddy then sends check-ins on a camp
+#   timetable, a fight-week checklist and a "how did it go?" prompt. The answer updates the
+#   record and the fantasy card. Records are self-reported until their gym owner verifies
+#   them, and the UI says which.
+# Safety: under-18s (or unknown age) get private fantasy cards (gym + squad only), no venue
+#   is ever shown, they're only findable as training partners by their own gym, and the
+#   buddy never coaches weight cutting — it says to plan weight with a coach.
+from zoneinfo import ZoneInfo
+
+UK_TZ = ZoneInfo("Europe/London")
+CAMP_CHECKPOINTS = [42, 28, 21, 14, 10, 7, 4, 2]
+BUDDY_HOURS = range(8, 20)
+OPEN_TO = {"sparring": "Sparring", "pads": "Pad work", "training_partner": "Training partner", "promotion": "Promoting together"}
+MAX_UPCOMING_FIGHTS = 3
+
+
+def _uk_today() -> date:
+    return datetime.now(UK_TZ).date()
+
+
+def _is_minor(user: dict) -> bool:
+    try:
+        return _age_years(date.fromisoformat((user.get("birth_date") or "")[:10])) < 18
+    except ValueError:
+        return True  # unknown age gets the under-18 defaults
+
+
+def _record(user: dict) -> dict:
+    return {k: int(user.get(f"amateur_{k}") or 0) for k in ("wins", "losses", "draws")}
+
+
+def _record_status(user: dict) -> dict:
+    rec, snap = _record(user), user.get("amateur_verified") or {}
+    verified = bool(snap) and all(snap.get(k) == rec[k] for k in rec)
+    return {**rec, "verified": verified, "verified_by": snap.get("gym_name") if verified else None,
+            "last_verified": {k: snap.get(k) for k in rec} if snap and not verified else None}
+
+
+def _partner_name(user: dict) -> str:
+    return (user.get("training_partner") or {}).get("name") or "Your buddy"
+
+
+async def _buddy_say(user: dict, text: str, fight_id: Optional[str] = None, action: str = "none",
+                     push: bool = True, kind: str = "note") -> dict:
+    msg = {"msg_id": f"bm_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"], "fight_id": fight_id, "kind": kind,
+           "text": text, "action": action, "done": action == "none", "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.buddy_messages.insert_one(dict(msg))
+    if push:
+        await _send_push(user["user_id"], title=_partner_name(user), body=text, url="/camp", tag=f"camp-{fight_id or 'note'}")
+    return msg
+
+
+def _days_to(fight: dict) -> int:
+    return (date.fromisoformat(fight["date"]) - _uk_today()).days
+
+
+def camp_prompt(fight: dict, days: int) -> tuple:
+    """(text, action) for the camp timetable. Goals are cycled so each prompt asks about one."""
+    goals = fight.get("camp_goals") or []
+    goal = goals[len(fight.get("prompts_sent") or []) % len(goals)] if goals else None
+    ask_goal = f" How's '{goal}' coming on?" if goal else ""
+    if days > 14:
+        return f"{days} days to your fight. How was training this week?{ask_goal}", "checkin"
+    if days > 7:
+        return f"{days} days out. How's sparring and your weight?{ask_goal}", "checkin"
+    if days > 2:
+        return f"Fight week's close — {days} days. How are you feeling?", "checkin"
+    return ("Nearly there! Medical card, kit, gum shield, weigh-in time — all sorted? "
+            "Rest up and tell your coach if anything's wrong.", "none")
+
+
+def checkin_reply(fight: dict, checkin: dict, previous: Optional[dict], camp_rounds: int, minor: bool) -> str:
+    """A reply built only from what the boxer told us — never invented praise."""
+    days = _days_to(fight)
+    parts = [f"Logged: {checkin['sessions']} session{'s' if checkin['sessions'] != 1 else ''}"
+             + (f" and {checkin['sparring_rounds']} sparring rounds" if checkin.get("sparring_rounds") else "") + "."]
+    if previous:
+        if checkin["sessions"] > previous["sessions"]:
+            parts.append(f"That's up from {previous['sessions']} last time.")
+        elif checkin["sessions"] < previous["sessions"]:
+            parts.append(f"Down from {previous['sessions']} last time — what got in the way?")
+    if camp_rounds:
+        parts.append(f"{camp_rounds} sparring rounds this camp.")
+    target, weight = fight.get("target_weight_kg"), checkin.get("weight_kg")
+    if target and weight:
+        diff = round(weight - target, 1)
+        if diff > 0:
+            parts.append(f"You're {diff} kg above your fight weight with {max(days, 0)} days to go. "
+                         + ("Tell your coach so they can plan it with you." if minor else
+                            "Plan how you'll make it with your coach — never by drying out."))
+        else:
+            parts.append("You're on weight.")
+    if (checkin.get("energy") or 3) <= 2:
+        parts.append("Low energy is worth telling your coach about. Rest is training too.")
+    if days > 0:
+        parts.append(f"{days} days to go.")
+    return " ".join(parts)
+
+
+def result_reply(outcome: str, rec: dict) -> str:
+    line = f"{rec['wins']}-{rec['losses']}-{rec['draws']}"
+    return {
+        "win": f"Win recorded! You're now {line}. Enjoy it — then tell me when the next one is.",
+        "loss": f"Loss recorded. You're {line}. Every real record has these. Rest, review it with your coach, and tell me the next one when it's booked.",
+        "draw": f"Draw recorded. You're {line}. Tell me when the next one is.",
+        "nc": "No contest recorded — your record doesn't change. Tell me when the next one is.",
+    }[outcome]
+
+
+# ── Fantasy cards from amateur fights ──
+
+def _week_key(d: str) -> str:
+    y, w, _ = date.fromisoformat(d).isocalendar()
+    return f"{y}w{w:02d}"
+
+
+def _bout_status(fight: dict) -> str:
+    if fight.get("result"):
+        return "complete"
+    return "live" if _days_to(fight) <= 0 else "upcoming"
+
+
+async def sync_amateur_card(group: str, week: str):
+    """One fantasy card per gym (or boxer, if they have no gym) per week of fights."""
+    card_id = f"fa_{group}_{week}"
+    fights = await db.amateur_fights.find({"fantasy_group": group, "week": week, "fantasy_opt_in": True,
+                                           "status": {"$ne": "cancelled"}}, {"_id": 0}).sort("date", 1).to_list(50)
+    if not fights:
+        await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"hidden": True}})
+        return None
+    boxers = {u["user_id"]: u for u in await db.users.find({"user_id": {"$in": [f["user_id"] for f in fights]}}, {"_id": 0}).to_list(50)}
+    bouts, audience, private = [], set(), False
+    for i, f in enumerate(fights):
+        u = boxers.get(f["user_id"]) or {"user_id": f["user_id"]}
+        mine, theirs = _record(u), f.get("opponent_record") or {}
+        stats = lambda r: {**r, "total_bouts": sum(r.get(k, 0) for k in ("wins", "losses", "draws")), "ko_wins": r.get("ko_wins", 0)}
+        p_me, p_them = fx.bout_prices(stats(mine), stats(theirs))
+        me_id, them_id = f"am_{f['fight_id']}", f"op_{f['fight_id']}"
+        result = None
+        if f.get("result"):
+            r = f["result"]
+            winner = me_id if r["outcome"] == "win" else them_id if r["outcome"] == "loss" else None
+            method = {"draw": "D", "nc": "NC"}.get(r["outcome"], r.get("method") or "UD")
+            result = {"winner_id": winner, "method": method, "round": r.get("round") or f["scheduled_rounds"], "clean_sweep": False}
+        bouts.append({"bout_id": f["fight_id"], "order": i + 1, "division": f.get("weight_class") or "", "titles": [],
+                      "scheduled_rounds": f["scheduled_rounds"], "status": _bout_status(f), "result": result,
+                      "fighters": [{"fighter_id": me_id, "user_id": u["user_id"], "name": u.get("display_name") or u.get("name") or "Boxer",
+                                    "record": "{wins}-{losses}-{draws}".format(**mine), "verified": _record_status(u)["verified"], "salary": p_me},
+                                   {"fighter_id": them_id, "name": f["opponent_name"],
+                                    "record": "{}-{}-{}".format(theirs.get("wins", 0), theirs.get("losses", 0), theirs.get("draws", 0)), "salary": p_them}]})
+        audience |= {u["user_id"], *await _squad_mate_ids(u["user_id"])}
+        if _is_minor(u) or not u.get("is_public", True):
+            private = True
+    gym = await db.gyms.find_one({"gym_id": group}, {"_id": 0, "name": 1, "members": 1, "city": 1}) if group.startswith("gym_") else None
+    if gym:
+        audience |= set(gym.get("members") or [])
+    size, cap = fx.team_rules(len(bouts))
+    title = f"{gym['name']} fight week" if gym else f"{bouts[0]['fighters'][0]['name']}'s fight"
+    doc = {"card_id": card_id, "source": "amateur_self", "reason": "amateur", "title": title, "date": fights[0]["date"],
+           "location": (gym or {}).get("city") or "", "venue": "", "status": fx.card_status(bouts), "bouts": bouts,
+           "stable_size": size, "salary_cap": cap, "hidden": False, "updated_at": datetime.now(timezone.utc).isoformat()}
+    update = {"$set": doc, "$setOnInsert": {"featured": False, "sponsor": None, "created_at": doc["updated_at"]}}
+    if private:
+        doc["private_to"] = sorted(audience)
+    else:
+        update["$unset"] = {"private_to": ""}
+    existing = await db.fantasy_cards.find_one({"card_id": card_id}, {"status": 1})
+    await db.fantasy_cards.update_one({"card_id": card_id}, update, upsert=True)
+    if existing and existing.get("status") != "complete" and doc["status"] == "complete":
+        await _notify_fantasy_card_done(doc)
+    return card_id
+
+
+# ── Endpoints ──
+
+class OpponentRecord(BaseModel):
+    wins: int = Field(0, ge=0, le=300)
+    losses: int = Field(0, ge=0, le=300)
+    draws: int = Field(0, ge=0, le=100)
+
+
+class AmateurFightIn(BaseModel):
+    date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
+    event_name: str = Field(..., min_length=2, max_length=100)
+    city: str = Field("", max_length=60)
+    opponent_name: str = Field(..., min_length=2, max_length=60)
+    opponent_club: str = Field("", max_length=80)
+    opponent_record: OpponentRecord = OpponentRecord()
+    scheduled_rounds: int = Field(3, ge=1, le=12)
+    weight_class: str = Field("", max_length=40)
+    target_weight_kg: Optional[float] = Field(None, ge=20, le=200)
+    camp_goals: List[str] = Field(default_factory=list, max_length=3)
+    fantasy_opt_in: bool = True
+
+
+async def _my_fight(user: dict, fight_id: str) -> dict:
+    fight = await db.amateur_fights.find_one({"fight_id": fight_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not fight:
+        raise HTTPException(404, "Fight not found")
+    return fight
+
+
+@api_router.get("/amateur/me")
+async def amateur_me(user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0}) or user
+    fights = await db.amateur_fights.find({"user_id": user["user_id"], "status": {"$ne": "cancelled"}}, {"_id": 0}).sort("date", -1).to_list(50)
+    upcoming = sorted([f for f in fights if f["status"] == "upcoming"], key=lambda f: f["date"])
+    nxt = upcoming[0] if upcoming else None
+    checkins = await db.camp_checkins.find({"fight_id": nxt["fight_id"]}, {"_id": 0}).sort("created_at", -1).to_list(30) if nxt else []
+    messages = await db.buddy_messages.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(30)
+    gym = await db.gyms.find_one({"gym_id": fresh.get("gym_id")}, {"_id": 0, "gym_id": 1, "name": 1, "owner_id": 1}) if fresh.get("gym_id") else None
+    if nxt:
+        nxt["days_to_go"] = _days_to(nxt)
+    return {"record": _record_status(fresh), "is_minor": _is_minor(fresh), "gym": gym,
+            "is_gym_owner": bool(gym and gym["owner_id"] == user["user_id"]),
+            "partner_name": _partner_name(fresh), "next_fight": nxt, "upcoming": upcoming,
+            "history": [f for f in fights if f["status"] == "done"][:20], "checkins": checkins,
+            "messages": messages, "open_to": fresh.get("open_to") or [], "open_to_options": OPEN_TO}
+
+
+class RecordIn(BaseModel):
+    wins: int = Field(..., ge=0, le=500)
+    losses: int = Field(..., ge=0, le=500)
+    draws: int = Field(0, ge=0, le=200)
+
+
+@api_router.put("/amateur/record")
+async def set_amateur_record(data: RecordIn, user: dict = Depends(get_current_user)):
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {
+        "amateur_wins": data.wins, "amateur_losses": data.losses, "amateur_draws": data.draws}})
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return _record_status(fresh)
+
+
+@api_router.post("/amateur/fights")
+async def add_amateur_fight(data: AmateurFightIn, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"amateur_fight:{user['user_id']}", 10, 3600):
+        raise HTTPException(429, "Slow down a little")
+    try:
+        days = (date.fromisoformat(data.date) - _uk_today()).days
+    except ValueError:
+        raise HTTPException(400, "That date doesn't exist")
+    if not 0 <= days <= 365:
+        raise HTTPException(400, "Pick a date from today to a year ahead")
+    goals = [g.strip()[:60] for g in data.camp_goals if g.strip()]
+    for text in [data.event_name, data.opponent_name, data.opponent_club, data.city, *goals]:
+        if text and await is_content_flagged(text):
+            raise HTTPException(400, "Something in there isn't allowed — try different words")
+    if await db.amateur_fights.count_documents({"user_id": user["user_id"], "status": "upcoming"}) >= MAX_UPCOMING_FIGHTS:
+        raise HTTPException(400, f"You can have up to {MAX_UPCOMING_FIGHTS} fights booked at once")
+    group = user.get("gym_id") or f"u_{user['user_id']}"
+    fight = {**data.model_dump(), "camp_goals": goals, "fight_id": f"af_{uuid.uuid4().hex[:10]}", "user_id": user["user_id"],
+             "status": "upcoming", "result": None, "fantasy_group": group, "week": _week_key(data.date),
+             # Checkpoints already passed don't fire late: a fight booked 5 days out starts at fight week.
+             "prompts_sent": [c for c in CAMP_CHECKPOINTS if c > days], "result_prompts": 0,
+             "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.amateur_fights.insert_one(dict(fight))
+    if data.fantasy_opt_in:
+        fight["card_id"] = await sync_amateur_card(group, fight["week"])
+    await _buddy_say(user, f"Got it — {data.event_name}, {days} days from now, against {data.opponent_name}. "
+                           "I'll check in on camp as it goes and ask how it went after.", fight["fight_id"], push=False, kind="booked")
+    return fight
+
+
+@api_router.post("/amateur/fights/{fight_id}/cancel")
+async def cancel_amateur_fight(fight_id: str, user: dict = Depends(get_current_user)):
+    fight = await _my_fight(user, fight_id)
+    if fight["status"] != "upcoming":
+        raise HTTPException(400, "Only upcoming fights can be cancelled")
+    await db.amateur_fights.update_one({"fight_id": fight_id}, {"$set": {"status": "cancelled"}})
+    await db.buddy_messages.update_many({"fight_id": fight_id}, {"$set": {"done": True}})
+    if fight.get("fantasy_opt_in"):
+        await sync_amateur_card(fight["fantasy_group"], fight["week"])
+    return {"ok": True}
+
+
+class CheckinIn(BaseModel):
+    sessions: int = Field(..., ge=0, le=21)
+    sparring_rounds: int = Field(0, ge=0, le=200)
+    weight_kg: Optional[float] = Field(None, ge=20, le=200)
+    energy: int = Field(3, ge=1, le=5)
+    note: str = Field("", max_length=300)
+
+
+@api_router.post("/amateur/fights/{fight_id}/checkin")
+async def camp_checkin(fight_id: str, data: CheckinIn, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"camp_checkin:{user['user_id']}", 10, 3600):
+        raise HTTPException(429, "Slow down a little")
+    fight = await _my_fight(user, fight_id)
+    if fight["status"] != "upcoming":
+        raise HTTPException(400, "This fight's already done")
+    if data.note and await is_content_flagged(data.note):
+        raise HTTPException(400, "Try different words")
+    previous = await db.camp_checkins.find_one({"fight_id": fight_id}, {"_id": 0}, sort=[("created_at", -1)])
+    checkin = {**data.model_dump(), "fight_id": fight_id, "user_id": user["user_id"], "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.camp_checkins.insert_one(dict(checkin))
+    rounds = sum(c.get("sparring_rounds", 0) for c in await db.camp_checkins.find({"fight_id": fight_id}, {"sparring_rounds": 1}).to_list(100))
+    await db.buddy_messages.update_many({"fight_id": fight_id, "action": "checkin", "done": False}, {"$set": {"done": True}})
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0}) or user
+    reply = await _buddy_say(fresh, checkin_reply(fight, checkin, previous, rounds, _is_minor(fresh)), fight_id, push=False, kind="reply")
+    return {"checkin": checkin, "reply": reply}
+
+
+class ResultIn(BaseModel):
+    outcome: Literal["win", "loss", "draw", "nc"]
+    method: Optional[Literal["KO", "TKO", "DQ", "UD", "SD", "MD"]] = None
+    round: Optional[int] = Field(None, ge=1, le=12)
+
+
+@api_router.post("/amateur/fights/{fight_id}/result")
+async def report_amateur_result(fight_id: str, data: ResultIn, user: dict = Depends(get_current_user)):
+    fight = await _my_fight(user, fight_id)
+    if _days_to(fight) > 0:
+        raise HTTPException(400, "You can add the result once fight day comes")
+    if data.outcome in ("win", "loss") and not data.method:
+        raise HTTPException(400, "How did it end? Pick the method")
+    result = {"outcome": data.outcome, "method": data.method if data.outcome in ("win", "loss") else None,
+              "round": data.round, "reported_at": datetime.now(timezone.utc).isoformat()}
+    # Guarded on status so a double-tap can't count the same fight twice.
+    res = await db.amateur_fights.update_one({"fight_id": fight_id, "status": "upcoming"}, {"$set": {"status": "done", "result": result}})
+    if not res.modified_count:
+        raise HTTPException(400, "This result is already in")
+    field = {"win": "amateur_wins", "loss": "amateur_losses", "draw": "amateur_draws"}.get(data.outcome)
+    if field:
+        await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {field: 1}})
+    await db.buddy_messages.update_many({"fight_id": fight_id, "done": False}, {"$set": {"done": True}})
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0}) or user
+    if fight.get("fantasy_opt_in"):
+        await sync_amateur_card(fight["fantasy_group"], fight["week"])
+    reply = await _buddy_say(fresh, result_reply(data.outcome, _record(fresh)), fight_id, push=False, kind="reply")
+    return {"record": _record_status(fresh), "reply": reply}
+
+
+class OpenToIn(BaseModel):
+    open_to: List[Literal["sparring", "pads", "training_partner", "promotion"]] = Field(default_factory=list, max_length=4)
+
+
+@api_router.put("/amateur/open-to")
+async def set_open_to(data: OpenToIn, user: dict = Depends(get_current_user)):
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"open_to": sorted(set(data.open_to))}})
+    return {"open_to": sorted(set(data.open_to))}
+
+
+@api_router.get("/amateur/partners")
+async def find_training_partners(open_to: str = Query("sparring", max_length=30), weight_class: str = Query("", max_length=50),
+                                 user: dict = Depends(get_current_user)):
+    """Boxers open to sparring, pads or promoting together. Under-18s only ever appear to
+    members of their own gym."""
+    if open_to not in OPEN_TO:
+        raise HTTPException(400, "Unknown option")
+    blocked = await _blocked_either_way(user["user_id"])
+    query = {"open_to": open_to, "is_public": {"$ne": False}, "user_id": {"$nin": [user["user_id"], *blocked]}}
+    if weight_class:
+        query["weight_class"] = weight_class
+    found = await db.users.find(query, {"_id": 0, "password": 0}).limit(100).to_list(100)
+    out = []
+    for u in found:
+        if _is_minor(u) and not (u.get("gym_id") and u.get("gym_id") == user.get("gym_id")):
+            continue
+        out.append({**safe_user(u), "record": _record_status(u), "same_gym": bool(u.get("gym_id")) and u.get("gym_id") == user.get("gym_id"),
+                    "open_to": u.get("open_to") or []})
+    out.sort(key=lambda u: (not u["same_gym"], u.get("display_name") or ""))
+    return out[:50]
+
+
+@api_router.get("/amateur/messages")
+async def buddy_messages(user: dict = Depends(get_current_user)):
+    return await db.buddy_messages.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(30)
+
+
+@api_router.post("/amateur/messages/{msg_id}/dismiss")
+async def dismiss_buddy_message(msg_id: str, user: dict = Depends(get_current_user)):
+    await db.buddy_messages.update_one({"msg_id": msg_id, "user_id": user["user_id"]}, {"$set": {"done": True}})
+    return {"ok": True}
+
+
+# ── Gym owners verify their boxers' records ──
+
+async def _owned_gym(user: dict) -> dict:
+    gym = await db.gyms.find_one({"owner_id": user["user_id"]}, {"_id": 0, "gym_id": 1, "name": 1, "members": 1})
+    if not gym:
+        raise HTTPException(403, "Only a gym owner can do this")
+    return gym
+
+
+@api_router.get("/amateur/verify-queue")
+async def verify_queue(user: dict = Depends(get_current_user)):
+    gym = await _owned_gym(user)
+    members = await db.users.find({"user_id": {"$in": gym["members"]}}, {"_id": 0, "password": 0}).to_list(GYM_MAX_CAP)
+    return [{"user_id": m["user_id"], "name": m.get("display_name") or m.get("name") or "Boxer", "record": _record_status(m)}
+            for m in members if sum(_record(m).values()) and not _record_status(m)["verified"]]
+
+
+@api_router.post("/amateur/verify/{member_id}")
+async def verify_record(member_id: str, user: dict = Depends(get_current_user)):
+    gym = await _owned_gym(user)
+    if member_id not in gym["members"]:
+        raise HTTPException(404, "They're not in your gym")
+    member = await db.users.find_one({"user_id": member_id}, {"_id": 0})
+    snap = {**_record(member), "gym_id": gym["gym_id"], "gym_name": gym["name"], "by": user["user_id"],
+            "at": datetime.now(timezone.utc).isoformat()}
+    await db.users.update_one({"user_id": member_id}, {"$set": {"amateur_verified": snap}})
+    if member_id != user["user_id"]:
+        await _buddy_say(member, f"{gym['name']} verified your record: {snap['wins']}-{snap['losses']}-{snap['draws']}.", kind="verified")
+    return {"ok": True, "record": _record_status({**member, "amateur_verified": snap})}
+
+
+# ── The buddy's timetable ──
+
+async def run_buddy_timetable():
+    """Camp check-ins, fight-week checklist and the "how did it go?" prompt. Daytime only."""
+    sent = 0
+    fights = await db.amateur_fights.find({"status": "upcoming"}, {"_id": 0}).to_list(5000)
+    users = {u["user_id"]: u for u in await db.users.find({"user_id": {"$in": list({f["user_id"] for f in fights})}}, {"_id": 0}).to_list(5000)}
+    for f in fights:
+        u = users.get(f["user_id"])
+        if not u:
+            continue
+        days = _days_to(f)
+        if days > 0:
+            due = [c for c in CAMP_CHECKPOINTS if c >= days and c not in (f.get("prompts_sent") or [])]
+            if due:
+                text, action = camp_prompt(f, days)
+                await db.amateur_fights.update_one({"fight_id": f["fight_id"]}, {"$addToSet": {"prompts_sent": {"$each": due}}})
+                await _buddy_say(u, text, f["fight_id"], action=action, kind="camp")
+                sent += 1
+        elif days == 0:
+            if f.get("fantasy_opt_in"):
+                await sync_amateur_card(f["fantasy_group"], f["week"])  # locks picks on fight day
+        else:
+            asked = f.get("result_prompts", 0)
+            if (asked == 0) or (asked == 1 and days <= -3):
+                text = ("How did it go? Tell me the result and I'll update your record." if asked == 0
+                        else "Still need your result from " + f["event_name"] + " — it keeps your record and your friends' fantasy scores right.")
+                await db.amateur_fights.update_one({"fight_id": f["fight_id"]}, {"$inc": {"result_prompts": 1}})
+                await _buddy_say(u, text, f["fight_id"], action="result", kind="result")
+                sent += 1
+    return sent
+
+
+async def _buddy_loop():
+    while True:
+        await asyncio.sleep(3600)
+        if datetime.now(UK_TZ).hour not in BUDDY_HOURS:
+            continue
+        try:
+            await run_buddy_timetable()
+        except Exception as exc:
+            logger.warning(f"[buddy] loop error: {exc}")
+
+
+
 app.include_router(api_router)
 
 async def _scheduled_stream_reminder_loop():
@@ -8423,6 +8886,7 @@ async def startup():
     _aio.create_task(_reengagement_loop())
     _aio.create_task(_investment_loop())
     _aio.create_task(_fantasy_loop())
+    _aio.create_task(_buddy_loop())
 
 @app.on_event("shutdown")
 async def shutdown():

@@ -122,7 +122,14 @@ export function indexCard(card) {
  * Over-cap picks are allowed in the UI so the user can see the problem — they just
  * can't be locked in until `valid` is true.
  */
+// Small cards (an amateur weekend with one or two bouts) pick fewer boxers with a
+// matching budget; every other card is 3 boxers and 100 coins.
+export const teamSize = (card) => card?.stable_size || STABLE_SIZE;
+export const coinCap = (card) => card?.salary_cap || SALARY_CAP;
+
 export function checkStable(pickIds, card) {
+  const STABLE_SIZE = teamSize(card);
+  const SALARY_CAP = coinCap(card);
   const index = indexCard(card);
   const picks = pickIds.map((id) => index[id]?.fighter).filter(Boolean);
   const spent = picks.reduce((s, f) => s + f.salary, 0);
@@ -133,6 +140,8 @@ export function checkStable(pickIds, card) {
   if (picks.length < STABLE_SIZE) errors.push(`Pick ${STABLE_SIZE - picks.length} more boxer${STABLE_SIZE - picks.length === 1 ? "" : "s"}.`);
   if (picks.length > STABLE_SIZE) errors.push(`Your team is ${STABLE_SIZE} boxers.`);
   return {
+    size: STABLE_SIZE,
+    cap: SALARY_CAP,
     spent,
     remaining,
     overCap: remaining < 0,
