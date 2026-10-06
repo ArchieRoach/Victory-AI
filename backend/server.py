@@ -4848,6 +4848,42 @@ class FeedbackCreate(BaseModel):
 # inbox is where every admin notice goes and the address the public is given.
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'archieroach2013@gmail.com')
 ADMIN_INBOX_EMAIL = os.environ.get('ADMIN_INBOX_EMAIL') or os.environ.get('FANTASY_ADMIN_EMAIL') or 'hello@victoryai.co.uk'
+ADMIN_LOGINS = {e.strip().lower() for e in ADMIN_EMAIL.split(",") if e.strip()}
+_clerk_email_cache: Dict[str, tuple] = {}
+
+
+async def _clerk_verified_emails(clerk_user_id: str) -> set:
+    """Every verified email on the Clerk account, cached 10 minutes. The saved user email is
+    only Clerk's first address at sign-up (blank if Clerk was unreachable then, or an Apple
+    relay address), so admin checks also accept any verified address on the account."""
+    hit = _clerk_email_cache.get(clerk_user_id)
+    if hit and time.time() - hit[0] < 600:
+        return hit[1]
+    emails = set()
+    if CLERK_SECRET_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=5) as http_client:
+                r = await http_client.get(f"https://api.clerk.com/v1/users/{clerk_user_id}",
+                                          headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"})
+            if r.status_code == 200:
+                emails = {(e.get("email_address") or "").strip().lower() for e in r.json().get("email_addresses", [])
+                          if (e.get("verification") or {}).get("status") == "verified"}
+        except Exception as e:
+            logger.warning(f"Clerk email lookup failed: {e}")
+    _clerk_email_cache[clerk_user_id] = (time.time(), emails)
+    return emails
+
+
+async def is_admin(user: dict) -> bool:
+    if (user.get("email") or "").strip().lower() in ADMIN_LOGINS:
+        return True
+    verified = await _clerk_verified_emails(user["user_id"])
+    if verified & ADMIN_LOGINS:
+        # Repair the saved email so the next check is instant and admin emails show correctly.
+        match = sorted(verified & ADMIN_LOGINS)[0]
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"email": match, "email_hash": _email_hash(match)}})
+        return True
+    return False
 
 @api_router.post("/feedback")
 async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current_user)):
@@ -4895,7 +4931,7 @@ async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current
 
 @api_router.get("/feedback")
 async def get_feedback(user: dict = Depends(get_current_user)):
-    if user.get("email") != ADMIN_EMAIL:
+    if not await is_admin(user):
         raise HTTPException(status_code=403, detail="Admin only")
     items = await db.feedback.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
     return items
@@ -4983,7 +5019,7 @@ async def report_crash(data: CrashReportCreate, request: Request):
 
 @api_router.get("/crash-reports")
 async def get_crash_reports(user: dict = Depends(get_current_user)):
-    if user.get("email") != ADMIN_EMAIL:
+    if not await is_admin(user):
         raise HTTPException(status_code=403, detail="Admin only")
     items = await db.crash_reports.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
     return items
@@ -5060,7 +5096,7 @@ async def create_report(data: ReportCreate, user: dict = Depends(get_current_use
 
 @api_router.get("/reports")
 async def list_reports(user: dict = Depends(get_current_user)):
-    if user.get("email") != ADMIN_EMAIL:
+    if not await is_admin(user):
         raise HTTPException(status_code=403, detail="Admin only")
     items = await db.reports.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
     return items
@@ -7570,7 +7606,7 @@ def metrics_token_ok(provided: Optional[str]) -> bool:
 async def habit_metrics(request: Request, weeks: int = Query(8, ge=1, le=26)):
     if not metrics_token_ok(request.headers.get("X-Metrics-Token")):
         user = await get_current_user(request)
-        if user.get("email") != ADMIN_EMAIL:
+        if not await is_admin(user):
             raise HTTPException(403, "Admin only")
     today = datetime.now(timezone.utc).date()
     week_start = today - timedelta(days=today.weekday())
@@ -7655,8 +7691,8 @@ FANTASY_COSMETICS = {
 }
 
 
-def is_fantasy_admin(user: dict) -> bool:
-    return (user.get("email") or "").lower() == ADMIN_EMAIL.lower()
+async def is_fantasy_admin(user: dict) -> bool:
+    return await is_admin(user)
 
 
 async def _email_fantasy_admin(subject: str, rows: dict, reply_to: Optional[str] = None):
@@ -7916,7 +7952,7 @@ def _public_card(card: dict) -> dict:
 async def _get_card(card_id: str, user: Optional[dict] = None) -> dict:
     card = await db.fantasy_cards.find_one({"card_id": card_id}, {"_id": 0})
     # Private cards (under-18 amateur fights) only exist for the boxer's gym and squad.
-    if not card or (user and "private_to" in card and user["user_id"] not in card["private_to"] and not is_fantasy_admin(user)):
+    if not card or (user and "private_to" in card and user["user_id"] not in card["private_to"] and not await is_fantasy_admin(user)):
         raise HTTPException(404, "Card not found")
     return card
 
@@ -8186,7 +8222,7 @@ async def fantasy_enquiry(data: FantasyEnquiry, request: Request):
 # ── Admin (signed in as ADMIN_EMAIL; notices go to ADMIN_INBOX_EMAIL) ──
 
 async def require_fantasy_admin(user: dict = Depends(get_current_user)) -> dict:
-    if not is_fantasy_admin(user):
+    if not await is_fantasy_admin(user):
         raise HTTPException(403, "Admins only")
     return user
 
