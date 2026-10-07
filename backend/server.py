@@ -7804,7 +7804,7 @@ async def sync_fantasy_cards(force_event_ids: Optional[set] = None) -> dict:
     starts, then frozen; promoter-featured cards are kept even outside the UK."""
     if not BOXING_DATA_API_KEY:
         return {"skipped": "BOXING_DATA_API_KEY not set"}
-    fights = await _bd_all("/v2/fights/schedule", {"days": FANTASY_LOOKAHEAD_DAYS, "page_size": 100, "date_sort": "ASC"})
+    fights = await _bd_all("/v2/fights/schedule", {"days": FANTASY_LOOKAHEAD_DAYS, "page_size": 25, "date_sort": "ASC"})
     by_event: Dict[str, list] = {}
     events: Dict[str, dict] = {}
     for f in fights:
@@ -7844,7 +7844,7 @@ async def sync_fantasy_cards(force_event_ids: Optional[set] = None) -> dict:
 
 async def sync_fantasy_results(card: dict) -> bool:
     """Pulls statuses and official results for one card. Returns True if anything changed."""
-    fights = await _bd_all("/v2/fights", {"event_id": card["provider_event_id"], "page_size": 100})
+    fights = await _bd_all("/v2/fights", {"event_id": card["provider_event_id"], "page_size": 25})
     by_id = {f.get("id"): f for f in fights}
     changed = False
     for bout in card["bouts"]:
@@ -8441,6 +8441,23 @@ async def admin_fantasy_sync(user: dict = Depends(require_fantasy_admin)):
         return await sync_fantasy_cards()
     except FeedBudgetSpent:
         raise HTTPException(400, "This month's data-feed budget is used up (BOXING_DATA_MONTHLY_LIMIT)")
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(502, f"The data feed refused the request ({e.response.status_code}): {_feed_error_text(e.response)}")
+    except Exception as e:
+        logger.exception("[fantasy] admin sync failed")
+        raise HTTPException(500, f"Sync failed: {type(e).__name__}: {str(e)[:200]}")
+
+
+def _feed_error_text(response) -> str:
+    """RapidAPI explains refusals in the body (e.g. "You are not subscribed to this API.")."""
+    try:
+        body = response.json()
+        msg = body.get("message") or body.get("error") or body
+    except Exception:
+        msg = response.text
+    hints = {401: " Check the key is the X-RapidAPI-Key value.", 403: " Subscribe to a plan (Free is fine) on RapidAPI.",
+             429: " Rate limit or monthly quota reached on RapidAPI."}
+    return str(msg)[:200] + hints.get(response.status_code, "")
 
 
 
