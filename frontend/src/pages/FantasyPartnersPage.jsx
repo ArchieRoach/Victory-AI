@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { ArrowLeft, Handshake, Megaphone, ShieldCheck, Check } from "lucide-react";
@@ -22,6 +22,8 @@ export default function FantasyPartnersPage() {
   const [form, setForm] = useState({ kind: "promoter", name: "", company: "", email: "", event_name: "", message: "", halal_confirmed: false, website: "" });
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [params] = useSearchParams();
+  const promoterKey = params.get("promoter");
   const [card, setCard] = useState({ date: "", location: "", text: "" });
   const parsed = parseCard(card.text);
   const sendCard = form.kind === "promoter" && card.date && parsed.bouts.length > 0;
@@ -32,8 +34,10 @@ export default function FantasyPartnersPage() {
     setBusy(true);
     try {
       await axios.post(`${API}/fantasy/enquiries`, {
-        ...form, card: sendCard ? { date: card.date, location: card.location, bouts: parsed.bouts } : null,
+        ...form, kind: promoterKey ? "promoter" : form.kind, promoter_key: promoterKey || null,
+        card: sendCard ? { date: card.date, location: card.location, bouts: parsed.bouts } : null,
       });
+      if (promoterKey && sendCard) toast.success("Your card is live in the fixture list!");
       setSent(true);
     } catch (err) {
       const detail = err?.response?.data?.detail;
@@ -67,6 +71,11 @@ export default function FantasyPartnersPage() {
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-3">
+            {promoterKey && (
+              <div className="victory-card p-3 text-[12px] text-victory-teal border-victory-teal/30" data-testid="trusted-promoter">
+                This is your promoter link. Add the date and your card below: it goes live straight away.
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-2">
               {KINDS.map(({ key, icon: Icon, title, text }) => (
                 <button type="button" key={key} onClick={() => setForm((f) => ({ ...f, kind: key }))}

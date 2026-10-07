@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Check, Mail, Palette } from "lucide-react";
+import { Check, ShoppingBag, Palette } from "lucide-react";
 import { isNativeShell } from "@/lib/nativeShell";
 
 // Goal: identity expression — your team looks like yours on every leaderboard.
 // Psychology: people value what shows who they are, but anything that changes the
 //   result would turn a free game into pay-to-win (and a paid stake into gambling).
 // Design: each item has a fixed price and is bought outright, with no random boxes. It
-//   never changes points. Buying is by email: the admin sends a payment link, then
-//   switches the item on. Buying is hidden inside the native app (App Store rule 3.1.1).
+//   never changes points. Tapping the price opens Stripe checkout and the item switches on
+//   by itself once paid. Under-18s get the same link to send to a parent instead. Buying is
+//   hidden inside the native app (App Store rule 3.1.1).
 export function CosmeticsSheet({ api }) {
   const [data, setData] = useState(null);
   const [teamName, setTeamName] = useState("");
@@ -18,12 +19,17 @@ export function CosmeticsSheet({ api }) {
   const load = () => axios.get(`${api}/fantasy/cosmetics`).then((r) => setData(r.data)).catch(() => setData({ items: [] }));
   useEffect(() => { load(); }, [api]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const request = async (item) => {
+  const buy = async (item) => {
     try {
-      const { data: r } = await axios.post(`${api}/fantasy/cosmetics/${item.id}/request`);
-      toast.success(r.message);
+      const { data: r } = await axios.post(`${api}/fantasy/cosmetics/${item.id}/checkout`, { origin_url: window.location.origin });
+      if (!r.for_parent) { window.location.href = r.checkout_url; return; }
+      const text = `Can you get me ${r.item} for Victory Fantasy? It's £${r.price_gbp.toFixed(2)}, just for looks.`;
+      try {
+        if (navigator.share) await navigator.share({ text, url: r.checkout_url });
+        else { await navigator.clipboard.writeText(`${text} ${r.checkout_url}`); toast.success("Link copied: send it to a parent"); }
+      } catch {}
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't send that. Try again.");
+      toast.error(err?.response?.data?.detail || "Couldn't start checkout. Try again.");
     }
   };
 
@@ -59,8 +65,8 @@ export function CosmeticsSheet({ api }) {
             ) : native ? (
               <span className="text-victory-muted text-[11px]">Not owned</span>
             ) : (
-              <button className="victory-btn-ghost w-auto px-3 min-h-[44px] text-xs flex items-center gap-1" onClick={() => request(item)}>
-                <Mail className="w-3.5 h-3.5" /> £{item.price_gbp.toFixed(2)}
+              <button className="victory-btn-ghost w-auto px-3 min-h-[44px] text-xs flex items-center gap-1" onClick={() => buy(item)}>
+                <ShoppingBag className="w-3.5 h-3.5" /> £{item.price_gbp.toFixed(2)}
               </button>
             )}
           </div>
@@ -74,7 +80,7 @@ export function CosmeticsSheet({ api }) {
         </div>
       ))}
       {!native && (
-        <p className="text-[10px] text-victory-muted">Tap a price and we'll email you a payment link from {data.contact}.</p>
+        <p className="text-[10px] text-victory-muted">Bought once, yours to keep. Under 18? Tapping a price makes a link to send to a parent.</p>
       )}
     </div>
   );

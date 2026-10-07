@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
 import { ArrowLeft, CalendarDays, Lock, Swords, Trophy, Handshake } from "lucide-react";
+import { toast } from "sonner";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { FantasySidecar } from "@/components/fantasy/FantasySidecar";
@@ -37,6 +38,17 @@ export default function FantasyPage() {
   const [season, setSeason] = useState(null);
   const [view, setView] = useState("cards"); // cards | season | looks
   const isPro = !!user?.has_subscription;
+
+  // Back from Stripe checkout: switch the item on now rather than waiting for the webhook.
+  useEffect(() => {
+    const sid = params.get("cosmetic_paid");
+    if (!sid) return;
+    setParams({}, { replace: true });
+    setView("looks");
+    axios.get(`${API}/fantasy/cosmetics/confirm`, { params: { session_id: sid } })
+      .then(({ data }) => (data.paid ? toast.success(`${data.name} is yours! Tap Use to show it off.`) : toast("Payment still processing: it'll appear shortly.")))
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     axios.get(`${API}/fantasy/cards`).then((r) => setCards(r.data)).catch(() => setCards([]));

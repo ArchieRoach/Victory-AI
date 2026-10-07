@@ -1769,6 +1769,10 @@ async def stripe_webhook(request: Request):
                             "count": count,
                             "timestamp": datetime.now(timezone.utc).isoformat(),
                         })
+            elif purchase_type == "fantasy_cosmetic":
+                if _sget(event_data, "payment_status") == "paid" and meta.get("user_id"):
+                    await _grant_cosmetic(meta["user_id"], meta.get("cosmetic_id"))
+                    logger.info(f"Granted cosmetic {meta.get('cosmetic_id')} to {meta['user_id']}")
             elif purchase_type == "ad_campaign":
                 campaign_id = meta.get("campaign_id")
                 days = int(meta.get("days", 7))
@@ -8147,6 +8151,69 @@ async def request_fantasy_cosmetic(cosmetic_id: str, user: dict = Depends(get_cu
     return {"ok": True, "message": f"We'll email {user.get('email') or 'you'} a payment link."}
 
 
+class CosmeticCheckout(BaseModel):
+    origin_url: str = ""
+
+
+@api_router.post("/fantasy/cosmetics/{cosmetic_id}/checkout")
+async def cosmetic_checkout(cosmetic_id: str, data: CosmeticCheckout, user: dict = Depends(get_current_user)):
+    """Bought outright through Stripe; the webhook (or /confirm on return) switches it on.
+    Under-18s get the same link to send to a parent, who pays."""
+    import asyncio
+    item = FANTASY_COSMETICS.get(cosmetic_id)
+    if not item:
+        raise HTTPException(404, "Unknown item")
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0}) or user
+    if cosmetic_id in (fresh.get("fantasy_cosmetics") or []):
+        raise HTTPException(400, "You already own this")
+    if _rate_limited(f"cosmetic_checkout:{user['user_id']}", 10, 3600):
+        raise HTTPException(429, "Slow down a little")
+    host = _safe_checkout_origin(data.origin_url)
+    minor = _is_minor(fresh)
+    try:
+        session = await asyncio.to_thread(
+            stripe_lib.checkout.Session.create,
+            mode="payment",
+            payment_method_types=["card"],
+            line_items=[{"price_data": {"currency": "gbp", "unit_amount": int(round(item["price_gbp"] * 100)),
+                                        "product_data": {"name": f"Victory Fantasy — {item['name']}",
+                                                         "description": item["description"] + " Looks only; never changes points."}},
+                         "quantity": 1}],
+            success_url=f"{host}/fantasy?cosmetic_paid={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{host}/fantasy",
+            customer_email=None if minor else (fresh.get("email") or None),
+            metadata={"purchase_type": "fantasy_cosmetic", "user_id": user["user_id"], "cosmetic_id": cosmetic_id},
+        )
+    except Exception as e:
+        logger.error(f"Stripe cosmetic checkout error: {e}")
+        raise HTTPException(500, "Could not start checkout — please try again")
+    return {"checkout_url": session.url, "for_parent": minor, "item": item["name"], "price_gbp": item["price_gbp"]}
+
+
+async def _grant_cosmetic(user_id: str, cosmetic_id: str) -> bool:
+    if cosmetic_id not in FANTASY_COSMETICS:
+        return False
+    await db.users.update_one({"user_id": user_id}, {"$addToSet": {"fantasy_cosmetics": cosmetic_id}})
+    return True
+
+
+@api_router.get("/fantasy/cosmetics/confirm")
+async def confirm_cosmetic(session_id: str = Query(..., max_length=200), user: dict = Depends(get_current_user)):
+    """Switches the item on as soon as the buyer returns, in case the webhook is slower."""
+    import asyncio
+    try:
+        session = await asyncio.to_thread(stripe_lib.checkout.Session.retrieve, session_id)
+    except Exception:
+        raise HTTPException(404, "Payment not found")
+    meta = _sget(session, "metadata") or {}
+    if meta.get("purchase_type") != "fantasy_cosmetic" or meta.get("user_id") != user["user_id"]:
+        raise HTTPException(404, "Payment not found")
+    if _sget(session, "payment_status") != "paid":
+        return {"paid": False}
+    await _grant_cosmetic(user["user_id"], meta.get("cosmetic_id"))
+    return {"paid": True, "cosmetic_id": meta.get("cosmetic_id"), "name": FANTASY_COSMETICS[meta["cosmetic_id"]]["name"]}
+
+
 class CosmeticEquip(BaseModel):
     team_name: Optional[str] = Field(None, max_length=24)
 
@@ -8198,6 +8265,7 @@ class FantasyEnquiry(BaseModel):
     event_name: Optional[str] = Field(None, max_length=120)
     halal_confirmed: bool = False
     card: Optional[PromoterCardIn] = None  # promoters can send their whole card with records
+    promoter_key: Optional[str] = Field(None, max_length=64)  # from a trusted promoter's private link
     website: Optional[str] = None  # honeypot: real people never fill this in
 
 
@@ -8210,7 +8278,8 @@ async def fantasy_enquiry(data: FantasyEnquiry, request: Request):
         return {"ok": True}
     if data.kind == "sponsor" and not data.halal_confirmed:
         raise HTTPException(400, "We can only accept sponsors outside gambling, alcohol and interest-based lending.")
-    doc = {**data.model_dump(exclude={"website", "card"}), "status": "new", "created_at": datetime.now(timezone.utc).isoformat()}
+    doc = {**data.model_dump(exclude={"website", "card", "promoter_key"}), "enquiry_id": f"fe_{uuid.uuid4().hex[:10]}",
+           "status": "new", "created_at": datetime.now(timezone.utc).isoformat()}
     draft_id = None
     if data.kind == "promoter" and data.card:
         for text in [data.event_name or "", *(f.name for b in data.card.bouts for f in b.fighters)]:
@@ -8218,6 +8287,7 @@ async def fantasy_enquiry(data: FantasyEnquiry, request: Request):
                 raise HTTPException(400, "Something on the card isn't allowed — check the names")
         # A draft: hidden until an admin publishes it, then the promoter enters results by link.
         draft_id = f"fp_{uuid.uuid4().hex[:10]}"
+        trusted = await _trusted_promoter(data.promoter_key)
         bouts = _priced_bouts(draft_id, data.card.bouts)
         size, cap = fx.team_rules(len(bouts))
         await db.fantasy_cards.insert_one({
@@ -8227,6 +8297,15 @@ async def fantasy_enquiry(data: FantasyEnquiry, request: Request):
             "status": "upcoming", "bouts": bouts, "stable_size": size, "salary_cap": cap, "hidden": True,
             "pending_review": True, "created_at": doc["created_at"]})
         doc["card_id"] = draft_id
+        if trusted:
+            # Approved before: goes live straight away; the admin just gets an FYI.
+            doc["status"] = "auto_published"
+            await db.fantasy_enquiries.insert_one(doc)
+            await _publish_promoter_card(draft_id, trusted["email"])
+            await _email_fantasy_admin(f"Auto-published: {data.event_name or data.company}", {
+                "Promoter": data.company, "Card": f"{len(data.card.bouts)} bouts on {data.card.date} ({draft_id})",
+                "Why": "This promoter was approved before. Unpublish at /fantasy/admin if anything looks wrong."})
+            return {"ok": True, "card_submitted": True, "published": True}
     await db.fantasy_enquiries.insert_one(doc)
     label = "Sponsored league enquiry" if data.kind == "sponsor" else "Promoter: feature our card"
     await _email_fantasy_admin(f"{label} — {data.company}", {
@@ -8248,6 +8327,12 @@ async def require_fantasy_admin(user: dict = Depends(get_current_user)) -> dict:
 @api_router.get("/admin/fantasy/enquiries")
 async def admin_fantasy_enquiries(user: dict = Depends(require_fantasy_admin)):
     return await db.fantasy_enquiries.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+
+
+@api_router.post("/admin/fantasy/enquiries/{enquiry_id}/done")
+async def admin_enquiry_done(enquiry_id: str, user: dict = Depends(require_fantasy_admin)):
+    await db.fantasy_enquiries.update_one({"enquiry_id": enquiry_id}, {"$set": {"status": "done"}})
+    return {"ok": True}
 
 
 @api_router.get("/admin/fantasy/cards")
@@ -8385,24 +8470,63 @@ async def _start_card(card: dict) -> dict:
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://victory-ai-alpha.vercel.app")
 
 
+async def _trusted_promoter(key: Optional[str]) -> Optional[dict]:
+    if not key:
+        return None
+    doc = await db.fantasy_promoters.find_one({"key": key, "trusted": True}, {"_id": 0})
+    return doc if doc and secrets.compare_digest(doc["key"], key) else None
+
+
+async def _send_email(to: str, subject: str, html_body: str, reply_to: Optional[str] = None):
+    if not RESEND_API_KEY or not to:
+        return
+    payload = {"from": RESEND_FROM, "to": [to], "subject": subject, "html": html_body}
+    if reply_to:
+        payload["reply_to"] = reply_to
+    try:
+        async with httpx.AsyncClient(timeout=10) as http_client:
+            await http_client.post("https://api.resend.com/emails", json=payload, headers={"Authorization": f"Bearer {RESEND_API_KEY}"})
+    except Exception as e:
+        logger.warning(f"[fantasy] email to promoter failed: {e}")
+
+
+async def _publish_promoter_card(card_id: str, promoter_email: Optional[str]) -> dict:
+    """Publishes the card, trusts the promoter for next time, and emails them two private
+    links: results for this show, and a submit link that publishes future cards directly."""
+    card = await db.fantasy_cards.find_one({"card_id": card_id}, {"_id": 0})
+    await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"hidden": False, "pending_review": False}})
+    results_link = f"{FRONTEND_URL}/fantasy/results/{card_id}?t={card.get('results_token', '')}"
+    submit_link = None
+    if promoter_email:
+        email = promoter_email.strip().lower()
+        prom = await db.fantasy_promoters.find_one({"email": email})
+        if not prom:
+            prom = {"email": email, "key": secrets.token_urlsafe(24), "trusted": True, "name": card.get("promoter"),
+                    "created_at": datetime.now(timezone.utc).isoformat()}
+            await db.fantasy_promoters.insert_one(dict(prom))
+        submit_link = f"{FRONTEND_URL}/fantasy/partners?promoter={prom['key']}"
+        await _send_email(promoter_email, f"{card['title']} is live on Victory Fantasy",
+            f"<p>Your card is live in the Victory Fantasy fixture list.</p>"
+            f"<p><b>Fight night:</b> tap <b>First bell</b> at <a href='{html.escape(results_link)}'>your results link</a> "
+            f"and add each result as it happens.</p>"
+            f"<p><b>Next show:</b> send it with <a href='{html.escape(submit_link)}'>your promoter link</a> and it goes live straight away.</p>"
+            f"<p>Keep both links private.</p>", reply_to=FANTASY_ADMIN_EMAIL)
+    return {"results_link": results_link, "submit_link": submit_link}
+
+
 @api_router.post("/admin/fantasy/cards/{card_id}/publish")
 async def admin_publish_card(card_id: str, user: dict = Depends(require_fantasy_admin)):
     """Publishes a promoter's submitted card and emails them their results link."""
     card = await _get_card(card_id)
-    await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"hidden": False, "pending_review": False}})
-    link = f"{FRONTEND_URL}/fantasy/results/{card_id}?t={card.get('results_token', '')}"
-    if card.get("promoter_email") and RESEND_API_KEY:
-        try:
-            async with httpx.AsyncClient(timeout=10) as http_client:
-                await http_client.post("https://api.resend.com/emails", headers={"Authorization": f"Bearer {RESEND_API_KEY}"}, json={
-                    "from": RESEND_FROM, "to": [card["promoter_email"]], "reply_to": FANTASY_ADMIN_EMAIL,
-                    "subject": f"{card['title']} is live on Victory Fantasy",
-                    "html": f"<p>Your card is live in the Victory Fantasy fixture list.</p>"
-                            f"<p>On fight night, tap <b>First bell</b> at <a href='{html.escape(link)}'>this private link</a> "
-                            f"and add each result as it happens. Keep the link private — anyone with it can enter results.</p>"})
-        except Exception as e:
-            logger.warning(f"[fantasy] promoter email failed: {e}")
-    return {"ok": True, "results_link": link}
+    links = await _publish_promoter_card(card_id, card.get("promoter_email"))
+    return {"ok": True, **links}
+
+
+@api_router.post("/admin/fantasy/cards/{card_id}/unpublish")
+async def admin_unpublish_card(card_id: str, user: dict = Depends(require_fantasy_admin)):
+    await _get_card(card_id)
+    await db.fantasy_cards.update_one({"card_id": card_id}, {"$set": {"hidden": True}})
+    return {"ok": True}
 
 
 async def _promoter_card(card_id: str, t: str, request: Request) -> dict:
@@ -8640,7 +8764,7 @@ def _week_key(d: str) -> str:
 
 
 def _bout_status(fight: dict) -> str:
-    if fight.get("result"):
+    if fight.get("result") or fight.get("fantasy_void"):
         return "complete"
     return "live" if _days_to(fight) <= 0 else "upcoming"
 
@@ -8667,6 +8791,8 @@ async def sync_amateur_card(group: str, week: str):
             winner = me_id if r["outcome"] == "win" else them_id if r["outcome"] == "loss" else None
             method = {"draw": "D", "nc": "NC"}.get(r["outcome"], r.get("method") or "UD")
             result = {"winner_id": winner, "method": method, "round": r.get("round") or f["scheduled_rounds"], "clean_sweep": False}
+        elif f.get("fantasy_void"):
+            result = {"winner_id": None, "method": fx.VOID, "round": f["scheduled_rounds"], "clean_sweep": False}
         bouts.append({"bout_id": f["fight_id"], "order": i + 1, "division": f.get("weight_class") or "", "titles": [],
                       "scheduled_rounds": f["scheduled_rounds"], "status": _bout_status(f), "result": result,
                       "fighters": [{"fighter_id": me_id, "user_id": u["user_id"], "name": u.get("display_name") or u.get("name") or "Boxer",
@@ -8975,6 +9101,112 @@ async def _buddy_loop():
 
 
 
+
+# ============== FANTASY OPS (runs itself) ==============
+# Goal: the admin's whole routine is answering deal emails and approving a promoter's
+#   first card; everything else here happens on its own.
+# Design: the morning after a show, promoters with missing results get a reminder; three
+#   days on (seven for amateur fights, which wait on the boxer) unreported bouts close as
+#   "No result recorded" so cards finish and nobody is scored on a guess. Every Monday the
+#   admin inbox gets one email listing anything that needs a person, or nothing at all.
+RESULTS_REMIND_DAYS, RESULTS_CLOSE_DAYS, AMATEUR_CLOSE_DAYS = 1, 3, 7
+
+
+async def _close_unreported(card: dict) -> int:
+    closed = 0
+    for b in card["bouts"]:
+        if b.get("status") != "complete":
+            b["status"], b["result"], b["manual_result"] = "complete", {
+                "winner_id": None, "method": fx.VOID, "round": b.get("scheduled_rounds") or 1, "clean_sweep": False}, True
+            closed += 1
+    if closed:
+        card["status"] = fx.card_status(card["bouts"])
+        await db.fantasy_cards.update_one({"card_id": card["card_id"]}, {"$set": {"bouts": card["bouts"], "status": card["status"]}})
+        await _notify_fantasy_card_done(card)
+    return closed
+
+
+async def run_fantasy_ops(today: Optional[date] = None) -> dict:
+    today = today or _uk_today()
+    out = {"reminded": 0, "closed_bouts": 0, "amateur_closed": 0}
+    cards = await db.fantasy_cards.find({"source": {"$in": ["promoter", "manual"]}, "status": {"$ne": "complete"},
+                                         "hidden": {"$ne": True}}, {"_id": 0}).to_list(500)
+    for card in cards:
+        try:
+            age = (today - date.fromisoformat(card["date"][:10])).days
+        except (KeyError, ValueError):
+            continue
+        if age >= RESULTS_CLOSE_DAYS:
+            n = await _close_unreported(card)
+            out["closed_bouts"] += n
+            if n:
+                await _email_fantasy_admin(f"Closed {n} unreported bout(s): {card['title']}", {
+                    "Card": card["card_id"], "What happened": "No result arrived within 3 days, so these bouts score 0 for everyone.",
+                    "To fix": "Enter the real result at /fantasy/admin; it replaces 'No result recorded'."})
+        elif age >= RESULTS_REMIND_DAYS and not card.get("results_reminded") and card.get("promoter_email"):
+            link = f"{FRONTEND_URL}/fantasy/results/{card['card_id']}?t={card.get('results_token', '')}"
+            await _send_email(card["promoter_email"], f"Results needed: {card['title']}",
+                f"<p>Players are waiting for the results from {html.escape(card['title'])}.</p>"
+                f"<p>Add them at <a href='{html.escape(link)}'>your results link</a>. Bouts without a result after 3 days "
+                f"close as 'No result recorded'.</p>", reply_to=FANTASY_ADMIN_EMAIL)
+            await db.fantasy_cards.update_one({"card_id": card["card_id"]}, {"$set": {"results_reminded": True}})
+            out["reminded"] += 1
+    cutoff = (today - timedelta(days=AMATEUR_CLOSE_DAYS)).isoformat()
+    for f in await db.amateur_fights.find({"status": "upcoming", "date": {"$lte": cutoff}, "fantasy_opt_in": True,
+                                            "fantasy_void": {"$ne": True}}, {"_id": 0}).to_list(500):
+        await db.amateur_fights.update_one({"fight_id": f["fight_id"]}, {"$set": {"fantasy_void": True}})
+        await sync_amateur_card(f["fantasy_group"], f["week"])
+        out["amateur_closed"] += 1
+    return out
+
+
+async def build_admin_digest() -> dict:
+    """Everything that needs a person, in one list. Empty means no email."""
+    rows = {}
+    pending = await db.fantasy_cards.find({"pending_review": True, "source": "promoter"}, {"_id": 0, "title": 1, "promoter": 1}).to_list(50)
+    if pending:
+        rows["Promoter cards to approve"] = "; ".join(f"{c['title']} ({c.get('promoter') or '?'})" for c in pending)
+    deals = await db.fantasy_enquiries.find({"status": "new", "kind": {"$in": ["sponsor", "promoter"]}}, {"_id": 0, "company": 1, "kind": 1}).to_list(50)
+    if deals:
+        rows["Deal enquiries to answer"] = "; ".join(f"{d['company']} ({d['kind']})" for d in deals)
+    cutoff = (_uk_today() - timedelta(days=RESULTS_REMIND_DAYS)).isoformat()
+    missing = await db.fantasy_cards.find({"source": {"$in": ["promoter", "manual"]}, "status": {"$ne": "complete"},
+                                           "hidden": {"$ne": True}, "date": {"$lte": cutoff}}, {"_id": 0, "title": 1}).to_list(50)
+    if missing:
+        rows["Cards still missing results"] = "; ".join(c["title"] for c in missing)
+    paused = await _feed_paused()
+    if paused:
+        rows["Data feed"] = "Paused this month (free plan). Promoter, amateur and admin cards still work."
+    return rows
+
+
+async def send_weekly_digest(now: Optional[datetime] = None) -> bool:
+    now = now or datetime.now(UK_TZ)
+    if now.weekday() != 0 or now.hour < 9:
+        return False
+    week = now.strftime("%G-W%V")
+    claimed = await db.counters.update_one({"_id": f"admin_digest_{week}"}, {"$setOnInsert": {"at": now.isoformat()}}, upsert=True)
+    if not claimed.upserted_id:
+        return False  # already handled this week
+    rows = await build_admin_digest()
+    if not rows:
+        return False
+    await _email_fantasy_admin("Your weekly to-do", {**rows, "Open": f"{FRONTEND_URL}/fantasy/admin"})
+    return True
+
+
+async def _fantasy_ops_loop():
+    while True:
+        await asyncio.sleep(1800)
+        if datetime.now(UK_TZ).hour not in BUDDY_HOURS:
+            continue
+        try:
+            await run_fantasy_ops()
+            await send_weekly_digest()
+        except Exception as exc:
+            logger.warning(f"[fantasy] ops error: {_redact(exc)}")
+
+
 app.include_router(api_router)
 
 async def _scheduled_stream_reminder_loop():
@@ -9164,6 +9396,7 @@ async def startup():
     _aio.create_task(_investment_loop())
     _aio.create_task(_fantasy_loop())
     _aio.create_task(_buddy_loop())
+    _aio.create_task(_fantasy_ops_loop())
 
 @app.on_event("shutdown")
 async def shutdown():

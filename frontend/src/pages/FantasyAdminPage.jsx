@@ -96,6 +96,11 @@ export default function FantasyAdminPage() {
               </p>
               <p className="text-victory-muted">{e.email}{e.event_name ? ` · ${e.event_name}` : ""}</p>
               {e.message && <p className="text-victory-muted">{e.message}</p>}
+              {e.enquiry_id && e.status === "new" && (
+                <button className="victory-btn-ghost w-auto px-3 min-h-[44px] text-xs mt-1" onClick={() => post(`/admin/fantasy/enquiries/${e.enquiry_id}/done`, {}, "Marked as done")}>
+                  Done
+                </button>
+              )}
               {e.kind === "cosmetic" && e.status !== "granted" && (
                 <button className="victory-btn-secondary w-auto px-3 min-h-[44px] text-xs mt-1"
                   onClick={() => post("/admin/fantasy/cosmetics/grant", { email: e.email, cosmetic_id: e.cosmetic_id }, "Granted")}>
@@ -152,12 +157,17 @@ function AdminCardRow({ card, post }) {
         <p className="text-victory-text font-semibold">{card.title} <span className="text-victory-muted font-normal">· {card.status} · {card.reason} · {(card.date || "").slice(0, 10)}</span></p>
         <p className="text-victory-muted">{card.card_id}{card.featured ? " · featured" : ""}{card.sponsor?.name ? ` · ${card.sponsor.name}` : ""}</p>
       </button>
+      {card.source === "promoter" && !card.pending_review && !card.hidden && (
+        <button className="victory-btn-ghost w-auto px-3 min-h-[44px] text-xs" onClick={() => post(`/admin/fantasy/cards/${card.card_id}/unpublish`, {}, "Unpublished")}>
+          Unpublish
+        </button>
+      )}
       {card.pending_review && (
         <button className="victory-btn-primary w-auto px-4" onClick={async () => {
           const r = await post(`/admin/fantasy/cards/${card.card_id}/publish`, {}, "Published — the promoter has their results link");
           if (r?.results_link) navigator.clipboard?.writeText(r.results_link).catch(() => {});
         }}>
-          Checked — publish (promoter sent this)
+          Checked: publish and trust this promoter
         </button>
       )}
       {open && (

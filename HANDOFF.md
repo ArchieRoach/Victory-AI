@@ -446,6 +446,34 @@ Coach as well as recording.
   simulated results) and a link to add your own fight in `/camp`.
 - **Tests:** `backend/test_fantasy_lowcost.py` (8) and `frontend/src/lib/parseCard.test.js` (2).
 
+## Fantasy runs itself (automation)
+- **Admin routine:** answer sponsor and promoter emails, approve a promoter's *first* card, and read
+  the Monday email. Nothing else.
+- **Cosmetics through Stripe:**
+  - Tapping a price calls `POST /api/fantasy/cosmetics/{id}/checkout`, which opens Stripe checkout
+    (GBP, bought outright).
+  - Once paid, the item switches on through the webhook (`purchase_type=fantasy_cosmetic`) or
+    through `GET /api/fantasy/cosmetics/confirm` when the buyer returns.
+  - Under-18s (or unknown age) get the same link to share with a parent, and their email isn't
+    pre-filled.
+  - Buying stays hidden in the native app.
+  - The Stripe webhook must send `checkout.session.completed`, which it already does for tokens.
+- **Trusted promoters:**
+  - Publishing a promoter's first card trusts them (`fantasy_promoters`) and emails two private
+    links: the results link, and a submit link (`/fantasy/partners?promoter=KEY`).
+  - Cards sent through the submit link go live immediately, and the admin gets an FYI email.
+  - The admin can Unpublish any card.
+- **Results (`_fantasy_ops_loop`, every 30 minutes, 08:00–20:00 UK time):**
+  - The day after a promoter or manual card, a reminder goes to the promoter.
+  - After 3 days, unreported bouts close as `VOID` ("No result recorded", 0 points), and the admin
+    is told.
+  - Amateur fights left unreported for 7 days close the same way.
+  - A late real result always replaces `VOID`.
+- **Weekly email:** Mondays from 09:00 UK time, hello@ gets "Your weekly to-do" listing promoter
+  cards to approve, deal enquiries not marked Done, cards missing results, and the feed state.
+  Nothing outstanding means no email.
+- **Tests:** `backend/test_fantasy_automation.py` (7).
+
 ## My boxing: fight camp, amateur record and training buddy (same branch)
 - **Page:** `/camp` ("My boxing", linked from Profile). Backend section: `FIGHT CAMP + AMATEUR
   RECORD` in `server.py`.
