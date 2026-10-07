@@ -7662,8 +7662,19 @@ async def _investment_loop():
 # Manual:     amateur cards (no licensed amateur data feed exists) — entered by an admin.
 import fantasy_engine as fx
 
-BOXING_DATA_API_KEY = os.environ.get("BOXING_DATA_API_KEY", "")
-BOXING_DATA_HOST = os.environ.get("BOXING_DATA_HOST", "boxing-data-api.p.rapidapi.com")
+# Stripped: a key pasted into Railway with a trailing newline is an illegal header value.
+BOXING_DATA_API_KEY = os.environ.get("BOXING_DATA_API_KEY", "").strip()
+BOXING_DATA_HOST = os.environ.get("BOXING_DATA_HOST", "").strip() or "boxing-data-api.p.rapidapi.com"
+
+
+def _redact(text) -> str:
+    """Error text can echo request headers, so the key is masked before it's shown or logged."""
+    text = str(text)
+    raw = os.environ.get("BOXING_DATA_API_KEY", "")
+    for secret in {BOXING_DATA_API_KEY, raw, raw.strip()}:
+        if secret and len(secret) >= 8:
+            text = text.replace(secret, "***").replace(repr(secret.encode())[2:-1], "***")
+    return text
 FANTASY_ADMIN_EMAIL = ADMIN_INBOX_EMAIL
 FANTASY_LOOKAHEAD_DAYS = 14
 # Low-cost defaults: the feed is used for world-title cards only, the schedule is checked
@@ -7767,7 +7778,7 @@ async def _fighter_stats(fighter_id: str) -> dict:
     try:
         data = (await _bd_get(f"/v2/fighters/{fighter_id}")).get("data") or {}
     except Exception as e:
-        logger.warning(f"[fantasy] fighter {fighter_id} fetch failed: {e}")
+        logger.warning(f"[fantasy] fighter {fighter_id} fetch failed: {_redact(e)}")
         return cached or {"fighter_id": fighter_id, "stats": {}}
     doc = {"fighter_id": fighter_id, "name": data.get("name"), "nickname": data.get("nickname"),
            "nationality": data.get("nationality_code") or data.get("nationality"),
@@ -7939,7 +7950,7 @@ async def _fantasy_loop():
         except FeedBudgetSpent as month:
             logger.warning(f"[fantasy] monthly feed budget spent for {month}; pausing until next month")
         except Exception as exc:
-            logger.warning(f"[fantasy] loop error: {exc}")
+            logger.warning(f"[fantasy] loop error: {_redact(exc)}")
 
 
 # ── Player endpoints ────────────────────────────────────────────────────────
@@ -8444,8 +8455,8 @@ async def admin_fantasy_sync(user: dict = Depends(require_fantasy_admin)):
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"The data feed refused the request ({e.response.status_code}): {_feed_error_text(e.response)}")
     except Exception as e:
-        logger.exception("[fantasy] admin sync failed")
-        raise HTTPException(500, f"Sync failed: {type(e).__name__}: {str(e)[:200]}")
+        logger.warning(f"[fantasy] admin sync failed: {type(e).__name__}: {_redact(e)}")
+        raise HTTPException(500, f"Sync failed: {type(e).__name__}: {_redact(e)[:200]}")
 
 
 def _feed_error_text(response) -> str:
@@ -8457,7 +8468,7 @@ def _feed_error_text(response) -> str:
         msg = response.text
     hints = {401: " Check the key is the X-RapidAPI-Key value.", 403: " Subscribe to a plan (Free is fine) on RapidAPI.",
              429: " Rate limit or monthly quota reached on RapidAPI."}
-    return str(msg)[:200] + hints.get(response.status_code, "")
+    return _redact(msg)[:200] + hints.get(response.status_code, "")
 
 
 

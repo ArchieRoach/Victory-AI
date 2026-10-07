@@ -170,6 +170,30 @@ def test_admin_sync_explains_a_feed_refusal():
     assert r.status_code == 502 and "not subscribed" in r.json()["detail"] and "Subscribe to a plan" in r.json()["detail"]
 
 
+
+def test_errors_never_show_the_api_key():
+    key = "SECRETKEY1234567890abc"
+    old = server.BOXING_DATA_API_KEY
+    server.BOXING_DATA_API_KEY = key
+    try:
+        err = ValueError(f"Illegal header value b'{key}\\n'")
+        assert key not in server._redact(err) and "***" in server._redact(err)
+
+        class Boom(FakeClient):
+            async def get(self, url, params=None, headers=None):
+                raise ValueError(f"Illegal header value {headers['X-RapidAPI-Key']!r}")
+
+        real, server.httpx.AsyncClient = server.httpx.AsyncClient, Boom
+        CURRENT["user"] = ADMIN
+        try:
+            r = client.post("/api/admin/fantasy/sync")
+        finally:
+            server.httpx.AsyncClient, CURRENT["user"] = real, ME
+        assert r.status_code == 500 and key not in r.text, r.text
+    finally:
+        server.BOXING_DATA_API_KEY = old
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:
