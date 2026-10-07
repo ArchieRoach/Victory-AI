@@ -144,6 +144,32 @@ def test_promoter_sends_a_card_admin_publishes_promoter_enters_results():
     assert board[0]["total"] == 60, "Lee and the underdog Rob both win by round-1 KO: 2 × (20 + 10)"
 
 
+
+def test_admin_sync_explains_a_feed_refusal():
+    class Refused:
+        status_code = 403
+        text = ""
+
+        def json(self):
+            return {"message": "You are not subscribed to this API."}
+
+        def raise_for_status(self):
+            raise server.httpx.HTTPStatusError("403", request=None, response=self)
+
+    class RefusingClient(FakeClient):
+        async def get(self, url, params=None, headers=None):
+            return Refused()
+
+    server.BOXING_DATA_MONTHLY_LIMIT = 1000
+    real, server.httpx.AsyncClient = server.httpx.AsyncClient, RefusingClient
+    CURRENT["user"] = ADMIN
+    try:
+        r = client.post("/api/admin/fantasy/sync")
+    finally:
+        server.httpx.AsyncClient, CURRENT["user"] = real, ME
+    assert r.status_code == 502 and "not subscribed" in r.json()["detail"] and "Subscribe to a plan" in r.json()["detail"]
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:
