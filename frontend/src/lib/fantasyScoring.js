@@ -77,6 +77,9 @@ export function scoreFighter(fighterId, bout) {
   const { winner_id, method, round, clean_sweep } = bout.result;
   const lines = [];
 
+  // Closed with no result after the promoter/boxer never reported it: nobody scores.
+  if (method === "VOID") return { total: 0, lines: [{ label: "No result recorded", pts: 0, kind: "base" }], outcome: "void" };
+
   if (NO_DECISION.has(method)) {
     // Spec: "Technical Draw / No Contest: +5". An ordinary draw is treated the same way
     // (neither fighter lost) — change POINTS.TD_NC handling here if you'd rather score it 0.

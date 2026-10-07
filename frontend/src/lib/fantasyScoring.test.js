@@ -110,3 +110,13 @@ test("every line a player sees is in plain words — no boxing codes", () => {
     "Won by knockout in round 2", "Super-fast knockout bonus", "Won every round bonus",
   ]);
 });
+
+test("a bout closed with no result scores nothing for either boxer", () => {
+  const bout = { status: "complete", scheduled_rounds: 6, fighters: [{ fighter_id: "a" }, { fighter_id: "b" }],
+    result: { winner_id: null, method: "VOID", round: 6, clean_sweep: false } };
+  for (const id of ["a", "b"]) {
+    const r = scoreFighter(id, bout);
+    expect(r.total).toBe(0);
+    expect(r.lines[0].label).toBe("No result recorded");
+  }
+});

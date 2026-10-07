@@ -26,6 +26,9 @@ STOPPAGES = {"KO", "TKO", "DQ"}
 KNOCKOUTS = {"KO", "TKO"}
 KNOWN_WIN_METHODS = {"KO", "TKO", "DQ", "UD", "MD", "SD"}
 NO_DECISION = {"TD", "NC", "D"}
+# A bout whose result never arrived: closed after a few days so the card can finish, and
+# nobody gets points for it (never a guessed result).
+VOID = "VOID"
 
 UK_PLACES = ("united kingdom", "england", "scotland", "wales", "northern ireland")
 WORLD_TITLE = re.compile(r"\b(WBC|WBA|IBF|WBO)\b.*\bworld\b|\bworld\b.*\b(WBC|WBA|IBF|WBO)\b|\bundisputed\b|\bring magazine\b", re.I)
@@ -160,6 +163,8 @@ def score_fighter(fighter_id: str, bout: dict) -> Optional[int]:
         return None
     r = bout["result"]
     method, rnd = r.get("method"), r.get("round")
+    if method == VOID:
+        return 0
     if method in NO_DECISION:
         return POINTS["TD_NC"]
     if r.get("winner_id") != fighter_id:
