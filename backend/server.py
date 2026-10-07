@@ -7815,7 +7815,14 @@ async def sync_fantasy_cards(force_event_ids: Optional[set] = None) -> dict:
     starts, then frozen; promoter-featured cards are kept even outside the UK."""
     if not BOXING_DATA_API_KEY:
         return {"skipped": "BOXING_DATA_API_KEY not set"}
-    fights = await _bd_all("/v2/fights/schedule", {"days": FANTASY_LOOKAHEAD_DAYS, "page_size": 25, "date_sort": "ASC"})
+    try:
+        fights = await _bd_all("/v2/fights/schedule", {"days": FANTASY_LOOKAHEAD_DAYS, "page_size": 25, "date_sort": "ASC"})
+    except httpx.HTTPStatusError as e:
+        if _feed_error_code(e.response) in PLAN_REFUSALS:
+            await _pause_feed(_feed_error_text(e.response))
+            return {"paused": "Your RapidAPI plan doesn't include upcoming fights, so the daily import is paused "
+                              "until next month. Promoter, amateur and admin cards still work."}
+        raise
     by_event: Dict[str, list] = {}
     events: Dict[str, dict] = {}
     for f in fights:
@@ -7938,7 +7945,7 @@ async def _fantasy_loop():
             continue
         try:
             await lock_started_cards()
-            if time.time() - last_import > FANTASY_IMPORT_HOURS * 3600:
+            if time.time() - last_import > FANTASY_IMPORT_HOURS * 3600 and not await _feed_paused():
                 last_import = time.time()
                 logger.info(f"[fantasy] import: {await sync_fantasy_cards()}")
             now = datetime.now(timezone.utc)
@@ -8444,6 +8451,15 @@ async def admin_grant_cosmetic(data: CosmeticGrant, user: dict = Depends(require
     return {"ok": True}
 
 
+@api_router.get("/admin/fantasy/feed-status")
+async def admin_feed_status(user: dict = Depends(require_fantasy_admin)):
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    used = (await db.counters.find_one({"_id": f"boxing_data_{month}"}) or {}).get("n", 0)
+    paused = await _feed_paused()
+    return {"key_set": bool(BOXING_DATA_API_KEY), "used": min(used, BOXING_DATA_MONTHLY_LIMIT),
+            "limit": BOXING_DATA_MONTHLY_LIMIT, "paused": (paused or {}).get("reason"), "scope": FANTASY_FEED_SCOPE}
+
+
 @api_router.post("/admin/fantasy/sync")
 async def admin_fantasy_sync(user: dict = Depends(require_fantasy_admin)):
     if not BOXING_DATA_API_KEY:
@@ -8459,11 +8475,39 @@ async def admin_fantasy_sync(user: dict = Depends(require_fantasy_admin)):
         raise HTTPException(500, f"Sync failed: {type(e).__name__}: {_redact(e)[:200]}")
 
 
+# The free plan answers schedule requests with DateOutOfRange: retrying daily would only
+# burn the 100 free requests, so the first refusal pauses the import for the month.
+PLAN_REFUSALS = {"DateOutOfRange"}
+
+
+def _feed_error_code(response) -> str:
+    try:
+        return ((response.json() or {}).get("error") or {}).get("code") or ""
+    except Exception:
+        return ""
+
+
+async def _pause_feed(reason: str):
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    res = await db.counters.update_one({"_id": f"boxing_data_paused_{month}"},
+                                       {"$setOnInsert": {"reason": reason, "at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
+    if res.upserted_id:
+        await _email_fantasy_admin("Data feed paused for this month", {
+            "Why": reason, "What still works": "Promoter-sent cards, amateur fights from /camp and cards added at /fantasy/admin.",
+            "To resume": "Upgrade the RapidAPI plan, then tap sync on /fantasy/admin (the pause also lifts next month)."})
+
+
+async def _feed_paused() -> Optional[dict]:
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    return await db.counters.find_one({"_id": f"boxing_data_paused_{month}"}, {"_id": 0})
+
+
 def _feed_error_text(response) -> str:
     """RapidAPI explains refusals in the body (e.g. "You are not subscribed to this API.")."""
     try:
         body = response.json()
-        msg = body.get("message") or body.get("error") or body
+        err = body.get("error")
+        msg = body.get("message") or (err.get("message") if isinstance(err, dict) else err) or body
     except Exception:
         msg = response.text
     hints = {401: " Check the key is the X-RapidAPI-Key value.", 403: " Subscribe to a plan (Free is fine) on RapidAPI.",

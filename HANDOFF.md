@@ -438,7 +438,13 @@ Coach as well as recording.
     `/fantasy/results/{card_id}?t=…`, where they lock picks at the first bell and enter each
     result.
   - Admins can also paste a card into the manual card form.
-- **Tests:** `backend/test_fantasy_lowcost.py` (5) and `frontend/src/lib/parseCard.test.js` (2).
+- **Free plan:** the feed's free plan refuses upcoming-fight requests (`DateOutOfRange`). The first
+  refusal pauses the daily import for that month (`counters/boxing_data_paused_YYYY-MM`) and emails
+  the admin once, so the 100 free requests aren't wasted. `/fantasy/admin` shows the feed's state
+  (`GET /api/admin/fantasy/feed-status`).
+- **Practice card:** when there are no real cards, `/fantasy` offers a practice card (demo boxers,
+  simulated results) and a link to add your own fight in `/camp`.
+- **Tests:** `backend/test_fantasy_lowcost.py` (8) and `frontend/src/lib/parseCard.test.js` (2).
 
 ## My boxing: fight camp, amateur record and training buddy (same branch)
 - **Page:** `/camp` ("My boxing", linked from Profile). Backend section: `FIGHT CAMP + AMATEUR

@@ -194,6 +194,41 @@ def test_errors_never_show_the_api_key():
         server.BOXING_DATA_API_KEY = old
 
 
+
+def test_free_plan_refusal_pauses_the_import_and_emails_once():
+    class OutOfRange:
+        status_code = 403
+        text = ""
+
+        def json(self):
+            return {"error": {"code": "DateOutOfRange", "message": "Requested date is outside your subscription's allowed date range"}, "data": None}
+
+        def raise_for_status(self):
+            raise server.httpx.HTTPStatusError("403", request=None, response=self)
+
+    class FreePlan(FakeClient):
+        async def get(self, url, params=None, headers=None):
+            return OutOfRange()
+
+    server.BOXING_DATA_MONTHLY_LIMIT = 1000
+    real, server.httpx.AsyncClient = server.httpx.AsyncClient, FreePlan
+    emails.clear()
+    try:
+        first = run(server.sync_fantasy_cards())
+        run(server.sync_fantasy_cards())
+    finally:
+        server.httpx.AsyncClient = real
+    assert "paused" in first and "Promoter" in first["paused"]
+    assert emails.count("Data feed paused for this month") == 1, "one email, not one a day"
+    assert run(server._feed_paused())["reason"].startswith("Requested date is outside")
+    CURRENT["user"] = ADMIN
+    try:
+        status = client.get("/api/admin/fantasy/feed-status").json()
+    finally:
+        CURRENT["user"] = ME
+    assert status["key_set"] and status["paused"] and status["limit"] == 1000
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:
