@@ -33,7 +33,7 @@ const TABS = [
   { key: "league", label: "3. Friends" },
 ];
 
-export function FantasySidecar({ cardId = "card_demo", user, showAdmin = false, api, league: leagueId = "squad" }) {
+export function FantasySidecar({ cardId = "card_demo", user, showAdmin = false, api, league: leagueId = "squad", practice = false }) {
   const { service, card, me, league, movement, myStable } = useFantasyLeague({ cardId, user, api, league: leagueId });
   // Before the card starts, land on Draft; once it's under way, land on the scorecard.
   const [tab, setTab] = useState(() => (isCardLocked(card) && me.saved ? "score" : "draft"));
@@ -58,6 +58,8 @@ export function FantasySidecar({ cardId = "card_demo", user, showAdmin = false, 
         </span>
       </header>
 
+      {practice && <PracticeBar card={card} me={me} service={service} onPlayed={() => setTab("score")} />}
+
       <div className="flex gap-1.5 overflow-x-auto no-scrollbar" role="tablist">
         {tabs.map((t) => (
           <button
@@ -80,6 +82,30 @@ export function FantasySidecar({ cardId = "card_demo", user, showAdmin = false, 
         {tab === "admin" && showAdmin && service.admin && <AdminPanel card={card} service={service} />}
       </div>
     </section>
+  );
+}
+
+// Practice card: made-up boxers and simulated results, so a first-timer can feel a whole
+// card play out (pick, watch points land, see the table move) before any real fight night.
+function PracticeBar({ card, me, service, onPlayed }) {
+  const [playing, setPlaying] = useState(false);
+  const play = async () => {
+    setPlaying(true);
+    onPlayed();
+    await service.admin.simulateCard(1200);
+    setPlaying(false);
+  };
+  return (
+    <div className="victory-card p-3 space-y-2 border-victory-teal/30" data-testid="practice-bar">
+      <p className="text-[11px] text-victory-muted">Practice card: made-up boxers, just to learn the game.</p>
+      {card.status === "complete" ? (
+        <button className="victory-btn-ghost w-full" onClick={() => service.admin.reset()}>Play again</button>
+      ) : me.saved ? (
+        <button className="victory-btn-primary w-full" disabled={playing} onClick={play}>{playing ? "Fights on…" : "Start the fights"}</button>
+      ) : (
+        <p className="text-[11px] text-victory-teal">Pick your team below, then start the fights.</p>
+      )}
+    </div>
   );
 }
 

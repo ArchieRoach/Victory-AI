@@ -18,6 +18,7 @@ import { CosmeticsSheet } from "@/components/fantasy/CosmeticsSheet";
 //   playing never is.
 const REASON = { uk: "UK show", world_title: "World title", amateur: "Amateur", promoter: "Featured" };
 const STATUS = { upcoming: "Pick now", live: "Fights on", complete: "Finished" };
+const PRACTICE = "practice";
 
 function formatDay(iso) {
   if (!iso) return "";
@@ -70,11 +71,15 @@ export default function FantasyPage() {
         </header>
       </div>
 
-      <main className="max-w-lg mx-auto px-4 py-4 space-y-4">
-        <LeagueSwitcher api={API} leagues={leagues} value={league} onChange={setLeague} onLeaguesChanged={loadLeagues} isPro={isPro} />
-
-        {cardId ? (
-          <FantasySidecar key={`${cardId}-${league}`} cardId={cardId} user={user} api={API} league={league} />
+      {/* Extra bottom room so the floating feedback button never covers the last item. */}
+      <main className="max-w-lg mx-auto px-4 pt-4 pb-40 space-y-4">
+        {cardId === PRACTICE ? (
+          <FantasySidecar key="practice" cardId="card_demo" user={user} practice />
+        ) : cardId ? (
+          <>
+            <LeagueSwitcher api={API} leagues={leagues} value={league} onChange={setLeague} onLeaguesChanged={loadLeagues} isPro={isPro} />
+            <FantasySidecar key={`${cardId}-${league}`} cardId={cardId} user={user} api={API} league={league} />
+          </>
         ) : (
           <>
             <div className="flex gap-1.5" role="tablist">
@@ -86,8 +91,13 @@ export default function FantasyPage() {
               ))}
             </div>
 
-            {view === "cards" && <CardList cards={cards} onOpen={open} />}
-            {view === "season" && (isPro ? <Season season={season} /> : <SeasonLocked onUpgrade={() => navigate("/paywall")} />)}
+            {view === "cards" && <CardList cards={cards} onOpen={open} onCamp={() => navigate("/camp")} />}
+            {view === "season" && (isPro ? (
+              <>
+                <LeagueSwitcher api={API} leagues={leagues} value={league} onChange={setLeague} onLeaguesChanged={loadLeagues} isPro={isPro} />
+                <Season season={season} />
+              </>
+            ) : <SeasonLocked onUpgrade={() => navigate("/paywall")} />)}
             {view === "looks" && <CosmeticsSheet api={API} />}
 
             <Link to="/fantasy/partners" className="victory-card p-3 flex items-center gap-3 active:scale-[0.99] transition-transform">
@@ -103,7 +113,7 @@ export default function FantasyPage() {
   );
 }
 
-function CardList({ cards, onOpen }) {
+function CardList({ cards, onOpen, onCamp }) {
   if (!cards) return <div className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="skeleton-shimmer h-16 rounded-lg" />)}</div>;
   if (!cards.length) {
     return (
@@ -112,7 +122,9 @@ function CardList({ cards, onOpen }) {
           <CalendarDays className="w-8 h-8 text-victory-lime/60" />
         </div>
         <p className="text-victory-text font-bold text-lg mb-1">No fights this fortnight</p>
-        <p className="text-victory-muted text-sm">UK shows and world-title fights appear here up to two weeks before.</p>
+        <p className="text-victory-muted text-sm">Real cards appear here up to two weeks before. Learn the game on a practice card while you wait.</p>
+        <button className="mt-4 victory-btn-primary w-auto px-6" onClick={() => onOpen(PRACTICE)}>Try a practice card</button>
+        <button className="mt-2 victory-btn-ghost w-auto px-6" onClick={onCamp}>Got a fight? Add it</button>
       </div>
     );
   }

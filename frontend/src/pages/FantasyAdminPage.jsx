@@ -69,13 +69,22 @@ export default function FantasyAdminPage() {
           </button>
           <h1 className="text-xl font-heading font-extrabold text-victory-text flex-1">Fantasy admin</h1>
           <button className="w-11 h-11 rounded-full flex items-center justify-center" aria-label="Sync from the data feed"
-            onClick={() => post("/admin/fantasy/sync", {}, "Synced from the data feed")}>
+            onClick={async () => {
+              try {
+                const { data } = await axios.post(`${API}/admin/fantasy/sync`);
+                if (data.paused) toast(data.paused);
+                else if (data.skipped) toast(data.skipped);
+                else toast.success(`Synced: ${data.cards_imported} card${data.cards_imported === 1 ? "" : "s"} imported`);
+                load();
+              } catch (err) { toast.error(errMsg(err)); }
+            }}>
             <RefreshCw className="w-5 h-5 text-victory-lime" />
           </button>
         </header>
       </div>
 
-      <main className="max-w-2xl mx-auto px-4 py-4 space-y-6">
+      <main className="max-w-2xl mx-auto px-4 pt-4 pb-32 space-y-6">
+        <FeedStatus />
         <section className="space-y-2">
           <p className="section-label">Enquiries</p>
           {!enquiries.length && <p className="text-victory-muted text-sm">None yet.</p>}
@@ -105,6 +114,21 @@ export default function FantasyAdminPage() {
         <FeatureForm post={post} />
         <ManualCardForm post={post} />
       </main>
+    </div>
+  );
+}
+
+// What the data feed is doing, so a quiet fixture list is never a mystery.
+function FeedStatus() {
+  const [st, setSt] = useState(null);
+  useEffect(() => { axios.get(`${API}/admin/fantasy/feed-status`).then((r) => setSt(r.data)).catch(() => {}); }, []);
+  if (!st) return null;
+  const text = !st.key_set ? "Off (no BOXING_DATA_API_KEY). Promoter, amateur and admin cards still work."
+    : st.paused ? `Paused this month: ${st.paused}`
+    : `On · world-title cards import daily · ${st.used} of ${st.limit} requests used this month`;
+  return (
+    <div className={`victory-card p-3 text-[12px] ${st.paused || !st.key_set ? "text-victory-orange" : "text-victory-teal"}`} data-testid="feed-status">
+      <span className="font-semibold">Data feed:</span> {text}
     </div>
   );
 }
@@ -188,11 +212,11 @@ function FeatureForm({ post }) {
     <section className="space-y-2">
       <p className="section-label">Promoter deal: feature a card</p>
       <p className="text-victory-muted text-[11px]">Use a card id from the list, or a Boxing Data event id to import any show (even outside the UK).</p>
-      <div className="flex flex-wrap gap-2">
-        <input className="victory-input flex-1" placeholder="Card id (fc_… / fm_…)" value={f.card_id} onChange={(e) => setF({ ...f, card_id: e.target.value })} />
-        <input className="victory-input flex-1" placeholder="or Boxing Data event id" value={f.provider_event_id} onChange={(e) => setF({ ...f, provider_event_id: e.target.value })} />
-        <input className="victory-input flex-1" placeholder="Promoter name" value={f.promoter} onChange={(e) => setF({ ...f, promoter: e.target.value })} />
-        <button className="victory-btn-secondary w-auto px-3"
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <input className="victory-input min-w-0" placeholder="Card id (fc_… / fm_…)" value={f.card_id} onChange={(e) => setF({ ...f, card_id: e.target.value })} />
+        <input className="victory-input min-w-0" placeholder="or Boxing Data event id" value={f.provider_event_id} onChange={(e) => setF({ ...f, provider_event_id: e.target.value })} />
+        <input className="victory-input min-w-0" placeholder="Promoter name" value={f.promoter} onChange={(e) => setF({ ...f, promoter: e.target.value })} />
+        <button className="victory-btn-secondary w-full sm:col-span-3"
           onClick={() => post("/admin/fantasy/feature", { card_id: f.card_id || null, provider_event_id: f.provider_event_id || null, promoter: f.promoter || null }, "Card featured")}>
           Feature
         </button>
@@ -226,33 +250,43 @@ function ManualCardForm({ post }) {
           setCard((c) => ({ ...c, bouts }));
           toast(`${bouts.length} fights filled in${skipped.length ? ` · ${skipped.length} line(s) skipped` : ""}`);
         }} />
-      <div className="grid grid-cols-2 gap-2">
-        <input className="victory-input" placeholder="Title" value={card.title} onChange={(e) => setCard({ ...card, title: e.target.value })} />
-        <input className="victory-input" type="date" value={card.date} onChange={(e) => setCard({ ...card, date: e.target.value })} aria-label="Date" />
-        <input className="victory-input" placeholder="Town, England" value={card.location} onChange={(e) => setCard({ ...card, location: e.target.value })} />
-        <input className="victory-input" placeholder="Promoter (optional)" value={card.promoter} onChange={(e) => setCard({ ...card, promoter: e.target.value })} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <input className="victory-input min-w-0 sm:col-span-2" placeholder="Title" value={card.title} onChange={(e) => setCard({ ...card, title: e.target.value })} />
+        <label className="text-[11px] text-victory-muted min-w-0">Date
+          <input className="victory-input mt-1 w-full min-w-0 appearance-none text-base" type="date" value={card.date} onChange={(e) => setCard({ ...card, date: e.target.value })} />
+        </label>
+        <label className="text-[11px] text-victory-muted min-w-0">Town
+          <input className="victory-input mt-1 w-full min-w-0 text-base" placeholder="Town, England" value={card.location} onChange={(e) => setCard({ ...card, location: e.target.value })} />
+        </label>
+        <input className="victory-input min-w-0 sm:col-span-2" placeholder="Promoter (optional)" value={card.promoter} onChange={(e) => setCard({ ...card, promoter: e.target.value })} />
       </div>
       {card.bouts.map((b, i) => (
-        <div key={i} className="victory-card p-2 space-y-1">
-          <div className="flex gap-2">
-            <input className="victory-input flex-1" placeholder="Division" value={b.division} onChange={(e) => setBout(i, { division: e.target.value })} />
-            <input className="victory-input w-20" type="number" min={1} max={12} value={b.scheduled_rounds} onChange={(e) => setBout(i, { scheduled_rounds: Number(e.target.value) })} aria-label="Rounds" />
+        <div key={i} className="victory-card p-3 space-y-2">
+          <div className="flex gap-2 items-end">
+            <label className="text-[11px] text-victory-muted flex-1 min-w-0">Fight {i + 1} · division
+              <input className="victory-input mt-1 w-full min-w-0 text-base" placeholder="e.g. Welterweight" value={b.division} onChange={(e) => setBout(i, { division: e.target.value })} />
+            </label>
+            <label className="text-[11px] text-victory-muted w-20">Rounds
+              <input className="victory-input mt-1 w-full text-base" type="number" min={1} max={12} value={b.scheduled_rounds} onChange={(e) => setBout(i, { scheduled_rounds: Number(e.target.value) })} />
+            </label>
           </div>
           {b.fighters.map((f, k) => (
-            <div key={k} className="flex gap-1">
-              <input className="victory-input flex-1" placeholder={`Boxer ${k + 1}`} value={f.name} onChange={(e) => setFighter(i, k, { name: e.target.value })} />
-              {["wins", "losses", "draws", "ko_wins"].map((field) => (
-                <input key={field} className="victory-input w-14" type="number" min={0} value={f[field]} aria-label={field}
-                  title={field} onChange={(e) => setFighter(i, k, { [field]: Number(e.target.value) })} />
-              ))}
+            <div key={k} className="space-y-1">
+              <input className="victory-input w-full min-w-0" placeholder={`Boxer ${k + 1} name`} value={f.name} onChange={(e) => setFighter(i, k, { name: e.target.value })} />
+              <div className="grid grid-cols-4 gap-1">
+                {[["wins", "Won"], ["losses", "Lost"], ["draws", "Drew"], ["ko_wins", "KOs"]].map(([field, label]) => (
+                  <label key={field} className="text-[10px] text-victory-muted text-center">{label}
+                    <input className="victory-input mt-0.5 w-full min-w-0 text-center text-base" type="number" min={0} value={f[field]}
+                      onChange={(e) => setFighter(i, k, { [field]: Number(e.target.value) })} />
+                  </label>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       ))}
-      <div className="flex gap-2">
-        <button className="victory-btn-ghost w-auto px-3" onClick={() => setCard({ ...card, bouts: [...card.bouts, emptyBout()] })}>Add bout</button>
-        <button className="victory-btn-primary w-auto px-6" onClick={submit}>Create card</button>
-      </div>
+      <button className="victory-btn-ghost w-full" onClick={() => setCard({ ...card, bouts: [...card.bouts, emptyBout()] })}>Add another fight</button>
+      <button className="victory-btn-primary w-full" onClick={submit}>Create card</button>
     </section>
   );
 }

@@ -154,7 +154,7 @@ function RecordCard({ record, editing, onEdit, onDone }) {
           <div className="grid grid-cols-3 gap-2">
             {["wins", "losses", "draws"].map((k) => (
               <label key={k} className="text-[11px] text-victory-muted capitalize">{k}
-                <input type="number" min={0} className="victory-input mt-1" value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
+                <input type="number" min={0} className="victory-input mt-1 text-base" value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
               </label>
             ))}
           </div>
@@ -249,12 +249,12 @@ function FightForm({ isMinor, onCancel, onDone }) {
       <p className="text-[11px] text-victory-muted">Their record, if you know it (it sets the fantasy prices)</p>
       <div className="grid grid-cols-3 gap-2">
         {[["ow", "Won"], ["ol", "Lost"], ["od", "Drew"]].map(([k, l]) => (
-          <label key={k} className="text-[11px] text-victory-muted">{l}<input type="number" min={0} className="victory-input mt-1" value={f[k]} onChange={set(k)} /></label>
+          <label key={k} className="text-[11px] text-victory-muted">{l}<input type="number" min={0} className="victory-input mt-1 text-base" value={f[k]} onChange={set(k)} /></label>
         ))}
       </div>
       <div className="grid grid-cols-3 gap-2">
-        <label className="text-[11px] text-victory-muted">Rounds<input type="number" min={1} max={12} className="victory-input mt-1" value={f.scheduled_rounds} onChange={set("scheduled_rounds")} /></label>
-        <label className="text-[11px] text-victory-muted col-span-2">Fight weight (kg)<input type="number" step="0.1" className="victory-input mt-1" value={f.target_weight_kg} onChange={set("target_weight_kg")} /></label>
+        <label className="text-[11px] text-victory-muted">Rounds<input type="number" min={1} max={12} className="victory-input mt-1 text-base" value={f.scheduled_rounds} onChange={set("scheduled_rounds")} /></label>
+        <label className="text-[11px] text-victory-muted col-span-2">Fight weight (kg)<input type="number" step="0.1" className="victory-input mt-1 text-base" value={f.target_weight_kg} onChange={set("target_weight_kg")} /></label>
       </div>
       <input className="victory-input" maxLength={40} placeholder="Weight class (optional)" aria-label="Weight class" value={f.weight_class} onChange={set("weight_class")} />
       <label className="victory-label" htmlFor="ff-goals">Camp goals (up to 3, comma separated)</label>
@@ -285,9 +285,9 @@ function CheckinForm({ fightId, onDone }) {
   return (
     <div className="space-y-2" data-testid="checkin-form">
       <div className="grid grid-cols-3 gap-2">
-        <label className="text-[11px] text-victory-muted">Sessions this week<input type="number" min={0} max={21} className="victory-input mt-1" value={c.sessions} onChange={set("sessions")} /></label>
-        <label className="text-[11px] text-victory-muted">Sparring rounds<input type="number" min={0} className="victory-input mt-1" value={c.sparring_rounds} onChange={set("sparring_rounds")} /></label>
-        <label className="text-[11px] text-victory-muted">Weight (kg)<input type="number" step="0.1" className="victory-input mt-1" value={c.weight_kg} onChange={set("weight_kg")} /></label>
+        <label className="text-[11px] text-victory-muted">Sessions this week<input type="number" min={0} max={21} className="victory-input mt-1 text-base" value={c.sessions} onChange={set("sessions")} /></label>
+        <label className="text-[11px] text-victory-muted">Sparring rounds<input type="number" min={0} className="victory-input mt-1 text-base" value={c.sparring_rounds} onChange={set("sparring_rounds")} /></label>
+        <label className="text-[11px] text-victory-muted">Weight (kg)<input type="number" step="0.1" className="victory-input mt-1 text-base" value={c.weight_kg} onChange={set("weight_kg")} /></label>
       </div>
       <p className="text-[11px] text-victory-muted">Energy</p>
       <div className="flex gap-1.5">
@@ -329,7 +329,7 @@ function ResultForm({ fight, onDone }) {
         </div>
       )}
       {needsMethod && ["KO", "TKO", "DQ"].includes(r.method) && (
-        <label className="text-[11px] text-victory-muted block">Round<input type="number" min={1} max={fight.scheduled_rounds} className="victory-input mt-1" value={r.round} onChange={(e) => setR({ ...r, round: e.target.value })} /></label>
+        <label className="text-[11px] text-victory-muted block">Round<input type="number" min={1} max={fight.scheduled_rounds} className="victory-input mt-1 text-base" value={r.round} onChange={(e) => setR({ ...r, round: e.target.value })} /></label>
       )}
       <button className="victory-btn-primary w-full" onClick={save}>Save result</button>
     </div>
