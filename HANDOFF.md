@@ -447,25 +447,29 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_lowcost.py` (8) and `frontend/src/lib/parseCard.test.js` (2).
 
 ## RevenueCat: Pro by in-app purchase on iPhone
-- **App:** `ios/VictoryAI/Paywall/StoreManager.swift`.
-  - It configures RevenueCat when `REVENUECAT_API_KEY` (`appl_…`) is in Info.plist, set from
-    the GitHub variable `REVENUECAT_IOS_API_KEY`, and logs in with the Clerk user id.
-  - The paywall shows the `default` offering's packages, Restore Purchases, and Apple's required
-    renewal disclosure with Terms and Privacy links. Without the key, it stays restore-only.
+- **App:**
+  - `ios/VictoryAI/Paywall/StoreManager.swift`: SDK setup from `REVENUECAT_API_KEY`
+    (`test_…` Test Store or `appl_…`), login with the Clerk id, `customerInfoStream`, and
+    entitlement `victory_ai_pro`.
+  - `MembershipGateView.swift`: the RevenueCatUI **Paywall** sheet.
+  - **Customer Center:** through the `victoryStore` bridge, from Billing → **Manage
+    subscription**.
+- **Products:**
+  - `monthly`, `yearly` (subscriptions) and `lifetime` (non-consumable) in the `default`
+    offering;
+  - lifetime has no expiry, so the server stores `plan_id: lifetime` and
+    `current_period_end: null`.
 - **Server:**
   - `POST /api/webhooks/revenuecat` checks the Authorization header against
     `REVENUECAT_WEBHOOK_AUTH`.
   - `POST /api/subscription/revenuecat/sync` is called by the app after a purchase or restore.
-  - Both re-read the subscriber from RevenueCat (`REVENUECAT_SECRET_API_KEY`) and upsert one
-    doc, `subscriptions/rc_<user_id>` (`source: app_store`, entitlement
-    `REVENUECAT_ENTITLEMENT`, default `pro`). `check_subscription` and `has_subscription` then
-    count it like Stripe Pro.
+  - Both re-read the subscriber from RevenueCat (`REVENUECAT_SECRET_API_KEY`) and upsert
+    `subscriptions/rc_<user_id>` (`source: app_store`, entitlement `REVENUECAT_ENTITLEMENT`,
+    default `victory_ai_pro`). `check_subscription` and `has_subscription` then count it like
+    Stripe Pro.
   - `/auth/validate` re-checks RevenueCat on every app open.
-- **Billing page:** says "Billed through the App Store" and points to iPhone Settings for
-  cancelling.
-- **Sandbox:** sandbox purchases count on purpose (App Review).
-- **Setup steps:** `ios/SETUP.md` → In-app purchase.
-- **Tests:** `backend/test_revenuecat.py` (6).
+- **Setup:** `ios/SETUP.md` → In-app purchase (Test Store now, App Store later).
+- **Tests:** `backend/test_revenuecat.py` (8).
 
 ## Fantasy runs itself (automation)
 - **Admin routine:** answer sponsor and promoter emails, approve a promoter's *first* card, and read

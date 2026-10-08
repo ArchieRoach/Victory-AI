@@ -1,26 +1,23 @@
 import SwiftUI
 import RevenueCat
+import RevenueCatUI
 
 /// Shown when access_granted: false and reason is "no_subscription", "not_found", or "access_revoked".
-/// Buying here is App Store in-app purchase through RevenueCat (Guideline 3.1.1 bans Stripe
-/// in the app); a Stripe subscription bought on the web still unlocks via Restore (3.1.3(b)).
-/// Without a RevenueCat key the plans are hidden and only Restore is shown, as before.
-struct PaywallView: View {
+/// Buying is App Store in-app purchase through RevenueCat's Paywall (designed in the RevenueCat
+/// dashboard, so prices and layout change without an app update). Guideline 3.1.1 bans Stripe
+/// here; a Stripe subscription bought on the web still unlocks via Restore (3.1.3(b)).
+/// Without a RevenueCat key the plans button is hidden and only Restore is shown, as before.
+struct MembershipGateView: View {
     let router: AppRouter
     let reason: String
 
     @State private var isValidating = false
     @State private var errorMessage: String?
-    @State private var buying: String?
+    @State private var showPaywall = false
     @ObservedObject private var store = StoreManager.shared
 
-    private var canBuy: Bool { store.isConfigured && !isRevoked }
-    private var webURL: String {
-        (Bundle.main.object(forInfoDictionaryKey: "WEB_APP_URL") as? String ?? "https://victory-ai-alpha.vercel.app")
-            .trimmingCharacters(in: .whitespaces)
-    }
-
     private var isRevoked: Bool { reason == "access_revoked" }
+    private var canBuy: Bool { store.isConfigured && !isRevoked }
 
     var body: some View {
         ZStack {
@@ -30,14 +27,12 @@ struct PaywallView: View {
                 VStack(spacing: 0) {
                     Spacer().frame(height: 60)
 
-                    // Icon
                     iconBadge(
                         systemName: isRevoked ? "hand.raised.fill" : "lock.fill",
                         color: isRevoked ? .red : Color(hex: "#E8FF47")
                     )
                     .padding(.bottom, 28)
 
-                    // Heading
                     Text(isRevoked ? "Account Suspended" : "Membership Required")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundColor(.white)
@@ -45,7 +40,9 @@ struct PaywallView: View {
 
                     Text(isRevoked
                          ? "Your account access has been suspended.\nPlease contact support."
-                         : "This account doesn't have an active membership.\nAlready a member? Tap Restore Access."
+                         : canBuy
+                            ? "Unlock Victory AI Pro: monthly, yearly or once for life."
+                            : "This account doesn't have an active membership.\nAlready a member? Tap Restore Access."
                     )
                     .font(.subheadline)
                     .foregroundColor(Color(hex: "#8888A0"))
@@ -68,21 +65,20 @@ struct PaywallView: View {
                             .padding(.bottom, 16)
                     }
 
-                    if canBuy {
-                        planButtons
-                            .padding(.bottom, 16)
-                    }
-
                     actionButtons
-
-                    if canBuy {
-                        disclosure
-                            .padding(.top, 20)
-                    }
 
                     Spacer().frame(height: 52)
                 }
             }
+        }
+        .sheet(isPresented: $showPaywall) {
+            RevenueCatUI.PaywallView(displayCloseButton: true)
+                .onPurchaseCompleted { info in
+                    Task { await unlock(after: info, restored: false) }
+                }
+                .onRestoreCompleted { info in
+                    Task { await unlock(after: info, restored: true) }
+                }
         }
     }
 
@@ -98,59 +94,23 @@ struct PaywallView: View {
         .padding(.horizontal, 40)
     }
 
-    private var planButtons: some View {
-        VStack(spacing: 12) {
-            if store.isLoadingPackages && store.packages.isEmpty {
-                ProgressView().tint(Color(hex: "#E8FF47")).frame(height: 52)
-            }
-            ForEach(store.packages, id: \.identifier) { package in
-                Button {
-                    Task { await buy(package) }
-                } label: {
-                    VStack(spacing: 2) {
-                        if buying == package.identifier {
-                            ProgressView().tint(Color(hex: "#12121A"))
-                        } else {
-                            Text(package.planTitle)
-                                .font(.headline)
-                            Text([package.trialText, "\(package.storeProduct.localizedPriceString) / \(package.periodLabel)"]
-                                    .compactMap { $0 }.joined(separator: " "))
-                                .font(.caption)
-                        }
-                    }
-                    .foregroundColor(package.packageType == .annual ? Color(hex: "#12121A") : .white)
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: 56)
-                    .background(package.packageType == .annual ? Color(hex: "#E8FF47") : Color(hex: "#1A1A26"))
-                    .cornerRadius(14)
-                }
-                .disabled(buying != nil)
-            }
-        }
-        .padding(.horizontal, 24)
-        .task { await store.loadPackages() }
-    }
-
-    /// Apple requires the price, length, auto-renewal and links to terms and privacy on the
-    /// purchase screen itself.
-    private var disclosure: some View {
-        VStack(spacing: 8) {
-            Text("Subscriptions renew automatically at the price shown until cancelled. Cancel any time in Settings → your name → Subscriptions, at least 24 hours before the renewal date. Payment is charged to your Apple ID.")
-                .font(.caption2)
-                .foregroundColor(Color(hex: "#8888A0"))
-                .multilineTextAlignment(.center)
-            HStack(spacing: 16) {
-                Link("Terms of Use", destination: URL(string: webURL + "/terms")!)
-                Link("Privacy Policy", destination: URL(string: webURL + "/privacy")!)
-            }
-            .font(.caption)
-            .foregroundColor(Color(hex: "#8888A0"))
-        }
-        .padding(.horizontal, 32)
-    }
-
     private var actionButtons: some View {
         VStack(spacing: 12) {
+            if canBuy {
+                Button {
+                    errorMessage = nil
+                    showPaywall = true
+                } label: {
+                    Text("See plans")
+                        .font(.headline)
+                        .foregroundColor(Color(hex: "#12121A"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(Color(hex: "#E8FF47"))
+                        .cornerRadius(14)
+                }
+            }
+
             // Restores App Store purchases (if set up) and re-validates against the backend,
             // which also unlocks a subscription bought on the web.
             Button {
@@ -174,7 +134,7 @@ struct PaywallView: View {
 
             if isRevoked {
                 Link("Contact Support",
-                     destination: URL(string: "mailto:support@victoryai.app")!)
+                     destination: URL(string: "mailto:hello@victoryai.co.uk")!)
                     .font(.subheadline)
                     .foregroundColor(Color(hex: "#8888A0"))
                     .padding(.top, 4)
@@ -194,20 +154,19 @@ struct PaywallView: View {
 
     // MARK: - Actions
 
-    private func buy(_ package: Package) async {
-        guard buying == nil else { return }
-        buying = package.identifier
-        errorMessage = nil
-        defer { buying = nil }
-        do {
-            guard try await store.purchase(package) else { return }
-            await AuthService.shared.syncPurchases()
-            await router.validate()
-            if case .paywall = router.appState {
-                errorMessage = "Payment received. Unlocking can take a minute: tap Restore Purchases if it doesn't open."
-            }
-        } catch {
-            errorMessage = error.localizedDescription
+    /// After the paywall reports a purchase or restore: tell the server to re-read RevenueCat,
+    /// then re-validate. The server, not this device, decides access.
+    private func unlock(after info: CustomerInfo, restored: Bool) async {
+        store.apply(info)
+        showPaywall = false
+        guard store.isPro else {
+            if restored { errorMessage = "No purchases found for this Apple ID." }
+            return
+        }
+        await AuthService.shared.syncPurchases()
+        await router.validate()
+        if case .paywall = router.appState {
+            errorMessage = "Payment received. Unlocking can take a minute: tap Restore Purchases if it doesn't open."
         }
     }
 
@@ -218,13 +177,16 @@ struct PaywallView: View {
         defer { isValidating = false }
 
         if store.isConfigured {
-            try? await store.restore()
-            await AuthService.shared.syncPurchases()
+            do {
+                _ = try await store.restore()
+                await AuthService.shared.syncPurchases()
+            } catch {
+                errorMessage = error.localizedDescription
+            }
         }
         await router.validate()
 
-        // If still on paywall, surface a hint
-        if case .paywall = router.appState {
+        if case .paywall = router.appState, errorMessage == nil {
             errorMessage = "No active membership found for this account."
         }
     }

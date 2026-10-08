@@ -5131,7 +5131,7 @@ async def list_reports(user: dict = Depends(get_current_user)):
 #   "app_store"), so check_subscription / has_subscription treat it exactly like Stripe Pro.
 REVENUECAT_SECRET_API_KEY = os.environ.get("REVENUECAT_SECRET_API_KEY", "").strip()
 REVENUECAT_WEBHOOK_AUTH = os.environ.get("REVENUECAT_WEBHOOK_AUTH", "").strip()
-REVENUECAT_ENTITLEMENT = os.environ.get("REVENUECAT_ENTITLEMENT", "pro").strip() or "pro"
+REVENUECAT_ENTITLEMENT = os.environ.get("REVENUECAT_ENTITLEMENT", "victory_ai_pro").strip() or "victory_ai_pro"
 
 
 async def _revenuecat_subscriber(app_user_id: str) -> Optional[dict]:
@@ -5173,7 +5173,8 @@ async def sync_revenuecat(user_id: str) -> Optional[dict]:
     doc = {
         "subscription_id": sub_id, "user_id": user_id, "source": "app_store", "status": status,
         "subscription_active": active, "product_id": product_id,
-        "plan_id": "annual" if any(k in product_id.lower() for k in ("annual", "year")) else "monthly",
+        "plan_id": "lifetime" if expires is None or "lifetime" in product_id.lower()
+                   else "annual" if any(k in product_id.lower() for k in ("annual", "year")) else "monthly",
         "current_period_end": expires.isoformat() if expires else None,
         "cancel_at_period_end": bool(product.get("unsubscribe_detected_at")) and active,
         "billing_issue": bool(product.get("billing_issues_detected_at")),

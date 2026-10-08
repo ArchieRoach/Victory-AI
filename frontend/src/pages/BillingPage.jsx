@@ -8,6 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { analytics } from "@/lib/analytics";
 import { founderTerms, money, formatDate } from "@/lib/billing";
 import { isNativeShell } from "@/lib/nativeShell";
+import { nativeCustomerCenter } from "@/lib/nativeBridge";
 
 // Goal: keep founders subscribed without making cancelling any harder than one extra,
 // honest screen. Psychology: loss aversion — losing something you own hurts about twice as
@@ -77,11 +78,11 @@ export default function BillingPage() {
           <>
             <section className="victory-card p-4 space-y-3" data-testid="billing-summary">
               <div className="flex items-center justify-between">
-                <p className="section-label flex items-center gap-1.5"><CreditCard className="w-3 h-3" /> {billing.plan_id === "annual" ? "Annual" : "Monthly"} plan</p>
+                <p className="section-label flex items-center gap-1.5"><CreditCard className="w-3 h-3" /> {billing.plan_id === "lifetime" ? "Lifetime" : billing.plan_id === "annual" ? "Annual" : "Monthly"} plan</p>
                 <span className="text-victory-muted text-xs capitalize">{billing.status === "trialing" ? "Free trial" : billing.status.replace("_", " ")}</span>
               </div>
               {appStore ? (
-                <p className="text-victory-text text-sm">Billed through the App Store</p>
+                <p className="text-victory-text text-sm">{billing.plan_id === "lifetime" ? "Bought once through the App Store: yours for life" : "Billed through the App Store"}</p>
               ) : <p className="font-heading font-extrabold text-2xl text-victory-text">
                 {money(billing.price, billing.currency)}<span className="text-victory-muted text-sm font-body font-normal">/{unit}</span>
                 {terms && <span className="ml-2 text-victory-muted text-sm font-body font-normal line-through">{terms.regular}</span>}
@@ -112,7 +113,11 @@ export default function BillingPage() {
               </section>
             )}
 
-            {appStore ? (
+            {appStore && isNativeShell() ? (
+              <button onClick={() => nativeCustomerCenter()} className="victory-btn-ghost w-full" data-testid="customer-center">
+                Manage subscription
+              </button>
+            ) : appStore ? (
               <p className="text-victory-muted text-xs text-center">To change or cancel, open iPhone Settings, tap your name, then Subscriptions.</p>
             ) : isNativeShell() ? (
               <p className="text-victory-muted text-xs text-center">To change or cancel your subscription, sign in at victory-ai on the web.</p>

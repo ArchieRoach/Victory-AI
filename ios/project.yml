@@ -16,7 +16,7 @@ packages:
     from: 1.5.7
   RevenueCat:
     url: https://github.com/RevenueCat/purchases-ios-spm
-    from: 5.0.0
+    from: 5.14.0  # Customer Center needs 5.14+
 
 targets:
   VictoryAI:
@@ -34,6 +34,8 @@ targets:
         product: ClerkKit
       - package: RevenueCat
         product: RevenueCat
+      - package: RevenueCat
+        product: RevenueCatUI
     info:
       path: Config/Info.plist
       properties:

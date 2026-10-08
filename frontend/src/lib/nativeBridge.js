@@ -10,3 +10,6 @@ const post = (name, body) => {
 };
 
 export const nativeRound = (action, payload = {}) => post("victoryRound", { action, ...payload });
+
+// App Store subscribers manage, cancel or request refunds in RevenueCat's Customer Center.
+export const nativeCustomerCenter = () => post("victoryStore", { action: "customerCenter" });

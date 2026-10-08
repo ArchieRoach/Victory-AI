@@ -1,4 +1,6 @@
 import WebKit
+import SwiftUI
+import RevenueCatUI
 
 /// Message handlers the web app calls during training (frontend/src/lib/nativeBridge.js
 /// and frontend/src/hooks/useLiveCoach.js). Like PushBridge, they only answer the main
@@ -72,6 +74,25 @@ final class RoundBridge: OriginCheckedBridge {
                 )
             }
             reply(nil, nil)
+        }
+    }
+}
+
+/// `victoryStore`: opens RevenueCat's Customer Center (manage or cancel an App Store
+/// subscription, request a refund, restore) from the web app's Billing page.
+final class StoreBridge: OriginCheckedBridge {
+    static let name = "victoryStore"
+
+    override func handle(action: String, body: [String: Any], webView: WKWebView?, reply: @escaping (Any?, String?) -> Void) {
+        Task { @MainActor in
+            guard action == "customerCenter", StoreManager.shared.isConfigured,
+                  var top = webView?.window?.rootViewController else {
+                reply(["shown": false], nil)
+                return
+            }
+            while let presented = top.presentedViewController { top = presented }
+            top.present(UIHostingController(rootView: CustomerCenterView()), animated: true)
+            reply(["shown": true], nil)
         }
     }
 }

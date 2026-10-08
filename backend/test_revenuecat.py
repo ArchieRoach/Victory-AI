@@ -56,7 +56,7 @@ run(server.db.users.insert_one(dict(USER)))
 
 def subscribe(expires, trial=False, cancelled=False):
     SUBSCRIBERS["user_ios"] = {
-        "entitlements": {"pro": {"expires_date": iso(expires), "product_identifier": "victory_pro_annual"}},
+        "entitlements": {"victory_ai_pro": {"expires_date": iso(expires), "product_identifier": "victory_pro_annual"}},
         "subscriptions": {"victory_pro_annual": {"period_type": "trial" if trial else "normal",
                                                  "unsubscribe_detected_at": iso(NOW) if cancelled else None}}}
 
@@ -105,6 +105,23 @@ def test_unknown_or_anonymous_users_are_ignored():
                        json={"event": {"app_user_id": "$RCAnonymousID:abc"}}).status_code == 200
     assert webhook(uid="someone_else").status_code == 200
     assert len(calls) == n, "no RevenueCat lookups for ids that aren't our users"
+
+
+
+def test_lifetime_purchase_never_expires():
+    SUBSCRIBERS["user_ios"] = {"entitlements": {"victory_ai_pro": {"expires_date": None, "product_identifier": "lifetime"}},
+                               "subscriptions": {}}
+    client.post("/api/subscription/revenuecat/sync")
+    doc = run(server.db.subscriptions.find_one({"subscription_id": "rc_user_ios"}))
+    assert doc["status"] == "active" and doc["plan_id"] == "lifetime" and doc["current_period_end"] is None
+    assert client.post("/api/auth/validate").json()["access_granted"]
+    assert client.get("/api/subscription/billing").json()["plan_id"] == "lifetime"
+
+
+def test_other_entitlements_dont_unlock_pro():
+    SUBSCRIBERS["user_ios"] = {"entitlements": {"something_else": {"expires_date": None}}, "subscriptions": {}}
+    client.post("/api/subscription/revenuecat/sync")
+    assert not run(server.check_subscription(USER))
 
 
 if __name__ == "__main__":
