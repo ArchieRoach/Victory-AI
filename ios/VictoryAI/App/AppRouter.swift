@@ -35,6 +35,9 @@ final class AppRouter: ObservableObject {
     /// Re-validates the current Clerk session against the Railway backend.
     /// Safe to call on every app launch and after sign-in.
     func validate() async {
+        if let userId = Clerk.shared.user?.id {
+            await StoreManager.shared.logIn(userId: userId)
+        }
         do {
             let result = try await AuthService.shared.validateAccess()
             appState = result.accessGranted ? .app : stateForReason(result.reason)
@@ -55,6 +58,7 @@ final class AppRouter: ObservableObject {
     func signOut() async {
         // Needs the still-valid session to authenticate the unregister call.
         await PushNotificationManager.shared.disable()
+        await StoreManager.shared.logOut()
         try? await Clerk.shared.auth.signOut()
         appState = .signIn
     }

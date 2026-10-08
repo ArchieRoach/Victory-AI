@@ -36,6 +36,7 @@ private struct WebAppContainer: UIViewRepresentable {
         scripts.addScriptMessageHandler(PushBridge(allowedHost: host), contentWorld: .page, name: PushBridge.name)
         scripts.addScriptMessageHandler(MotionBridge(allowedHost: host), contentWorld: .page, name: MotionBridge.name)
         scripts.addScriptMessageHandler(RoundBridge(allowedHost: host), contentWorld: .page, name: RoundBridge.name)
+        scripts.addScriptMessageHandler(StoreBridge(allowedHost: host), contentWorld: .page, name: StoreBridge.name)
         // Live Coach watches the camera preview in the page, so it must play inline.
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []

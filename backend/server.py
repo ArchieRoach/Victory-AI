@@ -1590,6 +1590,7 @@ async def _billing_summary(user: dict) -> dict:
         "cancel_at_period_end": bool(local.get("cancel_at_period_end")),
         "founder": None,
         "manageable": False,
+        "managed_by": "app_store" if local.get("source") == "app_store" else "stripe",
     }
     sub_id = local.get("subscription_id") or ""
     if not (STRIPE_API_KEY and sub_id.startswith("sub_")):
@@ -5121,17 +5122,129 @@ async def list_reports(user: dict = Depends(get_current_user)):
     items = await db.reports.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
     return items
 
+
+# ============== REVENUECAT (App Store purchases in the iOS app) ==============
+# Goal: let iPhone users subscribe to Pro inside the app (Apple rule 3.1.1 bans Stripe there).
+# Design: the app buys through RevenueCat with app_user_id = our user_id. The server never
+#   trusts the app: every webhook or sync re-reads the subscriber from RevenueCat's REST API
+#   and writes one subscription doc per user (subscription_id "rc_<user_id>", source
+#   "app_store"), so check_subscription / has_subscription treat it exactly like Stripe Pro.
+REVENUECAT_SECRET_API_KEY = os.environ.get("REVENUECAT_SECRET_API_KEY", "").strip()
+REVENUECAT_WEBHOOK_AUTH = os.environ.get("REVENUECAT_WEBHOOK_AUTH", "").strip()
+REVENUECAT_ENTITLEMENT = os.environ.get("REVENUECAT_ENTITLEMENT", "victory_ai_pro").strip() or "victory_ai_pro"
+
+
+async def _revenuecat_subscriber(app_user_id: str) -> Optional[dict]:
+    if not REVENUECAT_SECRET_API_KEY:
+        return None
+    async with httpx.AsyncClient(timeout=10) as http_client:
+        r = await http_client.get(f"https://api.revenuecat.com/v1/subscribers/{_url_parse.quote(app_user_id, safe='')}",
+                                  headers={"Authorization": f"Bearer {REVENUECAT_SECRET_API_KEY}"})
+    r.raise_for_status()
+    return (r.json() or {}).get("subscriber") or {}
+
+
+def _rc_parse_date(raw: Optional[str]) -> Optional[datetime]:
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+async def sync_revenuecat(user_id: str) -> Optional[dict]:
+    """RevenueCat is the source of truth for App Store Pro; mirror it into db.subscriptions."""
+    subscriber = await _revenuecat_subscriber(user_id)
+    if subscriber is None:
+        return None
+    ent = (subscriber.get("entitlements") or {}).get(REVENUECAT_ENTITLEMENT)
+    sub_id = f"rc_{user_id}"
+    if not ent:
+        existing = await db.subscriptions.find_one({"subscription_id": sub_id}, {"_id": 0})
+        if existing:
+            await db.subscriptions.update_one({"subscription_id": sub_id}, {"$set": {"status": "expired", "subscription_active": False}})
+        return None
+    expires = _rc_parse_date(ent.get("expires_date"))  # None = lifetime
+    product_id = ent.get("product_identifier") or ""
+    product = (subscriber.get("subscriptions") or {}).get(product_id) or {}
+    active = expires is None or expires > datetime.now(timezone.utc)
+    status = ("trialing" if product.get("period_type") == "trial" else "active") if active else "expired"
+    doc = {
+        "subscription_id": sub_id, "user_id": user_id, "source": "app_store", "status": status,
+        "subscription_active": active, "product_id": product_id,
+        "plan_id": "lifetime" if expires is None or "lifetime" in product_id.lower()
+                   else "annual" if any(k in product_id.lower() for k in ("annual", "year")) else "monthly",
+        "current_period_end": expires.isoformat() if expires else None,
+        "cancel_at_period_end": bool(product.get("unsubscribe_detected_at")) and active,
+        "billing_issue": bool(product.get("billing_issues_detected_at")),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.subscriptions.update_one({"subscription_id": sub_id}, {"$set": doc,
+                                       "$setOnInsert": {"created_at": doc["updated_at"]}}, upsert=True)
+    return doc
+
+
+@api_router.post("/webhooks/revenuecat")
+async def revenuecat_webhook(request: Request):
+    # RevenueCat sends the Authorization value you set in its dashboard; refuse anything else.
+    if not REVENUECAT_WEBHOOK_AUTH:
+        raise HTTPException(500, "Webhook not configured")
+    if not secrets.compare_digest(request.headers.get("authorization", ""), REVENUECAT_WEBHOOK_AUTH):
+        raise HTTPException(401, "Unauthorized")
+    body = await request.json()
+    event = body.get("event") or {}
+    # Sandbox events are honoured on purpose: App Review and TestFlight purchase in sandbox.
+    ids = {event.get("app_user_id"), event.get("original_app_user_id"), *(event.get("aliases") or [])}
+    ids = {i for i in ids if i and not i.startswith("$RCAnonymousID")}
+    for uid in ids:
+        if await db.users.find_one({"user_id": uid}, {"_id": 1}):
+            try:
+                await sync_revenuecat(uid)
+            except Exception as e:
+                logger.error(f"RevenueCat sync failed for {uid}: {_redact(e)}")
+                raise HTTPException(502, "Sync failed; RevenueCat will retry")
+    return {"received": True}
+
+
+@api_router.post("/subscription/revenuecat/sync")
+async def revenuecat_sync_me(user: dict = Depends(get_current_user)):
+    """The app calls this right after a purchase or restore, so Pro unlocks without waiting
+    for the webhook. The answer still comes from RevenueCat, not the app."""
+    if _rate_limited(f"rc_sync:{user['user_id']}", 20, 600):
+        raise HTTPException(429, "Slow down a little")
+    if not REVENUECAT_SECRET_API_KEY:
+        raise HTTPException(503, "In-app purchases aren't set up yet")
+    try:
+        doc = await sync_revenuecat(user["user_id"])
+    except Exception as e:
+        logger.error(f"RevenueCat sync failed for {user['user_id']}: {_redact(e)}")
+        raise HTTPException(502, "Couldn't reach the App Store service. Try again.")
+    return {"active": bool(doc and doc["subscription_active"]), "status": (doc or {}).get("status")}
+
+
 @api_router.post("/auth/validate")
 async def validate_access(user: dict = Depends(get_current_user)):
     """iOS: verify Stripe subscription live and check access_granted flag."""
     import asyncio as _asyncio
 
+    rc = await db.subscriptions.find_one({"user_id": user["user_id"], "source": "app_store"}, {"_id": 0})
+    if rc and REVENUECAT_SECRET_API_KEY:
+        try:
+            rc = await sync_revenuecat(user["user_id"]) or rc
+        except Exception as e:
+            logger.warning(f"RevenueCat check in /auth/validate failed: {_redact(e)}")
+    if rc and rc.get("status") in ("active", "trialing"):
+        if not user.get("access_granted", True):
+            return {"access_granted": False, "reason": "access_revoked"}
+        return {"access_granted": True, "subscription_active": True}
+
     subscription = await db.subscriptions.find_one(
-        {"user_id": user["user_id"]},
+        {"user_id": user["user_id"], "source": {"$ne": "app_store"}},
         {"_id": 0},
     )
     if not subscription:
-        return {"access_granted": False, "reason": "no_subscription"}
+        return {"access_granted": False, "reason": "subscription_lapsed" if rc else "no_subscription"}
 
     stripe_sub_id = subscription.get("subscription_id", "")
 

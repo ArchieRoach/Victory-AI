@@ -9,6 +9,7 @@ struct VictoryAIApp: App {
     init() {
         let key = Bundle.main.object(forInfoDictionaryKey: "CLERK_PUBLISHABLE_KEY") as? String ?? ""
         Clerk.configure(publishableKey: key)
+        StoreManager.shared.configureIfNeeded()
     }
 
     var body: some Scene {

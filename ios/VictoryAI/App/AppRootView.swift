@@ -20,7 +20,7 @@ struct AppRootView: View {
                 MainAppView()
 
             case .paywall(let reason):
-                PaywallView(router: router, reason: reason)
+                MembershipGateView(router: router, reason: reason)
 
             case .lapsed:
                 LapsedSubscriptionView(router: router)

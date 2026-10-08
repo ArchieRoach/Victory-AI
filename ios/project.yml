@@ -14,6 +14,9 @@ packages:
   Clerk:
     url: https://github.com/clerk/clerk-ios
     from: 1.5.7
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios-spm
+    from: 5.14.0  # Customer Center needs 5.14+
 
 targets:
   VictoryAI:
@@ -29,6 +32,10 @@ targets:
     dependencies:
       - package: Clerk
         product: ClerkKit
+      - package: RevenueCat
+        product: RevenueCat
+      - package: RevenueCat
+        product: RevenueCatUI
     info:
       path: Config/Info.plist
       properties:
@@ -45,6 +52,7 @@ targets:
         BACKEND_URL: $(BACKEND_URL)
         WEB_APP_URL: $(WEB_APP_URL)
         CLERK_PUBLISHABLE_KEY: $(CLERK_PUBLISHABLE_KEY)
+        REVENUECAT_API_KEY: $(REVENUECAT_API_KEY)
         CFBundleURLTypes:
           - CFBundleURLSchemes: [$(PRODUCT_BUNDLE_IDENTIFIER)]
         NSCameraUsageDescription: Victory AI uses the camera to count your punches live during a round (on your phone — nothing is uploaded) and, only if you turn on recording, to record rounds for AI scoring.
@@ -62,6 +70,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: ${IOS_BUNDLE_ID}
         DEVELOPMENT_TEAM: ${APPLE_TEAM_ID}
         CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
+        REVENUECAT_API_KEY: ${REVENUECAT_API_KEY}
         BACKEND_URL: ${BACKEND_URL}
         WEB_APP_URL: ${WEB_APP_URL}
         MARKETING_VERSION: 1.0.0
