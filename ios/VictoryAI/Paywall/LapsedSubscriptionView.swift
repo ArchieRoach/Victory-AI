@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Shown when access_granted: false and reason is "subscription_lapsed" or "subscription_inactive".
-/// No reactivation link: see PaywallView for why the app can't point users to Stripe.
+/// "See plans" re-subscribes through the App Store (PaywallView); never a link to Stripe.
 struct LapsedSubscriptionView: View {
     let router: AppRouter
 
@@ -68,6 +68,16 @@ struct LapsedSubscriptionView: View {
                         .cornerRadius(14)
                     }
                     .disabled(isValidating)
+
+                    if StoreManager.shared.isConfigured {
+                        Button {
+                            router.appState = .paywall(reason: "no_subscription")
+                        } label: {
+                            Text("See plans")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(Color(hex: "#E8FF47"))
+                        }
+                    }
 
                     Button {
                         Task { await router.signOut() }

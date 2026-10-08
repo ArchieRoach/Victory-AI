@@ -239,3 +239,33 @@ db.users.updateMany(
   { $set: { access_granted: true } }
 )
 ```
+
+## In-app purchase (RevenueCat)
+
+Pro can be bought inside the app through the App Store (Guideline 3.1.1). RevenueCat handles
+StoreKit and receipts, and the backend re-reads every purchase from RevenueCat's API, so the app
+never tells the server it's Pro. Until `REVENUECAT_IOS_API_KEY` is set, the paywall stays
+restore-only.
+
+1. **App Store Connect:** Paid Apps agreement signed, plus banking and tax set up. Then
+   **My Apps → Victory AI → Subscriptions**: create a group "Victory Pro" with two
+   auto-renewing products, for example `victory_pro_monthly` (£3.99) and
+   `victory_pro_annual` (£24.99), each with a display name, description and review screenshot.
+   An optional free trial is an "Introductory Offer".
+2. **RevenueCat** (app.revenuecat.com):
+   - add an iOS app with the bundle ID;
+   - upload the In-App Purchase key (App Store Connect → Users and Access → Integrations →
+     In-App Purchase) and the App Store Connect API key;
+   - create the entitlement `pro` and attach both products;
+   - create an offering `default` with the packages Monthly and Annual.
+3. **Keys:**
+   - GitHub variable `REVENUECAT_IOS_API_KEY` = the public `appl_…` key (Project settings →
+     API keys).
+   - Railway `REVENUECAT_SECRET_API_KEY` = a **secret** API key (`sk_…`, v1).
+4. **Webhook:** RevenueCat → Integrations → Webhooks:
+   - URL `https://<railway-backend>/api/webhooks/revenuecat`;
+   - Authorization header value = any long random string, also set as Railway
+     `REVENUECAT_WEBHOOK_AUTH` (the whole value, e.g. `Bearer 9f…`).
+5. **Test:** build to TestFlight and buy with a Sandbox tester (App Store Connect → Users and
+   Access → Sandbox). Sandbox purchases unlock Pro on purpose, because App Review buys in
+   sandbox too.

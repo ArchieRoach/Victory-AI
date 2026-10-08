@@ -27,6 +27,8 @@ export default function BillingPage() {
   const terms = founderTerms(billing);
   const endsOn = formatDate(billing?.current_period_end);
   const unit = billing?.interval === "year" ? "year" : "month";
+  // Bought in the iPhone app: Apple bills it and only Apple can change or cancel it.
+  const appStore = billing?.managed_by === "app_store";
 
   const change = async (action) => {
     setBusy(true);
@@ -78,10 +80,12 @@ export default function BillingPage() {
                 <p className="section-label flex items-center gap-1.5"><CreditCard className="w-3 h-3" /> {billing.plan_id === "annual" ? "Annual" : "Monthly"} plan</p>
                 <span className="text-victory-muted text-xs capitalize">{billing.status === "trialing" ? "Free trial" : billing.status.replace("_", " ")}</span>
               </div>
-              <p className="font-heading font-extrabold text-2xl text-victory-text">
+              {appStore ? (
+                <p className="text-victory-text text-sm">Billed through the App Store</p>
+              ) : <p className="font-heading font-extrabold text-2xl text-victory-text">
                 {money(billing.price, billing.currency)}<span className="text-victory-muted text-sm font-body font-normal">/{unit}</span>
                 {terms && <span className="ml-2 text-victory-muted text-sm font-body font-normal line-through">{terms.regular}</span>}
-              </p>
+              </p>}
               {terms && (
                 <p className="text-victory-lime text-sm flex items-center gap-1.5" data-testid="founder-badge">
                   <Lock className="w-3.5 h-3.5" /> Founder price, yours for life while you stay subscribed
@@ -108,7 +112,9 @@ export default function BillingPage() {
               </section>
             )}
 
-            {isNativeShell() ? (
+            {appStore ? (
+              <p className="text-victory-muted text-xs text-center">To change or cancel, open iPhone Settings, tap your name, then Subscriptions.</p>
+            ) : isNativeShell() ? (
               <p className="text-victory-muted text-xs text-center">To change or cancel your subscription, sign in at victory-ai on the web.</p>
             ) : (
               billing.manageable && !billing.cancel_at_period_end && (

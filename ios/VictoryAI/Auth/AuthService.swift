@@ -50,6 +50,18 @@ actor AuthService {
         return URL(string: raw.trimmingCharacters(in: .whitespaces) + "/api/auth/validate")!
     }()
 
+    /// After an App Store purchase or restore: asks the server to re-read RevenueCat so Pro
+    /// unlocks straight away (the webhook also does this, a moment later).
+    func syncPurchases() async {
+        guard let token = await ClerkSession.token() else { return }
+        let url = backendURL.deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("subscription/revenuecat/sync")
+        var request = URLRequest(url: url, timeoutInterval: 15)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        _ = try? await URLSession.shared.data(for: request)
+    }
+
     /// Call after Clerk sign-in completes.
     /// Returns a ValidateResponse; throws AuthError on failure.
     func validateAccess() async throws -> ValidateResponse {

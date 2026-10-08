@@ -17,6 +17,8 @@ env:
   APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
   IOS_PROFILE_NAME: ${{ vars.IOS_PROFILE_NAME }}
   CLERK_PUBLISHABLE_KEY: ${{ vars.CLERK_PUBLISHABLE_KEY }}
+  # Public RevenueCat iOS key (appl_…). Empty = in-app purchase off, restore-only paywall.
+  REVENUECAT_API_KEY: ${{ vars.REVENUECAT_IOS_API_KEY }}
   BACKEND_URL: ${{ vars.BACKEND_URL }}
   WEB_APP_URL: ${{ vars.WEB_APP_URL || 'https://victory-ai-alpha.vercel.app' }}
   BUILD_NUMBER: ${{ github.run_number }}
