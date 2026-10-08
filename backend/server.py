@@ -28,6 +28,7 @@ import cloudinary.api
 import cloudinary.uploader
 import cloudinary.utils
 import stripe as stripe_lib
+from pymongo.errors import DuplicateKeyError
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -1429,6 +1430,23 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
 
     return {"checkout_url": session.url, "session_id": session.id}
 
+async def _fulfil_tokens(session_id: Optional[str], meta: dict) -> bool:
+    """Credits a token purchase exactly once. Both the webhook and the buyer's success page
+    call this, so a slow or missed webhook never loses tokens; the first caller to claim the
+    session id wins and every later call is a no-op."""
+    uid, tokens = meta.get("user_id"), int(meta.get("tokens") or 0)
+    if not (session_id and uid and tokens):
+        return False
+    try:
+        await db.fulfilled_payments.insert_one({"_id": session_id, "user_id": uid, "tokens": tokens,
+                                                "at": datetime.now(timezone.utc).isoformat()})
+    except DuplicateKeyError:
+        return False
+    await db.users.update_one({"user_id": uid}, {"$inc": {"token_balance": tokens}})
+    logger.info(f"Fulfilled {tokens} tokens for {uid}")
+    return True
+
+
 @api_router.get("/payments/status/{session_id}")
 async def get_payment_status(session_id: str, user: dict = Depends(get_current_user)):
     try:
@@ -1470,6 +1488,8 @@ async def get_payment_status(session_id: str, user: dict = Depends(get_current_u
         })
 
     meta = session.metadata or {}
+    if meta.get("purchase_type") == "tokens" and session.payment_status == "paid" and meta.get("user_id") == user["user_id"]:
+        await _fulfil_tokens(session_id, meta)
     return {
         "status": session.status,
         "payment_status": effective_payment_status,
@@ -1748,11 +1768,7 @@ async def stripe_webhook(request: Request):
             purchase_type = meta.get("purchase_type")
             gift_type = meta.get("gift_type")
             if purchase_type == "tokens":
-                uid = meta.get("user_id")
-                tokens = int(meta.get("tokens", 0))
-                if uid and tokens:
-                    await db.users.update_one({"user_id": uid}, {"$inc": {"token_balance": tokens}})
-                    logger.info(f"Fulfilled {tokens} tokens for {uid}")
+                await _fulfil_tokens(_sget(event_data, "id"), meta)
             elif gift_type == "gift_sub":
                 uid = meta.get("user_id")
                 count = int(meta.get("gift_count", 0))
