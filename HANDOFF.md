@@ -446,6 +446,21 @@ Coach as well as recording.
   simulated results) and a link to add your own fight in `/camp`.
 - **Tests:** `backend/test_fantasy_lowcost.py` (8) and `frontend/src/lib/parseCard.test.js` (2).
 
+## Code splitting
+- **Pages:** all 48 pages in `App.js` load on demand through `lib/lazyPage.js` (React.lazy plus
+  Suspense, with a lime spinner as the fallback).
+- **After a deploy:** if a tab hits a deleted chunk, it reloads once to pick up the new build. A
+  session flag stops reload loops.
+- **Preloading:** Home, Live, Train and Feed are fetched in the background once the first
+  screen is idle.
+- **Translations:** English is bundled; the other 9 languages are separate files fetched only for
+  people who use them (`i18n/index.js`, `ensureLanguage`). React re-renders when a file arrives
+  (`bindI18nStore: "added"`).
+- **Result:** the main bundle went from 3.0 MB raw / 835 KB gzip to 917 KB / 282 KB gzip (−66%),
+  plus 67 on-demand chunks.
+- **Tests:** `lib/lazyPage.test.js` (3) and `i18n/index.test.js` (2). Checked in Chromium: pages
+  load with no errors, and a French visitor gets French.
+
 ## Performance and resilience pass
 - **Compression:** already done at both edges. Railway gzips API JSON (about 45–50% smaller,
   tiny responses skipped) and Vercel serves the site with Brotli. There's no app-level
