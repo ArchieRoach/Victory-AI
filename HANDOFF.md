@@ -446,6 +446,36 @@ Coach as well as recording.
   simulated results) and a link to add your own fight in `/camp`.
 - **Tests:** `backend/test_fantasy_lowcost.py` (8) and `frontend/src/lib/parseCard.test.js` (2).
 
+## Performance and resilience pass
+- **Compression:** already done at both edges. Railway gzips API JSON (about 45–50% smaller,
+  tiny responses skipped) and Vercel serves the site with Brotli. There's no app-level
+  middleware, to avoid compressing twice.
+- **Circuit breakers** (`backend/resilience.py`):
+  - **Services covered:** OpenAI moderation (fails open), Resend email (all 5 call sites),
+    web push and Clerk API calls.
+  - **Behaviour:** each has a timeout and a concurrency cap. It opens after repeated failures,
+    lets one trial call through after the cool-down, and recovers on success.
+  - **Web push** runs in its own 8-thread pool with a 10s timeout, so it can't starve Stripe's
+    calls (they share the default thread pool). Expired subscriptions don't count as failures.
+  - **Stripe:** HTTP timeout cut from 80s to 20s.
+  - **Clerk sign-in keys:** a failed refresh keeps the cached keys and retries in 5 minutes,
+    instead of logging everyone out.
+- **Batched writes:**
+  - deleting a gym clears every member with one `update_many`;
+  - dead web-push, APNs and Live Activity tokens are removed with one `delete_many` per send.
+  - Reminder loops still mark each user one at a time on purpose: a crash midway can't
+    double-send.
+- **Optimistic follows:** all 4 Follow buttons (`lib/optimistic.js`) flip on tap and roll back
+  with a toast if the server refuses. Likes were already optimistic.
+- **Caching:**
+  - Vercel `/static/*`: `public, max-age=31536000, immutable`. The files are content-hashed, so
+    browsers stop re-checking the 3 MB bundle.
+  - Public JSON gets `Cache-Control`: partner-styles and social-proof 1h, pricing 60s (live
+    founder spots), waitlist stats 30s.
+  - There are no server-rendered pages to cache (client-rendered React app).
+- **Tests:** `test_resilience.py` (5), `test_resilience_wiring.py` (5), `test_public_cache.py` (3)
+  and `lib/optimistic.test.js` (2).
+
 ## RevenueCat: Pro by in-app purchase on iPhone
 - **App:**
   - `ios/VictoryAI/Paywall/StoreManager.swift`: SDK setup from `REVENUECAT_API_KEY`

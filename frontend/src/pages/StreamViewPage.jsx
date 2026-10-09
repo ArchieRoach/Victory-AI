@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
+import { optimistic } from "@/lib/optimistic";
 import { ArrowLeft, Radio, Users, Scissors, Zap, Gift, Smile, UserPlus, UserCheck, X, Share2, Flag } from "lucide-react";
 import { ShareSheet } from "@/components/ShareSheet";
 import { ReportModal } from "@/components/ReportModal";
@@ -169,19 +170,15 @@ export default function StreamViewPage() {
 
   // ── Follow / unfollow the streamer ───────────────────────────────────────
   const handleFollow = async () => {
-    if (!stream?.user_id) return;
+    if (!stream?.user_id || followBusy) return;
     setFollowBusy(true);
-    try {
-      if (following) {
-        await axios.delete(`${API}/follows/${stream.user_id}`);
-        setFollowing(false);
-      } else {
-        await axios.post(`${API}/follows/${stream.user_id}`);
-        setFollowing(true);
-      }
-    } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not update follow.");
-    }
+    const was = following;
+    await optimistic({
+      apply: () => setFollowing(!was),
+      rollback: () => setFollowing(was),
+      request: () => (was ? axios.delete(`${API}/follows/${stream.user_id}`) : axios.post(`${API}/follows/${stream.user_id}`)),
+      onError: (err) => toast.error(err?.response?.data?.detail || (was ? "Couldn't unfollow. Try again." : "Couldn't follow. Try again.")),
+    });
     setFollowBusy(false);
   };
 
@@ -356,7 +353,6 @@ export default function StreamViewPage() {
             {stream.user_id !== user?.user_id && (
               <button
                 onClick={handleFollow}
-                disabled={followBusy}
                 className={`flex items-center gap-1 touch-target px-3 rounded-xl border transition-colors disabled:opacity-50 text-xs font-bold ${
                   following
                     ? "border-victory-border text-victory-muted hover:border-red-500/40 hover:text-red-400"
@@ -364,7 +360,7 @@ export default function StreamViewPage() {
                 }`}
               >
                 {following ? <UserCheck className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
-                {followBusy ? "…" : following ? "Following" : "Follow"}
+                {following ? "Following" : "Follow"}
               </button>
             )}
 
