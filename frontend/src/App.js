@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, createContext, useContext, useRef } from "react";
+import { useState, useEffect, useCallback, createContext, useContext, useRef, Suspense } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { noteEntry } from "@/lib/entrySource";
@@ -23,6 +23,7 @@ import { useSystemTheme } from "@/hooks/useSystemTheme";
 import { initAnalytics, analytics } from "@/lib/analytics";
 import { isNativeShell } from "@/lib/nativeShell";
 import { NativePurchaseNoticePage } from "@/components/NativePurchaseNotice";
+import { lazyPage } from "@/lib/lazyPage";
 
 // Catches crashes outside React's render cycle (event handlers, timers, async code) —
 // ErrorBoundary below only sees render-time errors. Installed once at module load, same
@@ -39,58 +40,58 @@ initAnalytics();
 const FEATUREBASE_APP_ID = process.env.REACT_APP_FEATUREBASE_APP_ID || "6aa0ef5d9fdd78cfef02790e";
 
 // Pages
-import WelcomePage from "@/pages/WelcomePage";
-import OnboardingFlow from "@/pages/OnboardingFlow";
-import PaywallPage from "@/pages/PaywallPage";
-import PaymentSuccess from "@/pages/PaymentSuccess";
-import HomePage from "@/pages/HomePage";
-import TrainPage from "@/pages/TrainPage";
-import ScorePage from "@/pages/ScorePage";
-import SessionResultsPage from "@/pages/SessionResultsPage";
-import TimerPage from "@/pages/TimerPage";
-import LibraryPage from "@/pages/LibraryPage";
-import SessionDetailPage from "@/pages/SessionDetailPage";
-import ProfilePage from "@/pages/ProfilePage";
-import BlockedAccountsPage from "@/pages/BlockedAccountsPage";
-import SquadsPage from "@/pages/SquadsPage";
-import SquadDetailPage from "@/pages/SquadDetailPage";
-import SchoolLeaderboardPage from "@/pages/SchoolLeaderboardPage";
-import LoginPage from "@/pages/LoginPage";
-import LeaderboardPage from "@/pages/LeaderboardPage";
-import FeedPage from "@/pages/FeedPage";
-import CreatePostPage from "@/pages/CreatePostPage";
-import GymsPage from "@/pages/GymsPage";
-import GymDetailPage from "@/pages/GymDetailPage";
-import CompetitionsPage from "@/pages/CompetitionsPage";
-import CompetitionDetailPage from "@/pages/CompetitionDetailPage";
-import PublicProfilePage from "@/pages/PublicProfilePage";
+const WelcomePage = lazyPage(() => import("@/pages/WelcomePage"));
+const OnboardingFlow = lazyPage(() => import("@/pages/OnboardingFlow"));
+const PaywallPage = lazyPage(() => import("@/pages/PaywallPage"));
+const PaymentSuccess = lazyPage(() => import("@/pages/PaymentSuccess"));
+const HomePage = lazyPage(() => import("@/pages/HomePage"));
+const TrainPage = lazyPage(() => import("@/pages/TrainPage"));
+const ScorePage = lazyPage(() => import("@/pages/ScorePage"));
+const SessionResultsPage = lazyPage(() => import("@/pages/SessionResultsPage"));
+const TimerPage = lazyPage(() => import("@/pages/TimerPage"));
+const LibraryPage = lazyPage(() => import("@/pages/LibraryPage"));
+const SessionDetailPage = lazyPage(() => import("@/pages/SessionDetailPage"));
+const ProfilePage = lazyPage(() => import("@/pages/ProfilePage"));
+const BlockedAccountsPage = lazyPage(() => import("@/pages/BlockedAccountsPage"));
+const SquadsPage = lazyPage(() => import("@/pages/SquadsPage"));
+const SquadDetailPage = lazyPage(() => import("@/pages/SquadDetailPage"));
+const SchoolLeaderboardPage = lazyPage(() => import("@/pages/SchoolLeaderboardPage"));
+const LoginPage = lazyPage(() => import("@/pages/LoginPage"));
+const LeaderboardPage = lazyPage(() => import("@/pages/LeaderboardPage"));
+const FeedPage = lazyPage(() => import("@/pages/FeedPage"));
+const CreatePostPage = lazyPage(() => import("@/pages/CreatePostPage"));
+const GymsPage = lazyPage(() => import("@/pages/GymsPage"));
+const GymDetailPage = lazyPage(() => import("@/pages/GymDetailPage"));
+const CompetitionsPage = lazyPage(() => import("@/pages/CompetitionsPage"));
+const CompetitionDetailPage = lazyPage(() => import("@/pages/CompetitionDetailPage"));
+const PublicProfilePage = lazyPage(() => import("@/pages/PublicProfilePage"));
 import FeedbackWidget from "@/components/FeedbackWidget";
-import NotFoundPage from "@/pages/NotFoundPage";
+const NotFoundPage = lazyPage(() => import("@/pages/NotFoundPage"));
 import SubscriptionGate from "@/components/SubscriptionGate";
-import LiveFeedPage from "@/pages/LiveFeedPage";
-import StreamViewPage from "@/pages/StreamViewPage";
-import GoLivePage from "@/pages/GoLivePage";
-import AdvertisePage from "@/pages/AdvertisePage";
-import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
-import TermsOfServicePage from "@/pages/TermsOfServicePage";
-import EmoteStudioPage from "@/pages/EmoteStudioPage";
+const LiveFeedPage = lazyPage(() => import("@/pages/LiveFeedPage"));
+const StreamViewPage = lazyPage(() => import("@/pages/StreamViewPage"));
+const GoLivePage = lazyPage(() => import("@/pages/GoLivePage"));
+const AdvertisePage = lazyPage(() => import("@/pages/AdvertisePage"));
+const PrivacyPolicyPage = lazyPage(() => import("@/pages/PrivacyPolicyPage"));
+const TermsOfServicePage = lazyPage(() => import("@/pages/TermsOfServicePage"));
+const EmoteStudioPage = lazyPage(() => import("@/pages/EmoteStudioPage"));
 import { PushPrompt } from "@/components/PushPrompt";
-import StreamerDashboardPage from "@/pages/StreamerDashboardPage";
-import HighlightsPage from "@/pages/HighlightsPage";
-import RateRoundPage from "@/pages/RateRoundPage";
-import CalloutsPage from "@/pages/CalloutsPage";
-import JoinSquadPage from "@/pages/JoinSquadPage";
-import BillingPage from "@/pages/BillingPage";
+const StreamerDashboardPage = lazyPage(() => import("@/pages/StreamerDashboardPage"));
+const HighlightsPage = lazyPage(() => import("@/pages/HighlightsPage"));
+const RateRoundPage = lazyPage(() => import("@/pages/RateRoundPage"));
+const CalloutsPage = lazyPage(() => import("@/pages/CalloutsPage"));
+const JoinSquadPage = lazyPage(() => import("@/pages/JoinSquadPage"));
+const BillingPage = lazyPage(() => import("@/pages/BillingPage"));
 import { takePendingInvite } from "@/lib/pendingInvite";
-import TokensPage from "@/pages/TokensPage";
-import DiscoverPage from "@/pages/DiscoverPage";
-import TokenSuccessPage from "@/pages/TokenSuccessPage";
-import TrendingClipsPage from "@/pages/TrendingClipsPage";
-import FantasyPage from "@/pages/FantasyPage";
-import FantasyPartnersPage from "@/pages/FantasyPartnersPage";
-import FantasyAdminPage from "@/pages/FantasyAdminPage";
-import FightCampPage from "@/pages/FightCampPage";
-import FantasyResultsPage from "@/pages/FantasyResultsPage";
+const TokensPage = lazyPage(() => import("@/pages/TokensPage"));
+const DiscoverPage = lazyPage(() => import("@/pages/DiscoverPage"));
+const TokenSuccessPage = lazyPage(() => import("@/pages/TokenSuccessPage"));
+const TrendingClipsPage = lazyPage(() => import("@/pages/TrendingClipsPage"));
+const FantasyPage = lazyPage(() => import("@/pages/FantasyPage"));
+const FantasyPartnersPage = lazyPage(() => import("@/pages/FantasyPartnersPage"));
+const FantasyAdminPage = lazyPage(() => import("@/pages/FantasyAdminPage"));
+const FightCampPage = lazyPage(() => import("@/pages/FightCampPage"));
+const FantasyResultsPage = lazyPage(() => import("@/pages/FantasyResultsPage"));
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -206,6 +207,13 @@ const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+// Shown only while a page's code downloads, the first time that page is opened.
+const PageLoader = () => (
+  <div className="min-h-screen bg-victory-bg flex items-center justify-center" role="status" aria-label="Loading">
+    <div className="w-12 h-12 border-4 border-victory-lime border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
 
 const ProtectedRoute = ({ children, requireSubscription = false }) => {
   const { isAuthenticated, loading, user } = useAuth();
@@ -360,11 +368,21 @@ const AppRouter = () => {
     return () => axios.interceptors.response.eject(id);
   }, [navigate]);
 
+  // Fetch the most-visited pages in the background once the first screen is up, so tapping
+  // them never waits on a download.
+  useEffect(() => {
+    const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 2000));
+    const cancel = window.cancelIdleCallback || clearTimeout;
+    const id = idle(() => [HomePage, LiveFeedPage, TrainPage, FeedPage].forEach((page) => page.preload()));
+    return () => cancel(id);
+  }, []);
+
   return (
     <>
       <TrialExpirationBanner />
       <PushPrompt />
       <PendingInvite />
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/login/*" element={<LoginPage />} />
@@ -437,6 +455,7 @@ const AppRouter = () => {
         <Route path="/" element={<RootRedirect />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
     </>
   );
 };
