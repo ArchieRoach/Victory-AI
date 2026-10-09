@@ -50,6 +50,24 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 STRIPE_FOUNDERS_COUPON_ID = os.environ.get('STRIPE_FOUNDERS_COUPON_ID', '')
 stripe_lib.api_key = STRIPE_API_KEY
+# Stripe's default is an 80s timeout per request; these calls run in the shared thread pool,
+# so a stalled Stripe would hold threads that unrelated features need.
+stripe_lib.default_http_client = stripe_lib.RequestsClient(timeout=20)
+
+from resilience import CircuitBreaker, CircuitOpen
+from concurrent.futures import ThreadPoolExecutor
+# One breaker per third-party service (see resilience.py for why).
+MODERATION_BREAKER = CircuitBreaker("openai_moderation", timeout_seconds=5, max_concurrency=20)
+RESEND_BREAKER = CircuitBreaker("resend_email", timeout_seconds=10, max_concurrency=10)
+WEBPUSH_BREAKER = CircuitBreaker("web_push", failure_threshold=10, timeout_seconds=12, max_concurrency=8)
+CLERK_API_BREAKER = CircuitBreaker("clerk_api", timeout_seconds=5, max_concurrency=10)
+# Web push uses blocking requests; its own small pool keeps it from filling the default
+# thread pool that Stripe and other asyncio.to_thread work share.
+_PUSH_POOL = ThreadPoolExecutor(max_workers=8, thread_name_prefix="webpush")
+
+
+async def _breaker_post(breaker: CircuitBreaker, client, url: str, **kwargs):
+    return await breaker.call(lambda: client.post(url, **kwargs))
 
 # Livepeer webhook signing secret (optional; when set, incoming webhooks are HMAC-verified)
 LIVEPEER_WEBHOOK_SECRET = os.environ.get('LIVEPEER_WEBHOOK_SECRET', '')
@@ -190,7 +208,7 @@ async def is_content_flagged(text: str) -> bool:
     line of defense, so a moderation-API outage doesn't take down posting."""
     if not text or not text.strip() or not OPENAI_API_KEY:
         return False
-    try:
+    async def check() -> bool:
         async with httpx.AsyncClient(timeout=5) as client:
             resp = await client.post(
                 "https://api.openai.com/v1/moderations",
@@ -199,6 +217,11 @@ async def is_content_flagged(text: str) -> bool:
             )
             resp.raise_for_status()
             return bool(resp.json()["results"][0]["flagged"])
+    # During an outage the breaker fails open at once instead of every post waiting 5s.
+    try:
+        return await MODERATION_BREAKER.call(check)
+    except CircuitOpen:
+        return False
     except Exception as e:
         logger.error(f"Moderation check failed: {e}")
         return False
@@ -496,9 +519,18 @@ async def verify_clerk_token(token: str) -> Optional[str]:
         from jose import jwt as jose_jwt
         now = time.time()
         if now - _clerk_jwks_cache.get("fetched_at", 0) > 3600:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(CLERK_JWKS_URL, timeout=5)
-                _clerk_jwks_cache = {**resp.json(), "fetched_at": now}
+            try:
+                async with httpx.AsyncClient() as client:
+                    resp = await CLERK_API_BREAKER.call(lambda: client.get(CLERK_JWKS_URL, timeout=5))
+                    resp.raise_for_status()
+                    _clerk_jwks_cache = {**resp.json(), "fetched_at": now}
+            except Exception as e:
+                if not _clerk_jwks_cache.get("keys"):
+                    raise
+                # Clerk's signing keys rarely change: a failed refresh keeps the last good set
+                # (retry in 5 min) rather than logging every user out.
+                logger.warning(f"Clerk JWKS refresh failed, using cached keys: {e}")
+                _clerk_jwks_cache["fetched_at"] = now - 3300
         header = jose_jwt.get_unverified_header(token)
         kid = header.get("kid")
         key = next((k for k in _clerk_jwks_cache.get("keys", []) if k.get("kid") == kid), None)
@@ -524,11 +556,11 @@ async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
     email, name, picture = "", "", ""
     try:
         async with httpx.AsyncClient() as client:
-            resp = await client.get(
+            resp = await CLERK_API_BREAKER.call(lambda: client.get(
                 f"https://api.clerk.com/v1/users/{clerk_user_id}",
                 headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"},
                 timeout=5
-            )
+            ))
             if resp.status_code == 200:
                 data = resp.json()
                 emails = data.get("email_addresses", [])
@@ -3462,6 +3494,7 @@ async def _send_apns(user_id: str, title: str, body: str, url: str, tag: str):
         "apns-priority":   "10",
         "apns-collapse-id": tag[:64],
     }
+    dead = []
     for t in tokens:
         host = "api.sandbox.push.apple.com" if t.get("environment") == "sandbox" else "api.push.apple.com"
         try:
@@ -3478,7 +3511,9 @@ async def _send_apns(user_id: str, title: str, body: str, url: str, tag: str):
             pass
         logger.warning(f"APNs {r.status_code} {reason} for {user_id}")
         if r.status_code == 410 or reason in ("BadDeviceToken", "DeviceTokenNotForTopic"):
-            await db.apns_tokens.delete_one({"device_token": t["device_token"]})
+            dead.append(t["device_token"])
+    if dead:
+        await db.apns_tokens.delete_many({"device_token": {"$in": dead}})
 
 # ---- Live Activities (Lock Screen / Dynamic Island countdowns) ----
 # Started remotely with an ActivityKit push-to-start token (iOS 17.2+). The app renders
@@ -3542,6 +3577,7 @@ async def _send_live_activity(user_id: str, payload: dict):
         "apns-push-type": "liveactivity",
         "apns-priority": "10",
     }
+    dead = []
     for t in tokens:
         host = "api.sandbox.push.apple.com" if t.get("environment") == "sandbox" else "api.push.apple.com"
         try:
@@ -3550,9 +3586,11 @@ async def _send_live_activity(user_id: str, payload: dict):
             logger.warning(f"Live Activity push failed for {user_id}: {exc}")
             continue
         if r.status_code == 410 or (r.status_code == 400 and "BadDeviceToken" in r.text):
-            await db.live_activity_tokens.delete_one({"token": t["token"]})
+            dead.append(t["token"])
         elif r.status_code != 200:
             logger.warning(f"Live Activity push {r.status_code} for {user_id}: {r.text[:200]}")
+    if dead:
+        await db.live_activity_tokens.delete_many({"token": {"$in": dead}})
 
 
 _PUSH_KIND_RE = re.compile(r"[^a-z]")
@@ -3591,26 +3629,35 @@ async def _send_push(user_id: str, title: str, body: str, url: str = "/live", ta
         logger.warning("pywebpush not installed — push skipped")
         return
 
-    import asyncio as _aio
     payload = json.dumps({"title": title, "body": body, "url": url, "tag": tag})
+    loop = asyncio.get_running_loop()
+    gone = []
+
+    def send(sub):
+        try:
+            webpush(subscription_info={"endpoint": sub["endpoint"], "keys": sub["keys"]}, data=payload,
+                    vapid_private_key=VAPID_PRIVATE_KEY, vapid_claims={"sub": VAPID_SUBJECT}, ttl=86400, timeout=10)
+            return "sent"
+        except WebPushException as exc:
+            # An expired subscription is the browser saying "gone", not the push service failing,
+            # so it must not count towards opening the breaker.
+            if getattr(exc, "response", None) is not None and exc.response.status_code in (404, 410):
+                return "gone"
+            raise
 
     for sub in subs:
-        sub_info = {"endpoint": sub["endpoint"], "keys": sub["keys"]}
         try:
-            await _aio.to_thread(
-                webpush,
-                subscription_info=sub_info,
-                data=payload,
-                vapid_private_key=VAPID_PRIVATE_KEY,
-                vapid_claims={"sub": VAPID_SUBJECT},
-                ttl=86400,
-            )
+            result = await WEBPUSH_BREAKER.call(lambda sub=sub: loop.run_in_executor(_PUSH_POOL, send, sub))
+        except CircuitOpen:
+            logger.warning(f"Push skipped for {user_id}: web push breaker open")
+            break
         except Exception as exc:
-            err_str = str(exc)
-            logger.warning(f"Push failed for {user_id}: {err_str}")
-            if "410" in err_str or "404" in err_str:
-                # Subscription expired — remove it
-                await db.push_subscriptions.delete_one({"endpoint": sub["endpoint"]})
+            logger.warning(f"Push failed for {user_id}: {exc}")
+            continue
+        if result == "gone":
+            gone.append(sub["endpoint"])
+    if gone:
+        await db.push_subscriptions.delete_many({"endpoint": {"$in": gone}})
 
 
 # ============== GYM ENDPOINTS ==============
@@ -3824,8 +3871,9 @@ async def delete_gym(gym_id: str, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Gym not found")
     if gym["owner_id"] != user["user_id"]:
         raise HTTPException(status_code=403, detail="Only the gym owner can delete this gym")
-    for uid in gym.get("members", []):
-        await db.users.update_one({"user_id": uid}, {"$unset": {"gym_id": ""}})
+    members = gym.get("members", [])
+    if members:
+        await db.users.update_many({"user_id": {"$in": members}, "gym_id": gym_id}, {"$unset": {"gym_id": ""}})
     await db.gyms.delete_one({"gym_id": gym_id})
     return {"message": "Gym deleted"}
 
@@ -4939,8 +4987,7 @@ async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current
         </div>"""
         try:
             async with httpx.AsyncClient() as client:
-                await client.post(
-                    "https://api.resend.com/emails",
+                await _breaker_post(RESEND_BREAKER, client, "https://api.resend.com/emails",
                     headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
                     json={"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL], "subject": f"[Victory AI] {type_label} from {doc['user_name']}", "html": email_html},
                     timeout=5,
@@ -5027,8 +5074,7 @@ async def report_crash(data: CrashReportCreate, request: Request):
         </div>"""
         try:
             async with httpx.AsyncClient() as client:
-                await client.post(
-                    "https://api.resend.com/emails",
+                await _breaker_post(RESEND_BREAKER, client, "https://api.resend.com/emails",
                     headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
                     json={"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL], "subject": f"[Victory AI] Crash: {data.message[:100]}", "html": email_html},
                     timeout=5,
@@ -5099,8 +5145,7 @@ async def create_report(data: ReportCreate, user: dict = Depends(get_current_use
         if hidden and RESEND_API_KEY:
             try:
                 async with httpx.AsyncClient() as client:
-                    await client.post(
-                        "https://api.resend.com/emails",
+                    await _breaker_post(RESEND_BREAKER, client, "https://api.resend.com/emails",
                         headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
                         json={
                             "from": RESEND_FROM,
@@ -6795,6 +6840,37 @@ class _PublicReadCorsMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(_PublicReadCorsMiddleware)
+
+
+# Public, identical-for-everyone JSON that changes rarely: let browsers reuse it instead of
+# asking again on every screen. Short max-ages where the data moves (spots left, the counter).
+_PUBLIC_CACHE_CONTROL = {
+    "/api/onboarding/partner-styles": "public, max-age=3600",
+    "/api/onboarding/social-proof": "public, max-age=3600",
+    "/api/pricing": "public, max-age=60",  # includes the live founder-spots count
+    "/api/waitlist/stats": "public, max-age=30",
+}
+
+
+class _PublicCacheMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        policy = _PUBLIC_CACHE_CONTROL.get(scope.get("path")) if scope["type"] == "http" and scope.get("method") == "GET" else None
+        if not policy:
+            return await self.app(scope, receive, send)
+
+        async def send_with_cache(message):
+            if message["type"] == "http.response.start" and message.get("status") == 200:
+                headers = [(k, v) for k, v in message.get("headers", []) if k.lower() != b"cache-control"]
+                message = {**message, "headers": headers + [(b"cache-control", policy.encode())]}
+            await send(message)
+
+        await self.app(scope, receive, send_with_cache)
+
+
+app.add_middleware(_PublicCacheMiddleware)
 # ============== VARIABLE REWARDS ==============
 # Three reward loops that make every session end on something the fighter couldn't
 # predict: personal bests across 16 dimensions (self), a scouting report of varying type
@@ -7852,7 +7928,7 @@ async def _email_fantasy_admin(subject: str, rows: dict, reply_to: Optional[str]
         payload["reply_to"] = reply_to
     try:
         async with httpx.AsyncClient(timeout=10) as http_client:
-            await http_client.post("https://api.resend.com/emails", json=payload,
+            await _breaker_post(RESEND_BREAKER, http_client, "https://api.resend.com/emails", json=payload,
                                    headers={"Authorization": f"Bearer {RESEND_API_KEY}"})
     except Exception as e:
         logger.warning(f"[fantasy] admin email failed: {e}")
@@ -8614,7 +8690,7 @@ async def _send_email(to: str, subject: str, html_body: str, reply_to: Optional[
         payload["reply_to"] = reply_to
     try:
         async with httpx.AsyncClient(timeout=10) as http_client:
-            await http_client.post("https://api.resend.com/emails", json=payload, headers={"Authorization": f"Bearer {RESEND_API_KEY}"})
+            await _breaker_post(RESEND_BREAKER, http_client, "https://api.resend.com/emails", json=payload, headers={"Authorization": f"Bearer {RESEND_API_KEY}"})
     except Exception as e:
         logger.warning(f"[fantasy] email to promoter failed: {e}")
 

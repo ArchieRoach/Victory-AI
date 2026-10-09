@@ -4,6 +4,7 @@ import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
+import { optimistic } from "@/lib/optimistic";
 import {
   Search, X, Radio, Users, Dumbbell, ChevronDown, ChevronUp,
 } from "lucide-react";
@@ -43,20 +44,16 @@ function FighterCard({ fighter, onFollowChange, weightUnit }) {
 
   const handleFollow = async (e) => {
     e.stopPropagation();
+    if (busy) return;
     setBusy(true);
-    try {
-      if (following) {
-        await axios.delete(`${API}/follows/${fighter.user_id}`);
-        setFollowing(false);
-        onFollowChange?.(fighter.user_id, false);
-      } else {
-        await axios.post(`${API}/follows/${fighter.user_id}`);
-        setFollowing(true);
-        onFollowChange?.(fighter.user_id, true);
-      }
-    } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not update follow.");
-    }
+    const was = following;
+    const set = (on) => { setFollowing(on); onFollowChange?.(fighter.user_id, on); };
+    await optimistic({
+      apply: () => set(!was),
+      rollback: () => set(was),
+      request: () => (was ? axios.delete(`${API}/follows/${fighter.user_id}`) : axios.post(`${API}/follows/${fighter.user_id}`)),
+      onError: (err) => toast.error(err?.response?.data?.detail || (was ? "Couldn't unfollow. Try again." : "Couldn't follow. Try again.")),
+    });
     setBusy(false);
   };
 
@@ -136,14 +133,13 @@ function FighterCard({ fighter, onFollowChange, weightUnit }) {
       {/* Follow button */}
       <button
         onClick={handleFollow}
-        disabled={busy}
         className={`flex-shrink-0 touch-target px-3 flex items-center justify-center rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${
           following
             ? "border-victory-border text-victory-muted hover:border-red-500/40 hover:text-red-400"
             : "border-victory-lime text-victory-lime hover:bg-victory-lime/10"
         }`}
       >
-        {busy ? "…" : following ? "Following" : "Follow"}
+        {following ? "Following" : "Follow"}
       </button>
     </div>
   );

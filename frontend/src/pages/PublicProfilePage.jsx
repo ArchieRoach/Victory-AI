@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { formatDistanceToNow, format, isPast } from "date-fns";
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
+import { optimistic } from "@/lib/optimistic";
 import { ShareSheet } from "@/components/ShareSheet";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { formatWeightClass, getWeightUnit } from "@/utils/weightClasses";
@@ -37,19 +38,17 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
 
   const [followState, setFollowState] = useState({});
 
+  const followInFlight = useRef(new Set());
   const handleFollow = async (targetId, currentlyFollowing) => {
-    setFollowState((s) => ({ ...s, [targetId]: "busy" }));
-    try {
-      if (currentlyFollowing) {
-        await axios.delete(`${API}/follows/${targetId}`);
-        setFollowState((s) => ({ ...s, [targetId]: false }));
-      } else {
-        await axios.post(`${API}/follows/${targetId}`);
-        setFollowState((s) => ({ ...s, [targetId]: true }));
-      }
-    } catch {
-      setFollowState((s) => { const n = { ...s }; delete n[targetId]; return n; });
-    }
+    if (followInFlight.current.has(targetId)) return; // ignore double-taps
+    followInFlight.current.add(targetId);
+    await optimistic({
+      apply: () => setFollowState((s) => ({ ...s, [targetId]: !currentlyFollowing })),
+      rollback: () => setFollowState((s) => ({ ...s, [targetId]: currentlyFollowing })),
+      request: () => (currentlyFollowing ? axios.delete(`${API}/follows/${targetId}`) : axios.post(`${API}/follows/${targetId}`)),
+      onError: () => toast.error(currentlyFollowing ? "Couldn't unfollow. Try again." : "Couldn't follow. Try again."),
+    });
+    followInFlight.current.delete(targetId);
   };
 
   const isFollowing = (u) => {
@@ -107,14 +106,13 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
                 </button>
                 <button
                   onClick={() => handleFollow(u.user_id, isFollowing(u))}
-                  disabled={followState[u.user_id] === "busy"}
                   className={`flex-shrink-0 touch-target px-3 flex items-center justify-center rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${
                     isFollowing(u)
                       ? "border-victory-border text-victory-muted"
                       : "border-victory-lime text-victory-lime hover:bg-victory-lime/10"
                   }`}
                 >
-                  {followState[u.user_id] === "busy" ? "…" : isFollowing(u) ? "Following" : "Follow"}
+                  {isFollowing(u) ? "Following" : "Follow"}
                 </button>
               </div>
             ))
@@ -540,20 +538,22 @@ export default function PublicProfilePage() {
     }
   };
 
+  // Optimistic: the button and follower count change on tap; a refusal puts both back.
   const toggleFollow = async () => {
+    if (followLoading) return;
     setFollowLoading(true);
-    try {
-      if (following) {
-        await axios.delete(`${API}/follows/${userId}`);
-        setFollowing(false);
-        setProfile((p) => p ? { ...p, follower_count: p.follower_count - 1 } : p);
-      } else {
-        await axios.post(`${API}/follows/${userId}`);
-        setFollowing(true);
-        setProfile((p) => p ? { ...p, follower_count: p.follower_count + 1 } : p);
-      }
-    } catch { toast.error(t("common.error")); }
-    finally { setFollowLoading(false); }
+    const was = following;
+    const set = (on) => {
+      setFollowing(on);
+      setProfile((p) => (p ? { ...p, follower_count: p.follower_count + (on ? 1 : -1) } : p));
+    };
+    await optimistic({
+      apply: () => set(!was),
+      rollback: () => set(was),
+      request: () => (was ? axios.delete(`${API}/follows/${userId}`) : axios.post(`${API}/follows/${userId}`)),
+      onError: () => toast.error(was ? "Couldn't unfollow. Try again." : "Couldn't follow. Try again."),
+    });
+    setFollowLoading(false);
   };
 
   const handleBlock = async () => {
@@ -648,14 +648,13 @@ export default function PublicProfilePage() {
         <h1 className="text-lg font-heading font-bold text-victory-text flex-1 truncate">{displayName}</h1>
         <button
           onClick={toggleFollow}
-          disabled={followLoading}
           className={`touch-target px-4 flex items-center justify-center rounded-full text-sm font-semibold transition-colors ${
             following
               ? "border border-victory-border text-victory-muted"
               : "bg-victory-lime text-victory-bg"
           }`}
         >
-          {followLoading ? "…" : following ? t("publicProfile.following") : t("publicProfile.follow")}
+          {following ? t("publicProfile.following") : t("publicProfile.follow")}
         </button>
         <button
           onClick={() => setMenuOpen((v) => !v)}
