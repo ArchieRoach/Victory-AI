@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import { Crown, Award, Heart, Sparkles, Flame, Medal } from "lucide-react";
+import { Crown, Award, Heart, Sparkles, Flame, Medal, Trophy, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
 import { BragButton } from "./BragButton";
+import { isNativeShell } from "@/lib/nativeShell";
 
 // Goal: permission to show off without posting anything.
 // Psychology: a trophy shelf is implicit bragging; it only means something because every
@@ -33,9 +34,23 @@ export function TrophyShelf({ userId, isMe = false }) {
     setGiving(false);
   };
 
+  // Gifted gloves always show as gifted, so a pair that was earned keeps its meaning.
+  const giftGloves = async () => {
+    setGiving(true);
+    try {
+      const { data } = await axios.post(`${API}/gloves/gift/checkout`, { recipient_id: userId, origin_url: window.location.origin });
+      if (data.for_parent) toast("Ask a parent or guardian to complete this payment.");
+      window.location.href = data.checkout_url;
+    } catch (e) {
+      const d = e?.response?.data?.detail;
+      toast.error(typeof d === "string" ? d : "Couldn't start the gift right now");
+      setGiving(false);
+    }
+  };
+
   if (shelf === false) return null;
   if (!shelf) return <div className="skeleton-shimmer h-28 rounded-lg" />;
-  const empty = !shelf.titles.length && !shelf.crowns.length && !shelf.belts.length && !shelf.treasures.length;
+  const empty = !shelf.gloves?.length && !shelf.gifted_gloves?.length && !shelf.mastery?.tier && !shelf.titles.length && !shelf.crowns.length && !shelf.belts.length && !shelf.treasures.length;
   return (
     <section className="victory-card p-4 space-y-3" data-testid="trophy-shelf">
       <div className="flex items-center justify-between">
@@ -43,6 +58,28 @@ export function TrophyShelf({ userId, isMe = false }) {
         <span className="text-[11px] text-victory-muted">Level <span className="font-mono text-victory-text">{shelf.level}</span></span>
       </div>
       {empty && <p className="text-victory-muted text-sm">{isMe ? "Belts, crowns and titles land here as you earn them." : "Nothing on the shelf yet."}</p>}
+
+      {(shelf.gloves?.length > 0 || shelf.gifted_gloves?.length > 0) && (
+        <div className="flex flex-wrap gap-1.5">
+          {shelf.gloves.map((g) => (
+            <span key={g.season_id} title={g.hours ? `${g.hours} proven hours` : undefined}
+              className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full bg-victory-lime/15 border border-victory-lime/40 text-victory-lime flex items-center gap-1">
+              <Trophy className="w-3 h-3" /> {g.name}{g.hours ? ` · ${g.hours}h earned` : " · earned"}
+            </span>
+          ))}
+          {shelf.gifted_gloves.map((g) => (
+            <span key={`gift-${g.season_id}`} className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full border border-victory-teal/40 text-victory-teal flex items-center gap-1">
+              <Gift className="w-3 h-3" /> {g.name} · gifted by {g.count} fan{g.count === 1 ? "" : "s"}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {shelf.mastery?.tier && (
+        <p className="text-[11px] text-victory-muted">
+          <span className="text-victory-teal font-semibold">{shelf.mastery.tier}</span> · <span className="font-mono text-victory-text">{shelf.mastery.verified_hours}</span> proven hours on the road to 10,000
+        </p>
+      )}
 
       {(shelf.titles.length > 0 || shelf.crowns.length > 0) && (
         <div className="flex flex-wrap gap-1.5">
@@ -97,6 +134,12 @@ export function TrophyShelf({ userId, isMe = false }) {
             })}
           </div>
         </div>
+      )}
+      {shelf.can_gift_gloves && !isNativeShell() && (
+        <button type="button" onClick={giftGloves} disabled={giving} data-testid="gift-gloves"
+          className="victory-btn-secondary flex items-center justify-center gap-2">
+          <Gift className="w-4 h-4" /> Gift them Golden Gloves · £5
+        </button>
       )}
       {isMe && !empty && <BragButton win={{ kind: "shelf", level: shelf.level, crowns: shelf.crown_count }} label="Share your shelf" />}
     </section>

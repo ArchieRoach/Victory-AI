@@ -1132,7 +1132,9 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
 
     await db.round_videos.update_one(
         {"video_url": video_url, "user_id": user["user_id"]},
-        {"$set": {"analyzed": True, "analysis_results": analysis, "analyzed_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"analyzed": True, "analysis_results": analysis, "analyzed_at": datetime.now(timezone.utc).isoformat(),
+                  # The real length from the video host, not the phone, so verified hours can't be inflated.
+                  "video_seconds": await _video_seconds(public_id)}}
     )
     return {"analysis": analysis, "partner_name": partner_name}
 
@@ -1329,7 +1331,8 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
         "overall_score": overall_score, "scored": overall_score is not None,
         "trigger": session.get("trigger", "direct"), "record_video": session.get("record_video"),
         "dimension_scores": final_dimension_scores,
-        "rounds": [{"round_number": v["round_number"], "video_url": v["video_url"], "analysis": v.get("analysis_results")} for v in videos],
+        "rounds": [{"round_number": v["round_number"], "video_url": v["video_url"], "analysis": v.get("analysis_results"),
+                    "seconds": v.get("video_seconds")} for v in videos],
         "training_config": {"round_duration": session["round_duration"], "rest_duration": session["rest_duration"], "total_rounds": session["total_rounds"]},
         "live_stats": summarize_live_rounds(session.get("live_rounds") or []),
         "created_at": session["created_at"], "completed_at": datetime.now(timezone.utc).isoformat()
@@ -1819,6 +1822,9 @@ async def stripe_webhook(request: Request):
                             "count": count,
                             "timestamp": datetime.now(timezone.utc).isoformat(),
                         })
+            elif purchase_type == "gloves_gift":
+                if _sget(event_data, "payment_status") == "paid":
+                    await _grant_gloves_gift(_sget(event_data, "id"), meta)
             elif purchase_type == "fantasy_cosmetic":
                 if _sget(event_data, "payment_status") == "paid" and meta.get("user_id"):
                     await _grant_cosmetic(meta["user_id"], meta.get("cosmetic_id"))
@@ -2395,6 +2401,8 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.highlight_stamps.delete_many({"$or": [{"user_id": user_id}, {"owner_id": user_id}]})
     await db.season_stats.delete_many({"user_id": user_id})
     await db.weekly_stats.delete_many({"user_id": user_id})
+    await db.proof_stats.delete_many({"user_id": user_id})
+    await db.gloves_gifts.delete_many({"giver_id": user_id})
     await db.treasures.delete_many({"$or": [{"giver_id": user_id}, {"recipient_id": user_id}]})
     await db.mentor_links.delete_many({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]})
     await db.mentor_notes.delete_many({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]})
@@ -2445,6 +2453,8 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "round_stamps_given": await db.highlight_stamps.find({"user_id": user_id}, proj).to_list(10000),
         "season_stats": await db.season_stats.find({"user_id": user_id}, proj).to_list(1000),
         "weekly_stats": await db.weekly_stats.find({"user_id": user_id}, proj).to_list(1000),
+        "golden_gloves_progress": await db.proof_stats.find({"user_id": user_id}, proj).to_list(1000),
+        "gloves_gifts": await db.gloves_gifts.find({"$or": [{"giver_id": user_id}, {"recipient_id": user_id}]}).to_list(1000),
         "treasures_given": await db.treasures.find({"giver_id": user_id}, proj).to_list(10000),
         "treasures_received": await db.treasures.find({"recipient_id": user_id}, proj).to_list(10000),
         "mentorships": await db.mentor_links.find({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]}, proj).to_list(1000),
@@ -4684,6 +4694,7 @@ async def _close_competition_if_due(comp: dict) -> Optional[str]:
     if claimed.modified_count == 1 and winner_id:
         await db.users.update_one({"user_id": winner_id}, {"$inc": {"competition_wins": 1}})
         await check_and_award_belts(winner_id)
+        await award_verified_time(winner_id, comp_win=True)
     return winner_id
 
 @api_router.get("/competitions/mine")
@@ -7152,8 +7163,13 @@ async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool)
     identity = await apply_identity(uid, session, trusted_scores)
     status = await award_status(uid, pts, session=True)
     quests = await advance_squad_quests(uid)
+    if trusted_scores:
+        gloves = await award_verified_time(uid, round_seconds=gx.verified_round_seconds(session.get("rounds")))
+    else:
+        gloves = {"counted": False, "reason": "unverified", "seconds": 0}
 
     return {
+        "gloves": gloves,
         "status": status,
         "quests": quests,
         "identity": identity,
@@ -9771,7 +9787,7 @@ async def trophy_shelf(user_id: str, user: dict = Depends(get_current_user)):
     await _require_profile_visible(user_id, user)
     if user_id != user["user_id"] and await _is_blocked(user_id, user["user_id"]):
         raise HTTPException(404, "Fighter not found")
-    u = await db.users.find_one({"user_id": user_id}, {"_id": 0, "badges": 1, "crowns": 1, "treasures": 1,
+    u = await db.users.find_one({"user_id": user_id}, {"_id": 0, "badges": 1, "crowns": 1, "treasures": 1, "gloves": 1, "gifted_gloves": 1, "verified_seconds": 1,
                                                        "status_points": 1, "created_at": 1})
     if not u:
         raise HTTPException(404, "Fighter not found")
@@ -9785,6 +9801,11 @@ async def trophy_shelf(user_id: str, user: dict = Depends(get_current_user)):
         "crowns": crowns[-12:][::-1],
         "crown_count": len(crowns),
         "belts": u.get("badges") or [],
+        "gloves": u.get("gloves") or [],
+        "gifted_gloves": [{"season_id": sid, "count": n, "name": f"Season {sid.lstrip('S')} Golden Gloves"}
+                          for sid, n in (u.get("gifted_gloves") or {}).items() if n > 0],
+        "mastery": gx.mastery(u.get("verified_seconds", 0)),
+        "can_gift_gloves": user_id != user["user_id"] and not await gloves_gift_blocker(user, user_id),
         "treasures": [{"kind": k, "name": gx.TREASURES[k], "count": c}
                       for k, c in (u.get("treasures") or {}).items() if k in gx.TREASURES and c > 0],
         "can_give": user_id != user["user_id"] and await _knows(user["user_id"], user_id),
@@ -9947,6 +9968,188 @@ async def my_mentors(user: dict = Depends(get_current_user)):
             "options": [o for o in await _mentor_options(user) if o["user_id"] not in taken]}
 
 
+
+
+# ---- Golden Gloves and verified hours (rules and reasoning in gamification.py) ----
+
+async def award_verified_time(uid: str, *, round_seconds: Optional[List[int]] = None, comp_win: bool = False) -> dict:
+    """Adds proven training time: always to the lifetime road to 10,000 hours, and to this
+    season's Golden Gloves once the fighter has pledged. One daily cap covers both."""
+    season = current_season()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    fresh = await db.users.find_one({"user_id": uid}, {"verified_today": 1}) or {}
+    day = fresh.get("verified_today") or {}
+    used = day.get("seconds", 0) if day.get("date") == today else 0
+    got = gx.count_verified(round_seconds or [], used)
+    secs = got["seconds"] + (gx.COMP_WIN_SECONDS if comp_win else 0)
+    out = {"counted": secs > 0, "seconds": secs, "minutes": round(secs / 60), "capped_minutes": round(got["capped_seconds"] / 60)}
+    if round_seconds and not got["seconds"] and not comp_win:
+        out["reason"] = "daily_cap"
+    if not secs:
+        return out
+    await db.users.update_one({"user_id": uid}, {
+        "$inc": {"verified_seconds": secs},
+        "$set": {"verified_today": {"date": today, "seconds": used + got["seconds"]}}})
+    key = {"user_id": uid, "season_id": season["season_id"]}
+    stats = await db.proof_stats.find_one(key) or {}
+    if not stats.get("pledged_at"):
+        out["gloves"] = "not_pledged"
+        return out
+    inc = {"seconds": secs, "rounds": got["rounds"]}
+    if comp_win:
+        inc["comp_wins"] = 1
+    after = await db.proof_stats.find_one_and_update(key, {"$inc": inc}, return_document=True)
+    out["season_hours"] = gx.hours(after.get("seconds", 0))
+    if after.get("seconds", 0) >= gx.GLOVES_TARGET_HOURS * 3600 and not after.get("earned_at"):
+        won = await db.proof_stats.update_one({**key, "earned_at": {"$exists": False}},
+                                              {"$set": {"earned_at": datetime.now(timezone.utc).isoformat()}})
+        if won.modified_count:
+            out["just_earned"] = gx.gloves_name(season)
+            await db.users.update_one({"user_id": uid}, {"$push": {"gloves": {
+                "name": gx.gloves_name(season), "season_id": season["season_id"],
+                "hours": gx.hours(after["seconds"]), "earned_at": datetime.now(timezone.utc).isoformat()}}})
+            await award_status(uid, gx.GLOVES_STATUS_BONUS, boostable=False, weekly=False)
+            await _send_push(uid, title=f"You earned the {gx.gloves_name(season)}",
+                             body=f"{gx.GLOVES_TARGET_HOURS} proven hours. They're on your shelf.", url="/leaderboard",
+                             tag=f"gloves-{season['season_id']}")
+    return out
+
+
+async def _video_seconds(public_id: str) -> Optional[float]:
+    try:
+        resource = await asyncio.to_thread(cloudinary.api.resource, public_id, resource_type="video")
+        return resource.get("duration")
+    except Exception as e:
+        logger.warning(f"Could not read duration for {public_id}: {e}")
+        return None
+
+
+@api_router.get("/gloves")
+async def golden_gloves(user: dict = Depends(get_current_user)):
+    season = current_season()
+    stats = await db.proof_stats.find_one({"user_id": user["user_id"], "season_id": season["season_id"]}, {"_id": 0})
+    pledged = await db.proof_stats.count_documents({"season_id": season["season_id"], "pledged_at": {"$exists": True}})
+    earned = await db.proof_stats.count_documents({"season_id": season["season_id"], "earned_at": {"$exists": True}})
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"verified_seconds": 1, "verified_today": 1}) or {}
+    day = fresh.get("verified_today") or {}
+    used = day.get("seconds", 0) if day.get("date") == datetime.now(timezone.utc).strftime("%Y-%m-%d") else 0
+    return {**gx.gloves_view(stats, season, pledged, earned),
+            "minutes_left_today": max(0, gx.VERIFIED_SECONDS_PER_DAY - used) // 60,
+            "mastery": gx.mastery(fresh.get("verified_seconds", 0))}
+
+
+class GlovesPledge(BaseModel):
+    promises: List[bool]
+
+
+@api_router.post("/gloves/pledge")
+async def pledge_for_gloves(data: GlovesPledge, user: dict = Depends(get_current_user)):
+    season = current_season()
+    if not gx.pledge_window(season)["open"]:
+        raise HTTPException(400, "Entries for this season's gloves have closed. The next chase opens when the new season starts.")
+    if len(data.promises) != len(gx.PLEDGE_PROMISES) or not all(data.promises):
+        raise HTTPException(400, "Make every promise to enter")
+    key = {"user_id": user["user_id"], "season_id": season["season_id"]}
+    if not (await db.proof_stats.find_one(key, {"pledged_at": 1}) or {}).get("pledged_at"):
+        await db.proof_stats.update_one(key, {"$set": {"pledged_at": datetime.now(timezone.utc).isoformat()},
+                                              "$setOnInsert": {"seconds": 0, "rounds": 0, "comp_wins": 0}}, upsert=True)
+    return await golden_gloves(user)
+
+
+async def gloves_gift_blocker(giver: dict, recipient_id: str) -> Optional[str]:
+    """Why this fan can't gift gloves to this fighter right now, or None if they can."""
+    if recipient_id == giver["user_id"]:
+        return "Gloves can only be gifted to someone else"
+    r = await db.users.find_one({"user_id": recipient_id}, {"_id": 0, "password": 0})
+    if not r:
+        return "Fighter not found"
+    if await _is_blocked(giver["user_id"], recipient_id):
+        return "Not available"
+    # Under-18s and private profiles only receive paid gifts from people they actually train with.
+    if _is_minor(r) or not r.get("is_public", True):
+        same_gym = bool(r.get("gym_id")) and r.get("gym_id") == giver.get("gym_id")
+        same_squad = bool(await db.squads.find_one({"members": {"$all": [giver["user_id"], recipient_id]}}))
+        if not (same_gym or same_squad):
+            return "Only their gym or squad can gift them gloves"
+    rec = _record_status(r)
+    if not gx.is_acclaimed(record_verified=rec["verified"], record_bouts=rec["wins"] + rec["losses"] + rec["draws"],
+                           comp_wins=r.get("competition_wins", 0), verified_seconds=r.get("verified_seconds", 0)):
+        return f"Gloves go to acclaimed fighters: a gym-verified record, a crowd-judged win or {gx.ACCLAIM_MIN_HOURS}+ verified hours"
+    season = current_season()
+    if await db.proof_stats.find_one({"user_id": recipient_id, "season_id": season["season_id"], "earned_at": {"$exists": True}}):
+        return "They've already earned this season's gloves"
+    return None
+
+
+class GlovesGiftCheckout(BaseModel):
+    recipient_id: str = Field(..., max_length=64)
+    origin_url: str = ""
+
+
+@api_router.post("/gloves/gift/checkout")
+async def gloves_gift_checkout(data: GlovesGiftCheckout, user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0}) or user
+    blocker = await gloves_gift_blocker(fresh, data.recipient_id)
+    if blocker:
+        raise HTTPException(400, blocker)
+    if _rate_limited(f"gloves_gift:{user['user_id']}", 10, 3600):
+        raise HTTPException(429, "Slow down a little")
+    season = current_season()
+    recipient = await db.users.find_one({"user_id": data.recipient_id}, {"name": 1, "display_name": 1}) or {}
+    rname = (recipient.get("display_name") or recipient.get("name") or "a fighter").split()[0][:30]
+    host = _safe_checkout_origin(data.origin_url)
+    minor = _is_minor(fresh)
+    try:
+        session = await asyncio.to_thread(
+            stripe_lib.checkout.Session.create,
+            mode="payment",
+            payment_method_types=["card"],
+            line_items=[{"price_data": {"currency": "gbp", "unit_amount": int(round(gx.GLOVES_GIFT_PRICE_GBP * 100)),
+                                        "product_data": {"name": f"Gifted {gx.gloves_name(season)} for {rname}",
+                                                         "description": "Shown on their trophy shelf as gifted by fans. Never counts as earned."}},
+                         "quantity": 1}],
+            success_url=f"{host}/profile/{data.recipient_id}?gloves_gift={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{host}/profile/{data.recipient_id}",
+            customer_email=None if minor else (fresh.get("email") or None),
+            metadata={"purchase_type": "gloves_gift", "user_id": user["user_id"],
+                      "recipient_id": data.recipient_id, "season_id": season["season_id"], "season_number": str(season["number"])},
+        )
+    except Exception as e:
+        logger.error(f"Stripe gloves gift checkout error: {e}")
+        raise HTTPException(500, "Could not start checkout. Please try again.")
+    return {"checkout_url": session.url, "for_parent": minor, "price_gbp": gx.GLOVES_GIFT_PRICE_GBP}
+
+
+async def _grant_gloves_gift(session_id: str, meta: dict) -> bool:
+    """Idempotent: the webhook and the buyer's return can both call this for one payment."""
+    try:
+        await db.gloves_gifts.insert_one({"_id": session_id, "giver_id": meta.get("user_id"),
+                                          "recipient_id": meta.get("recipient_id"), "season_id": meta.get("season_id"),
+                                          "created_at": datetime.now(timezone.utc).isoformat()})
+    except DuplicateKeyError:
+        return False
+    rid, sid = meta.get("recipient_id"), meta.get("season_id")
+    await db.users.update_one({"user_id": rid}, {"$inc": {f"gifted_gloves.{sid}": 1}})
+    giver = await db.users.find_one({"user_id": meta.get("user_id")}, {"name": 1, "display_name": 1}) or {}
+    gname = (giver.get("display_name") or giver.get("name") or "A fan").split()[0][:30]
+    await _send_push(rid, title=f"{gname} gifted you Golden Gloves", body="A fan rates you. They're on your shelf.",
+                     url="/profile", tag=f"gloves-gift-{session_id[-8:]}")
+    return True
+
+
+@api_router.get("/gloves/gift/confirm")
+async def confirm_gloves_gift(session_id: str = Query(..., max_length=200), user: dict = Depends(get_current_user)):
+    try:
+        session = await asyncio.to_thread(stripe_lib.checkout.Session.retrieve, session_id)
+    except Exception:
+        raise HTTPException(404, "Payment not found")
+    meta = _sget(session, "metadata") or {}
+    if meta.get("purchase_type") != "gloves_gift" or meta.get("user_id") != user["user_id"]:
+        raise HTTPException(404, "Payment not found")
+    if _sget(session, "payment_status") != "paid":
+        return {"paid": False}
+    await _grant_gloves_gift(session_id, meta)
+    return {"paid": True}
 
 app.include_router(api_router)
 

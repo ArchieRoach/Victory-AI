@@ -289,3 +289,143 @@ def peer_insight(peer_weekly_sessions: List[float], mine: float, level_label: st
         "text": f"{level_label} fighters who reached Gold this season trained about {typical:g} times a week.",
         "on_track": mine >= typical,
     }
+
+
+# ---- Golden Gloves: a scarce, verified prize ----
+# Goal: a prize worth chasing for a whole season, earned only by real, proven training time.
+# Psychology: we value what's hard to get and what we can't simply have (scarcity, Core
+#   Drive 6); a commitment made up front (BMW's M3 buyers promising to wash the car) makes the
+#   thing feel more valuable and makes people follow through (commitment and consistency).
+# Design: each season has its own Golden Gloves. You can only enter in the first two weeks,
+#   by taking a pledge. Only verified time counts: the real length of rounds the AI scored
+#   from video, plus crowd-judged wins. A daily cap means grinding (or a camera left running)
+#   gets nothing. When the season ends, that season's gloves are gone for good. Every number
+#   shown is real: no fake countdowns, no invented "only 3 left".
+#
+# The bar: 20 verified hours in a 6-week season. Verified time is time actually boxing on
+# camera, roughly half of a real gym session, so it equals about 6-7 gym hours a week:
+# serious-amateur territory, well above the average app user, and worthy of respect.
+
+GLOVES_TARGET_HOURS = 20
+ROUND_SECONDS_CAP = 360        # one uploaded round counts for at most 6 minutes
+ROUND_SECONDS_FALLBACK = 120   # length unknown: count it conservatively
+VERIFIED_SECONDS_PER_DAY = 90 * 60
+COMP_WIN_SECONDS = 30 * 60
+PROOF_MIN_DIMENSIONS = 3
+PLEDGE_WINDOW_DAYS = 14
+GLOVES_STATUS_BONUS = 150
+GLOVES_GIFT_PRICE_GBP = 5.00
+PLEDGE_PROMISES = [
+    "I'll train at least three times a week this season.",
+    "I'll only record my own real rounds. No faking, no idle camera.",
+]
+
+
+def verified_round_seconds(rounds: Iterable[dict]) -> List[int]:
+    """Length of every round the AI actually watched (enough scored dimensions)."""
+    out = []
+    for rnd in rounds or []:
+        dims = [d.get("score") for d in ((rnd.get("analysis") or {}).get("dimension_scores") or [])
+                if isinstance(d.get("score"), (int, float))]
+        if len(dims) >= PROOF_MIN_DIMENSIONS:
+            secs = rnd.get("seconds")
+            secs = int(secs) if isinstance(secs, (int, float)) and secs > 0 else ROUND_SECONDS_FALLBACK
+            out.append(min(secs, ROUND_SECONDS_CAP))
+    return out
+
+
+def count_verified(round_seconds: List[int], counted_today: int) -> dict:
+    room = max(0, VERIFIED_SECONDS_PER_DAY - counted_today)
+    counted, rounds = 0, 0
+    for secs in round_seconds:
+        take = min(secs, room - counted)
+        if take <= 0:
+            break
+        counted += take
+        rounds += 1
+    return {"seconds": counted, "rounds": rounds, "capped_seconds": sum(round_seconds) - counted}
+
+
+def hours(seconds: int) -> float:
+    return round((seconds or 0) / 3600, 1)
+
+
+# The road to 10,000 hours (the "expert" mark). Most people will never get near the top,
+# and that's the point: each tier is a real amount of proven time, so it earns respect.
+MASTERY_TIERS = [
+    (1, "First Hour"), (10, "Committed"), (50, "Dedicated"), (100, "Seasoned"),
+    (500, "Veteran"), (1000, "Elite"), (5000, "Master"), (10000, "10,000-Hour Master"),
+]
+EXPERT_HOURS = 10000
+
+
+def mastery(seconds: int) -> dict:
+    h = (seconds or 0) / 3600
+    reached = [(at, name) for at, name in MASTERY_TIERS if h >= at]
+    upcoming = next(((at, name) for at, name in MASTERY_TIERS if h < at), None)
+    return {
+        "verified_hours": round(h, 1),
+        "tier": reached[-1][1] if reached else None,
+        "next_tier": upcoming[1] if upcoming else None,
+        "next_at_hours": upcoming[0] if upcoming else None,
+        "expert_hours": EXPERT_HOURS,
+        "expert_pct": round(min(100, 100 * h / EXPERT_HOURS), 2),
+    }
+
+
+def pledge_window(season: dict, today: Optional[date] = None) -> dict:
+    today = today or datetime.now(timezone.utc).date()
+    start = date.fromisoformat(season["starts"])
+    closes = start + timedelta(days=PLEDGE_WINDOW_DAYS)
+    return {"open": start <= today < closes, "closes": closes.isoformat(),
+            "days_to_close": max(0, (closes - today).days), "next_opens": season["ends"]}
+
+
+def gloves_name(season: dict) -> str:
+    return f"Season {season['number']} Golden Gloves"
+
+
+def gloves_view(stats: Optional[dict], season: dict, pledged: int, earned: int,
+                today: Optional[date] = None) -> dict:
+    stats = stats or {}
+    secs = stats.get("seconds", 0)
+    target = GLOVES_TARGET_HOURS * 3600
+    return {
+        "name": gloves_name(season),
+        "season_id": season["season_id"],
+        "target_hours": GLOVES_TARGET_HOURS,
+        "verified_hours": hours(secs),
+        "hours_to_go": hours(max(0, target - secs)),
+        "pct": min(100, round(100 * secs / target)),
+        "pledged": bool(stats.get("pledged_at")),
+        "earned": bool(stats.get("earned_at")),
+        "verified_rounds": stats.get("rounds", 0),
+        "comp_wins": stats.get("comp_wins", 0),
+        "window": pledge_window(season, today),
+        "days_left": season["days_left"],
+        "holders": earned,
+        "chasers": pledged,
+        "promises": PLEDGE_PROMISES,
+        "gift_price_gbp": GLOVES_GIFT_PRICE_GBP,
+        "rules": [
+            "Every round the AI scores from your video counts for its real length (up to 6 minutes a round).",
+            f"A competition the crowd judges you the winner of counts for {COMP_WIN_SECONDS // 60} minutes.",
+            f"Up to {VERIFIED_SECONDS_PER_DAY // 60} verified minutes count a day. Rest is training too.",
+            "Rounds you log without video don't count.",
+        ],
+    }
+
+
+# ---- Gifted gloves ----
+# Goal: fans can honour a fighter they respect, and it earns revenue without selling status.
+# Psychology: a gift from someone else is a social treasure; it means "I rate you". But a
+#   prize that can be bought stops meaning anything, so a gift must never pass as earned.
+# Design: £5 buys a pair of gifted gloves for an acclaimed fighter who hasn't earned this
+#   season's. They show as "gifted by N fans", separate from earned gloves, and never count
+#   towards hours, levels or ranks.
+
+ACCLAIM_MIN_HOURS = 50
+
+
+def is_acclaimed(*, record_verified: bool, record_bouts: int, comp_wins: int, verified_seconds: int) -> bool:
+    return (record_verified and record_bouts > 0) or comp_wins > 0 or verified_seconds >= ACCLAIM_MIN_HOURS * 3600

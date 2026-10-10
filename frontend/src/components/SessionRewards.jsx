@@ -9,7 +9,7 @@ import { seasonProgress, inviteMoment } from "@/lib/rewards";
 import { FighterCardButton } from "@/components/FighterCard";
 import { IdentityCard } from "@/components/IdentityCard";
 import { BragButton } from "@/components/progress/BragButton";
-import { sessionWin } from "@/lib/progression";
+import { sessionWin, glovesLine } from "@/lib/progression";
 
 const RARITY = {
   common: { label: "SCOUTING REPORT", cls: "bg-victory-card-highlight text-victory-muted border-victory-border" },
@@ -260,9 +260,10 @@ function BringYourCrew({ moment }) {
 }
 
 // Status points and the squad quest, with a brag button only when something was actually won.
-function StatusEarned({ status, quests }) {
+function StatusEarned({ status, quests, gloves }) {
   const navigate = useNavigate();
   if (!status?.earned) return null;
+  const glove = glovesLine(gloves);
   const win = sessionWin({ status, quests });
   const quest = (quests || [])[0];
   return (
@@ -283,7 +284,11 @@ function StatusEarned({ status, quests }) {
             : <>Squad quest: <span className="font-mono text-victory-text">{quest.progress}/{quest.target}</span> sessions for {quest.name}</>}
         </button>
       )}
-      {win && <BragButton win={win} />}
+      {glove && (
+        <button className={`w-full text-left text-[12px] min-h-[44px] ${gloves?.counted || gloves?.just_earned ? "text-victory-lime" : "text-victory-muted"}`}
+          onClick={() => navigate("/leaderboard")}>{glove}</button>
+      )}
+      {gloves?.just_earned ? <BragButton win={{ kind: "crown", name: gloves.just_earned }} /> : win && <BragButton win={win} />}
     </section>
   );
 }
@@ -297,7 +302,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats }) 
       <PersonalBests pb={rewards?.personal_bests} />
       <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
       <SeasonProgress season={rewards?.season} />
-      <StatusEarned status={rewards?.status} quests={rewards?.quests} />
+      <StatusEarned status={rewards?.status} quests={rewards?.quests} gloves={rewards?.gloves} />
       {moment && <FighterCardButton rewards={rewards} overall={overall} liveStats={liveStats} />}
       {moment && <BringYourCrew moment={moment} />}
     </div>

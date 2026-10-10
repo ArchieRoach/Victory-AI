@@ -415,6 +415,30 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Golden Gloves, verified hours and gifted gloves (branch `scarcity`)
+
+One prize per season (`gamification.py` "Golden Gloves", `server.py` "Golden Gloves and verified hours",
+UI `components/progress/GoldenGloves.jsx` and the trophy shelf).
+- **Verified time only**: a round counts only if the AI scored it from video (3+ scored dimensions), and it
+  counts for its real length. That comes from Cloudinary at analysis time (`round_videos.video_seconds`), not
+  the phone, capped at 6 minutes a round, or 2 minutes if the length is unknown. A crowd-judged competition win
+  counts as 30 minutes. Self-logged sessions count for nothing. At most 90 verified minutes count a day.
+- **Road to 10,000 hours**: all verified time adds to `users.verified_seconds`, with tiers First Hour,
+  Committed (10h), Dedicated (50h), Seasoned (100h), Veteran (500h), Elite (1,000h), Master (5,000h) and
+  10,000-Hour Master.
+- **Golden Gloves**: 20 verified hours in one 6-week season. Verified time is roughly half of real gym time,
+  so that's about 6–7 gym hours a week: serious-amateur effort. Entry is only open for the first 14 days,
+  with two promises (`POST /gloves/pledge`), and only time after the pledge counts. Winning gives
+  `users.gloves` and +150 status. They're gone when the season ends.
+- **Gifted gloves (£5)**: `POST /gloves/gift/checkout` → Stripe → webhook `gloves_gift`, or
+  `GET /gloves/gift/confirm` on return. Both are idempotent through `gloves_gifts._id = checkout session id`.
+  The recipient must be acclaimed: a gym-verified record, a crowd-judged win, or 50+ verified hours. Earners of
+  this season's gloves can't receive a gifted pair. Under-18 or private recipients can only be gifted by their
+  gym or squad. Gifts show as "gifted by N fans" (`users.gifted_gloves`) and never add hours, status or rank.
+  The button is hidden in the iOS app (Apple requires in-app purchase for digital goods).
+- **Honest scarcity**: deadlines, holder counts and chaser counts are real (`GET /gloves`).
+- Livestreams count only through rounds recorded for AI scoring. Stream length is set by the client.
+
 ## Progression: status, ranks, quests, treasures, trophies, mentors (branch `gamification`)
 
 Built from the gamification notes. Rules live in `backend/gamification.py` (pure, tested in

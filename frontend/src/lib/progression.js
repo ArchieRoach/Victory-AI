@@ -64,3 +64,32 @@ export function weekLabel(weekId) {
   const m = /W(\d+)$/.exec(weekId || "");
   return m ? `W${Number(m[1])}` : weekId || "";
 }
+
+// Rarity and deadlines are real numbers from the server; nothing here invents urgency.
+export function glovesHeadline(g) {
+  if (!g) return "";
+  const held = g.holders === 0 ? "Nobody holds them yet" : `Held by ${g.holders} fighter${g.holders === 1 ? "" : "s"}`;
+  if (g.earned) return `Yours. ${held}. Gone for good when the season ends.`;
+  if (g.pledged) return `${g.hours_to_go} proven hours to go · ${g.days_left} days left · ${held}`;
+  if (g.window?.open) return `${g.chasers} chasing · ${held} · entries close in ${g.window.days_to_close}d`;
+  return `${held}. Entries closed for this season.`;
+}
+
+// What the session did (or didn't do) for verified hours, in one honest line.
+export function glovesLine(gloves) {
+  if (!gloves) return null;
+  if (gloves.just_earned) return `You earned the ${gloves.just_earned}!`;
+  if (gloves.counted && gloves.minutes) {
+    const capped = gloves.capped_minutes ? ` (${gloves.capped_minutes} over today's cap)` : "";
+    return `+${gloves.minutes} verified minutes${gloves.season_hours != null ? ` · ${gloves.season_hours}h toward the Golden Gloves` : ""}${capped}`;
+  }
+  if (gloves.reason === "unverified") return "Not counted as verified time: only rounds the AI scores from video count.";
+  if (gloves.reason === "daily_cap") return "Today's verified-time cap is reached. Rest up, it resets tomorrow.";
+  return null;
+}
+
+export function masteryLine(m) {
+  if (!m) return "";
+  const now = `${m.verified_hours.toLocaleString()} of ${m.expert_hours.toLocaleString()} expert hours`;
+  return m.next_tier ? `${now} · next: ${m.next_tier} at ${m.next_at_hours.toLocaleString()}h` : now;
+}

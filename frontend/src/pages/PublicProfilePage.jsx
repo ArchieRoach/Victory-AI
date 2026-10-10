@@ -516,6 +516,21 @@ export default function PublicProfilePage() {
   const [blocking,      setBlocking]      = useState(false);
 
   const isOwn = userId === currentUser?.user_id;
+  const [shelfKey, setShelfKey] = useState(0);
+
+  // Back from a gloves gift checkout: confirm now rather than waiting for the webhook.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sid = params.get("gloves_gift");
+    if (!sid) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    axios.get(`${API}/gloves/gift/confirm`, { params: { session_id: sid } })
+      .then(({ data }) => {
+        if (data.paid) { toast.success("Gloves gifted. They'll see them on their shelf."); setShelfKey((k) => k + 1); }
+        else toast("Payment still processing: the gloves will appear shortly.");
+      })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (isOwn) { navigate("/profile", { replace: true }); return; }
@@ -759,7 +774,7 @@ export default function PublicProfilePage() {
         <main className="px-4 pt-4 space-y-4 pb-4">
           <FighterReputation profile={profile} />
           <FightFilm userId={userId} isOwn={isOwn} />
-          <TrophyShelf userId={userId} isMe={isOwn} />
+          <TrophyShelf key={shelfKey} userId={userId} isMe={isOwn} />
 
           {/* Stats */}
           <section className="victory-card p-4">
