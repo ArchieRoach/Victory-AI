@@ -55,6 +55,7 @@ stripe_lib.api_key = STRIPE_API_KEY
 stripe_lib.default_http_client = stripe_lib.RequestsClient(timeout=20)
 
 from resilience import CircuitBreaker, CircuitOpen
+import gamification as gx
 from concurrent.futures import ThreadPoolExecutor
 # One breaker per third-party service (see resilience.py for why).
 MODERATION_BREAKER = CircuitBreaker("openai_moderation", timeout_seconds=5, max_concurrency=20)
@@ -2393,6 +2394,11 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.highlights.update_many({"squad_viewer_ids": user_id}, {"$pull": {"squad_viewer_ids": user_id}})
     await db.highlight_stamps.delete_many({"$or": [{"user_id": user_id}, {"owner_id": user_id}]})
     await db.season_stats.delete_many({"user_id": user_id})
+    await db.weekly_stats.delete_many({"user_id": user_id})
+    await db.treasures.delete_many({"$or": [{"giver_id": user_id}, {"recipient_id": user_id}]})
+    await db.mentor_links.delete_many({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]})
+    await db.mentor_notes.delete_many({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]})
+    await db.gyms.update_many({"coaches": user_id}, {"$pull": {"coaches": user_id}})
     await db.bookings.delete_many({"user_id": user_id})
     await db.callouts.delete_many({"challenger_id": user_id})
     await db.callouts.update_many({"target_ids": user_id}, {"$pull": {"target_ids": user_id, "accepted_ids": user_id}})
@@ -2438,6 +2444,11 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "highlights": await db.highlights.find({"streamer_id": user_id}, proj).to_list(1000),
         "round_stamps_given": await db.highlight_stamps.find({"user_id": user_id}, proj).to_list(10000),
         "season_stats": await db.season_stats.find({"user_id": user_id}, proj).to_list(1000),
+        "weekly_stats": await db.weekly_stats.find({"user_id": user_id}, proj).to_list(1000),
+        "treasures_given": await db.treasures.find({"giver_id": user_id}, proj).to_list(10000),
+        "treasures_received": await db.treasures.find({"recipient_id": user_id}, proj).to_list(10000),
+        "mentorships": await db.mentor_links.find({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]}, proj).to_list(1000),
+        "mentor_notes": await db.mentor_notes.find({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]}, proj).to_list(10000),
         "bookings": await db.bookings.find({"user_id": user_id}, proj).to_list(1000),
         "callouts_sent": await db.callouts.find({"challenger_id": user_id}, proj).to_list(1000),
         "feedback_submitted": await db.feedback.find({"user_id": user_id}, proj).to_list(10000),
@@ -2854,7 +2865,8 @@ async def check_and_award_belts(user_id: str) -> list:
         if qualifies and belt_id not in already_earned:
             new_badges.append({"belt_id": belt_id, **BELT_CATALOGUE[belt_id], "earned_at": now})
     if new_badges:
-        await db.users.update_one({"user_id": user_id}, {"$push": {"badges": {"$each": new_badges}}})
+        await db.users.update_one({"user_id": user_id}, {"$push": {"badges": {"$each": new_badges}},
+                                                          "$inc": {"status_points": gx.STATUS_PER_BELT * len(new_badges)}})
     return new_badges
 
 def safe_user(user: dict) -> dict:
@@ -7138,8 +7150,12 @@ async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool)
     await _complete_bookings_for(uid)
     callouts_beaten = await _settle_callouts_for(user, overall, dims) if trusted_scores else []
     identity = await apply_identity(uid, session, trusted_scores)
+    status = await award_status(uid, pts, session=True)
+    quests = await advance_squad_quests(uid)
 
     return {
+        "status": status,
+        "quests": quests,
         "identity": identity,
         "callouts_beaten": callouts_beaten,
         "personal_bests": {"new": pb["new"], "near": pb["near"], "baselines": pb["baselines"]},
@@ -9410,6 +9426,526 @@ async def _fantasy_ops_loop():
             await send_weekly_digest()
         except Exception as exc:
             logger.warning(f"[fantasy] ops error: {_redact(exc)}")
+
+
+# ============== PROGRESSION: STATUS, RANKS, QUESTS, TREASURES, MENTORS ==============
+# The rules live in gamification.py (pure, tested); this section reads and writes them.
+
+
+async def award_status(uid: str, pts: int, *, session: bool = False, boostable: bool = True,
+                       weekly: bool = True) -> dict:
+    """Adds status points (never removed) and, for training effort, weekly board points.
+    A booster doubles status points only, so weekly and season boards stay effort-for-effort."""
+    if pts <= 0:
+        return {}
+    fresh = await db.users.find_one({"user_id": uid}, {"status_points": 1, "boosters": 1}) or {}
+    before = fresh.get("status_points", 0)
+    earned, used = pts, None
+    if boostable:
+        boosted, left, booster = gx.apply_booster(pts, fresh.get("boosters"))
+        if booster:
+            # Only spend the booster if nobody else spent it first.
+            spent = await db.users.update_one({"user_id": uid, "boosters": fresh.get("boosters")},
+                                              {"$set": {"boosters": left}})
+            if spent.modified_count:
+                earned, used = boosted, booster
+    await db.users.update_one({"user_id": uid}, {"$inc": {"status_points": earned}})
+    if weekly:
+        await db.weekly_stats.update_one(
+            {"user_id": uid, "week_id": gx.week_id()},
+            {"$inc": {"points": pts, "sessions": 1 if session else 0}}, upsert=True)
+    after = before + earned
+    return {"earned": earned, "base": pts, "booster": used["label"] if used else None,
+            "total": after, "level": gx.level_for(after),
+            "leveled_up": gx.level_for(after) > gx.level_for(before),
+            "unlocked": gx.newly_unlocked(before, after)}
+
+
+async def advance_squad_quests(uid: str) -> List[dict]:
+    wk = gx.week_id()
+    squads = await db.squads.find({"members": uid}, {"squad_id": 1, "members": 1, "name": 1}).to_list(MAX_SQUADS_PER_USER)
+    out = []
+    for sq in squads:
+        q = await db.squad_quests.find_one_and_update(
+            {"squad_id": sq["squad_id"], "week_id": wk},
+            {"$inc": {"progress": 1, f"contributions.{uid}": 1},
+             "$setOnInsert": {"target": gx.quest_target(len(sq.get("members", []))), "completed": False}},
+            upsert=True, return_document=True)
+        just_done = False
+        if q["progress"] >= q["target"] and not q.get("completed"):
+            claimed = await db.squad_quests.update_one(
+                {"squad_id": sq["squad_id"], "week_id": wk, "completed": False},
+                {"$set": {"completed": True, "completed_at": datetime.now(timezone.utc).isoformat()}})
+            if claimed.modified_count:
+                just_done = True
+                await _reward_squad_quest(sq)
+        out.append({"squad_id": sq["squad_id"], "name": sq.get("name"), "progress": min(q["progress"], q["target"]),
+                    "target": q["target"], "completed": q.get("completed") or just_done, "just_completed": just_done})
+    return out
+
+
+async def _reward_squad_quest(squad: dict):
+    booster = gx.make_booster("double_status", "Squad quest booster")
+    for m in squad.get("members", []):
+        await award_status(m, gx.STATUS_PER_QUEST, boostable=False, weekly=False)
+        await db.users.update_one({"user_id": m}, {"$push": {"boosters": booster}})
+    await asyncio.gather(*[
+        _send_push(m, title=f"{squad.get('name', 'Your squad')} hit the weekly quest",
+                   body=f"+{gx.STATUS_PER_QUEST} status and 2x status on your next session",
+                   url="/leaderboard?tab=quests", tag=f"quest-{squad['squad_id']}")
+        for m in squad.get("members", [])
+    ], return_exceptions=True)
+
+
+async def _friend_ids(uid: str) -> List[str]:
+    following = [f["following_id"] for f in await db.follows.find(
+        {"follower_id": uid}, {"following_id": 1}).to_list(200)]
+    blocked = await _blocked_either_way(uid)
+    ids = {*following, *await _squad_mate_ids(uid)} - blocked - {uid}
+    return list(ids)
+
+
+def _rank_name(u: dict, known: bool) -> str:
+    # Strangers only see adults who chose a public profile, and only first name + initial.
+    if not known and (not u.get("is_public", True) or _is_minor(u)):
+        return "A fighter"
+    parts = (u.get("display_name") or u.get("name") or "Fighter").strip().split() or ["Fighter"]
+    return parts[0] if len(parts) == 1 else f"{parts[0]} {parts[-1][0]}."
+
+
+async def _points_for(period: str, user_ids: Optional[List[str]] = None) -> Dict[str, int]:
+    coll, key = (db.weekly_stats, {"week_id": gx.week_id()}) if period == "week" \
+        else (db.season_stats, {"season_id": current_season()["season_id"]})
+    q = dict(key)
+    if user_ids is not None:
+        q["user_id"] = {"$in": user_ids}
+    else:
+        q["points"] = {"$gt": 0}
+    docs = await coll.find(q, {"user_id": 1, "points": 1}).sort("points", -1).limit(5000).to_list(5000)
+    return {d["user_id"]: d.get("points", 0) for d in docs}
+
+
+async def _close_previous_week():
+    """Crowns last week's winners exactly once, the first time anyone opens the board."""
+    prev = gx.previous_week_id()
+    try:
+        await db.weekly_closings.insert_one({"_id": prev, "at": datetime.now(timezone.utc).isoformat()})
+    except DuplicateKeyError:
+        return
+    top = await db.weekly_stats.find({"week_id": prev, "points": {"$gt": 0}}).sort("points", -1).limit(1).to_list(1)
+    if top:
+        await db.users.update_one({"user_id": top[0]["user_id"]}, {"$push": {"crowns": {
+            "kind": "crown", "name": "Weekly No. 1", "scope": "Victory AI", "week_id": prev}}})
+    week_pts = {d["user_id"]: d["points"] for d in await db.weekly_stats.find(
+        {"week_id": prev, "points": {"$gt": 0}}, {"user_id": 1, "points": 1}).to_list(20000)}
+    async for sq in db.squads.find({}, {"squad_id": 1, "name": 1, "members": 1}).limit(5000):
+        active = [(week_pts[m], m) for m in sq.get("members", []) if m in week_pts]
+        if len(sq.get("members", [])) >= 2 and active:
+            _, winner = max(active)
+            await db.users.update_one({"user_id": winner}, {"$push": {"crowns": {
+                "kind": "crown", "name": "Squad Crown", "scope": sq.get("name", "Squad"), "week_id": prev}}})
+
+
+@api_router.get("/progression/me")
+async def my_progression(user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    fresh = await db.users.find_one({"user_id": uid}, {"_id": 0, "status_points": 1, "boosters": 1, "personal_bests": 1,
+                                                       "experience_level": 1, "competition_prefs": 1, "training_partner": 1}) or {}
+    weeks = gx.recent_week_ids(8)
+    stats = {d["week_id"]: d for d in await db.weekly_stats.find(
+        {"user_id": uid, "week_id": {"$in": weeks}}, {"_id": 0}).to_list(8)}
+    total_sessions = await db.sessions.count_documents({"user_id": uid})
+    season = current_season()
+    my_season = await db.season_stats.find_one({"user_id": uid, "season_id": season["season_id"]}) or {}
+    note = await db.mentor_notes.find_one({"mentee_id": uid}, {"_id": 0}, sort=[("created_at", -1)])
+    return {
+        **gx.progression(fresh.get("status_points", 0)),
+        "boosters": gx.live_boosters(fresh.get("boosters")),
+        "weekly": [{"week_id": w, "points": stats.get(w, {}).get("points", 0),
+                    "sessions": stats.get(w, {}).get("sessions", 0)} for w in weeks],
+        "learning_mode": gx.learning_mode(fresh.get("competition_prefs"), total_sessions),
+        "for_you": _for_you(fresh, note),
+        "peers": await _peer_insight(uid, fresh.get("experience_level") or "beginner", my_season, season),
+    }
+
+
+def _for_you(fresh: dict, note: Optional[dict]) -> dict:
+    # The Alfred effect: the more the app already knows what you need next, the harder it
+    # is to imagine training anywhere else. Every line here comes from the fighter's own data.
+    pbs = {k: v for k, v in (fresh.get("personal_bests") or {}).items() if k != "Overall" and k in DRILLS}
+    weakest = min(pbs.items(), key=lambda kv: kv[1])[0] if pbs else None
+    drill = DRILLS.get(weakest) if weakest else None
+    partner = (fresh.get("training_partner") or {}).get("name") or "Your coach"
+    return {
+        "partner": partner,
+        "focus": weakest,
+        "drill": {"name": drill["name"], "description": drill["description"]} if drill else None,
+        "line": (f"{partner}: your {weakest.lower()} is the lowest of your bests. Ten minutes of "
+                 f"{drill['name']} today closes the gap.") if drill
+        else f"{partner}: get a scored round in and I'll build your plan around it.",
+        "mentor_note": note,
+    }
+
+
+async def _peer_insight(uid: str, level: str, my_season: dict, season: dict) -> Optional[dict]:
+    peers = [u["user_id"] for u in await db.users.find(
+        {"experience_level": level, "user_id": {"$ne": uid}}, {"user_id": 1}).limit(5000).to_list(5000)]
+    if not peers:
+        return None
+    weeks = max(1.0, (datetime.now(timezone.utc).date() - date.fromisoformat(season["starts"])).days / 7)
+    gold_at = dict(SEASON_RANKS)["Gold"]
+    docs = await db.season_stats.find(
+        {"season_id": season["season_id"], "user_id": {"$in": peers}, "points": {"$gte": gold_at}},
+        {"sessions": 1}).to_list(5000)
+    return gx.peer_insight([d.get("sessions", 0) / weeks for d in docs],
+                           my_season.get("sessions", 0) / weeks, level.capitalize())
+
+
+class CompetitionPrefs(BaseModel):
+    learning_mode: bool
+
+
+@api_router.put("/progression/competition")
+async def set_competition_prefs(data: CompetitionPrefs, user: dict = Depends(get_current_user)):
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"competition_prefs.learning_mode": data.learning_mode}})
+    return {"learning_mode": data.learning_mode}
+
+
+@api_router.get("/ranks")
+async def get_ranks(scope: Optional[Literal["friends", "similar", "global"]] = None,
+                    period: Literal["week", "season"] = "week", user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    await _close_previous_week()
+    friends = await _friend_ids(uid)
+    scope = scope or gx.default_scope(len(friends))
+    fresh = await db.users.find_one({"user_id": uid}, {"competition_prefs": 1, "experience_level": 1}) or {}
+    sessions = await db.sessions.count_documents({"user_id": uid})
+    base = {"scope": scope, "period": period, "friend_count": len(friends),
+            "resets_at": gx.week_resets_at() if period == "week" else current_season()["ends"],
+            "learning_mode": gx.learning_mode(fresh.get("competition_prefs"), sessions)}
+    if scope == "friends":
+        ids = [uid, *friends]
+        pts = await _points_for(period, ids)
+        pts = {i: pts.get(i, 0) for i in ids}
+    elif scope == "similar":
+        level = fresh.get("experience_level") or "beginner"
+        ids = [u["user_id"] for u in await db.users.find(
+            {"experience_level": level}, {"user_id": 1}).limit(5000).to_list(5000)]
+        pts = await _points_for(period, ids)
+        pts.setdefault(uid, 0)
+        base["level"] = level
+    else:
+        pts = await _points_for(period)
+        pts.setdefault(uid, 0)
+    ranked = gx.rank_rows([{"id": i, "points": p} for i, p in pts.items()])
+    window = gx.centred_window(ranked, uid)
+    shown_ids = {r["id"] for r in window["rows"]} | {r["id"] for r in ranked[:3]}
+    users = {u["user_id"]: u for u in await db.users.find(
+        {"user_id": {"$in": list(shown_ids)}},
+        {"user_id": 1, "name": 1, "display_name": 1, "is_public": 1, "birth_date": 1, "avatar_url": 1, "picture": 1}
+    ).to_list(len(shown_ids) or 1)}
+    known = set(friends) | {uid}
+
+    def row(r):
+        u = users.get(r["id"], {})
+        mine = r["id"] in known
+        return {"rank": r["rank"], "name": "You" if r["id"] == uid else _rank_name(u, mine),
+                "points": r["points"], "is_me": r["id"] == uid,
+                "user_id": r["id"] if mine else None,
+                "avatar": (u.get("avatar_url") or u.get("picture")) if mine else None}
+
+    return {**base, "size": len(ranked), "rows": [row(r) for r in window["rows"]],
+            "top": [row(r) for r in ranked[:3]], "me": row(window["me"]) if window["me"] else None,
+            "gap_up": window["gap_up"],
+            "next_up": _rank_name(users.get(window["next_up_id"], {}), True) if window["next_up_id"] in known else None,
+            "within_reach": window["within_reach"]}
+
+
+@api_router.get("/ranks/groups")
+async def get_group_ranks(kind: Literal["squad", "gym"] = "squad", period: Literal["week", "season"] = "week",
+                          user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    pts = await _points_for(period)
+    if kind == "squad":
+        groups = await db.squads.find({}, {"squad_id": 1, "name": 1, "members": 1}).limit(5000).to_list(5000)
+        mine = {g["squad_id"] for g in groups if uid in g.get("members", [])}
+        gid = "squad_id"
+    else:
+        groups = await db.gyms.find({"$or": [{"is_public": True}, {"members": uid}]},
+                                    {"gym_id": 1, "name": 1, "members": 1}).limit(5000).to_list(5000)
+        mine = {g["gym_id"] for g in groups if uid in g.get("members", [])}
+        gid = "gym_id"
+    if not mine:
+        return {"kind": kind, "period": period, "rows": [], "me": None, "size": 0}
+    rows = [{"id": g[gid], "points": sum(pts.get(m, 0) for m in g.get("members", [])),
+             "members": len(g.get("members", [])), "label": g.get("name", "")} for g in groups]
+    ranked = gx.rank_rows(rows)
+    my_id = next(iter(mine))
+    window = gx.centred_window(ranked, my_id)
+
+    def row(r):
+        is_mine = r["id"] in mine
+        # Other squads are private groups: show their size, not their name (names often carry
+        # members' first names). Public gyms are listed by name.
+        name = r["label"] if (is_mine or kind == "gym") else f"Squad of {r['members']}"
+        return {"rank": r["rank"], "name": name, "points": r["points"], "members": r["members"], "is_me": is_mine}
+
+    return {"kind": kind, "period": period, "resets_at": gx.week_resets_at() if period == "week" else current_season()["ends"],
+            "size": len(ranked), "rows": [row(r) for r in window["rows"]], "me": row(window["me"]),
+            "gap_up": window["gap_up"], "within_reach": window["within_reach"]}
+
+
+@api_router.get("/quests/mine")
+async def my_quests(user: dict = Depends(get_current_user)):
+    uid, wk = user["user_id"], gx.week_id()
+    squads = await db.squads.find({"members": uid}, {"_id": 0, "squad_id": 1, "name": 1, "members": 1}).to_list(MAX_SQUADS_PER_USER)
+    member_ids = list({m for sq in squads for m in sq.get("members", [])})
+    names = {u["user_id"]: ("You" if u["user_id"] == uid else (u.get("display_name") or u.get("name") or "Fighter").split()[0])
+             for u in await db.users.find({"user_id": {"$in": member_ids}}, {"user_id": 1, "name": 1, "display_name": 1}).to_list(len(member_ids) or 1)}
+    out = []
+    for sq in squads:
+        q = await db.squad_quests.find_one({"squad_id": sq["squad_id"], "week_id": wk}) or {
+            "squad_id": sq["squad_id"], "week_id": wk, "target": gx.quest_target(len(sq.get("members", []))), "progress": 0}
+        view = gx.quest_view(q, {m: names.get(m, "Fighter") for m in sq.get("members", [])}, uid)
+        out.append({**view, "name": sq.get("name"), "reward": f"+{gx.STATUS_PER_QUEST} status and a 2x booster each"})
+    return {"week_id": wk, "resets_at": gx.week_resets_at(), "quests": out}
+
+
+class TreasureCreate(BaseModel):
+    recipient_id: str = Field(..., max_length=64)
+    kind: str = Field(..., max_length=20)
+
+
+async def _knows(uid: str, other: str) -> bool:
+    if await db.follows.find_one({"follower_id": uid, "following_id": other}):
+        return True
+    if await db.squads.find_one({"members": {"$all": [uid, other]}}):
+        return True
+    me = await db.users.find_one({"user_id": uid}, {"gym_id": 1}) or {}
+    return bool(me.get("gym_id")) and bool(await db.users.find_one({"user_id": other, "gym_id": me["gym_id"]}))
+
+
+@api_router.post("/treasures")
+async def give_treasure(data: TreasureCreate, user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    if data.kind not in gx.TREASURES:
+        raise HTTPException(400, "Unknown treasure")
+    if data.recipient_id == uid:
+        raise HTTPException(400, "Treasures can only come from someone else")
+    if not await db.users.find_one({"user_id": data.recipient_id}, {"_id": 1}):
+        raise HTTPException(404, "Fighter not found")
+    if await _is_blocked(uid, data.recipient_id) or not await _knows(uid, data.recipient_id):
+        raise HTTPException(403, "Follow them or train together first")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if await db.treasures.count_documents({"giver_id": uid, "date": today}) >= gx.TREASURES_PER_DAY:
+        raise HTTPException(429, f"You've given all {gx.TREASURES_PER_DAY} for today. They refill tomorrow.")
+    if await db.treasures.find_one({"giver_id": uid, "recipient_id": data.recipient_id, "date": today}):
+        raise HTTPException(400, "You've already given them one today")
+    now = datetime.now(timezone.utc).isoformat()
+    await db.treasures.insert_one({"treasure_id": f"tr_{uuid.uuid4().hex[:12]}", "giver_id": uid,
+                                   "recipient_id": data.recipient_id, "kind": data.kind, "date": today, "created_at": now})
+    await db.users.update_one({"user_id": data.recipient_id}, {"$inc": {f"treasures.{data.kind}": 1}})
+    name = (user.get("display_name") or user.get("name") or "Someone").split()[0][:30]
+    label = gx.TREASURES[data.kind]
+    await db.notifications.insert_one({
+        "notification_id": f"notif_{uuid.uuid4().hex[:12]}", "recipient_id": data.recipient_id, "actor_id": uid,
+        "type": "treasure", "message": f"{name} gave you {label}", "read": False, "created_at": now})
+    await _send_push(data.recipient_id, title=f"{name} gave you {label}", body="It's on your trophy shelf",
+                     url="/profile", tag=f"treasure-{uid}-{today}")
+    left = gx.TREASURES_PER_DAY - await db.treasures.count_documents({"giver_id": uid, "date": today})
+    return {"given": label, "left_today": left}
+
+
+@api_router.get("/treasures/mine")
+async def my_treasures(user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    given = await db.treasures.count_documents({"giver_id": uid, "date": today})
+    fresh = await db.users.find_one({"user_id": uid}, {"treasures": 1}) or {}
+    return {"kinds": gx.TREASURES, "received": fresh.get("treasures") or {},
+            "left_today": max(0, gx.TREASURES_PER_DAY - given)}
+
+
+@api_router.get("/users/{user_id}/trophy-shelf")
+async def trophy_shelf(user_id: str, user: dict = Depends(get_current_user)):
+    await _require_profile_visible(user_id, user)
+    if user_id != user["user_id"] and await _is_blocked(user_id, user["user_id"]):
+        raise HTTPException(404, "Fighter not found")
+    u = await db.users.find_one({"user_id": user_id}, {"_id": 0, "badges": 1, "crowns": 1, "treasures": 1,
+                                                       "status_points": 1, "created_at": 1})
+    if not u:
+        raise HTTPException(404, "Fighter not found")
+    invited = await db.users.count_documents({"invited_by": user_id})
+    pts = u.get("status_points", 0)
+    crowns = u.get("crowns") or []
+    return {
+        "level": gx.level_for(pts),
+        "status_points": pts,
+        "titles": gx.shelf_titles(status_points=pts, created_at=u.get("created_at"), invited_count=invited),
+        "crowns": crowns[-12:][::-1],
+        "crown_count": len(crowns),
+        "belts": u.get("badges") or [],
+        "treasures": [{"kind": k, "name": gx.TREASURES[k], "count": c}
+                      for k, c in (u.get("treasures") or {}).items() if k in gx.TREASURES and c > 0],
+        "can_give": user_id != user["user_id"] and await _knows(user["user_id"], user_id),
+    }
+
+
+# ---- Mentors ----
+# Goal: every fighter has someone in their corner: the AI partner always, and a real coach
+#   from their gym if they want one.
+# Psychology: being watched by someone whose opinion you value (relatedness, accountability)
+#   keeps people training; a mentor also gains status from their mentees' progress.
+# Design: the fighter asks; a gym owner or a coach the owner named can accept. The mentor
+#   sees training progress and leaves short notes. Notes are moderated and one-way (no chat),
+#   and either side can end it at any time, which matters for under-18 fighters.
+
+MAX_MENTORS = 3
+MENTOR_NOTES_PER_DAY = 10
+
+
+class CoachToggle(BaseModel):
+    coach: bool
+
+
+@api_router.put("/gyms/{gym_id}/coaches/{member_id}")
+async def set_gym_coach(gym_id: str, member_id: str, data: CoachToggle, user: dict = Depends(get_current_user)):
+    gym = await db.gyms.find_one({"gym_id": gym_id})
+    if not gym or gym.get("owner_id") != user["user_id"]:
+        raise HTTPException(403, "Only the gym owner can name coaches")
+    if member_id not in gym.get("members", []):
+        raise HTTPException(400, "They need to be a member of the gym")
+    op = "$addToSet" if data.coach else "$pull"
+    await db.gyms.update_one({"gym_id": gym_id}, {op: {"coaches": member_id}})
+    return {"member_id": member_id, "coach": data.coach}
+
+
+async def _mentor_options(user: dict) -> List[dict]:
+    me = await db.users.find_one({"user_id": user["user_id"]}, {"gym_id": 1}) or {}
+    if not me.get("gym_id"):
+        return []
+    gym = await db.gyms.find_one({"gym_id": me["gym_id"]}, {"owner_id": 1, "coaches": 1, "name": 1}) or {}
+    ids = [i for i in [gym.get("owner_id"), *(gym.get("coaches") or [])] if i and i != user["user_id"]]
+    docs = await db.users.find({"user_id": {"$in": ids}}, {"user_id": 1, "name": 1, "display_name": 1,
+                                                          "avatar_url": 1, "picture": 1}).to_list(len(ids) or 1)
+    return [{"user_id": d["user_id"], "name": d.get("display_name") or d.get("name") or "Coach",
+             "avatar": d.get("avatar_url") or d.get("picture"), "gym_id": me["gym_id"], "gym": gym.get("name"),
+             "role": "Gym owner" if d["user_id"] == gym.get("owner_id") else "Coach"} for d in docs]
+
+
+class MentorRequest(BaseModel):
+    mentor_id: str = Field(..., max_length=64)
+
+
+@api_router.post("/mentors/requests")
+async def request_mentor(data: MentorRequest, user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    option = next((o for o in await _mentor_options(user) if o["user_id"] == data.mentor_id), None)
+    if not option:
+        raise HTTPException(403, "Mentors come from your gym's owner and coaches")
+    if await _is_blocked(uid, data.mentor_id):
+        raise HTTPException(403, "Not available")
+    if await db.mentor_links.find_one({"mentee_id": uid, "mentor_id": data.mentor_id, "status": {"$in": ["pending", "active"]}}):
+        raise HTTPException(400, "You've already asked them")
+    if await db.mentor_links.count_documents({"mentee_id": uid, "status": {"$in": ["pending", "active"]}}) >= MAX_MENTORS:
+        raise HTTPException(400, f"You can have up to {MAX_MENTORS} mentors")
+    link = {"link_id": f"ml_{uuid.uuid4().hex[:12]}", "mentor_id": data.mentor_id, "mentee_id": uid,
+            "gym_id": option["gym_id"], "status": "pending", "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.mentor_links.insert_one(dict(link))
+    name = (user.get("display_name") or user.get("name") or "A fighter").split()[0][:30]
+    await _send_push(data.mentor_id, title=f"{name} wants you as their mentor",
+                     body="Accept to follow their training and leave notes", url="/leaderboard?tab=mentors",
+                     tag=f"mentor-{link['link_id']}")
+    return link
+
+
+async def _link_for(link_id: str, uid: str, role: Optional[str] = None) -> dict:
+    link = await db.mentor_links.find_one({"link_id": link_id[:40]}, {"_id": 0})
+    if not link or uid not in (link["mentor_id"], link["mentee_id"]) or (role and link[f"{role}_id"] != uid):
+        raise HTTPException(404, "Mentor link not found")
+    return link
+
+
+@api_router.post("/mentors/{link_id}/accept")
+async def accept_mentee(link_id: str, user: dict = Depends(get_current_user)):
+    link = await _link_for(link_id, user["user_id"], "mentor")
+    if link["status"] != "pending":
+        raise HTTPException(400, "This request isn't pending")
+    await db.mentor_links.update_one({"link_id": link["link_id"]}, {"$set": {
+        "status": "active", "accepted_at": datetime.now(timezone.utc).isoformat()}})
+    name = (user.get("display_name") or user.get("name") or "Your coach").split()[0][:30]
+    await _send_push(link["mentee_id"], title=f"{name} is your mentor now", body="They'll follow your progress",
+                     url="/leaderboard?tab=mentors", tag=f"mentor-{link['link_id']}")
+    return {"status": "active"}
+
+
+@api_router.delete("/mentors/{link_id}")
+async def end_mentorship(link_id: str, user: dict = Depends(get_current_user)):
+    link = await _link_for(link_id, user["user_id"])
+    await db.mentor_links.update_one({"link_id": link["link_id"]}, {"$set": {
+        "status": "ended", "ended_by": user["user_id"], "ended_at": datetime.now(timezone.utc).isoformat()}})
+    return {"status": "ended"}
+
+
+class MentorNote(BaseModel):
+    text: str = Field(..., min_length=2, max_length=280)
+
+
+@api_router.post("/mentors/{link_id}/notes")
+async def leave_mentor_note(link_id: str, data: MentorNote, user: dict = Depends(get_current_user)):
+    link = await _link_for(link_id, user["user_id"], "mentor")
+    if link["status"] != "active":
+        raise HTTPException(400, "This mentorship isn't active")
+    if _rate_limited(f"mentor_note:{user['user_id']}", MENTOR_NOTES_PER_DAY, 86400):
+        raise HTTPException(429, "That's plenty of notes for today")
+    text = data.text.strip()
+    if await is_content_flagged(text):
+        raise HTTPException(400, "Note violates community guidelines")
+    note = {"note_id": f"mn_{uuid.uuid4().hex[:12]}", "link_id": link["link_id"], "mentor_id": user["user_id"],
+            "mentor_name": user.get("display_name") or user.get("name") or "Coach", "mentee_id": link["mentee_id"],
+            "text": text, "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.mentor_notes.insert_one(dict(note))
+    await _send_push(link["mentee_id"], title=f"Note from {note['mentor_name'].split()[0]}", body=text[:90],
+                     url="/leaderboard?tab=mentors", tag=f"mentor-note-{link['link_id']}")
+    return note
+
+
+@api_router.get("/mentors")
+async def my_mentors(user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    links = await db.mentor_links.find({"$or": [{"mentor_id": uid}, {"mentee_id": uid}],
+                                        "status": {"$in": ["pending", "active"]}}, {"_id": 0}).to_list(100)
+    ids = list({i for l in links for i in (l["mentor_id"], l["mentee_id"])})
+    people = {u["user_id"]: u for u in await db.users.find(
+        {"user_id": {"$in": ids}}, {"user_id": 1, "name": 1, "display_name": 1, "avatar_url": 1, "picture": 1,
+                                    "status_points": 1}).to_list(len(ids) or 1)}
+
+    def who(i):
+        u = people.get(i, {})
+        return {"user_id": i, "name": u.get("display_name") or u.get("name") or "Fighter",
+                "avatar": u.get("avatar_url") or u.get("picture")}
+
+    mentors, mentees = [], []
+    for l in links:
+        if l["mentee_id"] == uid:
+            notes = await db.mentor_notes.find({"link_id": l["link_id"]}, {"_id": 0}).sort("created_at", -1).limit(5).to_list(5)
+            mentors.append({**l, "mentor": who(l["mentor_id"]), "notes": notes})
+        else:
+            mentee = l["mentee_id"]
+            entry = {**l, "mentee": who(mentee)}
+            if l["status"] == "active":
+                sessions = await db.sessions.find({"user_id": mentee}, {"date": 1}).to_list(None)
+                week = await db.weekly_stats.find_one({"user_id": mentee, "week_id": gx.week_id()}) or {}
+                entry["progress"] = {"level": gx.level_for(people.get(mentee, {}).get("status_points", 0)),
+                                     "streak": _compute_streaks(sessions)[0], "sessions_this_week": week.get("sessions", 0),
+                                     "points_this_week": week.get("points", 0)}
+            mentees.append(entry)
+    partner = (await db.users.find_one({"user_id": uid}, {"training_partner": 1}) or {}).get("training_partner") or {}
+    taken = {m["mentor_id"] for m in mentors}
+    return {"ai": {"name": partner.get("name") or "Your AI coach", "personality": partner.get("personality")},
+            "mentors": mentors, "mentees": mentees,
+            "options": [o for o in await _mentor_options(user) if o["user_id"] not in taken]}
+
 
 
 app.include_router(api_router)

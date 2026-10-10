@@ -1,0 +1,66 @@
+// Pure helpers for levels, ranks, quests and brag buttons, kept out of components so they can be tested.
+
+export function resetCountdown(iso, now = new Date()) {
+  if (!iso) return "";
+  const ms = new Date(iso) - now;
+  if (ms <= 0) return "Resets now";
+  const h = Math.floor(ms / 3600000);
+  const d = Math.floor(h / 24);
+  return d >= 1 ? `Resets in ${d}d ${h % 24}h` : `Resets in ${Math.max(1, h)}h`;
+}
+
+// The line under a leaderboard. Upward comparison only motivates when the target feels
+// reachable, so a big gap is framed as your own progress, not as losing.
+export function rankHeadline(r) {
+  if (!r || r.learning_mode) return null;
+  const me = r.me;
+  if (!me) return "Train once this week to get on the board.";
+  if (me.rank === 1) return r.size > 1 ? "You're top. Hold it until the reset." : "You're the only one on the board. Bring your crew.";
+  const who = r.next_up || "the next fighter";
+  if (r.within_reach) return `${r.gap_up} points to pass ${who}: one good session does it.`;
+  return `You're #${me.rank} of ${r.size}. Every session moves you up.`;
+}
+
+// Brag buttons appear only on real win states: what's shared is what was earned.
+export function bragText(win) {
+  switch (win?.kind) {
+    case "level": return `Just hit level ${win.level} on Victory AI${win.unlock ? ` and unlocked ${win.unlock}` : ""}.`;
+    case "crown": return `Crowned ${win.name} on Victory AI${win.scope ? ` (${win.scope})` : ""}.`;
+    case "quest": return `Our squad smashed this week's training quest on Victory AI.`;
+    case "rank": return `#${win.rank} ${win.board || "on my board"} this week on Victory AI.`;
+    case "shelf": return `My Victory AI trophy shelf: level ${win.level}${win.crowns ? `, ${win.crowns} crown${win.crowns === 1 ? "" : "s"}` : ""}.`;
+    default: return "Training on Victory AI.";
+  }
+}
+
+export async function brag(win, { nav = typeof navigator !== "undefined" ? navigator : undefined, url } = {}) {
+  const text = bragText(win);
+  const link = url || (typeof window !== "undefined" ? window.location.origin : "");
+  if (nav?.share) {
+    try {
+      await nav.share({ title: "Victory AI", text, url: link });
+      return "shared";
+    } catch (e) {
+      if (e?.name === "AbortError") return "cancelled";
+    }
+  }
+  if (nav?.clipboard?.writeText) {
+    await nav.clipboard.writeText(`${text} ${link}`.trim());
+    return "copied";
+  }
+  return "unavailable";
+}
+
+// The most brag-worthy thing a session earned, or null when nothing was won.
+export function sessionWin(rewards) {
+  const s = rewards?.status;
+  const quest = (rewards?.quests || []).find((q) => q.just_completed);
+  if (s?.leveled_up) return { kind: "level", level: s.level, unlock: s.unlocked?.[s.unlocked.length - 1]?.name };
+  if (quest) return { kind: "quest", squad: quest.name };
+  return null;
+}
+
+export function weekLabel(weekId) {
+  const m = /W(\d+)$/.exec(weekId || "");
+  return m ? `W${Number(m[1])}` : weekId || "";
+}

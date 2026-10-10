@@ -8,6 +8,8 @@ import { analytics } from "@/lib/analytics";
 import { seasonProgress, inviteMoment } from "@/lib/rewards";
 import { FighterCardButton } from "@/components/FighterCard";
 import { IdentityCard } from "@/components/IdentityCard";
+import { BragButton } from "@/components/progress/BragButton";
+import { sessionWin } from "@/lib/progression";
 
 const RARITY = {
   common: { label: "SCOUTING REPORT", cls: "bg-victory-card-highlight text-victory-muted border-victory-border" },
@@ -257,6 +259,35 @@ function BringYourCrew({ moment }) {
   );
 }
 
+// Status points and the squad quest, with a brag button only when something was actually won.
+function StatusEarned({ status, quests }) {
+  const navigate = useNavigate();
+  if (!status?.earned) return null;
+  const win = sessionWin({ status, quests });
+  const quest = (quests || [])[0];
+  return (
+    <section className={`victory-card p-4 space-y-2 ${status.leveled_up ? "border-victory-lime/30 bg-victory-lime/5" : ""}`} data-testid="status-earned">
+      <div className="flex items-center justify-between">
+        <p className="section-label flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> Status</p>
+        <span className="font-mono font-bold text-victory-lime">+{status.earned}</span>
+      </div>
+      {status.booster && <p className="text-[11px] text-victory-teal">{status.booster} doubled it</p>}
+      {status.leveled_up ? (
+        <p className="text-victory-text font-heading font-extrabold text-lg">Level {status.level}!{status.unlocked?.length ? ` Unlocked ${status.unlocked.map((u) => u.name).join(", ")}.` : ""}</p>
+      ) : (
+        <p className="text-victory-muted text-[12px]">Level <span className="font-mono text-victory-text">{status.level}</span> · <span className="font-mono text-victory-text">{status.total}</span> status points, and they never go down.</p>
+      )}
+      {quest && (
+        <button className="w-full text-left text-[12px] text-victory-muted min-h-[44px]" onClick={() => navigate("/leaderboard?tab=quests")}>
+          {quest.just_completed ? <span className="text-victory-lime font-semibold">{quest.name} just completed the weekly quest!</span>
+            : <>Squad quest: <span className="font-mono text-victory-text">{quest.progress}/{quest.target}</span> sessions for {quest.name}</>}
+        </button>
+      )}
+      {win && <BragButton win={win} />}
+    </section>
+  );
+}
+
 export function SessionRewards({ rewards, scoutingReport, overall, liveStats }) {
   const moment = inviteMoment(rewards, scoutingReport);
   return (
@@ -266,6 +297,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats }) 
       <PersonalBests pb={rewards?.personal_bests} />
       <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
       <SeasonProgress season={rewards?.season} />
+      <StatusEarned status={rewards?.status} quests={rewards?.quests} />
       {moment && <FighterCardButton rewards={rewards} overall={overall} liveStats={liveStats} />}
       {moment && <BringYourCrew moment={moment} />}
     </div>
