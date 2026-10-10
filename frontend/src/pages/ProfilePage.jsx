@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban, Users, GraduationCap, CreditCard } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FightFilm } from "@/components/FightFilm";
+import { TrophyShelf } from "@/components/progress/TrophyShelf";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
@@ -723,6 +724,7 @@ export default function ProfilePage() {
         </section>
 
         {user?.user_id && <FightFilm userId={user.user_id} isOwn />}
+        {user?.user_id && <TrophyShelf userId={user.user_id} isMe />}
 
         {/* Belts & Titles */}
         {beltCatalogue.length > 0 && (

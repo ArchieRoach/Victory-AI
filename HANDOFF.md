@@ -415,6 +415,44 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Progression: status, ranks, quests, treasures, trophies, mentors (branch `gamification`)
+
+Built from the gamification notes. Rules live in `backend/gamification.py` (pure, tested in
+`test_gamification.py`); the API is the "PROGRESSION" section of `server.py` (tested end to end in
+`test_progression_api.py`). The UI is the `/leaderboard` hub (`?tab=ranks|crews|quests|mentors`) plus
+`components/progress/*`.
+
+- **Status points** (`users.status_points`) only go up and can't be spent or traded: session points
+  (same formula as season points), +50 per belt, +75 per squad quest. Levels need 40·(L−1)·L points.
+  Every milestone level unlocks a named skill or title (`MILESTONES`). Tokens stay purchase-only, so the
+  currency you can exchange never feels abundant.
+- **Ranks centred on you** (`GET /ranks?scope=friends|similar|global&period=week|season`): the two fighters
+  above and below, points to pass the next one and whether that's within reach. Weekly boards
+  (`weekly_stats`) reset every Monday. Friends = people you follow + squad mates; similar = same experience
+  level. Strangers only see first name + initial for public adults; under-18s and private profiles show
+  as "A fighter".
+- **Learning mode**: on by default for the first 3 sessions; it hides ranks (competition hurts while
+  learning). Toggle via `PUT /progression/competition`.
+- **Group boards** (`GET /ranks/groups?kind=squad|gym`): members' points combined. Other squads appear as
+  "Squad of N" (names often carry first names); public gyms by name.
+- **Weekly crowns**: the first board view each week crowns last week's overall No. 1 and each squad's top
+  member (once, via `weekly_closings`).
+- **Squad quests** (`GET /quests/mine`): weekly target of 3 sessions per member (4–20). When it's hit,
+  everyone gets +75 status and a **booster** (2x status on the next session within 7 days). Boosters never
+  touch weekly boards or tokens.
+- **Social treasures** (`POST /treasures`): Respect / Heart / Sharp, 3 a day, one per person a day, only to
+  people you follow, squad with or share a gym with. No free text.
+- **Trophy shelf** (`GET /users/{id}/trophy-shelf`): titles, crowns, belts, treasures, plus Founding Fighter
+  (joined before 2027) and Recruiter tiers (people who joined from your invites). On profiles.
+- **Mentors**: the AI partner always; a fighter can also ask their gym owner or a coach the owner named
+  (`PUT /gyms/{id}/coaches/{member}`). Mentors see level, streak and weekly sessions, and leave moderated
+  280-character notes. No chat; either side can end it.
+- **Your next step + everyone like you** (`GET /progression/me`): the weakest personal best's drill, the
+  latest mentor note, and how often same-level fighters who reached Gold train (hidden under 10 peers).
+- **Brag buttons**: after a level-up or completed quest, a top-3 rank, a completed quest card and your own
+  trophy shelf. They use the phone's share sheet, falling back to copying the text.
+- GDPR export and account deletion cover `weekly_stats`, `treasures`, `mentor_links`, `mentor_notes`.
+
 ## Low-cost data mode (default)
 - **Feed scope:** `FANTASY_FEED_SCOPE=world_title` (default) imports world-title cards only. UK
   small-hall cards come from promoters instead. Set `all` to import UK shows from the feed too.

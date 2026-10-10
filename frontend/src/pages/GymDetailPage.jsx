@@ -263,6 +263,9 @@ export default function GymDetailPage() {
                       {gym.owner_id === member.user_id && (
                         <span className="text-xs bg-victory-lime/20 text-victory-lime px-1.5 py-0.5 rounded-full">{t("gym.owner")}</span>
                       )}
+                      {(gym.coaches || []).includes(member.user_id) && (
+                        <span className="text-xs bg-victory-teal/15 text-victory-teal px-1.5 py-0.5 rounded-full">Coach</span>
+                      )}
                     </div>
                     <p className="text-victory-muted text-xs">{member.total_sessions} {t("gym.sessions")}</p>
                   </div>
@@ -282,6 +285,9 @@ export default function GymDetailPage() {
                 </button>
               ))}
             </div>
+            {isOwner && (gym.members_detail || []).length > 1 && (
+              <CoachPicker gym={gym} onChange={fetchGym} />
+            )}
           </section>
         ) : (
           <section className="space-y-3">
@@ -313,6 +319,36 @@ export default function GymDetailPage() {
       </main>
 
       <BottomNav />
+    </div>
+  );
+}
+
+// Gym owners name coaches; members can then ask an owner or coach to mentor them.
+function CoachPicker({ gym, onChange }) {
+  const toggle = async (member, coach) => {
+    try {
+      await axios.put(`${API}/gyms/${gym.gym_id}/coaches/${member.user_id}`, { coach });
+      toast.success(coach ? `${member.display_name || member.name} is a coach` : "Coach removed");
+      onChange();
+    } catch {
+      toast.error("Couldn't update coaches");
+    }
+  };
+  return (
+    <div className="mt-4">
+      <p className="section-label mb-1">Coaches</p>
+      <p className="text-victory-muted text-[11px] mb-2">Coaches (and you) can be asked to mentor members. They see a mentee's progress and leave short notes.</p>
+      <div className="flex flex-wrap gap-1.5">
+        {gym.members_detail.filter((m) => m.user_id !== gym.owner_id).map((m) => {
+          const on = (gym.coaches || []).includes(m.user_id);
+          return (
+            <button key={m.user_id} onClick={() => toggle(m, !on)} aria-pressed={on}
+              className={`filter-pill ${on ? "filter-pill-active" : "filter-pill-inactive"}`}>
+              {m.display_name || m.name}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
