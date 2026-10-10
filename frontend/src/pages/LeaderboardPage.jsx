@@ -9,6 +9,7 @@ import { LevelCard } from "@/components/progress/LevelCard";
 import { RankBoard, GroupBoard } from "@/components/progress/RankBoard";
 import { QuestList } from "@/components/progress/QuestCard";
 import { MentorPanel } from "@/components/progress/MentorPanel";
+import { GoldenGloves } from "@/components/progress/GoldenGloves";
 
 // Goal: one place to watch yourself grow: level, ranks, your crew's quest and your mentors.
 // Psychology: monitoring attachment (people keep checking on something they own that's
@@ -39,6 +40,7 @@ export default function LeaderboardPage() {
 
       <main className="max-w-lg mx-auto p-4 space-y-4">
         <LevelCard p={progress} />
+        <GoldenGloves />
         <ForYou p={progress} />
 
         <div className="flex gap-1.5 overflow-x-auto" role="tablist">

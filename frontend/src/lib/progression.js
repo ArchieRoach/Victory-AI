@@ -64,3 +64,23 @@ export function weekLabel(weekId) {
   const m = /W(\d+)$/.exec(weekId || "");
   return m ? `W${Number(m[1])}` : weekId || "";
 }
+
+// Rarity and deadlines are real numbers from the server; nothing here invents urgency.
+export function glovesHeadline(g) {
+  if (!g) return "";
+  const held = g.holders === 0 ? "Nobody holds them yet" : `Held by ${g.holders} fighter${g.holders === 1 ? "" : "s"}`;
+  if (g.earned) return `Yours. ${held}. Gone for good when the season ends.`;
+  if (g.pledged) return `${g.to_go} proof to go · ${g.days_left} days left · ${held}`;
+  if (g.window?.open) return `${g.chasers} chasing · ${held} · entries close in ${g.window.days_to_close}d`;
+  return `${held}. Entries closed for this season.`;
+}
+
+// What the session did (or didn't do) for the Golden Gloves, in one honest line.
+export function glovesLine(gloves) {
+  if (!gloves) return null;
+  if (gloves.just_earned) return `You earned the ${gloves.just_earned}!`;
+  if (gloves.counted && gloves.proof_earned) return `+${gloves.proof_earned} proof toward the Golden Gloves${gloves.over_cap ? ` (${gloves.over_cap} rounds over today's cap)` : ""}`;
+  if (gloves.reason === "unverified") return "Not counted toward the Golden Gloves: only AI-scored video rounds count.";
+  if (gloves.reason === "daily_cap") return "Today's Golden Gloves cap is reached. Rest up, it resets tomorrow.";
+  return null;
+}

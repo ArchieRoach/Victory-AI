@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import { Crown, Award, Heart, Sparkles, Flame, Medal } from "lucide-react";
+import { Crown, Award, Heart, Sparkles, Flame, Medal, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
 import { BragButton } from "./BragButton";
@@ -35,7 +35,7 @@ export function TrophyShelf({ userId, isMe = false }) {
 
   if (shelf === false) return null;
   if (!shelf) return <div className="skeleton-shimmer h-28 rounded-lg" />;
-  const empty = !shelf.titles.length && !shelf.crowns.length && !shelf.belts.length && !shelf.treasures.length;
+  const empty = !shelf.gloves?.length && !shelf.titles.length && !shelf.crowns.length && !shelf.belts.length && !shelf.treasures.length;
   return (
     <section className="victory-card p-4 space-y-3" data-testid="trophy-shelf">
       <div className="flex items-center justify-between">
@@ -43,6 +43,16 @@ export function TrophyShelf({ userId, isMe = false }) {
         <span className="text-[11px] text-victory-muted">Level <span className="font-mono text-victory-text">{shelf.level}</span></span>
       </div>
       {empty && <p className="text-victory-muted text-sm">{isMe ? "Belts, crowns and titles land here as you earn them." : "Nothing on the shelf yet."}</p>}
+
+      {shelf.gloves?.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {shelf.gloves.map((g) => (
+            <span key={g.season_id} className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full bg-victory-lime/15 border border-victory-lime/40 text-victory-lime flex items-center gap-1">
+              <Trophy className="w-3 h-3" /> {g.name}
+            </span>
+          ))}
+        </div>
+      )}
 
       {(shelf.titles.length > 0 || shelf.crowns.length > 0) && (
         <div className="flex flex-wrap gap-1.5">

@@ -98,6 +98,32 @@ def test_peer_insight_needs_a_real_sample():
     assert p["typical_per_week"] == 3 and not p["on_track"] and "Beginner fighters" in p["text"]
 
 
+def scored_round(*scores):
+    return {"analysis": {"dimension_scores": [{"dimension_name": f"d{i}", "score": v} for i, v in enumerate(scores)]}}
+
+
+def test_only_rounds_the_ai_watched_are_proof():
+    rounds = [scored_round(8, 7, 9), scored_round(5, None, None), {"analysis": None}, scored_round(6, 6, 6)]
+    assert gx.verified_round_scores(rounds) == [8.0, 6.0]
+    assert gx.proof_for_rounds([8.0, 6.0], 0) == {"proof": 5 + 3 + 5, "rounds": 2, "over_cap": 0}
+
+
+def test_daily_cap_stops_grinding():
+    got = gx.proof_for_rounds([5.0] * 5, gx.PROOF_ROUNDS_PER_DAY - 2)
+    assert got["rounds"] == 2 and got["over_cap"] == 3 and got["proof"] == 10
+    assert gx.proof_for_rounds([9.0], gx.PROOF_ROUNDS_PER_DAY)["proof"] == 0
+
+
+def test_pledge_window_is_the_first_two_weeks_only():
+    season = {"starts": "2026-10-05", "ends": "2026-11-16", "number": 7, "season_id": "S7", "days_left": 37}
+    assert gx.pledge_window(season, date(2026, 10, 10))["open"]
+    assert gx.pledge_window(season, date(2026, 10, 10))["days_to_close"] == 9
+    assert not gx.pledge_window(season, date(2026, 10, 19))["open"]
+    v = gx.gloves_view({"pledged_at": "x", "proof": 250}, season, pledged=40, earned=2, today=date(2026, 10, 10))
+    assert v["name"] == "Season 7 Golden Gloves" and v["pct"] == 25 and v["to_go"] == 750
+    assert v["pledged"] and not v["earned"] and v["holders"] == 2 and v["chasers"] == 40
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:

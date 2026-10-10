@@ -415,6 +415,21 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Golden Gloves: scarcity on verified effort (branch `scarcity`)
+
+One prize per season (`gamification.py` "Golden Gloves", `server.py` "Golden Gloves", UI `components/progress/GoldenGloves.jsx`).
+- **Entry is scarce and committed**: only in the first 14 days of a season, and only by making two promises
+  (`POST /gloves/pledge`), the BMW "promise to wash the car" idea. Proof only counts after the pledge.
+- **Only proof counts** (`proof_stats` per user per season): +5 per round the AI actually scored from video
+  (3+ scored dimensions), +3 if that round averaged 7+, +50 per crowd-judged competition win. Self-logged
+  sessions earn nothing. Max 12 verified rounds a day, so grinding or an idle camera can't farm it.
+- **1,000 proof** wins `"Season N Golden Gloves"` (on `users.gloves`, the trophy shelf, +150 status). When the
+  season ends they're gone for good.
+- **Honest scarcity**: deadlines, holder counts and chaser counts are real (`GET /gloves`). No invented
+  "only 3 left", and scarcity is never used on anything you pay for.
+- Livestreams count only through rounds recorded for AI scoring. A stream's length is set by the client,
+  so it isn't proof. Scoring stream footage directly would be a later (paid AI) addition.
+
 ## Progression: status, ranks, quests, treasures, trophies, mentors (branch `gamification`)
 
 Built from the gamification notes. Rules live in `backend/gamification.py` (pure, tested in

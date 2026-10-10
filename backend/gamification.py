@@ -289,3 +289,89 @@ def peer_insight(peer_weekly_sessions: List[float], mine: float, level_label: st
         "text": f"{level_label} fighters who reached Gold this season trained about {typical:g} times a week.",
         "on_track": mine >= typical,
     }
+
+
+# ---- Golden Gloves: a scarce, verified prize ----
+# Goal: a prize worth chasing for a whole season, earned only by real training.
+# Psychology: we value what's hard to get and what we can't simply have (scarcity, Core
+#   Drive 6); a commitment made up front (BMW's M3 buyers promising to wash the car) makes the
+#   thing feel more valuable and makes people follow through (commitment and consistency).
+# Design: each season has its own Golden Gloves. You can only enter in the first two weeks,
+#   by taking a pledge. Only proof counts: AI-scored video rounds and crowd-judged wins, with
+#   a daily cap so grinding (or leaving a camera running) gets nothing. When the season ends,
+#   that season's gloves are gone for good. Every number shown is real: no fake countdowns,
+#   no invented "only 3 left", and scarcity is never used to sell anything.
+
+GLOVES_TARGET = 1000
+PROOF_PER_ROUND = 5
+PROOF_QUALITY_BONUS = 3
+PROOF_QUALITY_AT = 7
+PROOF_PER_COMP_WIN = 50
+PROOF_ROUNDS_PER_DAY = 12
+PROOF_MIN_DIMENSIONS = 3
+PLEDGE_WINDOW_DAYS = 14
+GLOVES_STATUS_BONUS = 150
+PLEDGE_PROMISES = [
+    "I'll train at least three times a week this season.",
+    "I'll only record my own real rounds. No faking, no idle camera.",
+]
+
+
+def verified_round_scores(rounds: Iterable[dict]) -> List[float]:
+    """Average AI score of every round the AI actually watched (enough scored dimensions)."""
+    out = []
+    for rnd in rounds or []:
+        dims = [d.get("score") for d in ((rnd.get("analysis") or {}).get("dimension_scores") or [])
+                if isinstance(d.get("score"), (int, float))]
+        if len(dims) >= PROOF_MIN_DIMENSIONS:
+            out.append(sum(dims) / len(dims))
+    return out
+
+
+def proof_for_rounds(round_scores: List[float], counted_today: int) -> dict:
+    room = max(0, PROOF_ROUNDS_PER_DAY - counted_today)
+    counted = round_scores[:room]
+    proof = sum(PROOF_PER_ROUND + (PROOF_QUALITY_BONUS if s >= PROOF_QUALITY_AT else 0) for s in counted)
+    return {"proof": proof, "rounds": len(counted), "over_cap": len(round_scores) - len(counted)}
+
+
+def pledge_window(season: dict, today: Optional[date] = None) -> dict:
+    today = today or datetime.now(timezone.utc).date()
+    start = date.fromisoformat(season["starts"])
+    closes = start + timedelta(days=PLEDGE_WINDOW_DAYS)
+    return {"open": start <= today < closes, "closes": closes.isoformat(),
+            "days_to_close": max(0, (closes - today).days), "next_opens": season["ends"]}
+
+
+def gloves_name(season: dict) -> str:
+    return f"Season {season['number']} Golden Gloves"
+
+
+def gloves_view(stats: Optional[dict], season: dict, pledged: int, earned: int,
+                today: Optional[date] = None) -> dict:
+    stats = stats or {}
+    proof = stats.get("proof", 0)
+    window = pledge_window(season, today)
+    return {
+        "name": gloves_name(season),
+        "season_id": season["season_id"],
+        "target": GLOVES_TARGET,
+        "proof": proof,
+        "pct": min(100, round(100 * proof / GLOVES_TARGET)),
+        "to_go": max(0, GLOVES_TARGET - proof),
+        "pledged": bool(stats.get("pledged_at")),
+        "earned": bool(stats.get("earned_at")),
+        "verified_rounds": stats.get("rounds", 0),
+        "comp_wins": stats.get("comp_wins", 0),
+        "window": window,
+        "days_left": season["days_left"],
+        "holders": earned,
+        "chasers": pledged,
+        "promises": PLEDGE_PROMISES,
+        "rules": [
+            f"+{PROOF_PER_ROUND} for every round the AI scores from your video (+{PROOF_QUALITY_BONUS} if it scores {PROOF_QUALITY_AT}+)",
+            f"+{PROOF_PER_COMP_WIN} for every competition the crowd judges you the winner",
+            f"Up to {PROOF_ROUNDS_PER_DAY} rounds a day count. Rest is training too.",
+            "Rounds you log without video don't count.",
+        ],
+    }

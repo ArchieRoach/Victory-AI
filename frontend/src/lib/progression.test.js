@@ -38,3 +38,15 @@ test("session win picks level-ups, then quests, else nothing", () => {
   expect(sessionWin({ status: { leveled_up: false }, quests: [] })).toBeNull();
   expect(weekLabel("2026-W09")).toBe("W9");
 });
+
+test("gloves lines use only real numbers", () => {
+  const { glovesHeadline, glovesLine } = require("./progression");
+  expect(glovesHeadline({ holders: 0, pledged: false, window: { open: true, days_to_close: 4 }, chasers: 12 }))
+    .toBe("12 chasing · Nobody holds them yet · entries close in 4d");
+  expect(glovesHeadline({ holders: 3, pledged: true, to_go: 750, days_left: 20 })).toBe("750 proof to go · 20 days left · Held by 3 fighters");
+  expect(glovesHeadline({ holders: 1, earned: true })).toMatch(/^Yours\. Held by 1 fighter\./);
+  expect(glovesLine({ counted: false, reason: "unverified" })).toMatch(/only AI-scored/);
+  expect(glovesLine({ counted: true, proof_earned: 40, over_cap: 2 })).toBe("+40 proof toward the Golden Gloves (2 rounds over today's cap)");
+  expect(glovesLine({ counted: false, reason: "not_pledged" })).toBeNull();
+  expect(glovesLine({ just_earned: "Season 9 Golden Gloves" })).toBe("You earned the Season 9 Golden Gloves!");
+});
