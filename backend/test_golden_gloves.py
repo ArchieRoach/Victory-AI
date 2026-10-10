@@ -1,9 +1,11 @@
-"""Self-check for the Golden Gloves chase against an in-memory Mongo:
+"""Self-check for the Golden Gloves chase, verified hours and gifted gloves against an
+in-memory Mongo:
 
     MONGO_URL=x DB_NAME=t python3 backend/test_golden_gloves.py
 """
 import asyncio
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 from mongomock_motor import AsyncMongoMockClient
@@ -12,18 +14,31 @@ import gamification as gx
 import server
 
 server.db = AsyncMongoMockClient()["test"]
-pushes = []
+pushes, sessions = [], {}
 
 
 async def fake_push(user_id, title, body, url="/live", tag=None):
     pushes.append((user_id, title))
 
+
+def fake_create(**kw):
+    sid = f"cs_{len(sessions) + 1}"
+    sessions[sid] = SimpleNamespace(id=sid, url=f"https://checkout/{sid}", metadata=kw["metadata"], payment_status="paid", kw=kw)
+    return sessions[sid]
+
+
 server._send_push = fake_push
+server.stripe_lib.checkout.Session.create = staticmethod(fake_create)
+server.stripe_lib.checkout.Session.retrieve = staticmethod(lambda sid: sessions[sid])
 current = {}
 server.app.dependency_overrides[server.get_current_user] = lambda: current["user"]
 client = TestClient(server.app)
-ALI = {"user_id": "u_ali", "name": "Ali"}
-BEA = {"user_id": "u_bea", "name": "Bea"}
+ADULT, KID = "1995-01-01", "2012-01-01"
+ALI = {"user_id": "u_ali", "name": "Ali", "birth_date": ADULT, "email": "ali@example.com"}
+BEA = {"user_id": "u_bea", "name": "Bea", "birth_date": ADULT}
+CHAMP = {"user_id": "u_champ", "name": "Champ", "birth_date": ADULT, "competition_wins": 2}
+KIDCHAMP = {"user_id": "u_kid", "name": "Kid", "birth_date": KID, "competition_wins": 3, "gym_id": "g1"}
+NOBODY = {"user_id": "u_nobody", "name": "New", "birth_date": ADULT}
 TODAY = datetime.now(timezone.utc).date()
 
 
@@ -38,15 +53,16 @@ def season_starting(days_ago: int):
                                "ends": end.isoformat(), "days_left": (end - TODAY).days}
 
 
-def scored(*scores):
-    return {"analysis": {"dimension_scores": [{"dimension_name": f"d{i}", "score": v} for i, v in enumerate(scores)]}}
+def scored(seconds):
+    return {"seconds": seconds, "analysis": {"dimension_scores": [{"dimension_name": f"d{i}", "score": 7} for i in range(3)]}}
 
 
-def test_no_pledge_no_proof():
+def test_lifetime_hours_count_even_before_a_pledge():
     server.current_season = season_starting(3)
-    run(server.db.users.insert_many([dict(ALI), dict(BEA)]))
-    out = run(server.award_proof("u_ali", round_scores=[8.0, 8.0]))
-    assert out == {"counted": False, "reason": "not_pledged", "proof_earned": 0}
+    run(server.db.users.insert_many([dict(u) for u in (ALI, BEA, CHAMP, KIDCHAMP, NOBODY)]))
+    out = run(server.award_verified_time("u_ali", round_seconds=[180, 180]))
+    assert out["seconds"] == 360 and out["gloves"] == "not_pledged"
+    assert run(server.db.users.find_one({"user_id": "u_ali"}))["verified_seconds"] == 360
 
 
 def test_pledge_needs_every_promise_and_an_open_window():
@@ -54,8 +70,8 @@ def test_pledge_needs_every_promise_and_an_open_window():
     assert client.post("/api/gloves/pledge", json={"promises": [True, False]}).status_code == 400
     r = client.post("/api/gloves/pledge", json={"promises": [True, True]})
     assert r.status_code == 200 and r.json()["pledged"] and r.json()["chasers"] == 1
-    assert client.post("/api/gloves/pledge", json={"promises": [True, True]}).status_code == 200, "pledging twice is harmless"
-    assert run(server.db.proof_stats.count_documents({"user_id": "u_ali"})) == 1
+    assert client.post("/api/gloves/pledge", json={"promises": [True, True]}).status_code == 200
+    assert run(server.db.proof_stats.count_documents({"user_id": "u_ali"})) == 1, "pledging twice is harmless"
     server.current_season = season_starting(20)
     current["user"] = BEA
     r = client.post("/api/gloves/pledge", json={"promises": [True, True]})
@@ -63,40 +79,64 @@ def test_pledge_needs_every_promise_and_an_open_window():
     server.current_season = season_starting(3)
 
 
-def test_verified_rounds_earn_up_to_the_daily_cap():
-    out = run(server.award_proof("u_ali", round_scores=[8.0] * 10))
-    assert out["proof_earned"] == 80 and out["over_cap"] == 0
-    out = run(server.award_proof("u_ali", round_scores=[6.0] * 5))
-    assert out["proof_earned"] == 10 and out["over_cap"] == 3
-    out = run(server.award_proof("u_ali", round_scores=[9.0]))
+def test_the_daily_cap_covers_the_whole_day():
+    out = run(server.award_verified_time("u_ali", round_seconds=[300] * 20))
+    assert out["seconds"] == gx.VERIFIED_SECONDS_PER_DAY - 360 and out["capped_minutes"] > 0
+    out = run(server.award_verified_time("u_ali", round_seconds=[180]))
     assert not out["counted"] and out["reason"] == "daily_cap"
     current["user"] = ALI
     v = client.get("/api/gloves").json()
-    assert v["proof"] == 90 and v["verified_rounds"] == 12 and v["rounds_left_today"] == 0
+    assert v["minutes_left_today"] == 0 and v["verified_hours"] == 1.4
+    assert v["mastery"]["tier"] == "First Hour"
 
 
 def test_self_logged_sessions_never_count():
-    session = {"session_id": "s1", "overall_score": 9, "dimension_scores": [], "rounds": [scored(9, 9, 9)]}
+    session = {"session_id": "s1", "overall_score": 9, "dimension_scores": [], "rounds": [scored(180)]}
     rewards = run(server.apply_session_rewards(ALI, session, trusted_scores=False))
-    assert rewards["gloves"] == {"counted": False, "reason": "unverified", "proof_earned": 0}
+    assert rewards["gloves"] == {"counted": False, "reason": "unverified", "seconds": 0}
 
 
-def test_crowd_judged_wins_count_and_the_gloves_are_awarded_once():
-    run(server.db.proof_stats.update_one({"user_id": "u_ali", "season_id": "S9"}, {"$set": {"proof": gx.GLOVES_TARGET - 30}}))
+def test_twenty_proven_hours_win_the_gloves_once():
+    target = gx.GLOVES_TARGET_HOURS * 3600
+    run(server.db.proof_stats.update_one({"user_id": "u_ali", "season_id": "S9"}, {"$set": {"seconds": target - 600}}))
     closes = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     comp = {"comp_id": "c1", "challenger_id": "u_ali", "status": "open", "voting_closes_at": closes, "vote_count": 3, "avg_score": 8}
     run(server.db.competitions.insert_one(dict(comp)))
     assert run(server._close_competition_if_due(comp)) == "u_ali"
     ali = run(server.db.users.find_one({"user_id": "u_ali"}))
     assert [g["name"] for g in ali["gloves"]] == ["Season 9 Golden Gloves"]
-    assert any("Golden Gloves" in t for _, t in pushes)
-    run(server.award_proof("u_ali", comp_win=True))
+    run(server.award_verified_time("u_ali", comp_win=True))
     assert len(run(server.db.users.find_one({"user_id": "u_ali"}))["gloves"]) == 1
+
+
+def test_gifts_only_go_to_acclaimed_fighters_and_stay_marked_as_gifted():
     current["user"] = BEA
-    v = client.get("/api/gloves").json()
-    assert v["holders"] == 1 and v["chasers"] == 1 and not v["pledged"] and v["window"]["open"]
-    shelf = client.get("/api/users/u_ali/trophy-shelf").json()
-    assert shelf["gloves"][0]["season_id"] == "S9"
+    r = client.post("/api/gloves/gift/checkout", json={"recipient_id": "u_nobody"})
+    assert r.status_code == 400 and "acclaimed" in r.json()["detail"]
+    assert client.post("/api/gloves/gift/checkout", json={"recipient_id": "u_bea"}).status_code == 400
+    r = client.post("/api/gloves/gift/checkout", json={"recipient_id": "u_ali"})
+    assert r.status_code == 400 and "already earned" in r.json()["detail"]
+    r = client.post("/api/gloves/gift/checkout", json={"recipient_id": "u_kid"})
+    assert r.status_code == 400 and "gym or squad" in r.json()["detail"], "strangers can't buy gifts for under-18s"
+
+    r = client.post("/api/gloves/gift/checkout", json={"recipient_id": "u_champ"})
+    assert r.status_code == 200 and r.json()["price_gbp"] == 5.0
+    sid = r.json()["checkout_url"].rsplit("/", 1)[1]
+    assert sessions[sid].kw["line_items"][0]["price_data"]["unit_amount"] == 500
+    assert client.get("/api/gloves/gift/confirm", params={"session_id": sid}).json() == {"paid": True}
+    run(server._grant_gloves_gift(sid, sessions[sid].metadata))  # the webhook arriving too
+    champ = run(server.db.users.find_one({"user_id": "u_champ"}))
+    assert champ["gifted_gloves"] == {"S9": 1} and "gloves" not in champ, "a gift is never an earned pair"
+    assert champ.get("verified_seconds", 0) == 0 and champ.get("status_points", 0) == 0
+    current["user"] = ALI
+    assert client.get("/api/gloves/gift/confirm", params={"session_id": sid}).status_code == 404, "only the buyer can confirm"
+    shelf = client.get("/api/users/u_champ/trophy-shelf").json()
+    assert shelf["gifted_gloves"] == [{"season_id": "S9", "count": 1, "name": "Season 9 Golden Gloves"}]
+    assert shelf["gloves"] == [] and shelf["can_gift_gloves"]
+
+    run(server.db.users.update_one({"user_id": "u_bea"}, {"$set": {"gym_id": "g1"}}))
+    current["user"] = dict(BEA, gym_id="g1")
+    assert client.post("/api/gloves/gift/checkout", json={"recipient_id": "u_kid"}).status_code == 200
 
 
 if __name__ == "__main__":

@@ -3,15 +3,16 @@ import axios from "axios";
 import { Lock, ShieldCheck, Trophy, Video, Hourglass } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
-import { glovesHeadline } from "@/lib/progression";
+import { glovesHeadline, masteryLine } from "@/lib/progression";
 import { BragButton } from "./BragButton";
 
 // Goal: one prize per season that's genuinely hard to get and only goes to real training.
 // Psychology: scarcity (we want what we can't simply have, and value what's hard to win),
 //   a goal that keeps moving just ahead, and an up-front pledge that makes it feel worth more.
 // Design: the gloves are shown locked until earned. Entry closes after two weeks of the
-//   season and needs a pledge. Only AI-scored rounds and crowd-judged wins count. Every
-//   number (days left, holders, chasers) is real.
+//   season and needs a pledge. Only proven time counts: the real length of AI-scored rounds,
+//   plus crowd-judged wins. 20 proven hours in a season is serious-amateur effort. Every
+//   number (days left, holders, chasers, hours) is real.
 export function GoldenGloves() {
   const [g, setG] = useState(null);
   const [promises, setPromises] = useState([]);
@@ -58,10 +59,21 @@ export function GoldenGloves() {
             <div className="h-full bg-victory-lime rounded-full transition-all" style={{ width: `${g.pct}%` }} />
           </div>
           <div className="flex justify-between text-[11px] text-victory-muted">
-            <span><span className="font-mono text-victory-text">{g.proof}</span> / {g.target} proof</span>
-            <span><span className="font-mono text-victory-text">{g.rounds_left_today}</span> verified rounds left today</span>
+            <span><span className="font-mono text-victory-text">{g.verified_hours}</span> / {g.target_hours} proven hours</span>
+            <span><span className="font-mono text-victory-text">{g.minutes_left_today}</span> verified min left today</span>
           </div>
         </>
+      )}
+
+      {g.mastery && (
+        <div className="rounded-lg bg-victory-card-highlight border border-victory-border p-3" data-testid="mastery">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-heading font-bold uppercase text-victory-muted">Road to 10,000 hours</p>
+            {g.mastery.tier && <span className="text-[11px] font-heading font-bold text-victory-teal">{g.mastery.tier}</span>}
+          </div>
+          <p className="text-[12px] text-victory-text mt-1">{masteryLine(g.mastery)}</p>
+          <p className="text-[10px] text-victory-muted mt-1">Only time the AI has seen you box counts. 10,000 hours is the mark of an expert.</p>
+        </div>
       )}
 
       {g.earned && <BragButton win={{ kind: "crown", name: g.name }} label="Show them off" />}

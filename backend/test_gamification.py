@@ -98,20 +98,29 @@ def test_peer_insight_needs_a_real_sample():
     assert p["typical_per_week"] == 3 and not p["on_track"] and "Beginner fighters" in p["text"]
 
 
-def scored_round(*scores):
-    return {"analysis": {"dimension_scores": [{"dimension_name": f"d{i}", "score": v} for i, v in enumerate(scores)]}}
+def scored_round(*scores, seconds=None):
+    return {"seconds": seconds,
+            "analysis": {"dimension_scores": [{"dimension_name": f"d{i}", "score": v} for i, v in enumerate(scores)]}}
 
 
-def test_only_rounds_the_ai_watched_are_proof():
-    rounds = [scored_round(8, 7, 9), scored_round(5, None, None), {"analysis": None}, scored_round(6, 6, 6)]
-    assert gx.verified_round_scores(rounds) == [8.0, 6.0]
-    assert gx.proof_for_rounds([8.0, 6.0], 0) == {"proof": 5 + 3 + 5, "rounds": 2, "over_cap": 0}
+def test_only_rounds_the_ai_watched_count_for_their_real_length():
+    rounds = [scored_round(8, 7, 9, seconds=181.4), scored_round(5, None, None, seconds=180), {"analysis": None},
+              scored_round(6, 6, 6), scored_round(7, 7, 7, seconds=3600)]
+    assert gx.verified_round_seconds(rounds) == [181, gx.ROUND_SECONDS_FALLBACK, gx.ROUND_SECONDS_CAP]
 
 
 def test_daily_cap_stops_grinding():
-    got = gx.proof_for_rounds([5.0] * 5, gx.PROOF_ROUNDS_PER_DAY - 2)
-    assert got["rounds"] == 2 and got["over_cap"] == 3 and got["proof"] == 10
-    assert gx.proof_for_rounds([9.0], gx.PROOF_ROUNDS_PER_DAY)["proof"] == 0
+    got = gx.count_verified([180] * 5, gx.VERIFIED_SECONDS_PER_DAY - 400)
+    assert got == {"seconds": 400, "rounds": 3, "capped_seconds": 500}
+    assert gx.count_verified([180], gx.VERIFIED_SECONDS_PER_DAY)["seconds"] == 0
+
+
+def test_road_to_ten_thousand_hours():
+    assert gx.mastery(0)["tier"] is None and gx.mastery(0)["next_tier"] == "First Hour"
+    m = gx.mastery(120 * 3600)
+    assert m["tier"] == "Seasoned" and m["next_tier"] == "Veteran" and m["next_at_hours"] == 500
+    assert m["expert_pct"] == 1.2
+    assert gx.mastery(10000 * 3600)["tier"] == "10,000-Hour Master"
 
 
 def test_pledge_window_is_the_first_two_weeks_only():
@@ -119,9 +128,16 @@ def test_pledge_window_is_the_first_two_weeks_only():
     assert gx.pledge_window(season, date(2026, 10, 10))["open"]
     assert gx.pledge_window(season, date(2026, 10, 10))["days_to_close"] == 9
     assert not gx.pledge_window(season, date(2026, 10, 19))["open"]
-    v = gx.gloves_view({"pledged_at": "x", "proof": 250}, season, pledged=40, earned=2, today=date(2026, 10, 10))
-    assert v["name"] == "Season 7 Golden Gloves" and v["pct"] == 25 and v["to_go"] == 750
+    v = gx.gloves_view({"pledged_at": "x", "seconds": 5 * 3600}, season, pledged=40, earned=2, today=date(2026, 10, 10))
+    assert v["name"] == "Season 7 Golden Gloves" and v["pct"] == 25 and v["hours_to_go"] == 15
     assert v["pledged"] and not v["earned"] and v["holders"] == 2 and v["chasers"] == 40
+
+
+def test_only_acclaimed_fighters_can_be_gifted_gloves():
+    assert not gx.is_acclaimed(record_verified=False, record_bouts=5, comp_wins=0, verified_seconds=0)
+    assert gx.is_acclaimed(record_verified=True, record_bouts=1, comp_wins=0, verified_seconds=0)
+    assert gx.is_acclaimed(record_verified=False, record_bouts=0, comp_wins=1, verified_seconds=0)
+    assert gx.is_acclaimed(record_verified=False, record_bouts=0, comp_wins=0, verified_seconds=50 * 3600)
 
 
 if __name__ == "__main__":
