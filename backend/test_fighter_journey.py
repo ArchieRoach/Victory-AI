@@ -138,6 +138,35 @@ def test_founding_fighter_means_before_season_two():
     assert [t["name"] for t in early] == ["Founding Fighter"] and late == []
 
 
+def test_starter_kit_is_earned_once_and_reflections_are_saved():
+    from datetime import datetime, timedelta, timezone
+    today = datetime.now(timezone.utc).date()
+    run(server.db.users.insert_one({"user_id": "u_new", "name": "New Fighter", "created_at": (today - timedelta(days=2)).isoformat()}))
+    current["user"] = {"user_id": "u_new", "name": "New Fighter"}
+    j = client.get("/api/journey").json()
+    assert j["stage"] == "hook" and j["starter"]["done"] == 0 and j["starter"]["open"]
+    assert client.post("/api/journey/starter/claim", json={"choice": "corner_red"}).status_code == 400
+    for d in range(3):
+        run(server.db.sessions.insert_one({"user_id": "u_new", "session_id": f"s_new{d}", "date": (today - timedelta(days=d)).isoformat()}))
+    assert client.post("/api/journey/starter/claim", json={"choice": "gold_gloves"}).status_code == 400, "only the starter items"
+    r = client.post("/api/journey/starter/claim", json={"choice": "corner_blue"})
+    assert r.status_code == 200 and r.json()["granted"] == "Blue Corner"
+    assert client.post("/api/journey/starter/claim", json={"choice": "corner_red"}).status_code == 400, "once, ever"
+    u = run(server.db.users.find_one({"user_id": "u_new"}))
+    assert u["fantasy_cosmetics"] == ["corner_blue"] and u["status_points"] == 100
+
+    assert client.post("/api/sessions/s_new0/reflection", json={"enjoyment": 9}).status_code == 422
+    assert client.post("/api/sessions/s_other/reflection", json={"enjoyment": 4}).status_code == 404
+    r = client.post("/api/sessions/s_new0/reflection", json={"enjoyment": 5, "tags": ["learned", "learned", "nonsense"]})
+    assert r.json()["tags"] == ["learned"]
+    for sid in ("s_new1", "s_new2"):
+        client.post(f"/api/sessions/{sid}/reflection", json={"enjoyment": 4, "tags": ["learned"]})
+    j = client.get("/api/journey").json()
+    assert j["enjoyment"]["line"] == "Your best sessions are the ones where you learn something new."
+    assert j["starter"]["claimed"] == "corner_blue"
+    current["user"] = ALI
+
+
 if __name__ == "__main__":
     setup()
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]

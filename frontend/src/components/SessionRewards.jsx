@@ -293,16 +293,71 @@ function StatusEarned({ status, quests, gloves }) {
   );
 }
 
-export function SessionRewards({ rewards, scoutingReport, overall, liveStats }) {
+// "How did that feel?" Asking about the experience (not the reward) is what turns training
+// into something people relish; at the mastery stage it leads the screen and points fold away.
+function Reflection({ sessionId, tags }) {
+  const [enjoyment, setEnjoyment] = useState(null);
+  const [picked, setPicked] = useState([]);
+  const [saved, setSaved] = useState(false);
+  if (!sessionId || !tags) return null;
+  const save = async (value, nextTags) => {
+    try {
+      await axios.post(`${API}/sessions/${sessionId}/reflection`, { enjoyment: value, tags: nextTags });
+      setSaved(true);
+    } catch { /* optional; never block the results screen */ }
+  };
+  const rate = (v) => { setEnjoyment(v); save(v, picked); };
+  const toggle = (t) => {
+    const next = picked.includes(t) ? picked.filter((x) => x !== t) : [...picked, t];
+    setPicked(next);
+    if (enjoyment) save(enjoyment, next);
+  };
+  return (
+    <section className="victory-card p-4 space-y-3" data-testid="session-reflection">
+      <p className="section-label">How did that feel?</p>
+      <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="How much you enjoyed it, 1 to 5">
+        {[1, 2, 3, 4, 5].map((v) => (
+          <button key={v} role="radio" aria-checked={enjoyment === v} onClick={() => rate(v)}
+            className={`min-h-[44px] rounded-xl font-mono font-bold ${enjoyment === v ? "bg-victory-lime text-victory-bg" : "bg-victory-card-highlight text-victory-text"}`}>{v}</button>
+        ))}
+      </div>
+      <div className="flex justify-between text-[10px] text-victory-muted -mt-1"><span>Not for me</span><span>Loved it</span></div>
+      {enjoyment && (
+        <div className="flex flex-wrap gap-1.5">
+          {Object.entries(tags).map(([k, label]) => (
+            <button key={k} onClick={() => toggle(k)} aria-pressed={picked.includes(k)}
+              className={`filter-pill ${picked.includes(k) ? "filter-pill-active" : "filter-pill-inactive"}`}>{label}</button>
+          ))}
+        </div>
+      )}
+      {saved && <p className="text-[11px] text-victory-muted">Noted. Your partner learns what you enjoy.</p>}
+    </section>
+  );
+}
+
+export function SessionRewards({ rewards, scoutingReport, overall, liveStats, sessionId }) {
   const moment = inviteMoment(rewards, scoutingReport);
+  const mastery = rewards?.stage?.stage === "mastery";
+  const points = (
+    <>
+      <SeasonProgress season={rewards?.season} />
+      <StatusEarned status={rewards?.status} quests={rewards?.quests} gloves={rewards?.gloves} />
+    </>
+  );
   return (
     <div className="space-y-3" data-testid="session-rewards">
       <IdentityCard identity={rewards?.identity} />
+      {mastery && <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />}
       <CalloutsBeaten beaten={rewards?.callouts_beaten} />
       <PersonalBests pb={rewards?.personal_bests} />
       <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
-      <SeasonProgress season={rewards?.season} />
-      <StatusEarned status={rewards?.status} quests={rewards?.quests} gloves={rewards?.gloves} />
+      {mastery ? (
+        <details className="victory-card p-3">
+          <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[32px] flex items-center">Points, status and season</summary>
+          <div className="space-y-3 mt-3">{points}</div>
+        </details>
+      ) : points}
+      {!mastery && <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />}
       {moment && <FighterCardButton rewards={rewards} overall={overall} liveStats={liveStats} />}
       {moment && <BringYourCrew moment={moment} />}
     </div>

@@ -7202,6 +7202,8 @@ async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool)
         gloves = {"counted": False, "reason": "unverified", "seconds": 0}
 
     return {
+        "stage": await journey_stage(uid),
+        "reflection_tags": gx.REFLECTION_TAGS,
         "gloves": gloves,
         "status": status,
         "quests": quests,
@@ -10393,6 +10395,74 @@ async def gym_season_hours(gym_id: str, user: dict = Depends(get_current_user)):
     return {"gym": gym["name"], "season": season["number"], "preseason": bool(season.get("preseason")),
             "hours": gx.hours(total), "rank": rank, "of": len(public) if gym.get("is_public") else None,
             "contributors": [c for c in contributors if c["hours"] > 0][:10], "is_member": is_member}
+
+
+
+# ---- Motivation journey (rules and reasoning in gamification.py) ----
+
+async def _journey_facts(uid: str) -> tuple:
+    u = await db.users.find_one({"user_id": uid}, {"created_at": 1, "starter_claimed": 1}) or {}
+    dates = [s.get("date") for s in await db.sessions.find({"user_id": uid}, {"date": 1}).to_list(5000)]
+    joined = u.get("created_at")
+    try:
+        days = (datetime.now(timezone.utc).date() - date.fromisoformat(str(joined)[:10])).days
+    except (TypeError, ValueError):
+        days = 0
+    return u, dates, joined, days
+
+
+async def journey_stage(uid: str) -> dict:
+    _, dates, _, days = await _journey_facts(uid)
+    return gx.motivation_stage(len(dates), days)
+
+
+@api_router.get("/journey")
+async def my_journey(user: dict = Depends(get_current_user)):
+    u, dates, joined, days = await _journey_facts(user["user_id"])
+    reflections = [s.get("reflection") for s in await db.sessions.find(
+        {"user_id": user["user_id"], "reflection": {"$exists": True}}, {"reflection": 1}).sort("date", -1).limit(30).to_list(30)]
+    return {**gx.motivation_stage(len(dates), days),
+            "starter": {**gx.starter_progress(dates, joined), "claimed": u.get("starter_claimed"),
+                        "choices": [{"id": c, "name": FANTASY_COSMETICS[c]["name"], "worth_gbp": FANTASY_COSMETICS[c]["price_gbp"]}
+                                    for c in gx.STARTER_CHOICES]},
+            "enjoyment": gx.enjoyment_summary(reflections)}
+
+
+class StarterClaim(BaseModel):
+    choice: str = Field(..., max_length=20)
+
+
+@api_router.post("/journey/starter/claim")
+async def claim_starter_kit(data: StarterClaim, user: dict = Depends(get_current_user)):
+    if data.choice not in gx.STARTER_CHOICES:
+        raise HTTPException(400, "Pick one of the starter colours")
+    u, dates, joined, _ = await _journey_facts(user["user_id"])
+    if not gx.starter_progress(dates, joined)["complete"]:
+        raise HTTPException(400, f"Train {gx.STARTER_SESSIONS} times in your first {gx.STARTER_DAYS} days to earn it")
+    # Given once, ever: a tangible reward used to start the habit, never repeated for it.
+    claimed = await db.users.update_one({"user_id": user["user_id"], "starter_claimed": {"$exists": False}},
+                                        {"$set": {"starter_claimed": data.choice}})
+    if not claimed.modified_count:
+        raise HTTPException(400, "You've already claimed your starter kit")
+    await _grant_cosmetic(user["user_id"], data.choice)
+    await award_status(user["user_id"], gx.STARTER_STATUS, boostable=False, weekly=False)
+    return {"granted": FANTASY_COSMETICS[data.choice]["name"], "status": gx.STARTER_STATUS}
+
+
+class ReflectionIn(BaseModel):
+    enjoyment: int = Field(..., ge=1, le=5)
+    tags: List[str] = Field(default_factory=list, max_length=5)
+
+
+@api_router.post("/sessions/{session_id}/reflection")
+async def reflect_on_session(session_id: str, data: ReflectionIn, user: dict = Depends(get_current_user)):
+    tags = [t for t in dict.fromkeys(data.tags) if t in gx.REFLECTION_TAGS]
+    done = await db.sessions.update_one({"session_id": session_id[:64], "user_id": user["user_id"]},
+                                        {"$set": {"reflection": {"enjoyment": data.enjoyment, "tags": tags,
+                                                                 "at": datetime.now(timezone.utc).isoformat()}}})
+    if not done.matched_count:
+        raise HTTPException(404, "Session not found")
+    return {"saved": True, "tags": tags}
 
 app.include_router(api_router)
 

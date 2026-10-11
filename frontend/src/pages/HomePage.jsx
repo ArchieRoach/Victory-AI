@@ -12,6 +12,7 @@ import {
 import { ShareSheet } from "@/components/ShareSheet";
 import { ReportModal } from "@/components/ReportModal";
 import { PartnerCondition } from "@/components/PartnerCondition";
+import { JourneyCard } from "@/components/JourneyCard";
 import { STYLE_STORAGE_KEY, withArticle } from "@/lib/fighterStyle";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -604,8 +605,9 @@ export default function HomePage() {
       </header>
 
       {tab === "foryou" && (
-        <div className="px-4 pt-3">
+        <div className="px-4 pt-3 space-y-3">
           <PartnerCondition />
+          <JourneyCard />
         </div>
       )}
 
