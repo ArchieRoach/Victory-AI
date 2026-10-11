@@ -10423,6 +10423,7 @@ async def my_journey(user: dict = Depends(get_current_user)):
         {"user_id": user["user_id"], "reflection": {"$exists": True}}, {"reflection": 1}).sort("date", -1).limit(30).to_list(30)]
     return {**gx.motivation_stage(len(dates), days),
             "starter": {**gx.starter_progress(dates, joined), "claimed": u.get("starter_claimed"),
+                        "pro": await check_subscription(user),
                         "choices": [{"id": c, "name": FANTASY_COSMETICS[c]["name"], "worth_gbp": FANTASY_COSMETICS[c]["price_gbp"]}
                                     for c in gx.STARTER_CHOICES]},
             "enjoyment": gx.enjoyment_summary(reflections)}
@@ -10436,6 +10437,8 @@ class StarterClaim(BaseModel):
 async def claim_starter_kit(data: StarterClaim, user: dict = Depends(get_current_user)):
     if data.choice not in gx.STARTER_CHOICES:
         raise HTTPException(400, "Pick one of the starter colours")
+    if not await check_subscription(user):
+        raise HTTPException(403, "The starter kit is for Pro members")
     u, dates, joined, _ = await _journey_facts(user["user_id"])
     if not gx.starter_progress(dates, joined)["complete"]:
         raise HTTPException(400, f"Train {gx.STARTER_SESSIONS} times in your first {gx.STARTER_DAYS} days to earn it")

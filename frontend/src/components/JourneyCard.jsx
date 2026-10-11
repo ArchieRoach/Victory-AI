@@ -32,11 +32,18 @@ export function JourneyCard() {
 
   // Hook: the starter challenge, shown only while it can still be won or claimed.
   if (j.stage === "hook" || (s.complete && !s.claimed)) {
-    if (s.claimed || (!s.open && !s.complete)) return null;
+    // Free fighters see the Pro offer during their first week only; it never lingers on Home.
+    if (s.claimed || (!s.open && !s.complete) || (!s.pro && !s.open)) return null;
     return (
       <section className="victory-card p-4 space-y-2" data-testid="journey-starter">
         <p className="section-label flex items-center gap-1.5"><Gift className="w-3 h-3" /> Starter challenge</p>
-        {s.complete ? (
+        {s.complete && !s.pro ? (
+          <>
+            <p className="text-victory-text text-sm font-semibold">Three sessions in your first week. Nice work.</p>
+            <p className="text-[12px] text-victory-muted">The starter kit (free corner colours for your Fantasy team) is for Pro members. Go Pro and it's yours to claim.</p>
+            <button className="victory-btn-primary" onClick={() => navigate("/paywall")}>See Pro</button>
+          </>
+        ) : s.complete ? (
           <>
             <p className="text-victory-text text-sm font-semibold">Three sessions in your first week. Pick your corner:</p>
             <div className="grid grid-cols-2 gap-2">
@@ -48,7 +55,7 @@ export function JourneyCard() {
           </>
         ) : (
           <>
-            <p className="text-victory-text text-sm">Train {s.target} times in your first week and earn your corner colours, free.</p>
+            <p className="text-victory-text text-sm">Train {s.target} times in your first week{s.pro ? " and earn your corner colours, free." : ". Pro members also earn free corner colours."}</p>
             <div className="flex gap-1.5" aria-label={`${s.done} of ${s.target} sessions`}>
               {Array.from({ length: s.target }, (_, i) => (
                 <div key={i} className={`h-2 flex-1 rounded-full ${i < s.done ? "bg-victory-lime" : "bg-victory-card-highlight"}`} />

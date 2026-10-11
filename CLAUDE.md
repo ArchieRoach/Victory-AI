@@ -16,6 +16,16 @@ Put the three lines in the PR description, and in a short code comment where the
 non-obvious (e.g. `IDENTITY_TRAITS` in `backend/server.py`). Psychology never overrides honesty:
 praise and labels must be earned from real evidence, and high-privacy defaults for under-18s stay.
 
+## Invite rule: sell the value before asking for friends
+People only want to invite friends once they're sold on the experience themselves, and that
+usually happens at the first major win state.
+- Never ask users to invite friends (contacts, Facebook, "invite everyone") during onboarding or
+  right after sign-up. They don't know yet if they'll like it, won't risk their social capital, and the
+  prompt delays their first win.
+- Invite and share prompts appear only straight after a real win (PB, callout beaten, rank-up, level-up,
+  quest done), and the invite carries that win. Contact matching only runs when the user taps it.
+- Guarded by `frontend/src/lib/inviteRule.test.js` (onboarding must not prompt invites, contacts or shares).
+
 ## Stack
 - **Frontend:** React (CRA + CRACO), JavaScript `.jsx` (no TypeScript, no Next.js). Tailwind only.
   Deployed to **Vercel** (`victory-ai-alpha.vercel.app`).
