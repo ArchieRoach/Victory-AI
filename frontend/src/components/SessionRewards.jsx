@@ -9,6 +9,7 @@ import { seasonProgress, inviteMoment } from "@/lib/rewards";
 import { FighterCardButton } from "@/components/FighterCard";
 import { IdentityCard } from "@/components/IdentityCard";
 import { BragButton } from "@/components/progress/BragButton";
+import { CornerSurprise } from "@/components/progress/CornerSurprise";
 import { sessionWin, glovesLine } from "@/lib/progression";
 
 const RARITY = {
@@ -280,8 +281,9 @@ function StatusEarned({ status, quests, gloves }) {
       )}
       {quest && (
         <button className="w-full text-left text-[12px] text-victory-muted min-h-[44px]" onClick={() => navigate("/leaderboard?tab=quests")}>
-          {quest.just_completed ? <span className="text-victory-lime font-semibold">{quest.name} just completed the weekly quest!</span>
-            : <>Squad quest: <span className="font-mono text-victory-text">{quest.progress}/{quest.target}</span> sessions for {quest.name}</>}
+          {quest.just_completed ? <span className="text-victory-lime font-semibold">{quest.name} just completed the mission! Pick your booster.</span>
+            : quest.counted === false ? <>This one didn't count toward {quest.name}'s mission. Check what it needs.</>
+            : <>Crew mission: <span className="font-mono text-victory-text">{quest.progress}/{quest.target}</span> for {quest.name}</>}
         </button>
       )}
       {glove && (
@@ -347,6 +349,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
   return (
     <div className="space-y-3" data-testid="session-rewards">
       <IdentityCard identity={rewards?.identity} />
+      <CornerSurprise surprise={rewards?.surprise} />
       {mastery && <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />}
       <CalloutsBeaten beaten={rewards?.callouts_beaten} />
       <PersonalBests pb={rewards?.personal_bests} />

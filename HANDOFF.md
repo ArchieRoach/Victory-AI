@@ -415,6 +415,21 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Corner Surprises and crew-chosen team missions (branch `surprises-and-missions`)
+
+- **Corner Surprises** (Core Drive 7; `gamification.py` `SURPRISE_TABLE`, `server.py` `corner_surprise`):
+  - After a session (`rewards.surprise`) or giving a treasure, there's a roll from a published table: legend tip
+    15%, bonus status 10%, deep scout 7%, rare free team look 3%, nothing 65%.
+  - Max 3 a day, earned only and never sold. Odds and recent surprises are at `GET /api/surprises`. Shown as a
+    tap-to-open box on the results screen.
+- **Team missions** (Core Drives 3 and 5): each week the crew votes `engine` / `sharp` / `signature`
+  (`POST /api/quests/{squad}/route`). The vote locks when the first session counts.
+  - **Sharp Shooters** counts AI-scored sessions with a jab of 7+.
+  - **Signature Combo**: members nominate a saved combo (`/signature/nominate`) and vote (`/signature/vote`).
+    `/signature/drill` sets the winning combo as your focus. Only AI-scored sessions drilling it count.
+  - Finishing gives each member a booster **pick** (`users.booster_picks`, `POST /api/boosters/pick`): 2x status
+    next session, a guaranteed surprise, or +100 status now. This replaces the old automatic booster.
+
 ## Motivation journey: tangible, then social, then intrinsic (branch `motivation-journey`)
 
 Built around the overjustification effect: big rewards for something people already enjoy crowd out the

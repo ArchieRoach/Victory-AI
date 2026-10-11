@@ -26,6 +26,7 @@ export function TrophyShelf({ userId, isMe = false }) {
     try {
       const { data } = await axios.post(`${API}/treasures`, { recipient_id: userId, kind });
       toast.success(`You gave ${data.given}. ${data.left_today} left today.`);
+      if (data.surprise) toast(`Corner surprise: ${data.surprise.title}`, { description: data.surprise.body });
       load();
     } catch (e) {
       const d = e?.response?.data?.detail;
