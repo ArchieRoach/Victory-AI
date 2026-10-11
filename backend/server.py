@@ -2909,6 +2909,7 @@ def safe_user(user: dict) -> dict:
         "competition_wins": user.get("competition_wins", 0),
         "competition_losses": user.get("competition_losses", 0),
         "is_public": user.get("is_public", True),
+        "fighter_style": FIGHTER_STYLES.get(user.get("fighter_style") or "", (None,))[0],
     }
 
 async def _require_profile_visible(user_id: str, current_user: dict):
@@ -10202,6 +10203,38 @@ async def partner_condition_for(user_id: str) -> dict:
 @api_router.get("/partner/condition")
 async def get_partner_condition(user: dict = Depends(get_current_user)):
     return await partner_condition_for(user["user_id"])
+
+
+# ---- Fighter style (the public "what kind of fighter are you?" quiz) ----
+# Goal: turn a shareable quiz result into a training plan the moment someone joins.
+# Psychology: identity expression; people commit to a label they chose themselves.
+# Design: the quiz runs in the browser with nothing stored. Once signed in, the result is
+#   saved and the AI partner's focus moves to the three skills that style lives on.
+FIGHTER_STYLES = {
+    "pressure": ("Pressure Fighter", ["Head Movement", "Body Movement", "Combination Flow"]),
+    "outboxer": ("Out-Boxer", ["Jab", "Footwork", "Ring Generalship"]),
+    "counter": ("Counter Puncher", ["Slip", "Parry", "Punch Accuracy"]),
+    "power": ("Power Puncher", ["Left Hook", "Uppercut", "Roll"]),
+    "combo": ("Combination Artist", ["Combination Flow", "Footwork", "Punch Balance"]),
+    "boxerpuncher": ("Boxer-Puncher", ["Ring Generalship", "Cross", "Combination Flow"]),
+}
+
+
+class FighterStyleIn(BaseModel):
+    style: str = Field(..., max_length=20)
+    train_it: bool = True
+
+
+@api_router.put("/users/me/style")
+async def set_fighter_style(data: FighterStyleIn, user: dict = Depends(get_current_user)):
+    if data.style not in FIGHTER_STYLES:
+        raise HTTPException(400, "Unknown style")
+    name, focus = FIGHTER_STYLES[data.style]
+    update = {"fighter_style": data.style}
+    if data.train_it and user.get("training_partner"):
+        update["training_partner.focus_areas"] = focus
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    return {"style": data.style, "name": name, "focus": focus if data.train_it else None}
 
 app.include_router(api_router)
 

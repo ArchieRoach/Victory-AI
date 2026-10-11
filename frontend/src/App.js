@@ -41,6 +41,7 @@ const FEATUREBASE_APP_ID = process.env.REACT_APP_FEATUREBASE_APP_ID || "6aa0ef5d
 
 // Pages
 const WelcomePage = lazyPage(() => import("@/pages/WelcomePage"));
+const StyleQuizPage = lazyPage(() => import("@/pages/StyleQuizPage"));
 const OnboardingFlow = lazyPage(() => import("@/pages/OnboardingFlow"));
 const PaywallPage = lazyPage(() => import("@/pages/PaywallPage"));
 const PaymentSuccess = lazyPage(() => import("@/pages/PaymentSuccess"));
@@ -385,6 +386,7 @@ const AppRouter = () => {
       <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/style" element={<StyleQuizPage />} />
         <Route path="/login/*" element={<LoginPage />} />
 
         <Route path="/onboarding" element={<OnboardingRoute><OnboardingFlow /></OnboardingRoute>} />
