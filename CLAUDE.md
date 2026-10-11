@@ -4,6 +4,11 @@ Full-stack boxing-training + live-streaming app. See `HANDOFF.md` for current br
 
 > **UI rule**: Read `DESIGN.md` before writing any frontend code. All colors, typography, components, and patterns are defined there. Never use generic Tailwind colors or write UI without following the Victory AI design system.
 
+## How to explain things to Archie (the owner)
+Explain everything as if talking to a 7-year-old: short sentences, everyday words, simple
+comparisons (gyms, stickers, ladders, teams). No jargon unless it's explained in plain words straight
+after. This applies to every answer, summary and plan, not just when asked.
+
 ## Design rule: Goal → Psychology → Design
 Every product decision is written as three parts, and the reasoning is stated, not implied:
 1. **Goal**: the outcome it serves (a metric, or one of the three drives for 13–24s: permission
