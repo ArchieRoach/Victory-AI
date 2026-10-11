@@ -286,10 +286,10 @@ export default function PaywallPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-heading font-bold text-victory-text">
-                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">{money(regularPrice("annual", 24.99), currency)}</span>}
-                      {money(planPrice("annual", 24.99), currency)}
+                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">{money(regularPrice("annual", 59.99), currency)}</span>}
+                      {money(planPrice("annual", 59.99), currency)}
                     </p>
-                    <p className="text-victory-lime text-xs font-semibold">{perWeek(planPrice("annual", 24.99))}</p>
+                    <p className="text-victory-lime text-xs font-semibold">{perWeek(planPrice("annual", 59.99))}</p>
                   </div>
                 </div>
               </button>
@@ -311,10 +311,10 @@ export default function PaywallPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-heading font-bold text-victory-text">
-                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">{money(regularPrice("monthly", 3.99), currency)}</span>}
-                      {money(planPrice("monthly", 3.99), currency)}
+                      {founder && <span className="text-victory-muted text-sm font-normal line-through mr-1.5">{money(regularPrice("monthly", 7.99), currency)}</span>}
+                      {money(planPrice("monthly", 7.99), currency)}
                     </p>
-                    <p className="text-victory-muted text-xs">~{perWeek(planPrice("monthly", 3.99) * 12)}</p>
+                    <p className="text-victory-muted text-xs">~{perWeek(planPrice("monthly", 7.99) * 12)}</p>
                   </div>
                 </div>
               </button>

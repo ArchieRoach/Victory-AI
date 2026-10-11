@@ -415,6 +415,20 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Pro price: £7.99 a month / £59.99 a year (branch `pro-price-799`)
+
+- `SUBSCRIPTION_PLANS`: monthly £7.99, annual £59.99 ("Save 37%"). Founders (the first 1,000 waitlist sign-ups)
+  keep 40% off forever through the Stripe founders coupon: £4.79 a month or £35.99 a year.
+- Checkout charges exactly the app price (`_plan_line_item`). A saved Stripe price (`STRIPE_PRICE_MONTHLY` /
+  `STRIPE_PRICE_ANNUAL`) is only used when its amount matches; otherwise the price is sent inline, so a stale
+  £3.99 Stripe price can never be charged.
+- Existing subscribers keep the price they signed up at (Stripe doesn't change live subscriptions).
+- To do outside the code: in Stripe, create new £7.99 and £59.99 prices and put their IDs in Railway (or clear
+  the two variables). In App Store Connect, set the RevenueCat monthly/yearly products to match. Check that the
+  waitlist site doesn't show the old prices.
+- Cost reference: about 50k input tokens per AI-scored 3-minute round on Gemini 2.5 Flash at low resolution,
+  roughly £0.018 per round.
+
 ## Corner Surprises and crew-chosen team missions (branch `surprises-and-missions`)
 
 - **Corner Surprises** (Core Drive 7; `gamification.py` `SURPRISE_TABLE`, `server.py` `corner_surprise`):

@@ -83,13 +83,13 @@ def test_coupon_ids_across_stripe_shapes():
 def test_billing_cancel_and_resume_keep_founder_price_visible():
     run(server.db.subscriptions.insert_one({"user_id": "u1", "subscription_id": "sub_123", "plan_id": "monthly", "status": "active"}))
     b = client.get("/api/subscription/billing").json()
-    assert b["founder"]["lifetime"] is True and b["price"] == 2.39 and b["regular_price"] == 3.99
+    assert b["founder"]["lifetime"] is True and b["price"] == 4.79 and b["regular_price"] == 7.99
     assert b["currency"] == "gbp"
     assert b["manageable"] is True and b["cancel_at_period_end"] is False
 
     b = client.post("/api/subscription/cancel").json()
     assert calls[-1] == ("modify", "sub_123", True)
-    assert b["cancel_at_period_end"] is True and b["founder"]["price"] == 2.39, "still a founder until the period ends"
+    assert b["cancel_at_period_end"] is True and b["founder"]["price"] == 4.79, "still a founder until the period ends"
 
     b = client.post("/api/subscription/resume").json()
     assert calls[-1] == ("modify", "sub_123", False) and b["cancel_at_period_end"] is False
@@ -98,7 +98,7 @@ def test_billing_cancel_and_resume_keep_founder_price_visible():
 def test_non_founder_gets_no_lifetime_claim():
     STATE["discounts"] = []
     b = client.get("/api/subscription/billing").json()
-    assert b["founder"] is None and b["price"] == 3.99
+    assert b["founder"] is None and b["price"] == 7.99
 
 
 def test_no_subscription():
@@ -112,15 +112,15 @@ def test_founder_offer_and_checkout_match_the_waitlist_promise():
     run(server.db.waitlist.insert_one({"email": "a@b.co", "promo_code": "FOUNDERAB12"}))
     offer = client.get("/api/payments/offer").json()
     assert offer["trial_days"] == 30 and offer["founder"] == {"percent_off": 40, "lifetime": True}
-    assert offer["plans"]["monthly"] == {"price": 2.39, "regular_price": 3.99, "interval": "month"}
-    assert offer["plans"]["annual"]["price"] == 14.99 and offer["currency"] == "gbp"
+    assert offer["plans"]["monthly"] == {"price": 4.79, "regular_price": 7.99, "interval": "month"}
+    assert offer["plans"]["annual"]["price"] == 35.99 and offer["currency"] == "gbp"
 
     r = client.post("/api/payments/checkout", json={"plan_id": "monthly", "origin_url": "https://victory-ai-alpha.vercel.app"})
     assert r.status_code == 200, r.text
     params = checkouts[-1]
     assert params["discounts"] == [{"promotion_code": "promo_1"}] and "allow_promotion_codes" not in params
     item = params["line_items"][0]["price_data"]
-    assert item["currency"] == "gbp" and item["unit_amount"] == 399
+    assert item["currency"] == "gbp" and item["unit_amount"] == 799
     assert params["subscription_data"]["trial_period_days"] == 30
     txn = run(server.db.payment_transactions.find_one({"session_id": "cs_1"}))
     assert txn["founder"] is True and txn["trial_days"] == 30
@@ -129,7 +129,7 @@ def test_founder_offer_and_checkout_match_the_waitlist_promise():
 def test_spent_founder_code_falls_back_to_regular_offer():
     PROMO["redeemed"] = 1
     offer = client.get("/api/payments/offer").json()
-    assert offer["founder"] is None and offer["trial_days"] == 14 and offer["plans"]["monthly"]["price"] == 3.99
+    assert offer["founder"] is None and offer["trial_days"] == 14 and offer["plans"]["monthly"]["price"] == 7.99
     client.post("/api/payments/checkout", json={"plan_id": "monthly", "origin_url": "https://victory-ai-alpha.vercel.app"})
     params = checkouts[-1]
     assert "discounts" not in params and params["allow_promotion_codes"] is True
@@ -162,10 +162,14 @@ def test_waitlist_keeps_the_whatsapp_number():
 
 def test_checkout_uses_catalogue_price_ids_when_set():
     server.SUBSCRIPTION_PLANS["annual"]["stripe_price_id"] = "price_annual_gbp"
+    server._stripe_price_ok.clear()
+    old = getattr(server.stripe_lib, "Price", None)
+    server.stripe_lib.Price = SimpleNamespace(retrieve=lambda pid: {"unit_amount": 5999, "currency": "gbp"})
     try:
         client.post("/api/payments/checkout", json={"plan_id": "annual", "origin_url": "https://victory-ai-alpha.vercel.app"})
     finally:
         server.SUBSCRIPTION_PLANS["annual"]["stripe_price_id"] = ""
+        server.stripe_lib.Price = old
     assert checkouts[-1]["line_items"] == [{"price": "price_annual_gbp", "quantity": 1}]
 
 
@@ -216,9 +220,9 @@ def test_public_pricing_matches_stripe_catalogue():
     finally:
         server.httpx.AsyncClient = real
     assert p["currency"] == "GBP"
-    assert p["plans"]["monthly"]["price"] == 3.99 and p["plans"]["annual"]["price"] == 24.99
-    assert p["plans"]["annual"]["saving_percent"] == 48
-    assert p["founder"] == {"percent_off": 40, "lifetime": True, "monthly": 2.39, "annual": 14.99}
+    assert p["plans"]["monthly"]["price"] == 7.99 and p["plans"]["annual"]["price"] == 59.99
+    assert p["plans"]["annual"]["saving_percent"] == 37
+    assert p["founder"] == {"percent_off": 40, "lifetime": True, "monthly": 4.79, "annual": 35.99}
     assert p["fx"]["rates"]["USD"] == 1.32 and p["founder_spots"]["limit"] == 1000
 
 
@@ -229,6 +233,23 @@ def test_founder_counter_reset_runs_once():
     run(server.db.counters.update_one({"_id": "founder_spots"}, {"$set": {"n": 1}}))
     run(server.run_once_migrations())
     assert run(server.db.counters.find_one({"_id": "founder_spots"}))["n"] == 1, "never resets real sign-ups later"
+
+
+def test_checkout_never_charges_a_stale_stripe_price():
+    server._stripe_price_ok.clear()
+    old = getattr(server.stripe_lib, "Price", None)
+    server.stripe_lib.Price = SimpleNamespace(retrieve=lambda pid: {"unit_amount": 399 if pid == "price_old" else 799, "currency": "gbp"})
+    try:
+        plan = {**server.SUBSCRIPTION_PLANS["monthly"], "stripe_price_id": "price_old"}
+        item = run(server._plan_line_item(plan))
+        assert item["price_data"]["unit_amount"] == 799, "the old £3.99 Stripe price is ignored"
+        item = run(server._plan_line_item({**plan, "stripe_price_id": "price_new"}))
+        assert item == {"price": "price_new", "quantity": 1}
+        assert run(server._plan_line_item({**plan, "stripe_price_id": ""}))["price_data"]["recurring"]["interval"] == "month"
+    finally:
+        server.stripe_lib.Price = old
+    assert server.SUBSCRIPTION_PLANS["monthly"]["price"] == 7.99 and server.SUBSCRIPTION_PLANS["annual"]["price"] == 59.99
+    assert founder_pricing(7.99, {"percent_off": 40, "duration": "forever"})["price"] == 4.79
 
 
 if __name__ == "__main__":
