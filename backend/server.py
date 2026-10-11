@@ -244,9 +244,9 @@ cloudinary.config(
 # catalogue's Price IDs are set, checkout charges those Prices directly instead.
 PLAN_CURRENCY = "gbp"
 SUBSCRIPTION_PLANS = {
-    "monthly": {"price": 3.99, "name": "Monthly", "interval": "month",
+    "monthly": {"price": 7.99, "name": "Monthly", "interval": "month",
                 "stripe_price_id": os.environ.get("STRIPE_PRICE_MONTHLY", "")},
-    "annual": {"price": 24.99, "name": "Annual", "interval": "year", "savings": "Save 48%",
+    "annual": {"price": 59.99, "name": "Annual", "interval": "year", "savings": "Save 37%",
                "stripe_price_id": os.environ.get("STRIPE_PRICE_ANNUAL", "")},
 }
 FOUNDER_SPOTS_LIMIT = int(os.environ.get("FOUNDER_SPOTS_LIMIT", "1000"))
@@ -1413,6 +1413,32 @@ async def get_payment_offer(user: dict = Depends(get_current_user)):
             "founder": founder, "plans": plans}
 
 
+_stripe_price_ok: Dict[str, bool] = {}
+
+
+async def _plan_line_item(plan: dict) -> dict:
+    """Charge exactly the price the paywall shows. A saved Stripe price is only used when it
+    matches; after a price change the old Stripe price would otherwise keep being charged."""
+    import asyncio
+    pid = plan.get("stripe_price_id")
+    amount = round(plan["price"] * 100)
+    if pid:
+        if pid not in _stripe_price_ok:
+            try:
+                price = await asyncio.to_thread(stripe_lib.Price.retrieve, pid)
+                _stripe_price_ok[pid] = (_sget(price, "unit_amount") == amount and
+                                         str(_sget(price, "currency") or "").lower() == PLAN_CURRENCY)
+            except Exception as e:
+                logger.warning(f"Could not check Stripe price {pid}: {e}")
+                _stripe_price_ok[pid] = False
+            if not _stripe_price_ok[pid]:
+                logger.warning(f"Stripe price {pid} doesn't match £{plan['price']}; charging the app price instead")
+        if _stripe_price_ok[pid]:
+            return {"price": pid, "quantity": 1}
+    return {"price_data": {"currency": PLAN_CURRENCY, "product_data": {"name": f"Victory AI Pro {plan['name']}"},
+                           "unit_amount": amount, "recurring": {"interval": plan["interval"]}}, "quantity": 1}
+
+
 @api_router.post("/payments/checkout")
 async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(get_current_user)):
     import asyncio
@@ -1425,15 +1451,7 @@ async def create_checkout(checkout_req: CheckoutRequest, user: dict = Depends(ge
     checkout_params = {
         "mode": "subscription",
         "payment_method_types": ["card"],
-        "line_items": [{"price": plan["stripe_price_id"], "quantity": 1} if plan.get("stripe_price_id") else {
-            "price_data": {
-                "currency": PLAN_CURRENCY,
-                "product_data": {"name": f"Victory AI Pro {plan['name']}"},
-                "unit_amount": round(plan["price"] * 100),
-                "recurring": {"interval": plan["interval"]},
-            },
-            "quantity": 1,
-        }],
+        "line_items": [await _plan_line_item(plan)],
         "subscription_data": {"trial_period_days": STANDARD_TRIAL_DAYS},
         "success_url": f"{host_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
         "cancel_url": f"{host_url}/paywall",

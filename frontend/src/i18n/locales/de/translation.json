@@ -65,21 +65,21 @@
     },
     "plans": {
       "annual": "Jährlich",
-      "annualSavings": "48% Ersparnis gegenüber monatlich",
+      "annualSavings": "37% Ersparnis gegenüber monatlich",
       "monthly": "Monatlich",
       "monthlyFlexible": "Flexible Option",
       "bestValue": "BESTES ANGEBOT",
       "perYear": "/Jahr",
       "perMonth": "/Monat",
-      "weeklyAnnual": "0,48 £/Woche",
-      "weeklyMonthly": "~0,92 £/Woche"
+      "weeklyAnnual": "1,15 £/Woche",
+      "weeklyMonthly": "~1,84 £/Woche"
     },
     "viewDetails": "Plandetails anzeigen",
     "hideDetails": "Details ausblenden",
     "planDetails": {
       "title": "Plandetails",
-      "monthlyLine": "Monatlich (3,99 £/Monat): Unbegrenzte KI + werbefrei, jederzeit kündbar",
-      "annualLine": "Jährlich (24,99 £/Jahr): Gleiche Funktionen, 48% Ersparnis",
+      "monthlyLine": "Monatlich (7,99 £/Monat): Unbegrenzte KI + werbefrei, jederzeit kündbar",
+      "annualLine": "Jährlich (59,99 £/Jahr): Gleiche Funktionen, 37% Ersparnis",
       "trial": "14-tägige kostenlose Testphase bei beiden kostenpflichtigen Plänen",
       "billing": "Karte erforderlich — Abrechnung startet automatisch nach der Testphase"
     },

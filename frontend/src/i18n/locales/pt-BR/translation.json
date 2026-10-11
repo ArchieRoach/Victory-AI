@@ -65,21 +65,21 @@
     },
     "plans": {
       "annual": "Anual",
-      "annualSavings": "Economize 48% vs mensal",
+      "annualSavings": "Economize 37% vs mensal",
       "monthly": "Mensal",
       "monthlyFlexible": "Opção flexível",
       "bestValue": "MELHOR CUSTO",
       "perYear": "/ano",
       "perMonth": "/mês",
-      "weeklyAnnual": "£0.48/semana",
-      "weeklyMonthly": "~£0.92/semana"
+      "weeklyAnnual": "£1.15/semana",
+      "weeklyMonthly": "~£1.84/semana"
     },
     "viewDetails": "Ver detalhes do plano",
     "hideDetails": "Ocultar detalhes",
     "planDetails": {
       "title": "Detalhes do plano",
-      "monthlyLine": "Mensal (£3.99/mês): IA ilimitada + sem anúncios, cancele quando quiser",
-      "annualLine": "Anual (£24.99/ano): Mesmos recursos, 48% de economia",
+      "monthlyLine": "Mensal (£7.99/mês): IA ilimitada + sem anúncios, cancele quando quiser",
+      "annualLine": "Anual (£59.99/ano): Mesmos recursos, 37% de economia",
       "trial": "Teste grátis de 14 dias em ambos os planos pagos",
       "billing": "Cartão necessário — cobrança inicia automaticamente após o teste"
     },
