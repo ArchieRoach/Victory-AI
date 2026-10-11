@@ -86,6 +86,27 @@ def test_fight_story_and_self_reported_history():
     assert story["history"][0] == {"date": "2026-09-01", "overall": 5.0, "ai_scored": True}
 
 
+def test_combo_builder_sets_the_weeks_focus_and_the_ai_watches_for_it():
+    assert client.post("/api/combos", json={"moves": ["slip", "roll"]}).json()["detail"] == "Add at least one punch"
+    assert client.post("/api/combos", json={"moves": ["1"]}).status_code == 400
+    assert client.post("/api/combos", json={"moves": ["1", "kick"]}).status_code == 400
+    assert client.post("/api/combos", json={"name": "badword", "moves": ["1", "2"]}).status_code == 400
+    c = client.post("/api/combos", json={"name": "Bread and butter", "moves": ["1", "2", "slip", "2"]}).json()
+    assert c["label"] == "1-2-slip-2" and c["focus"] == ["Jab", "Cross", "Slip", "Combination Flow"]
+    r = client.post(f"/api/combos/{c['combo_id']}/focus").json()
+    assert "Dee will watch for Bread and butter" in r["line"]
+    u = run(server.db.users.find_one({"user_id": "u_ali"}))
+    assert u["active_combo"]["label"] == "1-2-slip-2" and u["training_partner"]["focus_areas"] == c["focus"]
+    prompt = server.video_analysis_prompt(1, "Dee", "calm", c["focus"], u["active_combo"]["label"])
+    assert "drilling their own combination: 1-2-slip-2" in prompt
+    assert "drilling" not in server.video_analysis_prompt(1, "Dee", "calm", [])
+    listed = client.get("/api/combos").json()
+    assert listed["active"]["combo_id"] == c["combo_id"] and listed["moves"]["3"] == "Lead hook"
+    client.delete(f"/api/combos/{c['combo_id']}")
+    u = run(server.db.users.find_one({"user_id": "u_ali"}))
+    assert u["combos"] == [] and "active_combo" not in u
+
+
 if __name__ == "__main__":
     setup()
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]

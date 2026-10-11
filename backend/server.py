@@ -979,7 +979,11 @@ def analysis_video_url(public_id: str) -> str:
     return url
 
 
-def video_analysis_prompt(round_number: int, partner_name: str, tone: str, focus_areas: List[str]) -> str:
+def video_analysis_prompt(round_number: int, partner_name: str, tone: str, focus_areas: List[str],
+                          combo: Optional[str] = None) -> str:
+    combo_line = (f"This week the fighter is drilling their own combination: {combo} (1 jab, 2 cross, 3 lead hook, "
+                  "4 rear hook, 5 lead uppercut, 6 rear uppercut). If you see it, say in what_did_well or "
+                  "what_to_improve how cleanly it landed, with the timestamp.\n") if combo else ""
     return (
         f"You are {partner_name}, a boxing coach with a {tone} style, watching round {round_number} of a "
         "fighter's solo training (shadowboxing, bag or pads). Watch the whole video.\n"
@@ -993,6 +997,7 @@ def video_analysis_prompt(round_number: int, partner_name: str, tone: str, focus
         "For every skill, evidence names the timestamp(s) you based it on. "
         "Set boxer_visible false if no one is boxing on camera.\n"
         f"Pay extra attention to: {', '.join(focus_areas) or 'overall technique'}.\n"
+        f"{combo_line}"
         "what_did_well: one specific moment, with its timestamp, and what it says about the fighter they're "
         "becoming, e.g. 'At 0:42 you slipped and came straight back with the jab. That's a counter-puncher's "
         "instinct.' Only praise what you actually saw. what_to_improve: one fix, framed as the next step "
@@ -1044,7 +1049,7 @@ async def _gemini_video_part(video_bytes: bytes):
 
 
 async def analyze_round_video(public_id: str, round_number: int, partner_name: str, tone: str,
-                              focus_areas: List[str]) -> Optional[dict]:
+                              focus_areas: List[str], combo: Optional[str] = None) -> Optional[dict]:
     from google.genai import types, errors as genai_errors
     async with httpx.AsyncClient(timeout=90, follow_redirects=True) as http_client:
         res = await http_client.get(analysis_video_url(public_id))
@@ -1058,7 +1063,7 @@ async def analyze_round_video(public_id: str, round_number: int, partner_name: s
         media_resolution=getattr(types.MediaResolution, f"MEDIA_RESOLUTION_{GEMINI_MEDIA_RESOLUTION}",
                                  types.MediaResolution.MEDIA_RESOLUTION_LOW),
     )
-    contents = [video, video_analysis_prompt(round_number, partner_name, tone, focus_areas)]
+    contents = [video, video_analysis_prompt(round_number, partner_name, tone, focus_areas, combo)]
     try:
         response = await _gemini().aio.models.generate_content(model=GEMINI_VIDEO_MODEL, contents=contents, config=config)
     except genai_errors.ClientError as e:
@@ -1121,7 +1126,8 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
         raise HTTPException(status_code=402, detail="ai_quota_exceeded")
 
     try:
-        analysis = await analyze_round_video(public_id, round_number, partner_name, feedback_tone, focus_areas)
+        analysis = await analyze_round_video(public_id, round_number, partner_name, feedback_tone, focus_areas,
+                                             combo=(user.get("active_combo") or {}).get("label"))
     except Exception as e:
         logger.error(f"Video analysis error: {e}")
         analysis = None
@@ -10299,6 +10305,61 @@ async def my_fight_story(user: dict = Depends(get_current_user)):
         "history": [{"date": x.get("date"), "overall": x.get("overall_score"), "ai_scored": bool(x.get("scored"))} for x in sessions],
         "full_export": "/api/users/me/export",
     }
+
+
+
+# ---- Combo builder (rules and reasoning in gamification.py) ----
+
+class ComboIn(BaseModel):
+    name: str = Field("", max_length=24)
+    moves: List[str] = Field(..., max_length=gx.COMBO_MAX)
+
+
+@api_router.get("/combos")
+async def my_combos(user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"combos": 1, "active_combo": 1}) or {}
+    return {"moves": {k: v[0] for k, v in gx.COMBO_MOVES.items()}, "combos": fresh.get("combos") or [],
+            "active": fresh.get("active_combo"), "max": gx.MAX_SAVED_COMBOS}
+
+
+@api_router.post("/combos")
+async def save_combo(data: ComboIn, user: dict = Depends(get_current_user)):
+    problem = gx.combo_problem(data.moves)
+    if problem:
+        raise HTTPException(400, problem)
+    name = data.name.strip()
+    if name and await is_content_flagged(name):
+        raise HTTPException(400, "Pick another name")
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"combos": 1}) or {}
+    if len(fresh.get("combos") or []) >= gx.MAX_SAVED_COMBOS:
+        raise HTTPException(400, f"You can keep {gx.MAX_SAVED_COMBOS} combinations. Delete one first.")
+    combo = {"combo_id": f"cb_{uuid.uuid4().hex[:10]}", "name": name, "moves": data.moves,
+             "label": gx.combo_label(data.moves), "focus": gx.combo_focus(data.moves),
+             "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.users.update_one({"user_id": user["user_id"]}, {"$push": {"combos": combo}})
+    return combo
+
+
+@api_router.delete("/combos/{combo_id}")
+async def delete_combo(combo_id: str, user: dict = Depends(get_current_user)):
+    await db.users.update_one({"user_id": user["user_id"]}, {"$pull": {"combos": {"combo_id": combo_id[:20]}}})
+    await db.users.update_one({"user_id": user["user_id"], "active_combo.combo_id": combo_id[:20]}, {"$unset": {"active_combo": ""}})
+    return {"ok": True}
+
+
+@api_router.post("/combos/{combo_id}/focus")
+async def focus_on_combo(combo_id: str, user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"combos": 1, "training_partner": 1}) or {}
+    combo = next((c for c in fresh.get("combos") or [] if c["combo_id"] == combo_id), None)
+    if not combo:
+        raise HTTPException(404, "Combination not found")
+    active = {**combo, "set_at": datetime.now(timezone.utc).isoformat()}
+    update = {"active_combo": active}
+    if fresh.get("training_partner"):
+        update["training_partner.focus_areas"] = combo["focus"]
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    partner = (fresh.get("training_partner") or {}).get("name") or "Your partner"
+    return {"active": active, "line": f"{partner} will watch for {combo['name'] or combo['label']} in your next recorded rounds."}
 
 app.include_router(api_router)
 

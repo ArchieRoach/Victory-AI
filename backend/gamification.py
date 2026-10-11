@@ -586,3 +586,46 @@ def then_vs_now(first: dict, latest: dict) -> dict:
         "slipped": [c for c in reversed(changes) if c["change"] < 0][:2],
         "changes": changes,
     }
+
+
+# ---- Combo builder ----
+# Goal: fighters feel in charge of their training, not managed by it.
+# Psychology: autonomy and creativity (Core Drive 3): a plan you designed yourself is one you
+#   follow; seeing the AI judge *your* combination makes the feedback personal.
+# Design: build a combination from boxing's standard numbering plus defence and footwork,
+#   save it, and make it this week's focus: the partner's focus areas switch to the skills
+#   it uses and the AI watches for it in the next recorded rounds.
+
+COMBO_MOVES = {
+    "1": ("Jab", "Jab"), "2": ("Cross", "Cross"), "3": ("Lead hook", "Left Hook"), "4": ("Rear hook", "Right Hook"),
+    "5": ("Lead uppercut", "Uppercut"), "6": ("Rear uppercut", "Uppercut"),
+    "slip": ("Slip", "Slip"), "roll": ("Roll", "Roll"), "parry": ("Parry", "Parry"),
+    "pivot": ("Pivot", "Footwork"), "step_back": ("Step back", "Footwork"),
+}
+COMBO_MIN, COMBO_MAX = 2, 8
+MAX_SAVED_COMBOS = 12
+
+
+def combo_problem(moves: List[str]) -> Optional[str]:
+    if not COMBO_MIN <= len(moves) <= COMBO_MAX:
+        return f"A combination has {COMBO_MIN} to {COMBO_MAX} moves"
+    if any(m not in COMBO_MOVES for m in moves):
+        return "Unknown move"
+    if not any(m in "123456" for m in moves):
+        return "Add at least one punch"
+    return None
+
+
+def combo_label(moves: List[str]) -> str:
+    return "-".join(m if m in "123456" else COMBO_MOVES[m][0].lower() for m in moves)
+
+
+def combo_focus(moves: List[str]) -> List[str]:
+    out = []
+    for m in moves:
+        dim = COMBO_MOVES[m][1]
+        if dim not in out:
+            out.append(dim)
+    if sum(1 for m in moves if m in "123456") >= 3 and "Combination Flow" not in out:
+        out.append("Combination Flow")
+    return out[:4]
