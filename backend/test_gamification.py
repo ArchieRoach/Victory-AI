@@ -140,6 +140,38 @@ def test_only_acclaimed_fighters_can_be_gifted_gloves():
     assert gx.is_acclaimed(record_verified=False, record_bouts=0, comp_wins=0, verified_seconds=50 * 3600)
 
 
+def _dates(today, offsets):
+    return [(today - timedelta(days=d)).isoformat() for d in offsets]
+
+
+def test_partner_stays_in_peak_shape_on_three_sessions_a_week():
+    t = date(2026, 10, 11)
+    c = gx.partner_condition(_dates(t, [d for d in range(60) if d % 7 in (0, 2, 4)]), t)
+    assert c["state"] == "peak" and c["overall"] >= 70 and not c["drops"]
+
+
+def test_partner_slides_to_the_bench_then_the_couch():
+    t = date(2026, 10, 11)
+    history = [d for d in range(60) if d % 7 in (0, 2, 4)]
+    bench = gx.partner_condition(_dates(t, [d + 4 for d in history]), t)
+    couch = gx.partner_condition(_dates(t, [d + 9 for d in history]), t)
+    assert bench["state"] == "waiting" and couch["state"] == "rusty"
+    assert couch["change_7d"] < 0 and couch["drops"]["sharpness"] < 0
+    assert couch["stats"]["conditioning"] > couch["stats"]["sharpness"], "base fitness fades slower than sharpness"
+    assert "couch" in gx.condition_line("Dee", couch) and "One session" in gx.condition_line("Dee", couch)
+
+
+def test_one_session_ends_the_slide():
+    t = date(2026, 10, 11)
+    history = [d + 9 for d in range(60) if d % 7 in (0, 2, 4)]
+    back = gx.partner_condition(_dates(t, [0] + history), t)
+    assert back["state"] in ("ready", "peak") and back["days_since"] == 0
+
+
+def test_new_fighters_start_fresh():
+    assert gx.partner_condition([], date(2026, 10, 11))["state"] == "new"
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:

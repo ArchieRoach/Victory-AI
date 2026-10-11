@@ -433,3 +433,109 @@ ACCLAIM_MIN_HOURS = 50
 
 def is_acclaimed(*, record_verified: bool, record_bouts: int, comp_wins: int, verified_seconds: int) -> bool:
     return (record_verified and record_bouts > 0) or comp_wins > 0 or verified_seconds >= ACCLAIM_MIN_HOURS * 3600
+
+
+# ---- Partner condition: loss avoidance that pulls you back, never pushes you away ----
+# Goal: fighters train (and open the app) a few times every week, all year.
+# Psychology: loss aversion; we work harder to keep something we have than to gain
+#   something new, and "the endowment effect" makes it stronger for something we've built
+#   (our partner's form). But a loss that feels permanent makes people quit, so every slide
+#   is reversible in a single session, and the comeback is celebrated, not punished.
+# Design: the AI partner mirrors your training. Three stats come from a standard training-load
+#   model (exponentially weighted sessions, like the "fitness" curve endurance coaches use),
+#   so they only fall when you actually stop training. The partner's look moves through
+#   four states: peak, ready, waiting on the bench, and rusty on the couch. No smoking,
+#   drinking or body-shaming: this app is for 13-24s and the joke must not become the lesson.
+#   The numbers are labelled as a training-consistency model, never as a measurement of you.
+
+TARGET_SESSIONS_PER_WEEK = 3
+CONDITIONING_DAYS = 42      # slow: base fitness built over weeks
+SHARPNESS_DAYS = 10         # fast: timing and reactions fade quickly
+CONSISTENCY_WINDOW = 14
+CONDITION_STATES = {
+    "new": "Hasn't trained with you yet",
+    "peak": "In peak shape",
+    "ready": "Sharp and ready",
+    "waiting": "Waiting on the bench",
+    "rusty": "Gone rusty on the couch",
+}
+
+
+def _ewma(days_trained: set, today: date, tau: int, horizon: int = 180) -> float:
+    import math
+    decay = math.exp(-1 / tau)
+    level = 0.0
+    for i in range(horizon, -1, -1):
+        d = today - timedelta(days=i)
+        level = level * decay + (1 - decay) * (1.0 if d in days_trained else 0.0)
+    return level
+
+
+def partner_condition(session_dates: Iterable[str], today: Optional[date] = None) -> dict:
+    today = today or datetime.now(timezone.utc).date()
+    trained = set()
+    for s in session_dates or []:
+        try:
+            d = date.fromisoformat(str(s)[:10])
+        except ValueError:
+            continue
+        if d <= today:
+            trained.add(d)
+    if not trained:
+        return {"state": "new", "label": CONDITION_STATES["new"], "days_since": None,
+                "stats": {"conditioning": 0, "sharpness": 0, "consistency": 0}, "overall": 0, "change_7d": 0}
+
+    full = TARGET_SESSIONS_PER_WEEK / 7
+
+    def stats_on(day: date) -> dict:
+        recent = sum(1 for d in trained if 0 <= (day - d).days < CONSISTENCY_WINDOW)
+        return {
+            "conditioning": round(min(100, 100 * _ewma(trained, day, CONDITIONING_DAYS) / full)),
+            "sharpness": round(min(100, 100 * _ewma(trained, day, SHARPNESS_DAYS) / full)),
+            "consistency": round(min(100, 100 * recent / (TARGET_SESSIONS_PER_WEEK * CONSISTENCY_WINDOW / 7))),
+        }
+
+    def overall(st: dict) -> int:
+        return round(0.4 * st["conditioning"] + 0.35 * st["sharpness"] + 0.25 * st["consistency"])
+
+    now = stats_on(today)
+    week_ago = stats_on(today - timedelta(days=7))
+    days_since = (today - max(trained)).days
+    score = overall(now)
+    if days_since >= 7:
+        state = "rusty"
+    elif days_since >= 4:
+        state = "waiting"
+    elif score >= 70:
+        state = "peak"
+    else:
+        state = "ready"
+    return {
+        "state": state,
+        "label": CONDITION_STATES[state],
+        "days_since": days_since,
+        "stats": now,
+        "overall": score,
+        "change_7d": score - overall(week_ago),
+        "drops": {k: now[k] - week_ago[k] for k in now if now[k] < week_ago[k]},
+    }
+
+
+def condition_line(partner: str, cond: dict) -> str:
+    state, days = cond["state"], cond.get("days_since")
+    drop = -cond.get("change_7d", 0)
+    if state == "new":
+        return f"{partner}: gloves are on. Let's do the first round together."
+    if state == "peak":
+        return f"{partner}: I've never felt sharper. Keep this rhythm."
+    if state == "ready":
+        return f"{partner}: feeling good. One more session this week keeps us sharp."
+    if state == "waiting":
+        return (f"{partner}: {days} days since we trained. My sharpness is down {drop} points this week. "
+                "I'm sat on the bench waiting for you.")
+    return (f"{partner}: {days} days off and I've ended up on the couch. Conditioning's slipping. "
+            "One session and I'm back up. Come and get me.")
+
+
+# The comeback is the reward: one session after a slide lifts the partner straight back up.
+COMEBACK_STATES = {"waiting", "rusty"}
