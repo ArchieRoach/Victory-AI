@@ -65,25 +65,29 @@ def test_status_only_goes_up_and_feeds_the_weekly_board():
     assert run(server.award_status("u_archie", 0)) == {}
 
 
-def test_squad_quest_rewards_everyone_once_with_a_booster():
+def test_squad_quest_rewards_everyone_once_with_a_booster_they_pick():
     pushes.clear()
     target = gx.quest_target(2)
     for i in range(target):
         out = run(server.advance_squad_quests("u_archie" if i % 2 else "u_sam"))
     sq1 = next(q for q in out if q["squad_id"] == "sq_1")
-    assert sq1["completed"] and sq1["just_completed"]
+    assert sq1["completed"] and sq1["just_completed"] and sq1["route"] == "engine"
     again = run(server.advance_squad_quests("u_sam"))
     assert not next(q for q in again if q["squad_id"] == "sq_1")["just_completed"]
     sam = run(server.db.users.find_one({"user_id": "u_sam"}))
-    assert sam["status_points"] == gx.STATUS_PER_QUEST and len(sam["boosters"]) == 1
-    assert sum(1 for u, t in pushes if "weekly quest" in t) == 2
+    assert sam["status_points"] == gx.STATUS_PER_QUEST and sam["booster_picks"] == 1
+    assert sum(1 for u, t in pushes if "completed the mission" in t) == 2
+    as_user(SAM)
+    assert client.post("/api/boosters/pick", json={"choice": "free_money"}).status_code == 400
+    r = client.post("/api/boosters/pick", json={"choice": "double_status"})
+    assert r.status_code == 200
+    assert client.post("/api/boosters/pick", json={"choice": "double_status"}).status_code == 400, "one pick per mission"
     r = run(server.award_status("u_sam", 40, session=True))
-    assert r["earned"] == 80 and r["booster"] == "Squad quest booster"
+    assert r["earned"] == 80 and r["booster"] == "Mission booster"
     wk = run(server.db.weekly_stats.find_one({"user_id": "u_sam", "week_id": gx.week_id()}))
     assert wk["points"] == 40, "boosters never inflate the weekly board"
     assert run(server.award_status("u_sam", 40))["earned"] == 40
 
-    as_user(SAM)
     q = client.get("/api/quests/mine").json()["quests"][0]
     assert q["completed"] and q["progress"] == target and {m["name"] for m in q["members"]} == {"You", "Archie"}
 

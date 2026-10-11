@@ -714,3 +714,93 @@ def enjoyment_summary(reflections: List[dict]) -> Optional[dict]:
         "line": (f"Your best sessions are the ones where you {_TAG_PHRASE[top]}." if top
                  else "Keep telling us how sessions feel and we'll show you what you love about training."),
     }
+
+
+# ---- Corner Surprises (Core Drive 7: unpredictability) ----
+# Goal: training feels exciting to come back to, not just useful.
+# Psychology: variable rewards: not knowing what comes next keeps curiosity alive. Kept healthy:
+#   only earned by real actions, never bought (no loot boxes, especially for under-18s), odds
+#   shown openly, and a daily cap so it never turns into pulling a lever.
+# Design: after a session or a treasure given, a roll from a fixed, published table.
+
+SURPRISE_TABLE = [
+    ("legend_tip", "A legend's tip", 15),
+    ("bonus_status", "Bonus status", 10),
+    ("deep_scout", "Deep scout of your best moment", 7),
+    ("rare_look", "A rare free team look", 3),
+]
+SURPRISE_DAILY_CAP = 3
+SURPRISE_BONUS_STATUS = 25
+
+
+def surprise_odds() -> List[dict]:
+    rows = [{"kind": k, "label": label, "pct": w} for k, label, w in SURPRISE_TABLE]
+    rows.append({"kind": "none", "label": "Nothing this time", "pct": 100 - sum(w for *_, w in SURPRISE_TABLE)})
+    return rows
+
+
+def roll_surprise(seed: str, *, guaranteed: bool = False, scored: bool = True) -> Optional[str]:
+    import random
+    rng = random.Random(seed)
+    total = sum(w for *_, w in SURPRISE_TABLE)
+    roll = rng.uniform(0, total if guaranteed else 100)
+    kind = None
+    for k, _, w in SURPRISE_TABLE:
+        if roll < w:
+            kind = k
+            break
+        roll -= w
+    if kind == "deep_scout" and not scored:
+        kind = "legend_tip"
+    return kind
+
+
+# ---- Team missions: the crew chooses (Core Drives 3 and 5) ----
+# Goal: crews own their week instead of being handed a task.
+# Psychology: meaningful choice ("plant pickers") and creativity make a goal feel like yours;
+#   designing something together (the Signature Combo) bonds a group more than counting sessions.
+# Design: each week the crew votes for one of three missions. The vote locks when the first
+#   session counts. Signature Combo: members nominate a combo they built, the crew votes, and
+#   AI-scored sessions drilling the winner count. Finishing lets each member pick a booster.
+
+QUEST_ROUTES = {
+    "engine": ("Engine Room", "Train {target} sessions between you."),
+    "sharp": ("Sharp Shooters", "Land {target} AI-scored sessions with a jab of 7 or better between you."),
+    "signature": ("Signature Combo", "Pick a crew combo, then drill it in {target} AI-scored sessions between you."),
+}
+SHARP_JAB = 7
+
+
+def route_target(route: str, members: int) -> int:
+    if route == "engine":
+        return quest_target(members)
+    return max(3, min(16, 2 * max(1, members)))
+
+
+def plurality(votes: dict) -> Optional[str]:
+    """Most-voted choice; a tie goes to whichever was voted for first."""
+    if not votes:
+        return None
+    counts: dict = {}
+    for choice in votes.values():
+        counts[choice] = counts.get(choice, 0) + 1
+    top = max(counts.values())
+    return next(c for c in votes.values() if counts[c] == top)
+
+
+def session_counts(route: str, *, trusted: bool, jab: Optional[float], combo: Optional[str],
+                   signature: Optional[str]) -> bool:
+    if route == "engine":
+        return True
+    if not trusted:
+        return False
+    if route == "sharp":
+        return isinstance(jab, (int, float)) and jab >= SHARP_JAB
+    return bool(signature) and combo == signature
+
+
+BOOSTER_CHOICES = {
+    "double_status": "2x status on your next session",
+    "guaranteed_surprise": "A guaranteed Corner Surprise next session",
+    "status_now": "+100 status right now",
+}

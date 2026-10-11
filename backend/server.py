@@ -7195,13 +7195,18 @@ async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool)
     callouts_beaten = await _settle_callouts_for(user, overall, dims) if trusted_scores else []
     identity = await apply_identity(uid, session, trusted_scores)
     status = await award_status(uid, pts, session=True)
-    quests = await advance_squad_quests(uid)
+    combo_doc = await db.users.find_one({"user_id": uid}, {"active_combo": 1}) or {}
+    jab = next((d["score"] for d in dims or [] if d.get("dimension_name") == "Jab" and isinstance(d.get("score"), (int, float))), None)
+    quests = await advance_squad_quests(uid, {"trusted": trusted_scores, "jab": jab,
+                                              "combo": (combo_doc.get("active_combo") or {}).get("label")})
+    surprise = await corner_surprise(uid, f"session:{session.get('session_id')}", session=session if trusted_scores else None)
     if trusted_scores:
         gloves = await award_verified_time(uid, round_seconds=gx.verified_round_seconds(session.get("rounds")))
     else:
         gloves = {"counted": False, "reason": "unverified", "seconds": 0}
 
     return {
+        "surprise": surprise,
         "stage": await journey_stage(uid),
         "reflection_tags": gx.REFLECTION_TAGS,
         "gloves": gloves,
@@ -9512,37 +9517,58 @@ async def award_status(uid: str, pts: int, *, session: bool = False, boostable: 
             "unlocked": gx.newly_unlocked(before, after)}
 
 
-async def advance_squad_quests(uid: str) -> List[dict]:
+async def _quest_doc(squad: dict, wk: str) -> dict:
+    key = {"squad_id": squad["squad_id"], "week_id": wk}
+    await db.squad_quests.update_one(key, {"$setOnInsert": {"progress": 0, "completed": False, "contributions": {}}}, upsert=True)
+    return await db.squad_quests.find_one(key)
+
+
+def _signature_label(q: dict) -> Optional[str]:
+    winner = gx.plurality(q.get("signature_votes") or {})
+    return ((q.get("nominations") or {}).get(winner) or {}).get("label") if winner else None
+
+
+async def advance_squad_quests(uid: str, info: Optional[dict] = None) -> List[dict]:
+    """info describes the session: {"trusted", "jab", "combo"}. Without it only Engine Room counts."""
+    info = info or {}
     wk = gx.week_id()
     squads = await db.squads.find({"members": uid}, {"squad_id": 1, "members": 1, "name": 1}).to_list(MAX_SQUADS_PER_USER)
     out = []
     for sq in squads:
-        q = await db.squad_quests.find_one_and_update(
-            {"squad_id": sq["squad_id"], "week_id": wk},
-            {"$inc": {"progress": 1, f"contributions.{uid}": 1},
-             "$setOnInsert": {"target": gx.quest_target(len(sq.get("members", []))), "completed": False}},
-            upsert=True, return_document=True)
+        q = await _quest_doc(sq, wk)
+        key = {"squad_id": sq["squad_id"], "week_id": wk}
+        route = q.get("route") or gx.plurality(q.get("route_votes") or {}) or "engine"
+        counts = gx.session_counts(route, trusted=bool(info.get("trusted")), jab=info.get("jab"),
+                                   combo=info.get("combo"), signature=_signature_label(q))
+        if counts:
+            if not q.get("route"):
+                # The crew's choice locks the moment the first session counts towards it.
+                await db.squad_quests.update_one({**key, "route": {"$exists": False}}, {"$set": {
+                    "route": route, "target": gx.route_target(route, len(sq.get("members", [])))}})
+            q = await db.squad_quests.find_one_and_update(
+                key, {"$inc": {"progress": 1, f"contributions.{uid}": 1}}, return_document=True)
+        target = q.get("target") or gx.route_target(route, len(sq.get("members", [])))
         just_done = False
-        if q["progress"] >= q["target"] and not q.get("completed"):
-            claimed = await db.squad_quests.update_one(
-                {"squad_id": sq["squad_id"], "week_id": wk, "completed": False},
-                {"$set": {"completed": True, "completed_at": datetime.now(timezone.utc).isoformat()}})
+        if counts and q["progress"] >= target and not q.get("completed"):
+            claimed = await db.squad_quests.update_one({**key, "completed": False},
+                                                       {"$set": {"completed": True, "completed_at": datetime.now(timezone.utc).isoformat()}})
             if claimed.modified_count:
                 just_done = True
                 await _reward_squad_quest(sq)
-        out.append({"squad_id": sq["squad_id"], "name": sq.get("name"), "progress": min(q["progress"], q["target"]),
-                    "target": q["target"], "completed": q.get("completed") or just_done, "just_completed": just_done})
+        out.append({"squad_id": sq["squad_id"], "name": sq.get("name"), "route": route, "counted": counts,
+                    "progress": min(q.get("progress", 0), target), "target": target,
+                    "completed": q.get("completed") or just_done, "just_completed": just_done})
     return out
 
 
 async def _reward_squad_quest(squad: dict):
-    booster = gx.make_booster("double_status", "Squad quest booster")
+    # Each member chooses their own booster: picking it is part of the reward.
     for m in squad.get("members", []):
         await award_status(m, gx.STATUS_PER_QUEST, boostable=False, weekly=False)
-        await db.users.update_one({"user_id": m}, {"$push": {"boosters": booster}})
+        await db.users.update_one({"user_id": m}, {"$inc": {"booster_picks": 1}})
     await asyncio.gather(*[
-        _send_push(m, title=f"{squad.get('name', 'Your squad')} hit the weekly quest",
-                   body=f"+{gx.STATUS_PER_QUEST} status and 2x status on your next session",
+        _send_push(m, title=f"{squad.get('name', 'Your squad')} completed the mission",
+                   body=f"+{gx.STATUS_PER_QUEST} status, and you get to pick a booster",
                    url="/leaderboard?tab=quests", tag=f"quest-{squad['squad_id']}")
         for m in squad.get("members", [])
     ], return_exceptions=True)
@@ -9753,13 +9779,118 @@ async def my_quests(user: dict = Depends(get_current_user)):
     member_ids = list({m for sq in squads for m in sq.get("members", [])})
     names = {u["user_id"]: ("You" if u["user_id"] == uid else (u.get("display_name") or u.get("name") or "Fighter").split()[0])
              for u in await db.users.find({"user_id": {"$in": member_ids}}, {"user_id": 1, "name": 1, "display_name": 1}).to_list(len(member_ids) or 1)}
+    fresh = await db.users.find_one({"user_id": uid}, {"booster_picks": 1}) or {}
     out = []
     for sq in squads:
-        q = await db.squad_quests.find_one({"squad_id": sq["squad_id"], "week_id": wk}) or {
-            "squad_id": sq["squad_id"], "week_id": wk, "target": gx.quest_target(len(sq.get("members", []))), "progress": 0}
-        view = gx.quest_view(q, {m: names.get(m, "Fighter") for m in sq.get("members", [])}, uid)
-        out.append({**view, "name": sq.get("name"), "reward": f"+{gx.STATUS_PER_QUEST} status and a 2x booster each"})
-    return {"week_id": wk, "resets_at": gx.week_resets_at(), "quests": out}
+        q = await db.squad_quests.find_one({"squad_id": sq["squad_id"], "week_id": wk}) or {}
+        size = len(sq.get("members", []))
+        route = q.get("route") or gx.plurality(q.get("route_votes") or {}) or "engine"
+        target = q.get("target") or gx.route_target(route, size)
+        view = gx.quest_view({**q, "squad_id": sq["squad_id"], "week_id": wk, "target": target, "progress": q.get("progress", 0)},
+                             {m: names.get(m, "Fighter") for m in sq.get("members", [])}, uid)
+        votes = q.get("route_votes") or {}
+        sig_votes = q.get("signature_votes") or {}
+        nominations = [{"by": n_uid, "by_name": names.get(n_uid, "Fighter"), "label": n["label"], "name": n.get("name"),
+                        "votes": sum(1 for v in sig_votes.values() if v == n_uid)}
+                       for n_uid, n in (q.get("nominations") or {}).items()]
+        name, desc = gx.QUEST_ROUTES[route]
+        out.append({**view, "name": sq.get("name"), "route": route, "route_name": name,
+                    "route_desc": desc.format(target=target), "locked": bool(q.get("route")),
+                    "routes": [{"key": k, "name": n, "desc": d.format(target=gx.route_target(k, size)),
+                                "votes": sum(1 for v in votes.values() if v == k)} for k, (n, d) in gx.QUEST_ROUTES.items()],
+                    "my_route_vote": votes.get(uid), "nominations": nominations, "my_signature_vote": sig_votes.get(uid),
+                    "signature": _signature_label(q),
+                    "reward": f"+{gx.STATUS_PER_QUEST} status and a booster you choose"})
+    return {"week_id": wk, "resets_at": gx.week_resets_at(), "quests": out,
+            "booster_picks": fresh.get("booster_picks", 0), "booster_choices": gx.BOOSTER_CHOICES}
+
+
+async def _member_quest(squad_id: str, uid: str):
+    sq = await db.squads.find_one({"squad_id": squad_id[:40], "members": uid}, {"squad_id": 1, "members": 1})
+    if not sq:
+        raise HTTPException(404, "Squad not found")
+    return sq, await _quest_doc(sq, gx.week_id())
+
+
+class RouteVote(BaseModel):
+    route: str = Field(..., max_length=20)
+
+
+@api_router.post("/quests/{squad_id}/route")
+async def vote_quest_route(squad_id: str, data: RouteVote, user: dict = Depends(get_current_user)):
+    if data.route not in gx.QUEST_ROUTES:
+        raise HTTPException(400, "Unknown mission")
+    sq, q = await _member_quest(squad_id, user["user_id"])
+    if q.get("route"):
+        raise HTTPException(400, "This week's mission is already under way")
+    await db.squad_quests.update_one({"_id": q["_id"]}, {"$set": {f"route_votes.{user['user_id']}": data.route}})
+    return {"voted": data.route}
+
+
+class SignatureNomination(BaseModel):
+    combo_id: str = Field(..., max_length=20)
+
+
+@api_router.post("/quests/{squad_id}/signature/nominate")
+async def nominate_signature(squad_id: str, data: SignatureNomination, user: dict = Depends(get_current_user)):
+    sq, q = await _member_quest(squad_id, user["user_id"])
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"combos": 1}) or {}
+    combo = next((c for c in fresh.get("combos") or [] if c["combo_id"] == data.combo_id), None)
+    if not combo:
+        raise HTTPException(404, "Build the combination in the combo builder first")
+    await db.squad_quests.update_one({"_id": q["_id"]}, {"$set": {f"nominations.{user['user_id']}": {
+        "label": combo["label"], "name": combo.get("name"), "moves": combo["moves"], "focus": combo["focus"]}}})
+    return {"nominated": combo["label"]}
+
+
+class SignatureVote(BaseModel):
+    nominee: str = Field(..., max_length=64)
+
+
+@api_router.post("/quests/{squad_id}/signature/vote")
+async def vote_signature(squad_id: str, data: SignatureVote, user: dict = Depends(get_current_user)):
+    sq, q = await _member_quest(squad_id, user["user_id"])
+    if data.nominee not in (q.get("nominations") or {}):
+        raise HTTPException(404, "That combination isn't nominated")
+    await db.squad_quests.update_one({"_id": q["_id"]}, {"$set": {f"signature_votes.{user['user_id']}": data.nominee}})
+    return {"voted": data.nominee}
+
+
+@api_router.post("/quests/{squad_id}/signature/drill")
+async def drill_signature(squad_id: str, user: dict = Depends(get_current_user)):
+    sq, q = await _member_quest(squad_id, user["user_id"])
+    winner = gx.plurality(q.get("signature_votes") or {})
+    nom = (q.get("nominations") or {}).get(winner) if winner else None
+    if not nom:
+        raise HTTPException(400, "Your crew hasn't picked a combination yet")
+    active = {"combo_id": f"crew_{squad_id[-8:]}", "name": nom.get("name") or "Crew combo", "moves": nom["moves"],
+              "label": nom["label"], "focus": nom["focus"], "set_at": datetime.now(timezone.utc).isoformat()}
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"training_partner": 1}) or {}
+    update = {"active_combo": active}
+    if fresh.get("training_partner"):
+        update["training_partner.focus_areas"] = nom["focus"]
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    return {"active": active}
+
+
+class BoosterPick(BaseModel):
+    choice: str = Field(..., max_length=30)
+
+
+@api_router.post("/boosters/pick")
+async def pick_booster(data: BoosterPick, user: dict = Depends(get_current_user)):
+    if data.choice not in gx.BOOSTER_CHOICES:
+        raise HTTPException(400, "Unknown booster")
+    spent = await db.users.update_one({"user_id": user["user_id"], "booster_picks": {"$gt": 0}}, {"$inc": {"booster_picks": -1}})
+    if not spent.modified_count:
+        raise HTTPException(400, "No booster to pick right now")
+    if data.choice == "double_status":
+        await db.users.update_one({"user_id": user["user_id"]}, {"$push": {"boosters": gx.make_booster("double_status", "Mission booster")}})
+    elif data.choice == "guaranteed_surprise":
+        await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {"guaranteed_surprises": 1}})
+    else:
+        await award_status(user["user_id"], 100, boostable=False, weekly=False)
+    return {"picked": data.choice, "label": gx.BOOSTER_CHOICES[data.choice]}
 
 
 class TreasureCreate(BaseModel):
@@ -9804,7 +9935,8 @@ async def give_treasure(data: TreasureCreate, user: dict = Depends(get_current_u
     await _send_push(data.recipient_id, title=f"{name} gave you {label}", body="It's on your trophy shelf",
                      url="/profile", tag=f"treasure-{uid}-{today}")
     left = gx.TREASURES_PER_DAY - await db.treasures.count_documents({"giver_id": uid, "date": today})
-    return {"given": label, "left_today": left}
+    surprise = await corner_surprise(uid, f"treasure:{uid}:{data.recipient_id}:{today}")
+    return {"given": label, "left_today": left, "surprise": surprise}
 
 
 @api_router.get("/treasures/mine")
@@ -10466,6 +10598,67 @@ async def reflect_on_session(session_id: str, data: ReflectionIn, user: dict = D
     if not done.matched_count:
         raise HTTPException(404, "Session not found")
     return {"saved": True, "tags": tags}
+
+
+
+# ---- Corner Surprises (rules and reasoning in gamification.py) ----
+
+async def corner_surprise(uid: str, seed: str, session: Optional[dict] = None) -> Optional[dict]:
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    fresh = await db.users.find_one({"user_id": uid}, {"surprise_day": 1, "guaranteed_surprises": 1, "personal_bests": 1,
+                                                       "fantasy_cosmetics": 1}) or {}
+    day = fresh.get("surprise_day") or {}
+    used = day.get("count", 0) if day.get("date") == today else 0
+    if used >= gx.SURPRISE_DAILY_CAP:
+        return None
+    guaranteed = fresh.get("guaranteed_surprises", 0) > 0
+    kind = gx.roll_surprise(seed, guaranteed=guaranteed, scored=bool(session))
+    if not kind:
+        return None
+    if guaranteed:
+        await db.users.update_one({"user_id": uid, "guaranteed_surprises": {"$gt": 0}}, {"$inc": {"guaranteed_surprises": -1}})
+    out = await _surprise_content(uid, kind, fresh, session)
+    out["at"] = datetime.now(timezone.utc).isoformat()
+    await db.users.update_one({"user_id": uid}, {"$set": {"surprise_day": {"date": today, "count": used + 1}},
+                                                 "$push": {"surprises": {"$each": [out], "$slice": -20}}})
+    return out
+
+
+async def _surprise_content(uid: str, kind: str, fresh: dict, session: Optional[dict]) -> dict:
+    if kind == "rare_look":
+        owned = set(fresh.get("fantasy_cosmetics") or [])
+        options = [c for c in FANTASY_COSMETICS if c not in owned]
+        if options:
+            pick = random.choice(options)
+            await _grant_cosmetic(uid, pick)
+            item = FANTASY_COSMETICS[pick]
+            return {"kind": kind, "title": f"Rare drop: {item['name']}", "body": f"{item['description']} It's yours. Find it in Fantasy → Team looks."}
+        kind = "bonus_status"
+    if kind == "bonus_status":
+        await award_status(uid, gx.SURPRISE_BONUS_STATUS, boostable=False, weekly=False)
+        return {"kind": kind, "title": f"+{gx.SURPRISE_BONUS_STATUS} bonus status", "body": "Your corner thought you earned a little extra today."}
+    if kind == "deep_scout" and session:
+        best = None
+        for rnd in session.get("rounds") or []:
+            for d in (rnd.get("analysis") or {}).get("dimension_scores") or []:
+                if isinstance(d.get("score"), (int, float)) and (best is None or d["score"] > best["score"]):
+                    best = d
+        if best:
+            evidence = f" {best['evidence']}" if best.get("evidence") else ""
+            return {"kind": kind, "title": f"Deep scout: {best['dimension_name']} {best['score']}/10",
+                    "body": f"Your best moment today.{evidence} Do that again."}
+    pbs = {k: v for k, v in (fresh.get("personal_bests") or {}).items() if k != "Overall"}
+    focus = min(pbs, key=pbs.get) if pbs else random.choice(DIMENSIONS)
+    legend = next((l for l in LEGENDS if focus in l["dimensions"]), random.choice(LEGENDS))
+    return {"kind": "legend_tip", "title": f"{legend['name']} on {focus}",
+            "body": legend["description"], "search": legend.get("youtube_search")}
+
+
+@api_router.get("/surprises")
+async def my_surprises(user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"surprises": 1, "guaranteed_surprises": 1}) or {}
+    return {"odds": gx.surprise_odds(), "daily_cap": gx.SURPRISE_DAILY_CAP,
+            "recent": list(reversed(fresh.get("surprises") or [])), "guaranteed": fresh.get("guaranteed_surprises", 0)}
 
 app.include_router(api_router)
 
