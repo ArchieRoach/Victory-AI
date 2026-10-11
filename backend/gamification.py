@@ -639,7 +639,7 @@ def combo_focus(moves: List[str]) -> List[str]:
 #   recognition, status and access take over; and for established fighters the app steps back
 #   from points and asks how the training felt, which is what keeps people for years.
 # Design: three stages from real activity. Hook: a starter challenge (3 sessions in your first
-#   7 days) with a real item as the prize, given once. Belong: crews, mentors, shelves and the
+#   7 days) with a real item as the prize, given once, to Pro members. Belong: crews, mentors, shelves and the
 #   Golden Gloves come forward. Mastery: points fold away after sessions and a reflection
 #   ("how did that feel?") leads; the app then reflects back what you enjoy most.
 

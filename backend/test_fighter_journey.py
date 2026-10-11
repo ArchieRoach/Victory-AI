@@ -145,10 +145,16 @@ def test_starter_kit_is_earned_once_and_reflections_are_saved():
     current["user"] = {"user_id": "u_new", "name": "New Fighter"}
     j = client.get("/api/journey").json()
     assert j["stage"] == "hook" and j["starter"]["done"] == 0 and j["starter"]["open"]
-    assert client.post("/api/journey/starter/claim", json={"choice": "corner_red"}).status_code == 400
+    assert client.post("/api/journey/starter/claim", json={"choice": "corner_red"}).status_code in (400, 403)
     for d in range(3):
         run(server.db.sessions.insert_one({"user_id": "u_new", "session_id": f"s_new{d}", "date": (today - timedelta(days=d)).isoformat()}))
     assert client.post("/api/journey/starter/claim", json={"choice": "gold_gloves"}).status_code == 400, "only the starter items"
+
+    r = client.post("/api/journey/starter/claim", json={"choice": "corner_blue"})
+    assert r.status_code == 403 and "Pro" in r.json()["detail"], "the starter kit is Pro-only"
+    assert client.get("/api/journey").json()["starter"]["pro"] is False
+    run(server.db.subscriptions.insert_one({"user_id": "u_new", "status": "active"}))
+    assert client.get("/api/journey").json()["starter"]["pro"] is True
     r = client.post("/api/journey/starter/claim", json={"choice": "corner_blue"})
     assert r.status_code == 200 and r.json()["granted"] == "Blue Corner"
     assert client.post("/api/journey/starter/claim", json={"choice": "corner_red"}).status_code == 400, "once, ever"

@@ -424,7 +424,8 @@ enjoyment. Rules are in `gamification.py` ("motivation journey"); the API is `GE
   - **belong:** after that.
   - **mastery:** 25+ sessions and 42+ days since joining.
 - **Hook: starter challenge.** 3 training days in the first 7 days → `POST /api/journey/starter/claim` grants
-  a free Red or Blue Corner cosmetic (normally £0.99) plus 100 status. It's given once, ever
+  a free Red or Blue Corner cosmetic (normally £0.99) plus 100 status. **Pro members only** (403 otherwise).
+  Free users who complete it see a "See Pro" offer during their first week only. It's given once, ever
   (`users.starter_claimed`), and never repeated for training.
 - **Belong:** the Home card points at crews. Recognition, status and access (shelves, mentors, Golden Gloves)
   already exist.
