@@ -10236,6 +10236,19 @@ async def set_fighter_style(data: FighterStyleIn, user: dict = Depends(get_curre
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
     return {"style": data.style, "name": name, "focus": focus if data.train_it else None}
 
+
+
+@api_router.get("/users/me/then-vs-now")
+async def my_then_vs_now(user: dict = Depends(get_current_user)):
+    scored = await db.sessions.find({"user_id": user["user_id"], "scored": True}, {"_id": 0}).sort("created_at", 1).to_list(5000)
+    if len(scored) < 2:
+        return {"ready": False, "scored_sessions": len(scored), "needed": 2}
+    first, latest = scored[0], scored[-1]
+    view = gx.then_vs_now(first, latest)
+    if view["days"] is not None and view["days"] < gx.THEN_NOW_MIN_DAYS:
+        return {"ready": False, "scored_sessions": len(scored), "days_until": gx.THEN_NOW_MIN_DAYS - view["days"]}
+    return {"ready": True, "sessions_between": len(scored) - 2, **view}
+
 app.include_router(api_router)
 
 async def _scheduled_stream_reminder_loop():

@@ -539,3 +539,50 @@ def condition_line(partner: str, cond: dict) -> str:
 
 # The comeback is the reward: one session after a slide lifts the partner straight back up.
 COMEBACK_STATES = {"waiting", "rusty"}
+
+
+# ---- Then vs now ----
+# Goal: show fighters how far they've come, in their own footage.
+# Psychology: progress you can see is the strongest intrinsic motivator (competence, in
+#   self-determination theory); comparing yourself to your past self beats comparing to others.
+# Design: your first AI-scored session next to your latest, with the score change for every
+#   dimension both sessions scored. Drops are shown as drops; nothing is invented.
+
+THEN_NOW_MIN_DAYS = 7
+
+
+def _dims(session: dict) -> dict:
+    return {d["dimension_name"]: d["score"] for d in session.get("dimension_scores") or []
+            if isinstance(d.get("score"), (int, float))}
+
+
+def best_round_video(session: dict) -> Optional[str]:
+    scored = []
+    for rnd in session.get("rounds") or []:
+        vals = [d.get("score") for d in ((rnd.get("analysis") or {}).get("dimension_scores") or [])
+                if isinstance(d.get("score"), (int, float))]
+        if vals and rnd.get("video_url"):
+            scored.append((sum(vals) / len(vals), rnd["video_url"]))
+    return max(scored)[1] if scored else None
+
+
+def then_vs_now(first: dict, latest: dict) -> dict:
+    a, b = _dims(first), _dims(latest)
+    changes = sorted(({"dimension": k, "then": a[k], "now": b[k], "change": round(b[k] - a[k], 1)} for k in a if k in b),
+                     key=lambda c: -c["change"])
+    try:
+        days = (date.fromisoformat(str(latest.get("date"))[:10]) - date.fromisoformat(str(first.get("date"))[:10])).days
+    except ValueError:
+        days = None
+    overall = None
+    if isinstance(first.get("overall_score"), (int, float)) and isinstance(latest.get("overall_score"), (int, float)):
+        overall = round(latest["overall_score"] - first["overall_score"], 1)
+    return {
+        "then": {"date": first.get("date"), "overall": first.get("overall_score"), "video": best_round_video(first)},
+        "now": {"date": latest.get("date"), "overall": latest.get("overall_score"), "video": best_round_video(latest)},
+        "days": days,
+        "overall_change": overall,
+        "biggest_gains": [c for c in changes if c["change"] > 0][:3],
+        "slipped": [c for c in reversed(changes) if c["change"] < 0][:2],
+        "changes": changes,
+    }

@@ -50,6 +50,28 @@ def test_style_quiz_result_becomes_the_training_focus():
     assert u["fighter_style"] == "power" and u["training_partner"]["focus_areas"] == ["Slip", "Parry", "Punch Accuracy"]
 
 
+def _session(date_, overall, dims, video=None, created=None):
+    return {"user_id": "u_ali", "scored": True, "date": date_, "created_at": created or f"{date_}T10:00:00",
+            "overall_score": overall,
+            "dimension_scores": [{"dimension_name": k, "score": v} for k, v in dims.items()],
+            "rounds": [{"video_url": video, "analysis": {"dimension_scores": [{"dimension_name": k, "score": v} for k, v in dims.items()]}}] if video else []}
+
+
+def test_then_vs_now_waits_for_real_history_then_tells_the_truth():
+    assert client.get("/api/users/me/then-vs-now").json() == {"ready": False, "scored_sessions": 0, "needed": 2}
+    run(server.db.sessions.insert_one(_session("2026-09-01", 5.0, {"Jab": 5, "Footwork": 6, "Slip": 4}, "https://res.cloudinary.com/x/first.mp4")))
+    run(server.db.sessions.insert_one(_session("2026-09-03", 5.5, {"Jab": 6})))
+    r = client.get("/api/users/me/then-vs-now").json()
+    assert not r["ready"] and r["days_until"] == 5
+    run(server.db.sessions.insert_one(_session("2026-10-10", 6.8, {"Jab": 8, "Footwork": 5, "Slip": 6, "Roll": 7}, "https://res.cloudinary.com/x/latest.mp4")))
+    r = client.get("/api/users/me/then-vs-now").json()
+    assert r["ready"] and r["days"] == 39 and r["overall_change"] == 1.8 and r["sessions_between"] == 1
+    assert [g["dimension"] for g in r["biggest_gains"]] == ["Jab", "Slip"]
+    assert r["slipped"] == [{"dimension": "Footwork", "then": 6, "now": 5, "change": -1}], "drops are shown, not hidden"
+    assert "Roll" not in [c["dimension"] for c in r["changes"]], "only dimensions scored both times"
+    assert r["then"]["video"].endswith("first.mp4") and r["now"]["video"].endswith("latest.mp4")
+
+
 if __name__ == "__main__":
     setup()
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]

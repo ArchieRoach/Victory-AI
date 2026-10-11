@@ -19,6 +19,7 @@ test("rank headline frames reachable and distant gaps differently", () => {
 test("brag text only states what was earned", () => {
   expect(bragText({ kind: "level", level: 4, unlock: "Double Jab" })).toBe("Just hit level 4 on Victory AI and unlocked Double Jab.");
   expect(bragText({ kind: "shelf", level: 7, crowns: 1 })).toBe("My Victory AI trophy shelf: level 7, 1 crown.");
+  expect(bragText({ kind: "progress", change: 1.8, days: 39 })).toBe("Up 1.8 on my AI-scored rounds in 39 days on Victory AI.");
 });
 
 test("brag uses the share sheet, then falls back to copying", async () => {
