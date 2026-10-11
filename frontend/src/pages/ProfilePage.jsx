@@ -726,6 +726,11 @@ export default function ProfilePage() {
 
         {user?.user_id && <FightFilm userId={user.user_id} isOwn />}
         {user?.user_id && <ThenVsNow />}
+        {user?.user_id && (
+          <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={() => navigate("/fight-story")} data-testid="fight-story-link">
+            Your Fight Story: everything you've built, yours to keep
+          </button>
+        )}
         {user?.user_id && <TrophyShelf userId={user.user_id} isMe />}
 
         {/* Belts & Titles */}

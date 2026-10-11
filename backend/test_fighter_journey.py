@@ -72,6 +72,20 @@ def test_then_vs_now_waits_for_real_history_then_tells_the_truth():
     assert r["then"]["video"].endswith("first.mp4") and r["now"]["video"].endswith("latest.mp4")
 
 
+def test_fight_story_and_self_reported_history():
+    assert client.put("/api/users/me/history", json={"years_boxing": 99}).status_code == 422
+    r = client.put("/api/users/me/history", json={"years_boxing": 4, "sessions_per_week": 3})
+    assert r.status_code == 200 and r.json()["self_reported"]
+    run(server.db.users.update_one({"user_id": "u_ali"}, {"$set": {"verified_seconds": 12 * 3600, "status_points": 300,
+                                                                  "personal_bests": {"Jab": 8}}}))
+    story = client.get("/api/users/me/fight-story").json()
+    assert story["name"] == "Ali Khan" and story["style"] == "Power Puncher" and story["since"] == "2026-09-01"
+    assert story["prior_experience"]["years_boxing"] == 4 and story["prior_experience"]["self_reported"]
+    assert story["mastery"]["verified_hours"] == 12.0, "imported years never become verified hours"
+    assert story["sessions"]["total"] == 3 and story["level"] == 3 and story["personal_bests"] == {"Jab": 8}
+    assert story["history"][0] == {"date": "2026-09-01", "overall": 5.0, "ai_scored": True}
+
+
 if __name__ == "__main__":
     setup()
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]

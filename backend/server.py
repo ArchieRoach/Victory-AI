@@ -10249,6 +10249,57 @@ async def my_then_vs_now(user: dict = Depends(get_current_user)):
         return {"ready": False, "scored_sessions": len(scored), "days_until": gx.THEN_NOW_MIN_DAYS - view["days"]}
     return {"ready": True, "sessions_between": len(scored) - 2, **view}
 
+
+
+# ---- Fight Story: everything you've built, yours to keep ----
+# Goal: fighters invest more when they know it can't be taken from them.
+# Psychology: trust lowers the cost of commitment; an easy, dignified exit makes people more
+#   willing to build (the opposite of a lock-in). It's also their legal right (UK GDPR).
+# Design: a readable story of their boxing on Victory AI, downloadable and printable, plus a
+#   self-reported history import so experienced boxers don't start from zero. Imported history
+#   is labelled as self-reported and never counts as verified hours, levels or ranks.
+
+class PriorExperience(BaseModel):
+    years_boxing: int = Field(0, ge=0, le=60)
+    sessions_per_week: int = Field(0, ge=0, le=21)
+
+
+@api_router.put("/users/me/history")
+async def set_prior_experience(data: PriorExperience, user: dict = Depends(get_current_user)):
+    doc = {**data.model_dump(), "self_reported": True, "updated_at": datetime.now(timezone.utc).isoformat()}
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"prior_experience": doc}})
+    return doc
+
+
+@api_router.get("/users/me/fight-story")
+async def my_fight_story(user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    u = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0}) or {}
+    sessions = await db.sessions.find({"user_id": uid}, {"_id": 0, "date": 1, "overall_score": 1, "scored": 1}).sort("date", 1).to_list(10000)
+    current_streak, longest = _compute_streaks(sessions)
+    pts = u.get("status_points", 0)
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "name": u.get("display_name") or u.get("name") or "Fighter",
+        "style": FIGHTER_STYLES.get(u.get("fighter_style") or "", (None,))[0],
+        "since": sessions[0]["date"] if sessions else None,
+        "record": _record_status(u),
+        "prior_experience": u.get("prior_experience"),
+        "level": gx.level_for(pts),
+        "status_points": pts,
+        "mastery": gx.mastery(u.get("verified_seconds", 0)),
+        "sessions": {"total": len(sessions), "scored": sum(1 for x in sessions if x.get("scored")),
+                     "longest_streak": longest, "current_streak": current_streak},
+        "personal_bests": u.get("personal_bests") or {},
+        "identity": top_identity_traits(u.get("identity_traits") or {}, n=5),
+        "belts": [{"name": b.get("name"), "earned_at": b.get("earned_at")} for b in u.get("badges") or []],
+        "gloves": u.get("gloves") or [],
+        "crowns": u.get("crowns") or [],
+        "treasures": {gx.TREASURES[k]: c for k, c in (u.get("treasures") or {}).items() if k in gx.TREASURES},
+        "history": [{"date": x.get("date"), "overall": x.get("overall_score"), "ai_scored": bool(x.get("scored"))} for x in sessions],
+        "full_export": "/api/users/me/export",
+    }
+
 app.include_router(api_router)
 
 async def _scheduled_stream_reminder_loop():

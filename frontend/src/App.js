@@ -42,6 +42,7 @@ const FEATUREBASE_APP_ID = process.env.REACT_APP_FEATUREBASE_APP_ID || "6aa0ef5d
 // Pages
 const WelcomePage = lazyPage(() => import("@/pages/WelcomePage"));
 const StyleQuizPage = lazyPage(() => import("@/pages/StyleQuizPage"));
+const FightStoryPage = lazyPage(() => import("@/pages/FightStoryPage"));
 const OnboardingFlow = lazyPage(() => import("@/pages/OnboardingFlow"));
 const PaywallPage = lazyPage(() => import("@/pages/PaywallPage"));
 const PaymentSuccess = lazyPage(() => import("@/pages/PaymentSuccess"));
@@ -399,6 +400,7 @@ const AppRouter = () => {
         <Route path="/library" element={<ProtectedRoute><LibraryPage /></ProtectedRoute>} />
         <Route path="/sessions/:sessionId" element={<ProtectedRoute><SessionDetailPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/fight-story" element={<ProtectedRoute><FightStoryPage /></ProtectedRoute>} />
         <Route path="/blocked-accounts" element={<ProtectedRoute><BlockedAccountsPage /></ProtectedRoute>} />
         <Route path="/squads" element={<ProtectedRoute><SquadsPage /></ProtectedRoute>} />
         <Route path="/squads/:squadId" element={<ProtectedRoute><SquadDetailPage /></ProtectedRoute>} />
