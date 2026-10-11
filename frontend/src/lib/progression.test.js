@@ -44,6 +44,7 @@ test("gloves lines use only real numbers", () => {
   expect(glovesHeadline({ holders: 0, pledged: false, window: { open: true, days_to_close: 4 }, chasers: 12 }))
     .toBe("12 chasing · Nobody holds them yet · entries close in 4d");
   expect(glovesHeadline({ holders: 3, pledged: true, hours_to_go: 15, days_left: 20 })).toBe("15 proven hours to go · 20 days left · Held by 3 fighters");
+  expect(glovesHeadline({ preseason: true, days_left: 57, holders: 0 })).toBe("The first Golden Gloves open on launch day: 57 days to go");
   expect(glovesHeadline({ holders: 1, earned: true })).toMatch(/^Yours\. Held by 1 fighter\./);
   expect(glovesLine({ counted: false, reason: "unverified" })).toMatch(/AI scores from video/);
   expect(glovesLine({ counted: true, minutes: 18, season_hours: 4.5, capped_minutes: 3 })).toBe("+18 verified minutes · 4.5h toward the Golden Gloves (3 over today's cap)");

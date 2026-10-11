@@ -69,6 +69,7 @@ export function weekLabel(weekId) {
 export function glovesHeadline(g) {
   if (!g) return "";
   const held = g.holders === 0 ? "Nobody holds them yet" : `Held by ${g.holders} fighter${g.holders === 1 ? "" : "s"}`;
+  if (g.preseason) return `The first Golden Gloves open on launch day: ${g.days_left} day${g.days_left === 1 ? "" : "s"} to go`;
   if (g.earned) return `Yours. ${held}. Gone for good when the season ends.`;
   if (g.pledged) return `${g.hours_to_go} proven hours to go · ${g.days_left} days left · ${held}`;
   if (g.window?.open) return `${g.chasers} chasing · ${held} · entries close in ${g.window.days_to_close}d`;

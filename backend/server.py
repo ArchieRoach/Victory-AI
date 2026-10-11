@@ -2146,12 +2146,19 @@ async def founder_spots() -> dict:
     return {"limit": FOUNDER_SPOTS_LIMIT, "claimed": claimed, "remaining": FOUNDER_SPOTS_LIMIT - claimed}
 
 
+def launch_info(today: Optional[date] = None) -> dict:
+    """Launch day for the waitlist site's countdown: the day Season 1 and the first Golden Gloves open."""
+    today = today or datetime.now(timezone.utc).date()
+    return {"date": SEASON_EPOCH.isoformat(), "days_to_go": max(0, (SEASON_EPOCH - today).days),
+            "launched": today >= SEASON_EPOCH}
+
+
 @api_router.get("/waitlist/stats")
 async def waitlist_stats(request: Request):
     client_ip = request.client.host if request.client else "unknown"
     if _rate_limited(f"waitlist_stats:{client_ip}", 60, 60):
         raise HTTPException(429, "Too many requests — slow down")
-    return await founder_spots()
+    return {**await founder_spots(), "launch": launch_info()}
 
 
 _fx_cache: Dict[str, Any] = {"at": 0.0, "data": None}
@@ -6930,7 +6937,21 @@ def compute_pb_changes(pbs: dict, overall: Optional[float], dims: list) -> dict:
     return {"new": new, "near": near[:3], "baselines": baselines, "entries": entries}
 
 
-SEASON_EPOCH = date(2026, 1, 5)
+def _season_one_starts() -> date:
+    # Season 1 starts on public launch day. Set SEASON_ONE_STARTS (YYYY-MM-DD, a Monday) on
+    # Railway to move launch without a code change; weekly boards reset on Mondays.
+    raw = os.environ.get("SEASON_ONE_STARTS", "2026-12-07").strip()
+    try:
+        d = date.fromisoformat(raw)
+    except ValueError:
+        logger.warning(f"SEASON_ONE_STARTS={raw!r} isn't a date; using 2026-12-07")
+        d = date(2026, 12, 7)
+    if d.weekday() != 0:
+        logger.warning(f"SEASON_ONE_STARTS={d} isn't a Monday; weekly boards will reset mid-season-week")
+    return d
+
+
+SEASON_EPOCH = _season_one_starts()
 SEASON_DAYS = 42
 SEASON_RANKS = [
     ("Bronze", 0), ("Silver", 100), ("Gold", 250),
@@ -6942,7 +6963,12 @@ PB_POINTS = 15
 
 def current_season(today: Optional[date] = None) -> dict:
     today = today or datetime.now(timezone.utc).date()
-    n = max(0, (today - SEASON_EPOCH).days // SEASON_DAYS)
+    if today < SEASON_EPOCH:
+        # Before launch everyone trains in the preseason: points and ranks work, but the first
+        # Golden Gloves only open on launch day.
+        return {"season_id": "S0", "number": 0, "preseason": True, "starts": (SEASON_EPOCH - timedelta(days=SEASON_DAYS)).isoformat(),
+                "ends": SEASON_EPOCH.isoformat(), "days_left": (SEASON_EPOCH - today).days}
+    n = (today - SEASON_EPOCH).days // SEASON_DAYS
     start = SEASON_EPOCH + timedelta(days=n * SEASON_DAYS)
     end = start + timedelta(days=SEASON_DAYS)
     return {"season_id": f"S{n + 1}", "number": n + 1, "starts": start.isoformat(),
@@ -10045,6 +10071,8 @@ class GlovesPledge(BaseModel):
 @api_router.post("/gloves/pledge")
 async def pledge_for_gloves(data: GlovesPledge, user: dict = Depends(get_current_user)):
     season = current_season()
+    if season.get("preseason"):
+        raise HTTPException(400, f"The first Golden Gloves open on launch day, {SEASON_EPOCH.strftime('%-d %B')}.")
     if not gx.pledge_window(season)["open"]:
         raise HTTPException(400, "Entries for this season's gloves have closed. The next chase opens when the new season starts.")
     if len(data.promises) != len(gx.PLEDGE_PROMISES) or not all(data.promises):
@@ -10058,6 +10086,8 @@ async def pledge_for_gloves(data: GlovesPledge, user: dict = Depends(get_current
 
 async def gloves_gift_blocker(giver: dict, recipient_id: str) -> Optional[str]:
     """Why this fan can't gift gloves to this fighter right now, or None if they can."""
+    if current_season().get("preseason"):
+        return "Gloves can be gifted from launch day"
     if recipient_id == giver["user_id"]:
         return "Gloves can only be gifted to someone else"
     r = await db.users.find_one({"user_id": recipient_id}, {"_id": 0, "password": 0})

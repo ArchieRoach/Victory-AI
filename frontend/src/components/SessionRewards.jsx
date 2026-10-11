@@ -128,7 +128,7 @@ function SeasonProgress({ season: initial }) {
   return (
     <section className="victory-card p-4 space-y-2" data-testid="season-progress">
       <div className="flex items-center justify-between">
-        <p className="section-label flex items-center gap-1.5"><Shield className="w-3 h-3" /> Season {season.number}</p>
+        <p className="section-label flex items-center gap-1.5"><Shield className="w-3 h-3" /> {season.number ? `Season ${season.number}` : "Preseason"}</p>
         <span className="text-victory-muted text-[11px]">{season.days_left} days left</span>
       </div>
       <div className="flex items-baseline justify-between">
