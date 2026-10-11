@@ -217,6 +217,24 @@ def test_progression_me_shape():
     assert p["peers"] is None, "too few peers to say anything honest"
 
 
+def test_partner_condition_mirrors_training():
+    from datetime import datetime, timedelta, timezone
+    today = datetime.now(timezone.utc).date()
+    run(server.db.users.update_one({"user_id": "u_sam"}, {"$set": {"training_partner": {
+        "name": "Dee", "partner_id": "p1", "appearance_gender": "female", "appearance_skin_tone": "dark"}}}))
+    run(server.db.sessions.delete_many({"user_id": "u_sam"}))
+    run(server.db.sessions.insert_many([{"user_id": "u_sam", "date": (today - timedelta(days=10 + d)).isoformat()} for d in range(0, 30, 2)]))
+    as_user(SAM)
+    c = client.get("/api/partner/condition").json()
+    assert c["state"] == "rusty" and c["comeback"] and c["partner_name"] == "Dee"
+    assert c["avatar_url"] is None
+    assert "not a measurement" in c["note"]
+    title, body = run(server._build_winback_message(run(server.db.users.find_one({"user_id": "u_sam"}))))
+    assert title == "Dee is on the couch" and "One session" in body
+    run(server.db.sessions.insert_one({"user_id": "u_sam", "date": today.isoformat()}))
+    assert client.get("/api/partner/condition").json()["state"] in ("ready", "peak")
+
+
 if __name__ == "__main__":
     setup()
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]

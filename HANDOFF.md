@@ -415,6 +415,23 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Partner condition: loss avoidance (branch `partner-condition`)
+
+- `gamification.partner_condition()` is a standard training-load model over real session dates, targeting
+  3 sessions a week. Conditioning is an exponentially weighted average over 42 days, sharpness over 10 days,
+  and consistency counts sessions in the last 14 days. It's labelled in the app as a training-consistency
+  model, not a body measurement.
+- Partner states: peak (score 70+), ready, waiting (4+ days off), rusty (7+ days off). One session brings the
+  partner straight back.
+- `GET /api/partner/condition` feeds the Home card (`components/PartnerCondition.jsx`). The scenes are drawn
+  in-app around the fighter's chosen avatar: a glow at peak, a bench and clock while waiting, a sofa,
+  cobwebs, dusty gloves and "zz" when rusty.
+- Generated per-state images were tried and dropped: inconsistent, watermarked, rate-limited, and sometimes
+  not appropriate for 13–24s.
+- The win-back push (3+ days inactive, weekly cooldown) now speaks as the partner with the real drop:
+  "Dee is on the couch · Sharpness down 35 this week. One session gets us back."
+- No smoking, drinking or body changes, by design (13–24 audience).
+
 ## Launch day = Season 1 (branch `season-one`)
 
 - `SEASON_ONE_STARTS` (Railway variable, `YYYY-MM-DD`, a Monday; default **2026-12-07**) is launch day. Season 1

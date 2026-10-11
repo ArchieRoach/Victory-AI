@@ -10181,6 +10181,28 @@ async def confirm_gloves_gift(session_id: str = Query(..., max_length=200), user
     await _grant_gloves_gift(session_id, meta)
     return {"paid": True}
 
+
+# ---- Partner condition (rules and reasoning in gamification.py) ----
+
+# The scene for each state is drawn in the app around the avatar the fighter already chose.
+# Generated "couch" images were inconsistent and sometimes not appropriate for 13-24s.
+
+async def partner_condition_for(user_id: str) -> dict:
+    fresh = await db.users.find_one({"user_id": user_id}, {"training_partner": 1}) or {}
+    partner = fresh.get("training_partner") or {}
+    dates = [s.get("date") for s in await db.sessions.find({"user_id": user_id}, {"date": 1}).to_list(5000)]
+    cond = gx.partner_condition(dates)
+    name = partner.get("name") or "Your coach"
+    return {**cond, "partner_name": name, "line": gx.condition_line(name, cond),
+            "avatar_url": partner.get("avatar_url"),
+            "comeback": cond["state"] in gx.COMEBACK_STATES,
+            "note": "A model of how regularly you've trained, not a measurement of your body."}
+
+
+@api_router.get("/partner/condition")
+async def get_partner_condition(user: dict = Depends(get_current_user)):
+    return await partner_condition_for(user["user_id"])
+
 app.include_router(api_router)
 
 async def _scheduled_stream_reminder_loop():
@@ -10245,6 +10267,14 @@ async def _build_winback_message(user: dict) -> tuple:
     sessions = await db.sessions.find({"user_id": user["user_id"]}, {"date": 1}).to_list(1000)
     if not sessions:
         return ("Ready for your first round?", f"{partner_name} is ready whenever you are.")
+    cond = gx.partner_condition([x.get("date") for x in sessions])
+    if cond["state"] in gx.COMEBACK_STATES:
+        # The partner asks in their own voice, with the real drop. One session fixes it.
+        title = f"{partner_name} is {'on the couch' if cond['state'] == 'rusty' else 'waiting on the bench'}"
+        drop = -cond["change_7d"]
+        body = (f"Sharpness down {drop} this week. One session gets us back." if drop > 0
+                else "One session gets us back.")
+        return (title, body)
     _current_streak, longest_streak = _compute_streaks(sessions)
     if longest_streak >= 3:
         # current_streak is already 0 by definition (they've been gone 3+ days) — cite the

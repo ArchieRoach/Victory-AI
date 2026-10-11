@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { ShareSheet } from "@/components/ShareSheet";
 import { ReportModal } from "@/components/ReportModal";
+import { PartnerCondition } from "@/components/PartnerCondition";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function timeAgo(str) {
@@ -588,6 +589,12 @@ export default function HomePage() {
           </button>
         </div>
       </header>
+
+      {tab === "foryou" && (
+        <div className="px-4 pt-3">
+          <PartnerCondition />
+        </div>
+      )}
 
       {/* Streak-break warning — loss aversion, honest: only shown when a real streak is
           actually at risk. Styled as a native content card (like every other important
