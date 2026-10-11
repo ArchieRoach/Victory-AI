@@ -375,6 +375,9 @@ def mastery(seconds: int) -> dict:
 
 def pledge_window(season: dict, today: Optional[date] = None) -> dict:
     today = today or datetime.now(timezone.utc).date()
+    if season.get("preseason"):
+        return {"open": False, "closes": season["ends"], "days_to_close": 0, "next_opens": season["ends"],
+                "opens_in_days": season["days_left"]}
     start = date.fromisoformat(season["starts"])
     closes = start + timedelta(days=PLEDGE_WINDOW_DAYS)
     return {"open": start <= today < closes, "closes": closes.isoformat(),
@@ -382,7 +385,7 @@ def pledge_window(season: dict, today: Optional[date] = None) -> dict:
 
 
 def gloves_name(season: dict) -> str:
-    return f"Season {season['number']} Golden Gloves"
+    return f"Season {max(1, season['number'])} Golden Gloves"
 
 
 def gloves_view(stats: Optional[dict], season: dict, pledged: int, earned: int,
@@ -403,6 +406,7 @@ def gloves_view(stats: Optional[dict], season: dict, pledged: int, earned: int,
         "comp_wins": stats.get("comp_wins", 0),
         "window": pledge_window(season, today),
         "days_left": season["days_left"],
+        "preseason": bool(season.get("preseason")),
         "holders": earned,
         "chasers": pledged,
         "promises": PLEDGE_PROMISES,

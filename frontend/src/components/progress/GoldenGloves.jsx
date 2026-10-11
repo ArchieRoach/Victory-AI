@@ -46,7 +46,7 @@ export function GoldenGloves() {
           {g.earned ? <Trophy className="w-7 h-7 text-victory-lime" /> : <Lock className="w-6 h-6 text-victory-muted" />}
         </div>
         <div className="min-w-0">
-          <p className="section-label">Limited to this season</p>
+          <p className="section-label">{g.preseason ? "Coming at launch" : "Limited to this season"}</p>
           <p className="text-victory-text font-heading font-extrabold text-lg leading-tight">{g.name}</p>
           <p className="text-victory-muted text-[11px]">{glovesHeadline(g)}</p>
         </div>
@@ -92,7 +92,11 @@ export function GoldenGloves() {
         </div>
       )}
 
-      {!g.pledged && !g.window.open && !g.earned && (
+      {g.preseason && (
+        <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" /> Entries open on launch day. Every AI-verified round you do before then still counts on your road to 10,000 hours.</p>
+      )}
+
+      {!g.preseason && !g.pledged && !g.window.open && !g.earned && (
         <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" /> Entries for these gloves have closed. The next chase opens when the new season starts.</p>
       )}
 

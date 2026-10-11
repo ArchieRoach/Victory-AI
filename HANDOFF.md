@@ -415,6 +415,15 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Launch day = Season 1 (branch `season-one`)
+
+- `SEASON_ONE_STARTS` (Railway variable, `YYYY-MM-DD`, a Monday; default **2026-12-07**) is launch day. Season 1
+  and the first Golden Gloves open then, and seasons roll every 42 days after it.
+- Before launch it's the **Preseason** (`S0`): points, ranks and lifetime verified hours all work, but gloves
+  can't be pledged or gifted yet. Deploying this restarts current beta season points in the preseason.
+- `GET /api/waitlist/stats` now includes `launch: {date, days_to_go, launched}` for the waitlist site's countdown.
+- Moving launch: change `SEASON_ONE_STARTS` on Railway (next Monday-aligned option: 2027-01-18) and redeploy.
+
 ## Golden Gloves, verified hours and gifted gloves (branch `scarcity`)
 
 One prize per season (`gamification.py` "Golden Gloves", `server.py` "Golden Gloves and verified hours",

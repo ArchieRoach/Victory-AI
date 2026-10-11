@@ -3,7 +3,7 @@ reports and squad stamps. No DB or network needed:
 
     python3 backend/test_rewards.py
 """
-from datetime import date
+from datetime import date, timedelta
 
 from server import (
     _avg_score, _best_score, compute_pb_changes, current_season, season_rank, session_points,
@@ -47,12 +47,17 @@ def test_new_pbs_and_near_misses():
     assert all(name != "Guard Position" for name, _ in pb["entries"])
 
 
-def test_seasons_roll_every_six_weeks():
-    s1 = current_season(date(2026, 1, 5))
+def test_seasons_roll_every_six_weeks_from_launch_day():
+    from server import SEASON_EPOCH, launch_info
+    pre = current_season(SEASON_EPOCH - timedelta(days=10))
+    assert pre["season_id"] == "S0" and pre["preseason"] and pre["days_left"] == 10 and pre["ends"] == SEASON_EPOCH.isoformat()
+    s1 = current_season(SEASON_EPOCH)
     assert s1["season_id"] == "S1" and s1["days_left"] == 42
-    assert current_season(date(2026, 2, 15))["season_id"] == "S1"
-    s2 = current_season(date(2026, 2, 16))
-    assert s2["season_id"] == "S2" and s2["starts"] == "2026-02-16"
+    assert current_season(SEASON_EPOCH + timedelta(days=41))["season_id"] == "S1"
+    s2 = current_season(SEASON_EPOCH + timedelta(days=42))
+    assert s2["season_id"] == "S2" and s2["starts"] == (SEASON_EPOCH + timedelta(days=42)).isoformat()
+    assert launch_info(SEASON_EPOCH - timedelta(days=3)) == {"date": SEASON_EPOCH.isoformat(), "days_to_go": 3, "launched": False}
+    assert launch_info(SEASON_EPOCH)["launched"]
 
 
 def test_rank_ladder():
