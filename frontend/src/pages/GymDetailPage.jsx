@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2, MessageSquare, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
+import { GymSeasonHours } from "@/components/progress/GymSeasonHours";
 
 const GYM_DEFAULT_CAP = 50;
 
@@ -142,6 +143,7 @@ export default function GymDetailPage() {
       </header>
 
       <main className="px-4 space-y-4 py-4">
+        <GymSeasonHours gymId={gym.gym_id} />
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3">
           <div className="victory-card p-3 text-center">

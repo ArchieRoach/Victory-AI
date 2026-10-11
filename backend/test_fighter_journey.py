@@ -107,6 +107,37 @@ def test_combo_builder_sets_the_weeks_focus_and_the_ai_watches_for_it():
     assert u["combos"] == [] and "active_combo" not in u
 
 
+def test_fight_for_your_gym_adds_up_proven_hours():
+    run(server.db.users.insert_many([
+        {"user_id": "u_bo", "name": "Bo Lee", "birth_date": "2000-01-01"},
+        {"user_id": "u_out", "name": "Out Sider", "birth_date": "2000-01-01"},
+    ]))
+    run(server.db.gyms.insert_many([
+        {"gym_id": "g1", "name": "Iron Gym", "is_public": True, "members": ["u_ali", "u_bo"]},
+        {"gym_id": "g2", "name": "Steel Gym", "is_public": True, "members": ["u_out"]},
+    ]))
+    run(server.award_verified_time("u_ali", round_seconds=[180] * 10))
+    run(server.award_verified_time("u_bo", round_seconds=[180] * 10))
+    run(server.award_verified_time("u_out", round_seconds=[180] * 4))
+    r = client.get("/api/gyms/g1/season-hours").json()
+    assert r["hours"] == 1.0 and r["rank"] == 1 and r["of"] == 2 and r["is_member"]
+    assert {c["name"] for c in r["contributors"]} == {"You", "Bo"}
+    current["user"] = {"user_id": "u_out", "name": "Out Sider"}
+    r = client.get("/api/gyms/g1/season-hours").json()
+    assert r["contributors"] == [] and not r["is_member"], "outsiders see the total, not the members"
+    assert client.get("/api/gyms/g2/season-hours").json()["rank"] == 2
+    current["user"] = ALI
+
+
+def test_founding_fighter_means_before_season_two():
+    import gamification as gx
+    from datetime import timedelta
+    season2 = (server.SEASON_EPOCH + timedelta(days=server.SEASON_DAYS)).isoformat()
+    early = gx.shelf_titles(status_points=0, created_at="2026-12-10T00:00:00", invited_count=0, founder_before=season2)
+    late = gx.shelf_titles(status_points=0, created_at=season2 + "T09:00:00", invited_count=0, founder_before=season2)
+    assert [t["name"] for t in early] == ["Founding Fighter"] and late == []
+
+
 if __name__ == "__main__":
     setup()
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]

@@ -1,4 +1,4 @@
-import { QUESTIONS, STYLES, scoreStyle, styleShareText } from "./fighterStyle";
+import { QUESTIONS, STYLES, scoreStyle, styleShareText, withArticle } from "./fighterStyle";
 
 const DIMENSIONS = ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow", "Punch Balance", "Punch Accuracy",
   "Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement", "Footwork", "Ring Generalship"];
@@ -26,4 +26,9 @@ test("every style can be reached", () => {
 
 test("share text names the style and the legend", () => {
   expect(styleShareText("pressure")).toBe("I'm a Pressure Fighter, like Joe Frazier. What kind of fighter are you?");
+});
+
+test("a or an", () => {
+  expect(withArticle("Out-Boxer")).toBe("an Out-Boxer");
+  expect(withArticle("Pressure Fighter")).toBe("a Pressure Fighter");
 });

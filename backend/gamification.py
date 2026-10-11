@@ -255,13 +255,14 @@ FOUNDER_BEFORE = "2027-01-01"
 RECRUITER_TIERS = [(1, "Recruiter"), (10, "Squad Builder"), (100, "Movement Starter")]
 
 
-def shelf_titles(*, status_points: int, created_at: Optional[str], invited_count: int) -> List[dict]:
+def shelf_titles(*, status_points: int, created_at: Optional[str], invited_count: int,
+                 founder_before: str = FOUNDER_BEFORE) -> List[dict]:
     items = []
     title = progression(status_points)["title"]
     if title:
         items.append({"kind": "title", "name": title, "desc": f"Reached level {level_for(status_points)}"})
-    if created_at and created_at[:10] < FOUNDER_BEFORE:
-        items.append({"kind": "founder", "name": "Founding Fighter", "desc": "Trained on Victory AI in its first year"})
+    if created_at and created_at[:10] < founder_before:
+        items.append({"kind": "founder", "name": "Founding Fighter", "desc": "Joined Victory AI before Season 2"})
     earned = [name for at, name in RECRUITER_TIERS if invited_count >= at]
     if earned:
         items.append({"kind": "recruiter", "name": earned[-1], "desc": f"{invited_count} fighter{'s' if invited_count != 1 else ''} joined from your invites"})

@@ -4,7 +4,7 @@ import axios from "axios";
 import { ArrowLeft, Share2, Swords, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { API, useAuth } from "@/App";
-import { QUESTIONS, STYLES, STYLE_STORAGE_KEY, scoreStyle, styleShareText } from "@/lib/fighterStyle";
+import { QUESTIONS, STYLES, STYLE_STORAGE_KEY, scoreStyle, styleShareText, withArticle } from "@/lib/fighterStyle";
 
 // Public, no sign-up. See lib/fighterStyle.js for the Goal / Psychology / Design.
 export default function StyleQuizPage() {
@@ -31,7 +31,7 @@ export default function StyleQuizPage() {
     if (user) {
       try {
         await axios.put(`${API}/users/me/style`, { style: key, train_it: true });
-        toast.success(`Your partner will coach you as a ${style.name}.`);
+        toast.success(`Your partner will coach you as ${withArticle(style.name)}.`);
       } catch { /* the quiz result still stands; training works without it */ }
       navigate("/train");
       return;
@@ -92,7 +92,7 @@ export default function StyleQuizPage() {
               <p className="text-victory-text text-sm">{style.gap}</p>
             </section>
 
-            <button className="victory-btn-primary" onClick={trainIt}>Train like a {style.name}</button>
+            <button className="victory-btn-primary" onClick={trainIt}>Train like {withArticle(style.name)}</button>
             <p className="text-victory-muted text-[11px] text-center -mt-2">Your AI partner builds every session around your style and scores your rounds from video.</p>
             <div className="grid grid-cols-2 gap-2">
               <button className="victory-btn-secondary flex items-center justify-center gap-2" onClick={share}><Share2 className="w-4 h-4" /> Share</button>

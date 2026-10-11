@@ -91,7 +91,11 @@ export function scoreStyle(answers) {
 
 export function styleShareText(key) {
   const s = STYLES[key];
-  return s ? `I'm a ${s.name}, like ${s.legend}. What kind of fighter are you?` : "What kind of fighter are you?";
+  return s ? `I'm ${withArticle(s.name)}, like ${s.legend}. What kind of fighter are you?` : "What kind of fighter are you?";
 }
 
 export const STYLE_STORAGE_KEY = "victory_fighter_style";
+
+export function withArticle(name) {
+  return `${/^[AEIOU]/i.test(name) ? "an" : "a"} ${name}`;
+}

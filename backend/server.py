@@ -9830,7 +9830,9 @@ async def trophy_shelf(user_id: str, user: dict = Depends(get_current_user)):
     return {
         "level": gx.level_for(pts),
         "status_points": pts,
-        "titles": gx.shelf_titles(status_points=pts, created_at=u.get("created_at"), invited_count=invited),
+        # Founding Fighter goes to people who joined before Season 2 starts: rare, and honestly so.
+        "titles": gx.shelf_titles(status_points=pts, created_at=u.get("created_at"), invited_count=invited,
+                                  founder_before=(SEASON_EPOCH + timedelta(days=SEASON_DAYS)).isoformat()),
         "crowns": crowns[-12:][::-1],
         "crown_count": len(crowns),
         "belts": u.get("badges") or [],
@@ -10021,7 +10023,7 @@ async def award_verified_time(uid: str, *, round_seconds: Optional[List[int]] = 
     if not secs:
         return out
     await db.users.update_one({"user_id": uid}, {
-        "$inc": {"verified_seconds": secs},
+        "$inc": {"verified_seconds": secs, f"season_verified.{season['season_id']}": secs},
         "$set": {"verified_today": {"date": today, "seconds": used + got["seconds"]}}})
     key = {"user_id": uid, "season_id": season["season_id"]}
     stats = await db.proof_stats.find_one(key) or {}
@@ -10360,6 +10362,37 @@ async def focus_on_combo(combo_id: str, user: dict = Depends(get_current_user)):
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
     partner = (fresh.get("training_partner") or {}).get("name") or "Your partner"
     return {"active": active, "line": f"{partner} will watch for {combo['name'] or combo['label']} in your next recorded rounds."}
+
+
+
+# ---- Fight for your gym ----
+# Goal: every session means something beyond yourself.
+# Psychology: epic meaning and belonging (Core Drive 1): people try harder for a group they
+#   identify with, and seeing your own contribution in the team total makes it count.
+# Design: every member's proven hours this season add up to the gym's total, ranked against
+#   other public gyms. Members see who contributed; outsiders only see the gym's total.
+
+@api_router.get("/gyms/{gym_id}/season-hours")
+async def gym_season_hours(gym_id: str, user: dict = Depends(get_current_user)):
+    gym = await db.gyms.find_one({"gym_id": gym_id}, {"_id": 0, "gym_id": 1, "name": 1, "members": 1, "is_public": 1})
+    if not gym or (not gym.get("is_public") and user["user_id"] not in gym.get("members", [])):
+        raise HTTPException(404, "Gym not found")
+    season = current_season()
+    sid = season["season_id"]
+    secs = {d["user_id"]: (d.get("season_verified") or {}).get(sid, 0) for d in await db.users.find(
+        {f"season_verified.{sid}": {"$gt": 0}}, {"user_id": 1, f"season_verified.{sid}": 1}).to_list(50000)}
+    total = sum(secs.get(m, 0) for m in gym.get("members", []))
+    public = await db.gyms.find({"is_public": True}, {"gym_id": 1, "members": 1}).limit(2000).to_list(2000)
+    rank = 1 + sum(1 for g in public if sum(secs.get(m, 0) for m in g.get("members", [])) > total) if gym.get("is_public") else None
+    members = await db.users.find({"user_id": {"$in": gym.get("members", [])}}, {"user_id": 1, "name": 1, "display_name": 1}).to_list(len(gym.get("members", [])) or 1)
+    is_member = user["user_id"] in gym.get("members", [])
+    contributors = sorted(
+        ({"name": "You" if d["user_id"] == user["user_id"] else (d.get("display_name") or d.get("name") or "Fighter").split()[0],
+          "hours": gx.hours(secs.get(d["user_id"], 0))} for d in members),
+        key=lambda c: -c["hours"]) if is_member else []
+    return {"gym": gym["name"], "season": season["number"], "preseason": bool(season.get("preseason")),
+            "hours": gx.hours(total), "rank": rank, "of": len(public) if gym.get("is_public") else None,
+            "contributors": [c for c in contributors if c["hours"] > 0][:10], "is_member": is_member}
 
 app.include_router(api_router)
 
