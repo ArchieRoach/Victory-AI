@@ -12,6 +12,7 @@ import {
 import { ShareSheet } from "@/components/ShareSheet";
 import { ReportModal } from "@/components/ReportModal";
 import { PartnerCondition } from "@/components/PartnerCondition";
+import { STYLE_STORAGE_KEY, withArticle } from "@/lib/fighterStyle";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function timeAgo(str) {
@@ -379,6 +380,18 @@ function NotifEmpty() {
 export default function HomePage() {
   const navigate  = useNavigate();
   const { user }  = useAuth();
+
+  // A quiz taken before signing up is applied once the fighter is in: their partner then
+  // coaches that style from the very first session.
+  useEffect(() => {
+    let pending = null;
+    try { pending = localStorage.getItem(STYLE_STORAGE_KEY); } catch { return; }
+    if (!pending || !user?.user_id) return;
+    axios.put(`${API}/users/me/style`, { style: pending, train_it: true })
+      .then(({ data }) => toast.success(`Your partner will coach you as ${withArticle(data.name)}.`))
+      .catch(() => {})
+      .finally(() => { try { localStorage.removeItem(STYLE_STORAGE_KEY); } catch { /* ignore */ } });
+  }, [user?.user_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [tab,             setTab]            = useState("foryou"); // "foryou" | "following" | "notifications"
   const [feed,            setFeed]            = useState([]);

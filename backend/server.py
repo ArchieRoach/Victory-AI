@@ -979,7 +979,11 @@ def analysis_video_url(public_id: str) -> str:
     return url
 
 
-def video_analysis_prompt(round_number: int, partner_name: str, tone: str, focus_areas: List[str]) -> str:
+def video_analysis_prompt(round_number: int, partner_name: str, tone: str, focus_areas: List[str],
+                          combo: Optional[str] = None) -> str:
+    combo_line = (f"This week the fighter is drilling their own combination: {combo} (1 jab, 2 cross, 3 lead hook, "
+                  "4 rear hook, 5 lead uppercut, 6 rear uppercut). If you see it, say in what_did_well or "
+                  "what_to_improve how cleanly it landed, with the timestamp.\n") if combo else ""
     return (
         f"You are {partner_name}, a boxing coach with a {tone} style, watching round {round_number} of a "
         "fighter's solo training (shadowboxing, bag or pads). Watch the whole video.\n"
@@ -993,6 +997,7 @@ def video_analysis_prompt(round_number: int, partner_name: str, tone: str, focus
         "For every skill, evidence names the timestamp(s) you based it on. "
         "Set boxer_visible false if no one is boxing on camera.\n"
         f"Pay extra attention to: {', '.join(focus_areas) or 'overall technique'}.\n"
+        f"{combo_line}"
         "what_did_well: one specific moment, with its timestamp, and what it says about the fighter they're "
         "becoming, e.g. 'At 0:42 you slipped and came straight back with the jab. That's a counter-puncher's "
         "instinct.' Only praise what you actually saw. what_to_improve: one fix, framed as the next step "
@@ -1044,7 +1049,7 @@ async def _gemini_video_part(video_bytes: bytes):
 
 
 async def analyze_round_video(public_id: str, round_number: int, partner_name: str, tone: str,
-                              focus_areas: List[str]) -> Optional[dict]:
+                              focus_areas: List[str], combo: Optional[str] = None) -> Optional[dict]:
     from google.genai import types, errors as genai_errors
     async with httpx.AsyncClient(timeout=90, follow_redirects=True) as http_client:
         res = await http_client.get(analysis_video_url(public_id))
@@ -1058,7 +1063,7 @@ async def analyze_round_video(public_id: str, round_number: int, partner_name: s
         media_resolution=getattr(types.MediaResolution, f"MEDIA_RESOLUTION_{GEMINI_MEDIA_RESOLUTION}",
                                  types.MediaResolution.MEDIA_RESOLUTION_LOW),
     )
-    contents = [video, video_analysis_prompt(round_number, partner_name, tone, focus_areas)]
+    contents = [video, video_analysis_prompt(round_number, partner_name, tone, focus_areas, combo)]
     try:
         response = await _gemini().aio.models.generate_content(model=GEMINI_VIDEO_MODEL, contents=contents, config=config)
     except genai_errors.ClientError as e:
@@ -1121,7 +1126,8 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
         raise HTTPException(status_code=402, detail="ai_quota_exceeded")
 
     try:
-        analysis = await analyze_round_video(public_id, round_number, partner_name, feedback_tone, focus_areas)
+        analysis = await analyze_round_video(public_id, round_number, partner_name, feedback_tone, focus_areas,
+                                             combo=(user.get("active_combo") or {}).get("label"))
     except Exception as e:
         logger.error(f"Video analysis error: {e}")
         analysis = None
@@ -2909,6 +2915,7 @@ def safe_user(user: dict) -> dict:
         "competition_wins": user.get("competition_wins", 0),
         "competition_losses": user.get("competition_losses", 0),
         "is_public": user.get("is_public", True),
+        "fighter_style": FIGHTER_STYLES.get(user.get("fighter_style") or "", (None,))[0],
     }
 
 async def _require_profile_visible(user_id: str, current_user: dict):
@@ -9823,7 +9830,9 @@ async def trophy_shelf(user_id: str, user: dict = Depends(get_current_user)):
     return {
         "level": gx.level_for(pts),
         "status_points": pts,
-        "titles": gx.shelf_titles(status_points=pts, created_at=u.get("created_at"), invited_count=invited),
+        # Founding Fighter goes to people who joined before Season 2 starts: rare, and honestly so.
+        "titles": gx.shelf_titles(status_points=pts, created_at=u.get("created_at"), invited_count=invited,
+                                  founder_before=(SEASON_EPOCH + timedelta(days=SEASON_DAYS)).isoformat()),
         "crowns": crowns[-12:][::-1],
         "crown_count": len(crowns),
         "belts": u.get("badges") or [],
@@ -10014,7 +10023,7 @@ async def award_verified_time(uid: str, *, round_seconds: Optional[List[int]] = 
     if not secs:
         return out
     await db.users.update_one({"user_id": uid}, {
-        "$inc": {"verified_seconds": secs},
+        "$inc": {"verified_seconds": secs, f"season_verified.{season['season_id']}": secs},
         "$set": {"verified_today": {"date": today, "seconds": used + got["seconds"]}}})
     key = {"user_id": uid, "season_id": season["season_id"]}
     stats = await db.proof_stats.find_one(key) or {}
@@ -10202,6 +10211,188 @@ async def partner_condition_for(user_id: str) -> dict:
 @api_router.get("/partner/condition")
 async def get_partner_condition(user: dict = Depends(get_current_user)):
     return await partner_condition_for(user["user_id"])
+
+
+# ---- Fighter style (the public "what kind of fighter are you?" quiz) ----
+# Goal: turn a shareable quiz result into a training plan the moment someone joins.
+# Psychology: identity expression; people commit to a label they chose themselves.
+# Design: the quiz runs in the browser with nothing stored. Once signed in, the result is
+#   saved and the AI partner's focus moves to the three skills that style lives on.
+FIGHTER_STYLES = {
+    "pressure": ("Pressure Fighter", ["Head Movement", "Body Movement", "Combination Flow"]),
+    "outboxer": ("Outside Fighter", ["Jab", "Footwork", "Ring Generalship"]),
+    "counter": ("Counter Puncher", ["Slip", "Parry", "Punch Accuracy"]),
+    "power": ("Power Puncher", ["Left Hook", "Uppercut", "Roll"]),
+    "combo": ("Combination Artist", ["Combination Flow", "Footwork", "Punch Balance"]),
+    "boxerpuncher": ("Boxer-Puncher", ["Ring Generalship", "Cross", "Combination Flow"]),
+}
+
+
+class FighterStyleIn(BaseModel):
+    style: str = Field(..., max_length=20)
+    train_it: bool = True
+
+
+@api_router.put("/users/me/style")
+async def set_fighter_style(data: FighterStyleIn, user: dict = Depends(get_current_user)):
+    if data.style not in FIGHTER_STYLES:
+        raise HTTPException(400, "Unknown style")
+    name, focus = FIGHTER_STYLES[data.style]
+    update = {"fighter_style": data.style}
+    if data.train_it and user.get("training_partner"):
+        update["training_partner.focus_areas"] = focus
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    return {"style": data.style, "name": name, "focus": focus if data.train_it else None}
+
+
+
+@api_router.get("/users/me/then-vs-now")
+async def my_then_vs_now(user: dict = Depends(get_current_user)):
+    scored = await db.sessions.find({"user_id": user["user_id"], "scored": True}, {"_id": 0}).sort("created_at", 1).to_list(5000)
+    if len(scored) < 2:
+        return {"ready": False, "scored_sessions": len(scored), "needed": 2}
+    first, latest = scored[0], scored[-1]
+    view = gx.then_vs_now(first, latest)
+    if view["days"] is not None and view["days"] < gx.THEN_NOW_MIN_DAYS:
+        return {"ready": False, "scored_sessions": len(scored), "days_until": gx.THEN_NOW_MIN_DAYS - view["days"]}
+    return {"ready": True, "sessions_between": len(scored) - 2, **view}
+
+
+
+# ---- Fight Story: everything you've built, yours to keep ----
+# Goal: fighters invest more when they know it can't be taken from them.
+# Psychology: trust lowers the cost of commitment; an easy, dignified exit makes people more
+#   willing to build (the opposite of a lock-in). It's also their legal right (UK GDPR).
+# Design: a readable story of their boxing on Victory AI, downloadable and printable, plus a
+#   self-reported history import so experienced boxers don't start from zero. Imported history
+#   is labelled as self-reported and never counts as verified hours, levels or ranks.
+
+class PriorExperience(BaseModel):
+    years_boxing: int = Field(0, ge=0, le=60)
+    sessions_per_week: int = Field(0, ge=0, le=21)
+
+
+@api_router.put("/users/me/history")
+async def set_prior_experience(data: PriorExperience, user: dict = Depends(get_current_user)):
+    doc = {**data.model_dump(), "self_reported": True, "updated_at": datetime.now(timezone.utc).isoformat()}
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"prior_experience": doc}})
+    return doc
+
+
+@api_router.get("/users/me/fight-story")
+async def my_fight_story(user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    u = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0}) or {}
+    sessions = await db.sessions.find({"user_id": uid}, {"_id": 0, "date": 1, "overall_score": 1, "scored": 1}).sort("date", 1).to_list(10000)
+    current_streak, longest = _compute_streaks(sessions)
+    pts = u.get("status_points", 0)
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "name": u.get("display_name") or u.get("name") or "Fighter",
+        "style": FIGHTER_STYLES.get(u.get("fighter_style") or "", (None,))[0],
+        "since": sessions[0]["date"] if sessions else None,
+        "record": _record_status(u),
+        "prior_experience": u.get("prior_experience"),
+        "level": gx.level_for(pts),
+        "status_points": pts,
+        "mastery": gx.mastery(u.get("verified_seconds", 0)),
+        "sessions": {"total": len(sessions), "scored": sum(1 for x in sessions if x.get("scored")),
+                     "longest_streak": longest, "current_streak": current_streak},
+        "personal_bests": u.get("personal_bests") or {},
+        "identity": top_identity_traits(u.get("identity_traits") or {}, n=5),
+        "belts": [{"name": b.get("name"), "earned_at": b.get("earned_at")} for b in u.get("badges") or []],
+        "gloves": u.get("gloves") or [],
+        "crowns": u.get("crowns") or [],
+        "treasures": {gx.TREASURES[k]: c for k, c in (u.get("treasures") or {}).items() if k in gx.TREASURES},
+        "history": [{"date": x.get("date"), "overall": x.get("overall_score"), "ai_scored": bool(x.get("scored"))} for x in sessions],
+        "full_export": "/api/users/me/export",
+    }
+
+
+
+# ---- Combo builder (rules and reasoning in gamification.py) ----
+
+class ComboIn(BaseModel):
+    name: str = Field("", max_length=24)
+    moves: List[str] = Field(..., max_length=gx.COMBO_MAX)
+
+
+@api_router.get("/combos")
+async def my_combos(user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"combos": 1, "active_combo": 1}) or {}
+    return {"moves": {k: v[0] for k, v in gx.COMBO_MOVES.items()}, "combos": fresh.get("combos") or [],
+            "active": fresh.get("active_combo"), "max": gx.MAX_SAVED_COMBOS}
+
+
+@api_router.post("/combos")
+async def save_combo(data: ComboIn, user: dict = Depends(get_current_user)):
+    problem = gx.combo_problem(data.moves)
+    if problem:
+        raise HTTPException(400, problem)
+    name = data.name.strip()
+    if name and await is_content_flagged(name):
+        raise HTTPException(400, "Pick another name")
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"combos": 1}) or {}
+    if len(fresh.get("combos") or []) >= gx.MAX_SAVED_COMBOS:
+        raise HTTPException(400, f"You can keep {gx.MAX_SAVED_COMBOS} combinations. Delete one first.")
+    combo = {"combo_id": f"cb_{uuid.uuid4().hex[:10]}", "name": name, "moves": data.moves,
+             "label": gx.combo_label(data.moves), "focus": gx.combo_focus(data.moves),
+             "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.users.update_one({"user_id": user["user_id"]}, {"$push": {"combos": combo}})
+    return combo
+
+
+@api_router.delete("/combos/{combo_id}")
+async def delete_combo(combo_id: str, user: dict = Depends(get_current_user)):
+    await db.users.update_one({"user_id": user["user_id"]}, {"$pull": {"combos": {"combo_id": combo_id[:20]}}})
+    await db.users.update_one({"user_id": user["user_id"], "active_combo.combo_id": combo_id[:20]}, {"$unset": {"active_combo": ""}})
+    return {"ok": True}
+
+
+@api_router.post("/combos/{combo_id}/focus")
+async def focus_on_combo(combo_id: str, user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"combos": 1, "training_partner": 1}) or {}
+    combo = next((c for c in fresh.get("combos") or [] if c["combo_id"] == combo_id), None)
+    if not combo:
+        raise HTTPException(404, "Combination not found")
+    active = {**combo, "set_at": datetime.now(timezone.utc).isoformat()}
+    update = {"active_combo": active}
+    if fresh.get("training_partner"):
+        update["training_partner.focus_areas"] = combo["focus"]
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    partner = (fresh.get("training_partner") or {}).get("name") or "Your partner"
+    return {"active": active, "line": f"{partner} will watch for {combo['name'] or combo['label']} in your next recorded rounds."}
+
+
+
+# ---- Fight for your gym ----
+# Goal: every session means something beyond yourself.
+# Psychology: epic meaning and belonging (Core Drive 1): people try harder for a group they
+#   identify with, and seeing your own contribution in the team total makes it count.
+# Design: every member's proven hours this season add up to the gym's total, ranked against
+#   other public gyms. Members see who contributed; outsiders only see the gym's total.
+
+@api_router.get("/gyms/{gym_id}/season-hours")
+async def gym_season_hours(gym_id: str, user: dict = Depends(get_current_user)):
+    gym = await db.gyms.find_one({"gym_id": gym_id}, {"_id": 0, "gym_id": 1, "name": 1, "members": 1, "is_public": 1})
+    if not gym or (not gym.get("is_public") and user["user_id"] not in gym.get("members", [])):
+        raise HTTPException(404, "Gym not found")
+    season = current_season()
+    sid = season["season_id"]
+    secs = {d["user_id"]: (d.get("season_verified") or {}).get(sid, 0) for d in await db.users.find(
+        {f"season_verified.{sid}": {"$gt": 0}}, {"user_id": 1, f"season_verified.{sid}": 1}).to_list(50000)}
+    total = sum(secs.get(m, 0) for m in gym.get("members", []))
+    public = await db.gyms.find({"is_public": True}, {"gym_id": 1, "members": 1}).limit(2000).to_list(2000)
+    rank = 1 + sum(1 for g in public if sum(secs.get(m, 0) for m in g.get("members", [])) > total) if gym.get("is_public") else None
+    members = await db.users.find({"user_id": {"$in": gym.get("members", [])}}, {"user_id": 1, "name": 1, "display_name": 1}).to_list(len(gym.get("members", [])) or 1)
+    is_member = user["user_id"] in gym.get("members", [])
+    contributors = sorted(
+        ({"name": "You" if d["user_id"] == user["user_id"] else (d.get("display_name") or d.get("name") or "Fighter").split()[0],
+          "hours": gx.hours(secs.get(d["user_id"], 0))} for d in members),
+        key=lambda c: -c["hours"]) if is_member else []
+    return {"gym": gym["name"], "season": season["number"], "preseason": bool(season.get("preseason")),
+            "hours": gx.hours(total), "rank": rank, "of": len(public) if gym.get("is_public") else None,
+            "contributors": [c for c in contributors if c["hours"] > 0][:10], "is_member": is_member}
 
 app.include_router(api_router)
 

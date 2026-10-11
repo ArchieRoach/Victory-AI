@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
-import { Trophy, Compass, Users2 } from "lucide-react";
+import { Trophy, Compass, Users2, Swords } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
@@ -68,6 +68,9 @@ function ForYou({ p }) {
     <section className="victory-card p-4 space-y-2" data-testid="for-you">
       <p className="section-label flex items-center gap-1.5"><Compass className="w-3 h-3" /> Your next step</p>
       <p className="text-victory-text text-sm">{f.line}</p>
+      <Link to="/combos" className="text-[12px] text-victory-lime font-semibold inline-flex items-center gap-1 min-h-[44px]">
+        <Swords className="w-3.5 h-3.5" /> Build your own combination for this week
+      </Link>
       {f.mentor_note && (
         <p className="text-[12px] text-victory-teal">{f.mentor_note.mentor_name.split(" ")[0]}: “{f.mentor_note.text}”</p>
       )}

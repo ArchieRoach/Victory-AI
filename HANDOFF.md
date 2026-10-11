@@ -415,6 +415,25 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Fighter journey: quiz, then vs now, Fight Story, combos, gym hours (branch `fighter-journey`)
+
+- **Style quiz** (`/style`, public, no sign-up; `lib/fighterStyle.js`): 6 questions give one of six styles,
+  each matched to a legend and three focus skills. Sharing is built in. "Train like…" saves the style
+  (`PUT /api/users/me/style`) and moves the AI partner's focus to that style. A quiz taken before sign-up is
+  stored in localStorage and applied on the first Home load. Linked from `/welcome`. `safe_user` exposes the
+  `fighter_style` label.
+- **Then vs now** (`GET /api/users/me/then-vs-now`, Profile): the first and latest AI-scored sessions, at least
+  7 days apart, played side by side with real score changes. Drops are shown honestly.
+- **Fight Story** (`/fight-story`, `GET /api/users/me/fight-story`): a printable and downloadable record of
+  everything built. `PUT /api/users/me/history` stores self-reported years boxing and sessions a week, labelled
+  as self-reported and never counted as verified. The full GDPR export is unchanged.
+- **Combo builder** (`/combos`, `GET/POST/DELETE /api/combos`, `POST /api/combos/{id}/focus`): up to 8 moves
+  (punches 1–6, slip, roll, parry, pivot, step back) and 12 saved combos. Making one the weekly focus sets the
+  partner's focus areas and adds the combo to the AI video-analysis prompt.
+- **Fight for your gym** (`GET /api/gyms/{id}/season-hours`, Gym page): members' proven hours this season
+  (`users.season_verified.<season>`), ranked against public gyms. Only members see who contributed.
+- **Founding Fighter** now means joining before Season 2 (launch day + 42 days).
+
 ## Partner condition: loss avoidance (branch `partner-condition`)
 
 - `gamification.partner_condition()` is a standard training-load model over real session dates, targeting

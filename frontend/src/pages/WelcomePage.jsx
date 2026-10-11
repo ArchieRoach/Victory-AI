@@ -96,6 +96,10 @@ export default function WelcomePage() {
           <ChevronRight className="w-5 h-5" />
         </button>
 
+        <button onClick={() => navigate("/style")} className="victory-btn-secondary mt-3" data-testid="style-quiz-link">
+          What kind of fighter are you? Take the quiz
+        </button>
+
         <p className="mt-6 text-victory-muted text-sm">
           {t("welcome.alreadyAccount")}{" "}
           <button onClick={() => navigate("/login")} className="text-victory-lime hover:underline inline-block p-2 -m-2" data-testid="login-link">

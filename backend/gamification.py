@@ -255,13 +255,14 @@ FOUNDER_BEFORE = "2027-01-01"
 RECRUITER_TIERS = [(1, "Recruiter"), (10, "Squad Builder"), (100, "Movement Starter")]
 
 
-def shelf_titles(*, status_points: int, created_at: Optional[str], invited_count: int) -> List[dict]:
+def shelf_titles(*, status_points: int, created_at: Optional[str], invited_count: int,
+                 founder_before: str = FOUNDER_BEFORE) -> List[dict]:
     items = []
     title = progression(status_points)["title"]
     if title:
         items.append({"kind": "title", "name": title, "desc": f"Reached level {level_for(status_points)}"})
-    if created_at and created_at[:10] < FOUNDER_BEFORE:
-        items.append({"kind": "founder", "name": "Founding Fighter", "desc": "Trained on Victory AI in its first year"})
+    if created_at and created_at[:10] < founder_before:
+        items.append({"kind": "founder", "name": "Founding Fighter", "desc": "Joined Victory AI before Season 2"})
     earned = [name for at, name in RECRUITER_TIERS if invited_count >= at]
     if earned:
         items.append({"kind": "recruiter", "name": earned[-1], "desc": f"{invited_count} fighter{'s' if invited_count != 1 else ''} joined from your invites"})
@@ -539,3 +540,93 @@ def condition_line(partner: str, cond: dict) -> str:
 
 # The comeback is the reward: one session after a slide lifts the partner straight back up.
 COMEBACK_STATES = {"waiting", "rusty"}
+
+
+# ---- Then vs now ----
+# Goal: show fighters how far they've come, in their own footage.
+# Psychology: progress you can see is the strongest intrinsic motivator (competence, in
+#   self-determination theory); comparing yourself to your past self beats comparing to others.
+# Design: your first AI-scored session next to your latest, with the score change for every
+#   dimension both sessions scored. Drops are shown as drops; nothing is invented.
+
+THEN_NOW_MIN_DAYS = 7
+
+
+def _dims(session: dict) -> dict:
+    return {d["dimension_name"]: d["score"] for d in session.get("dimension_scores") or []
+            if isinstance(d.get("score"), (int, float))}
+
+
+def best_round_video(session: dict) -> Optional[str]:
+    scored = []
+    for rnd in session.get("rounds") or []:
+        vals = [d.get("score") for d in ((rnd.get("analysis") or {}).get("dimension_scores") or [])
+                if isinstance(d.get("score"), (int, float))]
+        if vals and rnd.get("video_url"):
+            scored.append((sum(vals) / len(vals), rnd["video_url"]))
+    return max(scored)[1] if scored else None
+
+
+def then_vs_now(first: dict, latest: dict) -> dict:
+    a, b = _dims(first), _dims(latest)
+    changes = sorted(({"dimension": k, "then": a[k], "now": b[k], "change": round(b[k] - a[k], 1)} for k in a if k in b),
+                     key=lambda c: -c["change"])
+    try:
+        days = (date.fromisoformat(str(latest.get("date"))[:10]) - date.fromisoformat(str(first.get("date"))[:10])).days
+    except ValueError:
+        days = None
+    overall = None
+    if isinstance(first.get("overall_score"), (int, float)) and isinstance(latest.get("overall_score"), (int, float)):
+        overall = round(latest["overall_score"] - first["overall_score"], 1)
+    return {
+        "then": {"date": first.get("date"), "overall": first.get("overall_score"), "video": best_round_video(first)},
+        "now": {"date": latest.get("date"), "overall": latest.get("overall_score"), "video": best_round_video(latest)},
+        "days": days,
+        "overall_change": overall,
+        "biggest_gains": [c for c in changes if c["change"] > 0][:3],
+        "slipped": [c for c in reversed(changes) if c["change"] < 0][:2],
+        "changes": changes,
+    }
+
+
+# ---- Combo builder ----
+# Goal: fighters feel in charge of their training, not managed by it.
+# Psychology: autonomy and creativity (Core Drive 3): a plan you designed yourself is one you
+#   follow; seeing the AI judge *your* combination makes the feedback personal.
+# Design: build a combination from boxing's standard numbering plus defence and footwork,
+#   save it, and make it this week's focus: the partner's focus areas switch to the skills
+#   it uses and the AI watches for it in the next recorded rounds.
+
+COMBO_MOVES = {
+    "1": ("Jab", "Jab"), "2": ("Cross", "Cross"), "3": ("Lead hook", "Left Hook"), "4": ("Rear hook", "Right Hook"),
+    "5": ("Lead uppercut", "Uppercut"), "6": ("Rear uppercut", "Uppercut"),
+    "slip": ("Slip", "Slip"), "roll": ("Roll", "Roll"), "parry": ("Parry", "Parry"),
+    "pivot": ("Pivot", "Footwork"), "step_back": ("Step back", "Footwork"),
+}
+COMBO_MIN, COMBO_MAX = 2, 8
+MAX_SAVED_COMBOS = 12
+
+
+def combo_problem(moves: List[str]) -> Optional[str]:
+    if not COMBO_MIN <= len(moves) <= COMBO_MAX:
+        return f"A combination has {COMBO_MIN} to {COMBO_MAX} moves"
+    if any(m not in COMBO_MOVES for m in moves):
+        return "Unknown move"
+    if not any(m in "123456" for m in moves):
+        return "Add at least one punch"
+    return None
+
+
+def combo_label(moves: List[str]) -> str:
+    return "-".join(m if m in "123456" else COMBO_MOVES[m][0].lower() for m in moves)
+
+
+def combo_focus(moves: List[str]) -> List[str]:
+    out = []
+    for m in moves:
+        dim = COMBO_MOVES[m][1]
+        if dim not in out:
+            out.append(dim)
+    if sum(1 for m in moves if m in "123456") >= 3 and "Combination Flow" not in out:
+        out.append("Combination Flow")
+    return out[:4]
