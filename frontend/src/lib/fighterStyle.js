@@ -14,7 +14,7 @@ export const STYLES = {
     gap: "Footwork: pressure only works if you cut off the ring instead of following them.",
   },
   outboxer: {
-    name: "Out-Boxer", legend: "Muhammad Ali",
+    name: "Outside Fighter", legend: "Muhammad Ali",
     blurb: "You control distance, live behind the jab and make them fight at your range.",
     focus: ["Jab", "Footwork", "Ring Generalship"],
     gap: "Guard Position: long range is safe until they close it, so your hands must stay home.",

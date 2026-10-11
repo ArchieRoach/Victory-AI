@@ -10220,7 +10220,7 @@ async def get_partner_condition(user: dict = Depends(get_current_user)):
 #   saved and the AI partner's focus moves to the three skills that style lives on.
 FIGHTER_STYLES = {
     "pressure": ("Pressure Fighter", ["Head Movement", "Body Movement", "Combination Flow"]),
-    "outboxer": ("Out-Boxer", ["Jab", "Footwork", "Ring Generalship"]),
+    "outboxer": ("Outside Fighter", ["Jab", "Footwork", "Ring Generalship"]),
     "counter": ("Counter Puncher", ["Slip", "Parry", "Punch Accuracy"]),
     "power": ("Power Puncher", ["Left Hook", "Uppercut", "Roll"]),
     "combo": ("Combination Artist", ["Combination Flow", "Footwork", "Punch Balance"]),

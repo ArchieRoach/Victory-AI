@@ -29,6 +29,6 @@ test("share text names the style and the legend", () => {
 });
 
 test("a or an", () => {
-  expect(withArticle("Out-Boxer")).toBe("an Out-Boxer");
+  expect(withArticle("Outside Fighter")).toBe("an Outside Fighter");
   expect(withArticle("Pressure Fighter")).toBe("a Pressure Fighter");
 });
