@@ -172,6 +172,29 @@ def test_new_fighters_start_fresh():
     assert gx.partner_condition([], date(2026, 10, 11))["state"] == "new"
 
 
+def test_motivation_stages_follow_real_activity():
+    assert gx.motivation_stage(0, 1)["stage"] == "hook"
+    assert gx.motivation_stage(5, 3)["stage"] == "belong"
+    assert gx.motivation_stage(2, 20)["stage"] == "belong", "the starter week is over even if they trained little"
+    assert gx.motivation_stage(30, 30)["stage"] == "belong", "mastery needs time as well as sessions"
+    assert gx.motivation_stage(25, 42)["stage"] == "mastery"
+
+
+def test_starter_challenge_counts_distinct_days_in_the_first_week():
+    p = gx.starter_progress(["2026-10-01", "2026-10-01", "2026-10-03", "2026-10-09"], "2026-10-01T09:00:00")
+    assert p["done"] == 2 and not p["complete"]
+    assert gx.starter_progress(["2026-10-01", "2026-10-02", "2026-10-07"], "2026-10-01")["complete"]
+    assert gx.starter_progress([], None)["done"] == 0
+
+
+def test_enjoyment_summary_needs_a_few_reflections_and_reads_naturally():
+    assert gx.enjoyment_summary([{"enjoyment": 5, "tags": ["fun"]}] * 2) is None
+    s = gx.enjoyment_summary([{"enjoyment": 5, "tags": ["hard_good"]}, {"enjoyment": 4, "tags": ["hard_good", "flat"]},
+                              {"enjoyment": 2, "tags": ["flat"]}])
+    assert s["line"] == "Your best sessions are the ones where you push through something hard."
+    assert s["loved_pct"] == 67 and s["average"] == 3.7
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:

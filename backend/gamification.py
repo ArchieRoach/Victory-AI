@@ -630,3 +630,87 @@ def combo_focus(moves: List[str]) -> List[str]:
     if sum(1 for m in moves if m in "123456") >= 3 and "Combination Flow" not in out:
         out.append("Combination Flow")
     return out[:4]
+
+
+# ---- The motivation journey: tangible, then social, then the sport itself ----
+# Goal: fighters end up training because they love it, not for what they get.
+# Psychology: the overjustification effect: big rewards for something people already enjoy
+#   crowd out the enjoyment. So tangible rewards are used once, to start the habit; then
+#   recognition, status and access take over; and for established fighters the app steps back
+#   from points and asks how the training felt, which is what keeps people for years.
+# Design: three stages from real activity. Hook: a starter challenge (3 sessions in your first
+#   7 days) with a real item as the prize, given once. Belong: crews, mentors, shelves and the
+#   Golden Gloves come forward. Mastery: points fold away after sessions and a reflection
+#   ("how did that feel?") leads; the app then reflects back what you enjoy most.
+
+STARTER_SESSIONS = 3
+STARTER_DAYS = 7
+STARTER_CHOICES = ("corner_red", "corner_blue")
+STARTER_STATUS = 100
+BELONG_FROM_SESSIONS = 5
+MASTERY_FROM_SESSIONS = 25
+MASTERY_FROM_DAYS = 42
+
+STAGES = {
+    "hook": ("Getting started", "Your first week: build the habit, earn your starter kit."),
+    "belong": ("Part of it", "Your crew, your shelf, your mentors: this is your gym now."),
+    "mastery": ("In it for the craft", "Fewer numbers, more boxing. Tell us how each session felt."),
+}
+
+
+def motivation_stage(total_sessions: int, days_since_join: int) -> dict:
+    if total_sessions >= MASTERY_FROM_SESSIONS and days_since_join >= MASTERY_FROM_DAYS:
+        key = "mastery"
+    elif total_sessions >= BELONG_FROM_SESSIONS or days_since_join > STARTER_DAYS:
+        key = "belong"
+    else:
+        key = "hook"
+    name, line = STAGES[key]
+    return {"stage": key, "name": name, "line": line}
+
+
+def starter_progress(session_dates: Iterable[str], joined: Optional[str]) -> dict:
+    try:
+        start = date.fromisoformat(str(joined)[:10])
+    except (TypeError, ValueError):
+        return {"done": 0, "target": STARTER_SESSIONS, "complete": False, "open": False, "days_left": 0}
+    end = start + timedelta(days=STARTER_DAYS)
+    days = {d for d in (str(x)[:10] for x in session_dates or []) if start.isoformat() <= d < end.isoformat()}
+    done = min(len(days), STARTER_SESSIONS)
+    today = datetime.now(timezone.utc).date()
+    return {"done": done, "target": STARTER_SESSIONS, "complete": done >= STARTER_SESSIONS,
+            "open": today < end, "days_left": max(0, (end - today).days)}
+
+
+REFLECTION_TAGS = {
+    "sharp": "Felt sharp",
+    "learned": "Learned something",
+    "hard_good": "Hard but good",
+    "fun": "Had fun",
+    "flat": "Felt flat",
+}
+
+
+_TAG_PHRASE = {"sharp": "feel sharp", "learned": "learn something new", "hard_good": "push through something hard",
+               "fun": "have fun"}
+
+
+def enjoyment_summary(reflections: List[dict]) -> Optional[dict]:
+    rs = [r for r in reflections if isinstance(r.get("enjoyment"), int)]
+    if len(rs) < 3:
+        return None
+    counts: dict = {}
+    for r in rs:
+        for t in r.get("tags") or []:
+            if t in REFLECTION_TAGS and t != "flat":
+                counts[t] = counts.get(t, 0) + 1
+    top = max(counts, key=counts.get) if counts else None
+    best = [r for r in rs if r["enjoyment"] >= 4]
+    return {
+        "sessions": len(rs),
+        "average": round(sum(r["enjoyment"] for r in rs) / len(rs), 1),
+        "loved_pct": round(100 * len(best) / len(rs)),
+        "top_tag": REFLECTION_TAGS[top] if top else None,
+        "line": (f"Your best sessions are the ones where you {_TAG_PHRASE[top]}." if top
+                 else "Keep telling us how sessions feel and we'll show you what you love about training."),
+    }

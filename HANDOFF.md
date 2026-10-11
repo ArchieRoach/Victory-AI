@@ -415,6 +415,24 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Motivation journey: tangible, then social, then intrinsic (branch `motivation-journey`)
+
+Built around the overjustification effect: big rewards for something people already enjoy crowd out the
+enjoyment. Rules are in `gamification.py` ("motivation journey"); the API is `GET /api/journey`.
+- **Stages** come from real activity:
+  - **hook:** under 5 sessions, within the first 7 days.
+  - **belong:** after that.
+  - **mastery:** 25+ sessions and 42+ days since joining.
+- **Hook: starter challenge.** 3 training days in the first 7 days → `POST /api/journey/starter/claim` grants
+  a free Red or Blue Corner cosmetic (normally £0.99) plus 100 status. It's given once, ever
+  (`users.starter_claimed`), and never repeated for training.
+- **Belong:** the Home card points at crews. Recognition, status and access (shelves, mentors, Golden Gloves)
+  already exist.
+- **Mastery:** after a session, "How did that feel?" (1–5 plus tags, `POST /api/sessions/{id}/reflection`)
+  leads, and points, status and season fold into a collapsed section. Home shows what they enjoy most
+  ("Your best sessions are the ones where you learn something new."), built from 3+ reflections.
+- The reflection is offered at every stage; only its position changes.
+
 ## Fighter journey: quiz, then vs now, Fight Story, combos, gym hours (branch `fighter-journey`)
 
 - **Style quiz** (`/style`, public, no sign-up; `lib/fighterStyle.js`): 6 questions give one of six styles,
