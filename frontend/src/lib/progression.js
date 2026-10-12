@@ -29,6 +29,7 @@ export function bragText(win) {
     case "quest": return `Our squad smashed this week's training quest on Victory AI.`;
     case "rank": return `#${win.rank} ${win.board || "on my board"} this week on Victory AI.`;
     case "progress": return `Up ${win.change} on my AI-scored rounds in ${win.days} days on Victory AI.`;
+    case "boss": return `Beat ${win.name}, this week's Boss Round on Victory AI.`;
     case "shelf": return `My Victory AI trophy shelf: level ${win.level}${win.crowns ? `, ${win.crowns} crown${win.crowns === 1 ? "" : "s"}` : ""}.`;
     default: return "Training on Victory AI.";
   }

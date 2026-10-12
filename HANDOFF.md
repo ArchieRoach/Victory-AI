@@ -415,6 +415,35 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Seven frameworks, built (branch `octalysis-frameworks`)
+
+Each one has Goal → Psychology → Design comments next to its rules in `backend/gamification.py`.
+- **Pick your week** (Self-Determination Theory, autonomy): `GET/PUT /api/week-plan` sets 2, 3 or 4 sessions and
+  one skill. The partner's condition uses that target (`gx.condition_thresholds`: the bench comes later for a
+  lighter week). Home card `components/home/WeekPlanCard.jsx`.
+- **Home that follows you** (Bartle): `lib/homeOrder.js` orders the Rank, Crew and Explore cards by recent taps
+  on this device, with a "Reset my Home" link. Nothing is hidden.
+- **Freestyle and Boss rounds** (Lazzaro): `POST /api/training/start` takes `kind` (`standard`, `freestyle` or `boss`).
+  - Freestyle is never filmed or scored and gives no points or rank. It still counts as a day trained and for
+    Engine Room missions. Its voice cues only praise.
+  - Boss: one per week for everyone (`gx.boss_for_week`), scaled to your best round, one 3-minute round, 3 tries,
+    judged by the Live Coach counts. Beating it gives +60 status once a week, a brag button and an invite moment.
+    `GET /api/boss`.
+- **Adaptive combo calls** (Flow): `lib/comboCaller.js` calls boxing numbers. With Live Coach on, it moves up a level
+  above 80% landed and down below 60%. Without the camera the level holds. The level is saved on the device.
+- **Just one round + a reminder you choose** (Fogg): Home button → `/train?quick=1` (1 × 3 min).
+  - `PUT /api/users/me/reminder` takes an anchor ("after school", etc.) or a custom hour.
+  - It is sent once a day by the hourly loop (`_send_habit_reminders`). Never after 8pm local for under-18s
+    (allowed hours: 6am to 8pm, or 6am to 9pm for adults). None once the chosen week is done.
+- **My Epic Win** (McGonigal): `GET/PUT/DELETE /api/users/me/epic-win`. Opens after 7 days, never at sign-up.
+  Private, and custom text is moderated. Up to 3 "bad guys", each with a counter-move. `rewards.epic_line`
+  appears only after a real win.
+- **Gym QR check-in** (the world is your playground): owners and coaches print `/gyms/:id/poster`. Scanning
+  `/checkin/:code` marks today as a gym day, so that day's verified time counts 2x for the gym's season total
+  only (`season_gym_bonus`). Personal hours are unchanged, and there is no GPS. "New code" cancels the old poster.
+- New dependency: `qrcode` (frontend). Tests: `backend/test_frameworks.py`, `backend/test_frameworks_api.py`,
+  `frontend/src/lib/comboCaller.test.js`, `frontend/src/lib/homeOrder.test.js`.
+
 ## Pro price: £7.99 a month / £59.99 a year (branch `pro-price-799`)
 
 - `SUBSCRIPTION_PLANS`: monthly £7.99, annual £59.99 ("Save 37%"). Founders (the first 1,000 waitlist sign-ups)

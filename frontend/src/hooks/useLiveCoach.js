@@ -38,15 +38,21 @@ function speak(text) {
 
 // Watches the camera preview on the phone itself — no frame is uploaded — and counts
 // punches, combos, guard drops and head movement while `running`.
-export function useLiveCoach({ enabled, videoRef, running, voice }) {
+// `cues` swaps the spoken lines (freestyle rounds only praise); `onEvent` lets the combo
+// caller hear each punch as it lands.
+export function useLiveCoach({ enabled, videoRef, running, voice, cues = CUES, onEvent }) {
   const [status, setStatus] = useState("off");
   const [stats, setStats] = useState(null);
   const [airpods, setAirpods] = useState(false);
   const trackerRef = useRef(createTracker());
   const runningRef = useRef(running);
   const voiceRef = useRef(voice);
+  const cuesRef = useRef(cues);
+  const onEventRef = useRef(onEvent);
   runningRef.current = running;
   voiceRef.current = voice;
+  cuesRef.current = cues;
+  onEventRef.current = onEvent;
 
   useEffect(() => {
     if (!enabled) { setStatus("off"); return; }
@@ -76,7 +82,9 @@ export function useLiveCoach({ enabled, videoRef, running, voice }) {
             const res = landmarker.detectForVideo(video, now);
             const events = trackerRef.current.update(res.landmarks?.[0], res.worldLandmarks?.[0], activeMs);
             for (const e of events) {
-              if (voiceRef.current && CUES[e] && gate(e, activeMs)) speak(CUES[e]);
+              onEventRef.current?.(e);
+              const line = cuesRef.current?.[e];
+              if (voiceRef.current && line && gate(e, activeMs)) speak(line);
             }
           } catch {}
           if (now - lastPublish > 250) {

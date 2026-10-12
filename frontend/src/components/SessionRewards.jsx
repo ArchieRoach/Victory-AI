@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
-import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown, UserPlus, Check } from "lucide-react";
+import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown, UserPlus, Check, Skull, Mountain, Music, CalendarCheck } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { seasonProgress, inviteMoment } from "@/lib/rewards";
 import { FighterCardButton } from "@/components/FighterCard";
@@ -337,7 +337,49 @@ function Reflection({ sessionId, tags }) {
   );
 }
 
-export function SessionRewards({ rewards, scoutingReport, overall, liveStats, sessionId }) {
+// Boss Round result: the fiero moment when beaten, an honest "not this time" when not.
+function BossResult({ boss }) {
+  if (!boss) return null;
+  return (
+    <section className={`victory-card p-4 space-y-2 ${boss.beaten ? "border-victory-lime/40 bg-victory-lime/5" : "border-victory-orange/30"}`} data-testid="boss-result">
+      <p className="section-label flex items-center gap-1.5"><Skull className="w-3 h-3" /> Boss Round</p>
+      <p className="text-victory-text font-heading font-extrabold text-lg">{boss.line}</p>
+      <p className="text-[12px] text-victory-muted">{boss.target?.line}. You got: {Object.entries(boss.got || {}).map(([k, v]) => `${v} ${k.replace("_", " ")}`).join(", ") || "nothing counted"}.</p>
+      {boss.status > 0 && <p className="text-[12px] text-victory-lime">+{boss.status} status</p>}
+      {boss.beaten && <BragButton win={{ kind: "boss", name: boss.name }} label="Show off the win" />}
+    </section>
+  );
+}
+
+// Flow: how the combo calls went, and where they'll start next time.
+function CallsSummary({ calls }) {
+  if (!calls?.calls) return null;
+  return (
+    <section className="victory-card p-3 text-[12px] text-victory-muted flex items-center gap-2" data-testid="calls-summary">
+      <Megaphone className="w-4 h-4 text-victory-lime flex-shrink-0" />
+      <span>
+        {calls.calls} combos called.
+        {calls.rate != null ? <> You landed <span className="font-mono text-victory-text">{calls.rate}%</span>; next session starts at that level.</> : " Turn on Live Coach and the calls adapt to you."}
+      </span>
+    </section>
+  );
+}
+
+export function SessionRewards({ rewards, scoutingReport, overall, liveStats, sessionId, calls }) {
+  if (rewards?.freestyle) {
+    return (
+      <div className="space-y-3" data-testid="session-rewards">
+        <section className="victory-card p-4 space-y-1" data-testid="freestyle-done">
+          <p className="section-label flex items-center gap-1.5"><Music className="w-3 h-3" /> Freestyle</p>
+          <p className="text-victory-text text-sm">No score today, just training. It counts for your week and your partner.</p>
+          {rewards.week && <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><CalendarCheck className="w-3.5 h-3.5" /> {rewards.week.done}/{rewards.week.target} this week</p>}
+        </section>
+        <CallsSummary calls={calls} />
+        <CornerSurprise surprise={rewards.surprise} />
+        <Reflection sessionId={sessionId} tags={rewards.reflection_tags} />
+      </div>
+    );
+  }
   const moment = inviteMoment(rewards, scoutingReport);
   const mastery = rewards?.stage?.stage === "mastery";
   const points = (
@@ -348,6 +390,12 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
   );
   return (
     <div className="space-y-3" data-testid="session-rewards">
+      <BossResult boss={rewards?.boss} />
+      {rewards?.epic_line && (
+        <p className="victory-card p-3 text-sm text-victory-text flex items-start gap-2" data-testid="epic-line">
+          <Mountain className="w-4 h-4 text-victory-teal mt-0.5 flex-shrink-0" /> {rewards.epic_line}
+        </p>
+      )}
       <IdentityCard identity={rewards?.identity} />
       <CornerSurprise surprise={rewards?.surprise} />
       {mastery && <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />}
@@ -360,6 +408,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
           <div className="space-y-3 mt-3">{points}</div>
         </details>
       ) : points}
+      <CallsSummary calls={calls} />
       {!mastery && <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />}
       {moment && <FighterCardButton rewards={rewards} overall={overall} liveStats={liveStats} />}
       {moment && <BringYourCrew moment={moment} />}

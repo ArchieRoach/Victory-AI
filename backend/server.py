@@ -327,6 +327,7 @@ class TrainingSessionCreate(BaseModel):
     record_video: bool = True
     entry_source: Optional[str] = Field(None, max_length=20)
     entry_age_minutes: Optional[int] = Field(None, ge=0)
+    kind: Literal["standard", "freestyle", "boss"] = "standard"
 
 
 # A push only gets credit for a session started within this long of tapping it; after
@@ -1211,16 +1212,30 @@ async def generate_round_feedback(request: Request, user: dict = Depends(get_cur
 @api_router.post("/training/start")
 async def start_training_session(session_config: TrainingSessionCreate, user: dict = Depends(get_current_user)):
     session_id = f"train_{uuid.uuid4().hex[:12]}"
+    kind = session_config.kind
+    total_rounds, record_video, boss = session_config.total_rounds, session_config.record_video, None
+    if kind == "freestyle":
+        record_video = False  # nothing is scored, so nothing is filmed
+    if kind == "boss":
+        boss = await _boss_view(user["user_id"], session_config.round_duration)
+        if boss["beaten"]:
+            raise HTTPException(400, "You've already beaten this week's boss")
+        if boss["attempts_left"] <= 0:
+            raise HTTPException(400, "No tries left this week. A new boss arrives on Monday.")
+        await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {f"boss_attempts.{boss['week_id']}": 1}})
+        total_rounds = 1
     session_doc = {
         "session_id": session_id, "user_id": user["user_id"],
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "round_duration": session_config.round_duration, "rest_duration": session_config.rest_duration,
-        "total_rounds": session_config.total_rounds, "record_video": session_config.record_video,
+        "total_rounds": total_rounds, "record_video": record_video, "kind": kind,
         "trigger": session_trigger(session_config.entry_source, session_config.entry_age_minutes),
         "rounds": [], "status": "in_progress", "created_at": datetime.now(timezone.utc).isoformat()
     }
+    if boss:
+        session_doc["boss"] = {k: boss[k] for k in ("key", "name", "target", "week_id")}
     await db.training_sessions.insert_one(session_doc)
-    return {"session_id": session_id, "status": "started"}
+    return {"session_id": session_id, "status": "started", "kind": kind, "boss": session_doc.get("boss")}
 
 # ---- Live Coach ----
 # Counted on the fighter's phone from the camera preview (nothing uploaded). These are
@@ -1309,8 +1324,10 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    # Get all video analyses for this session
-    videos = await db.round_videos.find({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0}).to_list(100)
+    # Get all video analyses for this session. A freestyle round is never scored.
+    kind = session.get("kind") or "standard"
+    videos = [] if kind == "freestyle" else await db.round_videos.find(
+        {"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0}).to_list(100)
     
     # Aggregate scores
     all_scores = {}
@@ -1341,8 +1358,13 @@ async def complete_training_session(session_id: str, user: dict = Depends(get_cu
                     "seconds": v.get("video_seconds")} for v in videos],
         "training_config": {"round_duration": session["round_duration"], "rest_duration": session["rest_duration"], "total_rounds": session["total_rounds"]},
         "live_stats": summarize_live_rounds(session.get("live_rounds") or []),
+        "kind": kind,
         "created_at": session["created_at"], "completed_at": datetime.now(timezone.utc).isoformat()
     }
+    if session.get("boss"):
+        live = (session.get("live_rounds") or [None])[0]
+        session_record["boss"] = {**session["boss"], **gx.boss_result(session["boss"]["target"], live),
+                                  "counted": bool(live)}
     
     await db.sessions.insert_one({**session_record})
     await db.training_sessions.update_one({"session_id": session_id}, {"$set": {"status": "completed", "overall_score": overall_score}})
@@ -2435,6 +2457,7 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.proof_stats.delete_many({"user_id": user_id})
     await db.gloves_gifts.delete_many({"giver_id": user_id})
     await db.treasures.delete_many({"$or": [{"giver_id": user_id}, {"recipient_id": user_id}]})
+    await db.gym_checkins.delete_many({"user_id": user_id})
     await db.mentor_links.delete_many({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]})
     await db.mentor_notes.delete_many({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]})
     await db.gyms.update_many({"coaches": user_id}, {"$pull": {"coaches": user_id}})
@@ -2491,6 +2514,7 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "mentorships": await db.mentor_links.find({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]}, proj).to_list(1000),
         "mentor_notes": await db.mentor_notes.find({"$or": [{"mentor_id": user_id}, {"mentee_id": user_id}]}, proj).to_list(10000),
         "bookings": await db.bookings.find({"user_id": user_id}, proj).to_list(1000),
+        "gym_checkins": await db.gym_checkins.find({"user_id": user_id}, proj).to_list(10000),
         "callouts_sent": await db.callouts.find({"challenger_id": user_id}, proj).to_list(1000),
         "feedback_submitted": await db.feedback.find({"user_id": user_id}, proj).to_list(10000),
         "push_subscriptions": await db.push_subscriptions.find({"user_id": user_id}, proj).to_list(1000),
@@ -7176,7 +7200,39 @@ def top_identity_traits(counts: dict, n: int = 3) -> list:
     return [{"name": IDENTITY_TRAITS[k][0], "count": c} for c, k in ranked[:n]]
 
 
+async def apply_freestyle_rewards(user: dict, session: dict) -> dict:
+    """Easy fun: no score, no rank, no points. It still counts as a day trained (partner,
+    streak, your week) and towards a crew's Engine Room mission, because the effort was real."""
+    uid = user["user_id"]
+    await _complete_bookings_for(uid)
+    quests = await advance_squad_quests(uid, {"trusted": False, "jab": None, "combo": None})
+    return {
+        "freestyle": True,
+        "stage": await journey_stage(uid),
+        "reflection_tags": gx.REFLECTION_TAGS,
+        "quests": quests,
+        "week": await week_plan_for(uid),
+        "surprise": await corner_surprise(uid, f"session:{session.get('session_id')}", session=None),
+    }
+
+
+async def apply_boss_reward(uid: str, boss: Optional[dict]) -> Optional[dict]:
+    if not boss:
+        return None
+    if not boss.get("beaten"):
+        return {**boss, "line": "Not this time. " + ("Try again this week." if boss.get("counted")
+                                                     else "Boss Rounds need the Live Coach camera on.")}
+    won = await db.users.update_one({"user_id": uid, "boss_wins.week_id": {"$ne": boss["week_id"]}}, {"$push": {
+        "boss_wins": {"week_id": boss["week_id"], "key": boss["key"], "name": boss["name"],
+                      "at": datetime.now(timezone.utc).isoformat()}}})
+    if won.modified_count:
+        await award_status(uid, gx.BOSS_STATUS, boostable=False, weekly=False)
+    return {**boss, "line": f"You beat {boss['name']}!", "status": gx.BOSS_STATUS if won.modified_count else 0}
+
+
 async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool) -> dict:
+    if session.get("kind") == "freestyle":
+        return await apply_freestyle_rewards(user, session)
     uid = user["user_id"]
     overall = session.get("overall_score") if trusted_scores else None
     dims = session.get("dimension_scores") if trusted_scores else []
@@ -7222,8 +7278,19 @@ async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool)
         gloves = await award_verified_time(uid, round_seconds=gx.verified_round_seconds(session.get("rounds")))
     else:
         gloves = {"counted": False, "reason": "unverified", "seconds": 0}
+    boss = await apply_boss_reward(uid, session.get("boss"))
+    won = bool((status or {}).get("leveled_up") or pb["new"] or callouts_beaten or ranked_up
+               or (boss or {}).get("beaten") or gloves.get("just_earned")
+               or any(q.get("just_completed") for q in quests or []))
+    epic = None
+    if won:
+        epic_doc = await db.users.find_one({"user_id": uid}, {"epic_win": 1}) or {}
+        epic = gx.epic_line(epic_doc.get("epic_win"))
 
     return {
+        "boss": boss,
+        "epic_line": epic,
+        "week": await week_plan_for(uid),
         "surprise": surprise,
         "stage": await journey_stage(uid),
         "reflection_tags": gx.REFLECTION_TAGS,
@@ -7944,6 +8011,7 @@ async def _investment_loop():
             if hour_key != last_hourly:
                 last_hourly = hour_key
                 await _send_weekly_reminders(now)
+                await _send_habit_reminders(now)
                 await _send_film_digests(now)
         except Exception as exc:
             logger.warning(f"Investment loop error: {exc}")
@@ -10174,8 +10242,13 @@ async def award_verified_time(uid: str, *, round_seconds: Optional[List[int]] = 
         out["reason"] = "daily_cap"
     if not secs:
         return out
+    inc_user = {"verified_seconds": secs, f"season_verified.{season['season_id']}": secs}
+    if got["seconds"] and await db.gym_checkins.find_one({"user_id": uid, "date": today}):
+        bonus = got["seconds"] * (gx.GYM_CHECKIN_MULTIPLIER - 1)
+        inc_user[f"season_gym_bonus.{season['season_id']}"] = bonus
+        out["gym_bonus_minutes"] = round(bonus / 60)
     await db.users.update_one({"user_id": uid}, {
-        "$inc": {"verified_seconds": secs, f"season_verified.{season['season_id']}": secs},
+        "$inc": inc_user,
         "$set": {"verified_today": {"date": today, "seconds": used + got["seconds"]}}})
     key = {"user_id": uid, "season_id": season["season_id"]}
     stats = await db.proof_stats.find_one(key) or {}
@@ -10349,10 +10422,11 @@ async def confirm_gloves_gift(session_id: str = Query(..., max_length=200), user
 # Generated "couch" images were inconsistent and sometimes not appropriate for 13-24s.
 
 async def partner_condition_for(user_id: str) -> dict:
-    fresh = await db.users.find_one({"user_id": user_id}, {"training_partner": 1}) or {}
+    fresh = await db.users.find_one({"user_id": user_id}, {"training_partner": 1, "week_plan": 1}) or {}
     partner = fresh.get("training_partner") or {}
     dates = [s.get("date") for s in await db.sessions.find({"user_id": user_id}, {"date": 1}).to_list(5000)]
-    cond = gx.partner_condition(dates)
+    target = (fresh.get("week_plan") or {}).get("target") or gx.TARGET_SESSIONS_PER_WEEK
+    cond = gx.partner_condition(dates, target=target)
     name = partner.get("name") or "Your coach"
     return {**cond, "partner_name": name, "line": gx.condition_line(name, cond),
             "avatar_url": partner.get("avatar_url"),
@@ -10531,8 +10605,10 @@ async def gym_season_hours(gym_id: str, user: dict = Depends(get_current_user)):
         raise HTTPException(404, "Gym not found")
     season = current_season()
     sid = season["season_id"]
-    secs = {d["user_id"]: (d.get("season_verified") or {}).get(sid, 0) for d in await db.users.find(
-        {f"season_verified.{sid}": {"$gt": 0}}, {"user_id": 1, f"season_verified.{sid}": 1}).to_list(50000)}
+    # Gym check-in days count double here, for the team total only.
+    secs = {d["user_id"]: (d.get("season_verified") or {}).get(sid, 0) + (d.get("season_gym_bonus") or {}).get(sid, 0)
+            for d in await db.users.find({f"season_verified.{sid}": {"$gt": 0}},
+                                         {"user_id": 1, f"season_verified.{sid}": 1, f"season_gym_bonus.{sid}": 1}).to_list(50000)}
     total = sum(secs.get(m, 0) for m in gym.get("members", []))
     public = await db.gyms.find({"is_public": True}, {"gym_id": 1, "members": 1}).limit(2000).to_list(2000)
     rank = 1 + sum(1 for g in public if sum(secs.get(m, 0) for m in g.get("members", [])) > total) if gym.get("is_public") else None
@@ -10677,6 +10753,231 @@ async def my_surprises(user: dict = Depends(get_current_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"surprises": 1, "guaranteed_surprises": 1}) or {}
     return {"odds": gx.surprise_odds(), "daily_cap": gx.SURPRISE_DAILY_CAP,
             "recent": list(reversed(fresh.get("surprises") or [])), "guaranteed": fresh.get("guaranteed_surprises", 0)}
+
+
+# ---- Pick your week (rules and reasoning in gamification.py) ----
+
+def _week_start(today: Optional[date] = None) -> str:
+    today = today or datetime.now(timezone.utc).date()
+    return (today - timedelta(days=today.weekday())).isoformat()
+
+
+async def week_plan_for(uid: str) -> dict:
+    u = await db.users.find_one({"user_id": uid}, {"week_plan": 1}) or {}
+    done = len(set(await db.sessions.distinct("date", {"user_id": uid, "date": {"$gte": _week_start()}})))
+    return gx.week_plan_view(u.get("week_plan"), done, gx.week_id())
+
+
+class WeekPlanIn(BaseModel):
+    target: int
+    focus: Optional[str] = Field(None, max_length=40)
+
+
+@api_router.get("/week-plan")
+async def get_week_plan(user: dict = Depends(get_current_user)):
+    return {**await week_plan_for(user["user_id"]), "targets": list(gx.WEEK_TARGETS), "skills": DIMENSIONS}
+
+
+@api_router.put("/week-plan")
+async def set_week_plan(data: WeekPlanIn, user: dict = Depends(get_current_user)):
+    if data.target not in gx.WEEK_TARGETS:
+        raise HTTPException(400, "Pick 2, 3 or 4 sessions")
+    if data.focus and data.focus not in DIMENSIONS:
+        raise HTTPException(400, "Pick one of the skills")
+    update = {"week_plan": {"week_id": gx.week_id(), "target": data.target, "focus": data.focus,
+                            "set_at": datetime.now(timezone.utc).isoformat()}}
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"training_partner": 1}) or {}
+    if data.focus and fresh.get("training_partner"):
+        rest = [f for f in (fresh["training_partner"].get("focus_areas") or []) if f != data.focus]
+        update["training_partner.focus_areas"] = [data.focus, *rest][:3]
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    return await week_plan_for(user["user_id"])
+
+
+# ---- Boss Round (rules and reasoning in gamification.py) ----
+
+async def _boss_view(uid: str, round_seconds: int) -> dict:
+    wk = gx.week_id()
+    key = gx.boss_for_week(wk)
+    name, desc = gx.BOSSES[key]
+    ghost = await db.ghost_rounds.find_one({"user_id": uid, "round_duration": round_seconds}, {"punches": 1}) or {}
+    u = await db.users.find_one({"user_id": uid}, {"boss_attempts": 1, "boss_wins": 1}) or {}
+    used = (u.get("boss_attempts") or {}).get(wk, 0)
+    return {"week_id": wk, "key": key, "name": name, "desc": desc, "round_seconds": round_seconds,
+            "target": gx.boss_target(key, best_punches=ghost.get("punches", 0), round_seconds=round_seconds),
+            "attempts_left": max(0, gx.BOSS_ATTEMPTS_PER_WEEK - used), "attempts": gx.BOSS_ATTEMPTS_PER_WEEK,
+            "beaten": any(w.get("week_id") == wk for w in u.get("boss_wins") or []),
+            "beaten_total": len(u.get("boss_wins") or []), "resets_at": gx.week_resets_at()}
+
+
+@api_router.get("/boss")
+async def this_weeks_boss(round_duration: int = Query(180, ge=30, le=600), user: dict = Depends(get_current_user)):
+    return await _boss_view(user["user_id"], round_duration)
+
+
+# ---- My Epic Win (rules and reasoning in gamification.py) ----
+
+class EpicWinIn(BaseModel):
+    goal: Optional[str] = Field(None, max_length=20)
+    custom: Optional[str] = Field(None, max_length=gx.EPIC_CUSTOM_MAX)
+    bad_guys: List[str] = Field(default_factory=list, max_length=3)
+
+
+@api_router.get("/users/me/epic-win")
+async def my_epic_win(user: dict = Depends(get_current_user)):
+    u, _, _, days = await _journey_facts(user["user_id"])
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"epic_win": 1}) or {}
+    epic = fresh.get("epic_win")
+    return {"eligible": days >= gx.EPIC_FROM_DAYS, "days_until": max(0, gx.EPIC_FROM_DAYS - days),
+            "epic": {**epic, "text": gx.epic_goal_text(epic),
+                     "bad_guys": [{"key": k, "name": gx.BAD_GUYS[k][0], "move": gx.BAD_GUYS[k][1]}
+                                  for k in epic.get("bad_guys") or [] if k in gx.BAD_GUYS]} if epic else None,
+            "goals": gx.EPIC_WINS, "bad_guys": {k: v[0] for k, v in gx.BAD_GUYS.items()}}
+
+
+@api_router.put("/users/me/epic-win")
+async def set_epic_win(data: EpicWinIn, user: dict = Depends(get_current_user)):
+    _, _, _, days = await _journey_facts(user["user_id"])
+    if days < gx.EPIC_FROM_DAYS:
+        raise HTTPException(400, "Train with us for a week first")
+    custom = (data.custom or "").strip()
+    if not custom and data.goal not in gx.EPIC_WINS:
+        raise HTTPException(400, "Pick your big win or write your own")
+    if custom and await is_content_flagged(custom):
+        raise HTTPException(400, "Try saying that another way")
+    if any(b not in gx.BAD_GUYS for b in data.bad_guys):
+        raise HTTPException(400, "Unknown bad guy")
+    epic = {"goal": None if custom else data.goal, "custom": custom or None, "bad_guys": list(dict.fromkeys(data.bad_guys)),
+            "set_at": datetime.now(timezone.utc).isoformat()}
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"epic_win": epic}})
+    return await my_epic_win(user)
+
+
+@api_router.delete("/users/me/epic-win")
+async def clear_epic_win(user: dict = Depends(get_current_user)):
+    await db.users.update_one({"user_id": user["user_id"]}, {"$unset": {"epic_win": ""}})
+    return {"ok": True}
+
+
+# ---- Reminder you choose (rules and reasoning in gamification.py) ----
+
+class HabitReminderIn(BaseModel):
+    anchor: Optional[str] = Field(None, max_length=20)
+    hour: Optional[int] = Field(None, ge=0, le=23)
+    tz_offset_minutes: int = Field(0, ge=-840, le=840)
+
+
+def _reminder_view(u: dict) -> dict:
+    minor = _is_minor(u)
+    r = u.get("habit_reminder") or {}
+    return {"on": bool(r.get("on")), "anchor": r.get("anchor"), "hour": r.get("hour"),
+            "anchors": {k: {"label": v[0], "hour": v[1]} for k, v in gx.REMINDER_ANCHORS.items()},
+            "first_hour": gx.REMINDER_FIRST_HOUR,
+            "last_hour": gx.REMINDER_LAST_HOUR_MINOR if minor else gx.REMINDER_LAST_HOUR_ADULT}
+
+
+@api_router.get("/users/me/reminder")
+async def get_habit_reminder(user: dict = Depends(get_current_user)):
+    return _reminder_view(user)
+
+
+@api_router.put("/users/me/reminder")
+async def set_habit_reminder(data: HabitReminderIn, user: dict = Depends(get_current_user)):
+    if not data.anchor:
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"habit_reminder.on": False}})
+    else:
+        if data.anchor not in gx.REMINDER_ANCHORS and data.anchor != "custom":
+            raise HTTPException(400, "Pick when you'd like a nudge")
+        hour = data.hour if data.anchor == "custom" else gx.REMINDER_ANCHORS[data.anchor][1]
+        if hour is None or not gx.reminder_hour_allowed(hour, _is_minor(user)):
+            last = gx.REMINDER_LAST_HOUR_MINOR if _is_minor(user) else gx.REMINDER_LAST_HOUR_ADULT
+            raise HTTPException(400, f"Pick a time between {gx.REMINDER_FIRST_HOUR}am and {last - 12}pm")
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": {
+            "habit_reminder": {"on": True, "anchor": data.anchor, "hour": hour},
+            "tz_offset_minutes": data.tz_offset_minutes}})
+    return _reminder_view(await db.users.find_one({"user_id": user["user_id"]}) or user)
+
+
+async def _send_habit_reminders(now: datetime):
+    users = await db.users.find({"habit_reminder.on": True}, {"_id": 0, "user_id": 1, "habit_reminder": 1, "birth_date": 1,
+                                                              "tz_offset_minutes": 1, "habit_reminder_sent": 1,
+                                                              "epic_win": 1, "training_partner": 1}).to_list(20000)
+    for u in users:
+        offset = u.get("tz_offset_minutes") or 0
+        hour = (u.get("habit_reminder") or {}).get("hour")
+        if hour is None or local_hour(now, offset) != hour or not gx.reminder_hour_allowed(hour, _is_minor(u)):
+            continue
+        local_day = (now - timedelta(minutes=offset)).date().isoformat()
+        if u.get("habit_reminder_sent") == local_day:
+            continue
+        uid = u["user_id"]
+        if await db.sessions.find_one({"user_id": uid, "date": now.date().isoformat()}):
+            continue
+        week = await week_plan_for(uid)
+        cond = await partner_condition_for(uid)
+        msg = gx.reminder_message(partner=_partner_name(u), state=cond["state"], week_left=week["left"],
+                                  bad_guys=(u.get("epic_win") or {}).get("bad_guys") or [])
+        if not msg:
+            continue
+        claimed = await db.users.update_one({"user_id": uid, "habit_reminder_sent": {"$ne": local_day}},
+                                            {"$set": {"habit_reminder_sent": local_day}})
+        if claimed.modified_count:
+            title, body, url = msg
+            await _send_push(uid, title=title, body=body, url=url, tag="habit-reminder")
+
+
+# ---- Gym check-in (rules and reasoning in gamification.py) ----
+
+async def _gym_staff(gym_id: str, user: dict) -> dict:
+    gym = await db.gyms.find_one({"gym_id": gym_id}, {"_id": 0})
+    if not gym or user["user_id"] not in [gym.get("owner_id"), *(gym.get("coaches") or [])]:
+        raise HTTPException(403, "Only the gym owner or a coach can print the poster")
+    return gym
+
+
+def _poster_view(gym: dict) -> dict:
+    return {"gym": gym["name"], "code": gym["checkin_code"], "url": f"{FRONTEND_URL}/checkin/{gym['checkin_code']}",
+            "multiplier": gx.GYM_CHECKIN_MULTIPLIER}
+
+
+@api_router.get("/gyms/{gym_id}/checkin-poster")
+async def gym_checkin_poster(gym_id: str, user: dict = Depends(get_current_user)):
+    gym = await _gym_staff(gym_id, user)
+    if not gym.get("checkin_code"):
+        gym["checkin_code"] = secrets.token_urlsafe(9)
+        await db.gyms.update_one({"gym_id": gym_id, "checkin_code": {"$exists": False}}, {"$set": {"checkin_code": gym["checkin_code"]}})
+        gym = await db.gyms.find_one({"gym_id": gym_id}, {"_id": 0})
+    return _poster_view(gym)
+
+
+@api_router.post("/gyms/{gym_id}/checkin-poster/new")
+async def new_gym_checkin_poster(gym_id: str, user: dict = Depends(get_current_user)):
+    await _gym_staff(gym_id, user)
+    await db.gyms.update_one({"gym_id": gym_id}, {"$set": {"checkin_code": secrets.token_urlsafe(9)}})
+    return _poster_view(await db.gyms.find_one({"gym_id": gym_id}, {"_id": 0}))
+
+
+class GymCheckIn(BaseModel):
+    code: str = Field(..., min_length=4, max_length=40)
+
+
+@api_router.post("/gyms/checkin")
+async def gym_check_in(data: GymCheckIn, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"gym_checkin:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many attempts — slow down")
+    gym = await db.gyms.find_one({"checkin_code": data.code}, {"_id": 0, "gym_id": 1, "name": 1, "members": 1, "is_public": 1})
+    if not gym:
+        raise HTTPException(404, "That poster isn't active any more. Ask your coach for the new one.")
+    if user["user_id"] not in gym.get("members", []):
+        return {"checked_in": False, "member": False, "gym_id": gym["gym_id"], "gym": gym["name"],
+                "can_join": bool(gym.get("is_public"))}
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    await db.gym_checkins.update_one({"user_id": user["user_id"], "date": today},
+                                     {"$set": {"gym_id": gym["gym_id"], "at": datetime.now(timezone.utc).isoformat()}},
+                                     upsert=True)
+    return {"checked_in": True, "member": True, "gym_id": gym["gym_id"], "gym": gym["name"],
+            "line": f"Checked in at {gym['name']}. Your verified time today counts {gx.GYM_CHECKIN_MULTIPLIER}x for the gym."}
+
 
 app.include_router(api_router)
 

@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
-  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye,
+  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye, Skull, Music, Megaphone,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
@@ -19,6 +19,7 @@ import { useLiveCoach } from "@/hooks/useLiveCoach";
 import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
+import { createComboCaller, sayCombo, savedLevel, saveLevel } from "@/lib/comboCaller";
 
 const LIVE_COACH_KEY = "victory_live_coach";
 // On unless the fighter switched it off: it runs on the phone and uploads nothing, so it's
@@ -26,6 +27,19 @@ const LIVE_COACH_KEY = "victory_live_coach";
 const readLiveCoach = () => { try { return localStorage.getItem(LIVE_COACH_KEY) !== "0"; } catch { return true; } };
 // Two-minute rounds (the junior amateur standard) make a first session easy to finish.
 const DEFAULT_ROUND_SECONDS = 120;
+// One round and Boss Rounds are always three minutes, so a boss target means the same for everyone.
+const FIXED_ROUND_SECONDS = 180;
+const CALLS_KEY = "victory_combo_calls";
+const readCalls = () => { try { return localStorage.getItem(CALLS_KEY) !== "0"; } catch { return true; } };
+
+// Round types. Freestyle is Easy Fun (no score, positive cues only); Boss is Hard Fun (one
+// tough round a week). Reasoning and rules: backend/gamification.py.
+const KINDS = [
+  { key: "standard", label: "Normal", icon: Target, desc: "Scored when video is on" },
+  { key: "freestyle", label: "Freestyle", icon: Music, desc: "No score. Just play." },
+  { key: "boss", label: "Boss", icon: Skull, desc: "This week's tough round" },
+];
+const FREESTYLE_CUES = { combo: "Nice combination", head_move: "Clean" };
 
 const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
@@ -75,6 +89,17 @@ export default function TrainPage() {
   // Set by a booked-round or callout push: "/train?focus=Footwork".
   const [searchParams] = useSearchParams();
   const focus = searchParams.get("focus");
+  // "/train?quick=1" is the Just One Round button; "/train?mode=boss|freestyle" picks a round type.
+  const quick = searchParams.get("quick") === "1";
+  const [kind, setKind] = useState(() => (["freestyle", "boss"].includes(searchParams.get("mode")) ? searchParams.get("mode") : "standard"));
+  const [boss, setBoss] = useState(null);
+  const [callsOn, setCallsOn] = useState(readCalls);
+  const [currentCall, setCurrentCall] = useState(null);
+  const callerRef = useRef(null);
+  useEffect(() => {
+    if (kind !== "boss") return;
+    axios.get(`${API}/boss`, { params: { round_duration: FIXED_ROUND_SECONDS } }).then((r) => setBoss(r.data)).catch(() => setBoss(null));
+  }, [kind]);
   const [focusPb, setFocusPb] = useState(null);
   useEffect(() => {
     if (!focus) return;
@@ -130,7 +155,28 @@ export default function TrainPage() {
     videoRef: videoPreviewRef,
     running: !isPaused && !isResting && !isComplete && !isConfiguring,
     voice: voiceEnabled,
+    cues: kind === "freestyle" ? FREESTYLE_CUES : undefined,
+    onEvent: (e) => { if (e === "punch") callerRef.current?.punch(performance.now()); },
   });
+
+  // Combo calls: adapt only when the camera can see whether they landed (lib/comboCaller.js).
+  const adaptiveCalls = kind === "standard" && liveCoach && coach.status === "ready";
+  useEffect(() => {
+    const caller = callerRef.current;
+    if (!caller || isPaused || isResting || isComplete || isConfiguring) {
+      caller?.pause();
+      setCurrentCall(null);
+      return undefined;
+    }
+    const id = setInterval(() => {
+      const c = caller.tick(performance.now(), { adaptive: adaptiveCalls });
+      if (c) {
+        setCurrentCall(c);
+        if (voiceEnabled) sayCombo(c.combo);
+      }
+    }, 250);
+    return () => clearInterval(id);
+  }, [isPaused, isResting, isComplete, isConfiguring, adaptiveCalls, voiceEnabled]);
 
   // Simulated progress while waiting on AI round feedback — caps at 90% so
   // it never looks "done" before the response actually lands.
@@ -151,6 +197,11 @@ export default function TrainPage() {
       setTotalRounds(c.totalRounds     || 3);
       setSessionMode(c.sessionMode     || "private");
     }
+    if (quick || kind === "boss") {
+      setRoundDuration(FIXED_ROUND_SECONDS);
+      setTotalRounds(1);
+    }
+    if (kind !== "standard") setSessionMode("private");
     audioRef.current = new Audio(BELL_SOUND_URL);
     audioRef.current.load();
     return () => {
@@ -196,10 +247,11 @@ export default function TrainPage() {
   };
 
   const saveConfig = useCallback(() => {
+    if (quick || kind !== "standard") return; // a one-off round type never changes your usual setup
     localStorage.setItem("victory_train_config", JSON.stringify({
       roundDuration, restDuration, totalRounds, sessionMode,
     }));
-  }, [roundDuration, restDuration, totalRounds, sessionMode]);
+  }, [roundDuration, restDuration, totalRounds, sessionMode, quick, kind]);
 
   const playBell = useCallback(() => {
     if (audioRef.current) {
@@ -357,7 +409,8 @@ export default function TrainPage() {
     // Clear any existing cycle first so intervals can't stack (pause/resume during rest).
     if (hypeTimerRef.current) clearInterval(hypeTimerRef.current);
     // Shuffle HYPE_LINES
-    const shuffled = [...HYPE_LINES].sort(() => Math.random() - 0.5);
+    const pool = kind === "freestyle" ? HYPE_LINES.filter((l) => l.type === "validate" || l.type === "joke") : HYPE_LINES;
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
     setHypeQueue(shuffled);
     let idx = 0;
     setCurrentHype(shuffled[0]);
@@ -365,7 +418,7 @@ export default function TrainPage() {
       idx = (idx + 1) % shuffled.length;
       setCurrentHype(shuffled[idx]);
     }, 18_000); // new quip every 18s
-  }, []);
+  }, [kind]);
 
   const stopHypeCycle = useCallback(() => {
     if (hypeTimerRef.current) { clearInterval(hypeTimerRef.current); hypeTimerRef.current = null; }
@@ -382,24 +435,39 @@ export default function TrainPage() {
     }
 
     setStartingSession(true);
+    const filming = recordVideo && kind !== "freestyle";
+    const watching = liveCoach || kind === "boss";
+    if (kind === "boss" && !liveCoach) chooseLiveCoach(true);
     try {
       const res = await withMinDuration(axios.post(`${API}/training/start`, {
         round_duration: roundDuration,
         rest_duration:  restDuration,
         total_rounds:   totalRounds,
-        record_video:   recordVideo,
+        record_video:   filming,
+        kind,
         ...currentEntry(),
       }, { withCredentials: true }));
       setSessionId(res.data.session_id);
-      analytics.capture("training_started", { entry_source: currentEntry().entry_source, record_video: recordVideo });
-    } catch {
+      analytics.capture("training_started", { entry_source: currentEntry().entry_source, record_video: filming, kind, quick });
+    } catch (e) {
+      const detail = e?.response?.data?.detail;
+      if (kind === "boss" && typeof detail === "string") {
+        toast.error(detail);
+        setStartingSession(false);
+        return;
+      }
       toast.error(t("train.startOffline", "Couldn't reach the server — this session won't be saved."));
     }
 
-    if (recordVideo || liveCoach) {
+    if (filming !== recordVideo) setRecordVideo(false);
+    if (filming || watching) {
       const granted = await requestCamera();
-      if (granted && recordVideo) startRoundRecording();
+      if (granted && filming) startRoundRecording();
+      if (!granted && kind === "boss") toast.error("Boss Rounds need the camera to count. This try won't count.");
     }
+    callerRef.current = callsOn && kind !== "boss"
+      ? createComboCaller({ level: savedLevel(), gapScale: kind === "freestyle" ? 1.6 : 1 })
+      : null;
     if (liveCoach) {
       axios.get(`${API}/training/ghost`, { params: { round_duration: roundDuration } })
         .then((r) => setGhost(r.data?.timeline?.length ? r.data : null))
@@ -473,12 +541,15 @@ export default function TrainPage() {
   const handleComplete = async () => {
     setIsComplete(true);
     nativeRound("end");
+    const caller = callerRef.current;
+    const calls = caller ? caller.summary() : null;
+    if (caller && kind === "standard" && calls.checked > 0) saveLevel(caller.level());
     stopHypeCycle();
     stopCamera();
     if (sessionId) {
       try {
         const res = await axios.post(`${API}/training/${sessionId}/complete`, {}, { withCredentials: true });
-        navigate(`/score/results/${res.data.session_id}`, { state: { session: res.data, fromTraining: true } });
+        navigate(`/score/results/${res.data.session_id}`, { state: { session: res.data, fromTraining: true, calls } });
         return;
       } catch {
         toast.error(t("train.failedSave"));
@@ -558,6 +629,77 @@ export default function TrainPage() {
 
           <div className="space-y-6 max-w-md mx-auto w-full">
 
+            {quick && kind === "standard" && (
+              <div className="victory-card p-4 border-victory-lime/30 bg-victory-lime/5 text-center" data-testid="quick-round">
+                <p className="text-victory-text font-heading font-bold">One round. Three minutes. That's it.</p>
+                <p className="text-victory-muted text-xs mt-1">Small days still count for your week and your partner.</p>
+              </div>
+            )}
+
+            <div>
+              <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">Round type</p>
+              <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Round type">
+                {KINDS.map(({ key, label, icon: Icon, desc }) => (
+                  <button key={key} role="radio" aria-checked={kind === key}
+                    onClick={() => {
+                      setKind(key);
+                      if (key !== "standard") setSessionMode("private");
+                      if (key === "boss") { setRoundDuration(FIXED_ROUND_SECONDS); setTotalRounds(1); }
+                    }}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl border-2 text-center min-h-[88px] transition-all ${
+                      kind === key ? "border-victory-lime bg-victory-lime/10" : "border-victory-border bg-victory-card"
+                    }`}>
+                    <Icon className={`w-5 h-5 ${kind === key ? "text-victory-lime" : "text-victory-muted"}`} />
+                    <span className="text-victory-text text-sm font-bold">{label}</span>
+                    <span className="text-victory-muted text-[10px] leading-tight">{desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {kind === "freestyle" && (
+              <div className="victory-card p-4" data-testid="freestyle-note">
+                <p className="text-victory-text text-sm font-semibold">Put your own music on and move.</p>
+                <p className="text-victory-muted text-xs mt-1">No score, no rank, nothing filmed. Your coach only points out the good bits. It still counts for your week and your partner.</p>
+              </div>
+            )}
+
+            {kind === "boss" && (
+              <div className="victory-card p-4 space-y-2 border-victory-orange/40" data-testid="boss-card">
+                {boss ? (
+                  <>
+                    <p className="section-label flex items-center gap-1.5"><Skull className="w-3 h-3" /> This week's boss</p>
+                    <p className="text-victory-text font-heading font-extrabold text-lg">{boss.name}</p>
+                    <p className="text-victory-text text-sm">{boss.target.line} in one 3-minute round.</p>
+                    <p className="text-victory-muted text-xs">
+                      {boss.beaten ? "Beaten this week. A new boss arrives on Monday."
+                        : `${boss.attempts_left} of ${boss.attempts} tries left this week. Live Coach counts it on your phone.`}
+                    </p>
+                  </>
+                ) : <div className="skeleton-shimmer h-16 rounded-lg" />}
+              </div>
+            )}
+
+            {kind !== "boss" && sessionMode === "private" && (
+              <div className="victory-card p-4" data-testid="combo-calls-toggle">
+                <button onClick={() => { setCallsOn(!callsOn); try { localStorage.setItem(CALLS_KEY, callsOn ? "0" : "1"); } catch {} }}
+                  className="w-full flex items-center justify-between touch-target">
+                  <div className="flex items-center gap-3">
+                    <Megaphone className={`w-6 h-6 ${callsOn ? "text-victory-lime" : "text-victory-muted"}`} />
+                    <div className="text-left">
+                      <p className="text-victory-text font-medium">Combo calls</p>
+                      <p className="text-victory-muted text-sm">
+                        {kind === "freestyle" ? "Loose calls to riff on." : "Your coach calls combos. With Live Coach on, they get harder or easier to keep you in the zone."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`w-12 h-6 rounded-full transition-colors flex-shrink-0 ${callsOn ? "bg-victory-lime" : "bg-victory-border"}`}>
+                    <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${callsOn ? "translate-x-6" : "translate-x-0.5"}`} />
+                  </div>
+                </button>
+              </div>
+            )}
+
             {focus && (
               <div className="victory-card p-4 flex items-center gap-3 border-victory-lime/30 bg-victory-lime/5" data-testid="train-focus">
                 <div className="w-10 h-10 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center flex-shrink-0">
@@ -573,6 +715,7 @@ export default function TrainPage() {
             )}
 
             {/* Round duration */}
+            {!(quick && kind === "standard") && kind !== "boss" && (<>
             <div>
               <div className="flex justify-between items-center mb-3">
                 <label className="text-victory-muted text-sm font-medium">{t("train.roundDuration")}</label>
@@ -647,8 +790,10 @@ export default function TrainPage() {
                 >+</button>
               </div>
             </div>
+            </>)}
 
             {/* ── Mode toggle — replaces Record & Analyse ────────────────────── */}
+            {kind === "standard" && (
             <div>
               <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">Session Mode</p>
               <div className="grid grid-cols-2 gap-3">
@@ -720,6 +865,7 @@ export default function TrainPage() {
                 </p>
               )}
             </div>
+            )}
 
             {/* Voice toggle (private mode only) */}
             {sessionMode === "private" && (
@@ -741,7 +887,7 @@ export default function TrainPage() {
 
             {/* Video recording toggle — opt-in, off by default. Enabling it is what
                 makes AI feedback based on your real technique instead of banter. */}
-            {sessionMode === "private" && videoPref === null && (
+            {sessionMode === "private" && kind !== "freestyle" && videoPref === null && (
               <div className="victory-card p-4 space-y-3 border-victory-lime/40 bg-victory-lime/5" data-testid="video-ask">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center flex-shrink-0">
@@ -761,7 +907,7 @@ export default function TrainPage() {
               </div>
             )}
 
-            {sessionMode === "private" && videoPref !== null && (
+            {sessionMode === "private" && kind !== "freestyle" && videoPref !== null && (
               <div className="victory-card p-4">
                 <button onClick={() => chooseVideo(!recordVideo)} className="w-full flex items-center justify-between touch-target">
                   <div className="flex items-center gap-3">
@@ -786,7 +932,7 @@ export default function TrainPage() {
               </div>
             )}
 
-            {sessionMode === "private" && (
+            {sessionMode === "private" && kind !== "boss" && (
               <div className="victory-card p-4" data-testid="live-coach-toggle">
                 <button onClick={() => chooseLiveCoach(!liveCoach)} className="w-full flex items-center justify-between touch-target">
                   <div className="flex items-center gap-3">
@@ -810,11 +956,11 @@ export default function TrainPage() {
               <span className="text-victory-lime font-bold font-mono">{getTotalWorkoutTime()}</span>
             </div>
 
-            <button onClick={startTraining} disabled={startingSession} className="victory-btn-primary font-heading text-base tracking-wide disabled:opacity-60 flex items-center justify-center gap-2" data-testid="start-training-btn">
+            <button onClick={startTraining} disabled={startingSession || (kind === "boss" && (!boss || boss.beaten || boss.attempts_left <= 0))} className="victory-btn-primary font-heading text-base tracking-wide disabled:opacity-60 flex items-center justify-center gap-2" data-testid="start-training-btn">
               {startingSession ? (
                 <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
               ) : (
-                sessionMode === "public" ? "🔴 Go Live" : `🥊 ${t("train.startBtn")}`
+                sessionMode === "public" ? "🔴 Go Live" : kind === "boss" ? "💀 Face the boss" : `🥊 ${t("train.startBtn")}`
               )}
             </button>
           </div>
@@ -907,8 +1053,22 @@ export default function TrainPage() {
                 : t("train.roundOf", { current: currentRound, total: totalRounds })}
             </p>
 
+            {/* ── Combo call: one cue at a time keeps the fighter in flow ─────── */}
+            {!isResting && !isPaused && currentCall && (
+              <div className="w-full max-w-sm mb-4 text-center" data-testid="combo-call" aria-live="polite">
+                <p className="font-mono text-5xl font-extrabold text-victory-lime leading-none">{currentCall.combo}</p>
+                <p className="text-victory-muted text-[11px] mt-2">
+                  {kind === "freestyle" ? "Riff on it" : `${currentCall.levelName}${adaptiveCalls ? " · adapts to you" : ""}`}
+                </p>
+              </div>
+            )}
+
+            {kind === "boss" && boss && !isResting && (
+              <p className="text-victory-orange text-sm font-semibold mb-4" data-testid="boss-goal">{boss.name}: {boss.target.line}</p>
+            )}
+
             {/* ── Mid-round hype bubble (private mode, not resting) ──────────── */}
-            {!isResting && currentHype && !isPaused && (
+            {!isResting && currentHype && !isPaused && !currentCall && (
               <div className="w-full max-w-sm mb-4">
                 <div className="bg-victory-card border border-victory-border rounded-2xl p-4 flex items-start gap-3">
                   {/* Partner avatar */}

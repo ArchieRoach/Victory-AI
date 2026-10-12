@@ -64,7 +64,7 @@ export function PartnerCondition() {
       </div>
       {why && (
         <p className="px-3 pb-3 text-[11px] text-victory-muted">
-          {c.note} Three sessions a week keeps your partner in peak shape. Rest days are fine: your partner only slides after 4 days without training.
+          {c.note} {c.target ?? 3} sessions a week (the number you picked) keeps your partner in peak shape. Rest days are fine: your partner only slides after {c.waiting_after ?? 4} days without training.
         </p>
       )}
     </section>
