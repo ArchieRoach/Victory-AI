@@ -43,6 +43,8 @@ const FEATUREBASE_APP_ID = process.env.REACT_APP_FEATUREBASE_APP_ID || "6aa0ef5d
 const WelcomePage = lazyPage(() => import("@/pages/WelcomePage"));
 const StyleQuizPage = lazyPage(() => import("@/pages/StyleQuizPage"));
 const FightStoryPage = lazyPage(() => import("@/pages/FightStoryPage"));
+const CheckinPage = lazyPage(() => import("@/pages/CheckinPage"));
+const GymPosterPage = lazyPage(() => import("@/pages/GymPosterPage"));
 const ComboBuilderPage = lazyPage(() => import("@/pages/ComboBuilderPage"));
 const OnboardingFlow = lazyPage(() => import("@/pages/OnboardingFlow"));
 const PaywallPage = lazyPage(() => import("@/pages/PaywallPage"));
@@ -425,6 +427,8 @@ const AppRouter = () => {
         <Route path="/post/create" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
         <Route path="/gyms" element={<ProtectedRoute><GymsPage /></ProtectedRoute>} />
         <Route path="/gyms/:gymId" element={<ProtectedRoute><GymDetailPage /></ProtectedRoute>} />
+        <Route path="/gyms/:gymId/poster" element={<ProtectedRoute><GymPosterPage /></ProtectedRoute>} />
+        <Route path="/checkin/:code" element={<ProtectedRoute><CheckinPage /></ProtectedRoute>} />
         <Route path="/compete" element={<ProtectedRoute><CompetitionsPage /></ProtectedRoute>} />
         <Route path="/compete/:compId" element={<ProtectedRoute><CompetitionDetailPage /></ProtectedRoute>} />
         <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />

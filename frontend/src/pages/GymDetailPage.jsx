@@ -4,7 +4,7 @@ import axios from "axios";
 import { API, useAuth } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2, MessageSquare, MapPin } from "lucide-react";
+import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2, MessageSquare, MapPin, QrCode } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
 import { GymSeasonHours } from "@/components/progress/GymSeasonHours";
@@ -190,6 +190,12 @@ export default function GymDetailPage() {
           <div className="victory-card p-4">
             <p className="text-victory-muted text-sm">{gym.description}</p>
           </div>
+        )}
+
+        {(isOwner || (gym.coaches || []).includes(user?.user_id)) && (
+          <button onClick={() => navigate(`/gyms/${gym.gym_id}/poster`)} className="victory-btn-secondary flex items-center justify-center gap-2" data-testid="poster-link">
+            <QrCode className="w-4 h-4" /> Print the check-in poster
+          </button>
         )}
 
         {/* Invite code (owner only) */}

@@ -36,5 +36,7 @@ test("callouts, rank-ups and rare reports also count as wins", () => {
 
 test("a first-time trait is a win; a repeat isn't", () => {
   expect(inviteMoment({ identity: { name: "Iron Guard", count: 1 } }).headline).toBe("New trait: Iron Guard. Show your crew.");
+  expect(inviteMoment({ boss: { beaten: true, name: "The Wall" } }).headline).toBe("You beat The Wall. Who else can?");
+  expect(inviteMoment({ boss: { beaten: false, name: "The Wall" } })).toBeNull();
   expect(inviteMoment({ identity: { name: "Iron Guard", count: 3 } })).toBeNull();
 });

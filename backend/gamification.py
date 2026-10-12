@@ -5,6 +5,7 @@
 # - Status points are earned only by real effort (sessions, PBs, belts, quests), only ever go
 #   up, and can't be spent, traded or bought. They say who you've become.
 # - Tokens stay purchase-only. Nothing here mints tokens, so they never feel abundant.
+import hashlib
 from datetime import date, datetime, timedelta, timezone
 from statistics import median
 from typing import Iterable, List, Optional
@@ -472,7 +473,16 @@ def _ewma(days_trained: set, today: date, tau: int, horizon: int = 180) -> float
     return level
 
 
-def partner_condition(session_dates: Iterable[str], today: Optional[date] = None) -> dict:
+def condition_thresholds(target: int) -> tuple:
+    """Days off before the partner sits on the bench, then the couch. A fighter who chose two
+    sessions a week has normal gaps longer than one who chose four, so the bench comes later."""
+    import math
+    waiting = max(4, math.ceil(7 / max(1, target)) + 1)
+    return waiting, max(7, waiting + 3)
+
+
+def partner_condition(session_dates: Iterable[str], today: Optional[date] = None,
+                      target: int = TARGET_SESSIONS_PER_WEEK) -> dict:
     today = today or datetime.now(timezone.utc).date()
     trained = set()
     for s in session_dates or []:
@@ -482,18 +492,20 @@ def partner_condition(session_dates: Iterable[str], today: Optional[date] = None
             continue
         if d <= today:
             trained.add(d)
+    waiting_after, rusty_after = condition_thresholds(target)
     if not trained:
-        return {"state": "new", "label": CONDITION_STATES["new"], "days_since": None,
+        return {"state": "new", "label": CONDITION_STATES["new"], "days_since": None, "target": target,
+                "waiting_after": waiting_after,
                 "stats": {"conditioning": 0, "sharpness": 0, "consistency": 0}, "overall": 0, "change_7d": 0}
 
-    full = TARGET_SESSIONS_PER_WEEK / 7
+    full = target / 7
 
     def stats_on(day: date) -> dict:
         recent = sum(1 for d in trained if 0 <= (day - d).days < CONSISTENCY_WINDOW)
         return {
             "conditioning": round(min(100, 100 * _ewma(trained, day, CONDITIONING_DAYS) / full)),
             "sharpness": round(min(100, 100 * _ewma(trained, day, SHARPNESS_DAYS) / full)),
-            "consistency": round(min(100, 100 * recent / (TARGET_SESSIONS_PER_WEEK * CONSISTENCY_WINDOW / 7))),
+            "consistency": round(min(100, 100 * recent / (target * CONSISTENCY_WINDOW / 7))),
         }
 
     def overall(st: dict) -> int:
@@ -503,9 +515,9 @@ def partner_condition(session_dates: Iterable[str], today: Optional[date] = None
     week_ago = stats_on(today - timedelta(days=7))
     days_since = (today - max(trained)).days
     score = overall(now)
-    if days_since >= 7:
+    if days_since >= rusty_after:
         state = "rusty"
-    elif days_since >= 4:
+    elif days_since >= waiting_after:
         state = "waiting"
     elif score >= 70:
         state = "peak"
@@ -515,6 +527,8 @@ def partner_condition(session_dates: Iterable[str], today: Optional[date] = None
         "state": state,
         "label": CONDITION_STATES[state],
         "days_since": days_since,
+        "target": target,
+        "waiting_after": waiting_after,
         "stats": now,
         "overall": score,
         "change_7d": score - overall(week_ago),
@@ -804,3 +818,143 @@ BOOSTER_CHOICES = {
     "guaranteed_surprise": "A guaranteed Corner Surprise next session",
     "status_now": "+100 status right now",
 }
+
+
+# ---- Pick your week (Self-Determination Theory: autonomy) ----
+# Goal: fighters keep training week after week.
+# Psychology: a goal you chose yourself feels like yours (autonomy), so you keep it; one set
+#   for you feels like homework. Last week's choice is offered again (a default you can change).
+# Design: every Monday the fighter picks 2, 3 or 4 sessions and one skill to work on. Their
+#   partner's condition and the week's progress follow that choice, not a number we set.
+WEEK_TARGETS = (2, 3, 4)
+
+
+def week_plan_view(plan: Optional[dict], sessions_this_week: int, wk: str) -> dict:
+    current = bool(plan) and plan.get("week_id") == wk
+    target = (plan or {}).get("target") or TARGET_SESSIONS_PER_WEEK
+    return {"week_id": wk, "chosen": current, "target": target, "focus": (plan or {}).get("focus"),
+            "done": sessions_this_week, "left": max(0, target - sessions_this_week),
+            "complete": current and sessions_this_week >= target}
+
+
+# ---- Boss Round (Lazzaro's Hard Fun: fiero) ----
+# Goal: a weekly peak moment worth talking about.
+# Psychology: fiero, the arms-in-the-air feeling, needs a challenge that really could beat
+#   you. Scaling each boss to the fighter's own best keeps it hard for a beginner and a
+#   veteran alike, and a few tries a week keeps it special.
+# Design: one boss a week for everyone, one round long, judged by the Live Coach counts on
+#   the phone. Beat it and you get status and a brag moment. The counts are activity, not
+#   technique, so a boss never touches scores, personal bests or seasons.
+BOSSES = {
+    "machine": ("The Machine", "Out-throw your best round by 10%."),
+    "wall": ("The Wall", "Keep your guard up 85% of the round and keep punching."),
+    "ghost": ("The Ghost", "Keep your head moving all round."),
+    "storm": ("The Storm", "Land one 6-punch combination."),
+}
+BOSS_ATTEMPTS_PER_WEEK = 3
+BOSS_STATUS = 60
+
+
+def boss_for_week(wk: str) -> str:
+    keys = list(BOSSES)
+    return keys[int(hashlib.md5(wk.encode()).hexdigest(), 16) % len(keys)]
+
+
+def boss_target(key: str, *, best_punches: int, round_seconds: int) -> dict:
+    minutes = max(30, round_seconds) / 60
+    if key == "machine":
+        base = best_punches or round(40 * minutes)
+        n = -(-base * 11 // 10)
+        return {"punches": n, "line": f"Throw {n} punches in one round"}
+    if key == "wall":
+        n = round(30 * minutes)
+        return {"guard_pct": 85, "punches": n, "line": f"Guard up 85% of the round with {n}+ punches"}
+    if key == "ghost":
+        n = round(12 * minutes)
+        return {"head_moves": n, "line": f"{n} head movements in one round"}
+    return {"best_combo": 6, "line": "Land a 6-punch combination"}
+
+
+def boss_result(target: dict, live_round: Optional[dict]) -> dict:
+    r = live_round or {}
+    checks = {k: (r.get(k) or 0) >= v for k, v in target.items() if k != "line"}
+    return {"beaten": bool(checks) and all(checks.values()),
+            "got": {k: r.get(k) or 0 for k in checks}}
+
+
+# ---- My Epic Win (McGonigal: epic meaning, bad guys, power-ups) ----
+# Goal: training is tied to something the fighter really cares about.
+# Psychology: epic meaning (Core Drive 1) and self-concordant goals (ones that fit who you
+#   are) last longer. Naming the "bad guys" that stop you, with a move to beat each one,
+#   turns a vague struggle into a fight you know how to win (SuperBetter).
+# Design: asked after the first week, never at sign-up. Private to the fighter. The coach
+#   only mentions it after a real win, so the reminder always arrives with evidence.
+EPIC_WINS = {
+    "first_bout": "Have my first bout",
+    "sport_fit": "Get fit for my sport",
+    "confidence": "Feel more confident",
+    "look_after": "Be able to look after myself",
+    "sparring": "Stop freezing in sparring",
+}
+BAD_GUYS = {
+    "tired": ("Tired after school or work", "Just one round. Three minutes still counts."),
+    "phone": ("My phone", "Start the round timer first. Scroll after the bell."),
+    "space": ("No space to train", "A freestyle round needs one step either way."),
+    "nerves": ("Nerves about being judged", "Freestyle rounds have no score. Nobody's judging."),
+    "forget": ("I forget", "Pick a reminder time that fits your day."),
+}
+EPIC_FROM_DAYS = 7
+EPIC_CUSTOM_MAX = 60
+
+
+def epic_goal_text(epic: Optional[dict]) -> Optional[str]:
+    if not epic:
+        return None
+    return epic.get("custom") or EPIC_WINS.get(epic.get("goal") or "")
+
+
+def epic_line(epic: Optional[dict]) -> Optional[str]:
+    goal = epic_goal_text(epic)
+    return f"That's one step closer to your big win: {goal[0].lower()}{goal[1:]}." if goal else None
+
+
+# ---- Reminder you choose (Fogg: Behaviour = Motivation x Ability x Prompt) ----
+# Goal: more days with at least one session.
+# Psychology: a prompt only works when it lands at a moment the fighter can act, so they
+#   pick it, anchored to their own routine (Tiny Habits). Tired fighters need it easier
+#   (a facilitator), bored ones need a reason (a spark). No prompt once the week is done.
+# Design: one reminder a day at the chosen time, never during quiet hours, never after
+#   9pm for under-18s, and none once this week's chosen target is met.
+REMINDER_ANCHORS = {
+    "morning": ("Before school or work", 7),
+    "after_school": ("After school or work", 16),
+    "after_tea": ("After tea", 18),
+    "evening": ("In the evening", 19),
+}
+REMINDER_FIRST_HOUR = 6
+REMINDER_LAST_HOUR_MINOR = 20
+REMINDER_LAST_HOUR_ADULT = 21
+
+
+def reminder_hour_allowed(hour: int, minor: bool) -> bool:
+    return REMINDER_FIRST_HOUR <= hour <= (REMINDER_LAST_HOUR_MINOR if minor else REMINDER_LAST_HOUR_ADULT)
+
+
+def reminder_message(*, partner: str, state: str, week_left: int, bad_guys: Iterable[str] = ()) -> Optional[tuple]:
+    if week_left <= 0:
+        return None
+    if state in COMEBACK_STATES:
+        return (f"{partner} is waiting for you", "One session brings them straight back.", "/train?quick=1")
+    if "tired" in set(bad_guys or ()):
+        return ("Just one round", "Tired? Three minutes still counts.", "/train?quick=1")
+    return ("Just one round", f"Three minutes. {week_left} to go this week.", "/train?quick=1")
+
+
+# ---- Gym check-in (the world is your playground) ----
+# Goal: more real gym sessions, and gyms that want to promote the app.
+# Psychology: a physical object is a prompt right where training happens, and training
+#   seen by others pulls harder (Core Drive 5). Effort for your team counts twice.
+# Design: a QR poster on the gym wall. Scanning it marks today as a gym day; verified time
+#   that day counts double for the gym's season total only (never for personal hours).
+#   No GPS and no location saved: the code only says which gym.
+GYM_CHECKIN_MULTIPLIER = 2
