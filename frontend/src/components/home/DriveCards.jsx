@@ -30,8 +30,8 @@ export function DriveCards({ unlocks }) {
       line: (ranks && rankHeadline(ranks)) || "See where you stand this week.",
     },
     crew: {
-      icon: Users, title: quest ? quest.name : "Your crew", path: quest ? "/leaderboard?tab=quests" : "/squads",
-      line: quest ? (quest.completed ? "Mission done. Pick your booster." : `${quest.progress}/${quest.target} on this week's mission`) : "Missions are better with a crew.",
+      icon: Users, title: quest ? quest.name : "Your squad", path: quest ? "/leaderboard?tab=quests" : "/squads",
+      line: quest ? (quest.completed ? "Mission done. Pick your booster." : `${quest.progress}/${quest.target} on this week's mission`) : "Missions are better with a squad.",
     },
     explore: isUnlocked(unlocks, "boss") && boss && !boss.beaten && boss.attempts_left > 0
       ? { icon: Skull, title: `Boss: ${boss.name}`, path: "/train?mode=boss", line: `${boss.target.line}. ${boss.attempts_left} tries left.` }

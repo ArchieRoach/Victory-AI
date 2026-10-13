@@ -76,7 +76,7 @@ export function JourneyCard() {
           <p className="text-victory-text text-sm font-semibold">{j.name}</p>
           <p className="text-victory-muted text-[12px]">{j.line}</p>
         </div>
-        <button className="victory-btn-ghost w-auto px-3 min-h-[44px] text-sm" onClick={() => navigate("/leaderboard?tab=crews")}>Crews</button>
+        <button className="victory-btn-ghost w-auto px-3 min-h-[44px] text-sm" onClick={() => navigate("/leaderboard?tab=crews")}>Squads</button>
       </section>
     );
   }

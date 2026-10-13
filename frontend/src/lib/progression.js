@@ -15,7 +15,7 @@ export function rankHeadline(r) {
   if (!r || r.learning_mode) return null;
   const me = r.me;
   if (!me) return "Train once this week to get on the board.";
-  if (me.rank === 1) return r.size > 1 ? "You're top. Hold it until the reset." : "You're the only one on the board. Bring your crew.";
+  if (me.rank === 1) return r.size > 1 ? "You're top. Hold it until the reset." : "You're the only one on the board. Bring your squad.";
   const who = r.next_up || "the next fighter";
   if (r.within_reach) return `${r.gap_up} points to pass ${who}: one good session does it.`;
   return `You're #${me.rank} of ${r.size}. Every session moves you up.`;

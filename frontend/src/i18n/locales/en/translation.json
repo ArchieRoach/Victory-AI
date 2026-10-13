@@ -327,6 +327,7 @@
     "scoreMedium": "Room to grow — try this drill.",
     "scoreLow": "Starting point. Here's how to build.",
     "sessionLogged": "{{rounds}} rounds logged. That's real work in the books.",
+    "sessionLogged_one": "{{count}} round logged. That's real work in the books.",
     "streakLine": "🔥 {{count}}-day streak",
     "sessionExpired": "Couldn't find that session — it may have expired."
   },
@@ -544,7 +545,7 @@
   },
   "gyms": {
     "title": "Gyms",
-    "subtitle": "Find your crew or build your own",
+    "subtitle": "Find your squad or build your own",
     "createTitle": "Create a Gym",
     "gymName": "Gym Name",
     "gymNamePlaceholder": "e.g. Downtown Boxing Club",

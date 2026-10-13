@@ -4,6 +4,7 @@
 """
 import asyncio
 from collections import Counter
+from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
 from mongomock_motor import AsyncMongoMockClient
@@ -41,31 +42,45 @@ def setup():
 
 def test_published_odds_match_the_rolls():
     odds = {o["kind"]: o["pct"] for o in gx.surprise_odds()}
-    assert sum(odds.values()) == 100 and odds["none"] == 65
+    assert sum(odds.values()) == 100 and odds["none"] == 80
+    assert "rare_look" not in odds, "a free roll never gives away a paid team look"
     rolls = Counter(gx.roll_surprise(f"s{i}") for i in range(20000))
-    assert abs(rolls[None] / 20000 - 0.65) < 0.02 and abs(rolls["rare_look"] / 20000 - 0.03) < 0.01
+    assert abs(rolls[None] / 20000 - 0.80) < 0.02 and abs(rolls["legend_tip"] / 20000 - 0.10) < 0.01
     assert all(gx.roll_surprise(f"g{i}", guaranteed=True) for i in range(200)), "guaranteed always gives one"
     assert all(gx.roll_surprise(f"u{i}", guaranteed=True, scored=False) != "deep_scout" for i in range(300))
 
 
+def test_surprises_wait_for_real_sessions_and_cool_down():
+    now = datetime.now(timezone.utc)
+    assert not gx.surprise_eligible(1, 60 * 60, None), "never after a first session"
+    assert not gx.surprise_eligible(5, 60, None), "one 1-minute round can't roll a surprise"
+    assert gx.surprise_eligible(5, 9 * 60, None)
+    assert not gx.surprise_eligible(5, 9 * 60, (now - timedelta(hours=10)).isoformat()), "cooldown"
+    assert gx.surprise_eligible(5, 9 * 60, (now - timedelta(hours=49)).isoformat())
+
+
 def test_surprises_are_capped_daily_and_logged():
-    got = [run(server.corner_surprise("u_ana", f"seed{i}")) for i in range(40)]
+    run(server.db.sessions.insert_many([{"session_id": f"s_ana{i}", "user_id": "u_ana"} for i in range(4)]))
+    got = []
+    for i in range(80):
+        run(server.db.users.update_one({"user_id": "u_ana"}, {"$set": {"surprise_day": {}}}))
+        got.append(run(server.corner_surprise("u_ana", f"seed{i}", round_seconds=9 * 60)))
     real = [g for g in got if g]
-    assert len(real) == gx.SURPRISE_DAILY_CAP, "no more than the daily cap, however much you train"
+    assert len(real) == 1, "the cooldown stops a second surprise straight after the first"
     assert all(g["title"] and g["body"] for g in real)
     as_user(ANA)
     s = client.get("/api/surprises").json()
-    assert len(s["recent"]) == gx.SURPRISE_DAILY_CAP and s["daily_cap"] == 3 and s["odds"][0]["kind"] == "legend_tip"
+    assert len(s["recent"]) == 1 and s["daily_cap"] == 1 and s["odds"][0]["kind"] == "legend_tip" and len(s["rules"]) == 3
 
 
-def test_guaranteed_surprise_booster_and_rare_drop():
+def test_newcomer_and_short_sessions_get_no_surprise():
+    assert all(run(server.corner_surprise("u_cal", f"n{i}", round_seconds=60 * 60)) is None for i in range(60))
+
+
+def test_guaranteed_surprise_booster():
     run(server.db.users.update_one({"user_id": "u_ben"}, {"$set": {"guaranteed_surprises": 1}}))
     s = run(server.corner_surprise("u_ben", "s0"))  # this seed would normally roll nothing
     assert s is not None and run(server.db.users.find_one({"user_id": "u_ben"}))["guaranteed_surprises"] == 0
-    look = run(server._surprise_content("u_cal", "rare_look", {"fantasy_cosmetics": list(server.FANTASY_COSMETICS)[:-1]}, None))
-    assert look["title"].startswith("Rare drop") and len(run(server.db.users.find_one({"user_id": "u_cal"}))["fantasy_cosmetics"]) == 1
-    full = run(server._surprise_content("u_cal", "rare_look", {"fantasy_cosmetics": list(server.FANTASY_COSMETICS)}, None))
-    assert full["kind"] == "bonus_status", "nothing left to drop becomes bonus status"
 
 
 def test_crew_votes_a_mission_and_it_locks_on_the_first_counted_session():

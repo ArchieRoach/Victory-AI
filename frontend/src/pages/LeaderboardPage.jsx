@@ -11,12 +11,12 @@ import { QuestList } from "@/components/progress/QuestCard";
 import { MentorPanel } from "@/components/progress/MentorPanel";
 import { GoldenGloves } from "@/components/progress/GoldenGloves";
 
-// Goal: one place to watch yourself grow: level, ranks, your crew's quest and your mentors.
+// Goal: one place to watch yourself grow: level, ranks, your squad's quest and your mentors.
 // Psychology: monitoring attachment (people keep checking on something they own that's
 //   growing), the Alfred effect (a plan built from your own data) and "everyone like you"
 //   social norms, which only appear when the sample is real.
 // Design: your level and next unlock on top, a personal next step, then four tabs.
-const TABS = [["ranks", "Ranks"], ["crews", "Crews"], ["quests", "Quests"], ["mentors", "Mentors"]];
+const TABS = [["ranks", "Ranks"], ["crews", "Squads"], ["quests", "Quests"], ["mentors", "Mentors"]];
 
 export default function LeaderboardPage() {
   const { t } = useTranslation();

@@ -60,3 +60,26 @@ test("the weekly combo is called every third time and only punches are counted",
   expect(punchCount("1-2-slip-3")).toBe(3);
   expect(punchCount("slip-roll")).toBe(1);
 });
+
+test("calls start at your experience level and an advanced fighter never drops to single jabs", () => {
+  const { startingLevel, levelRange } = require("./comboCaller");
+  expect(levelRange("3_plus_years")).toEqual({ start: 4, floor: 3 });
+  expect(levelRange("Professional boxer").floor).toBe(3);
+  expect(levelRange("complete_beginner")).toEqual({ start: 0, floor: 0 });
+  expect(levelRange("6–18 months").start).toBe(2);
+  expect(startingLevel("3_plus_years", null)).toBe(4);
+  expect(startingLevel("3_plus_years", 0)).toBe(3);
+  expect(startingLevel("complete_beginner", 2)).toBe(2);
+
+  const caller = createComboCaller({ level: 4, floor: 3, pick: () => 0 });
+  let t = 0;
+  for (let i = 0; i < 30; i++) {
+    let call = null;
+    while (!call) { t += 250; call = caller.tick(t, { adaptive: true }); }
+    expect(call.combo.split("-").length).toBeGreaterThanOrEqual(3);
+    t += landWindowMs(6) + 10;
+    caller.tick(t, { adaptive: true });
+  }
+  expect(caller.level()).toBe(3);
+  expect(CALL_LEVELS[CALL_LEVELS.length - 1].combos.every((c) => c.split("-").length >= 5)).toBe(true);
+});

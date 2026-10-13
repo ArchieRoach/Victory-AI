@@ -39,7 +39,9 @@ export const isQuietHour = (date) => date.getHours() >= 22 || date.getHours() < 
 export function formatBooking(iso, now = new Date()) {
   const d = new Date(iso);
   const day = Math.round((new Date(d).setHours(0, 0, 0, 0) - new Date(now).setHours(0, 0, 0, 0)) / 86_400_000);
-  const time = d.toLocaleTimeString([], { hour: "numeric", minute: d.getMinutes() ? "2-digit" : undefined });
+  // Built by hand: a 24-hour phone turns { hour: "numeric" } into a bare "21".
+  const mins = d.getMinutes();
+  const time = mins ? hourLabel(d.getHours()).replace(/(am|pm)$/, `:${String(mins).padStart(2, "0")}$1`) : hourLabel(d.getHours());
   const when = day === 0 ? "Today" : day === 1 ? "Tomorrow" : d.toLocaleDateString([], { weekday: "long" });
   return `${when} ${time}`;
 }

@@ -20,7 +20,9 @@ import { useLiveCoach } from "@/hooks/useLiveCoach";
 import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
-import { createComboCaller, sayCombo, savedLevel, saveLevel } from "@/lib/comboCaller";
+import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange } from "@/lib/comboCaller";
+import { unlockSpeech } from "@/lib/speech";
+import { ToggleRow } from "@/components/ToggleRow";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
 
 const LIVE_COACH_KEY = "victory_live_coach";
@@ -31,6 +33,8 @@ const readLiveCoach = () => { try { return localStorage.getItem(LIVE_COACH_KEY) 
 const DEFAULT_ROUND_SECONDS = 120;
 // One round and Boss Rounds are always three minutes, so a boss target means the same for everyone.
 const FIXED_ROUND_SECONDS = 180;
+// Long enough for a typical upload and score; a slow network still reaches the results.
+const FINISH_WAIT_MS = 75_000;
 const CALLS_KEY = "victory_combo_calls";
 const readCalls = () => { try { return localStorage.getItem(CALLS_KEY) !== "0"; } catch { return true; } };
 
@@ -105,6 +109,7 @@ export default function TrainPage() {
   const [callsOn, setCallsOn] = useState(readCalls);
   const [currentCall, setCurrentCall] = useState(null);
   const callerRef = useRef(null);
+  const roundWorkRef = useRef(null);
   // The combo you chose in the combo builder this week: shown here and called during rounds.
   const [weeklyCombo, setWeeklyCombo] = useState(null);
   useEffect(() => {
@@ -151,6 +156,7 @@ export default function TrainPage() {
   const [isResting,         setIsResting]          = useState(false);
   const [isPaused,          setIsPaused]           = useState(true);
   const [isComplete,        setIsComplete]         = useState(false);
+  const [finishing,         setFinishing]          = useState(false);
   const [flashClass,        setFlashClass]         = useState("");
   const [showTenSecWarning, setShowTenSecWarning]  = useState(false);
   const [currentHype,       setCurrentHype]        = useState(null);
@@ -446,6 +452,7 @@ export default function TrainPage() {
 
   // ── Start training ───────────────────────────────────────────────────────────
   const startTraining = async () => {
+    if (voiceEnabled) unlockSpeech();
     saveConfig();
 
     if (sessionMode === "public") {
@@ -485,7 +492,7 @@ export default function TrainPage() {
       if (!granted && kind === "boss") toast.error("Boss Rounds need the camera to count. This try won't count.");
     }
     callerRef.current = callsOn && canCall && kind !== "boss"
-      ? createComboCaller({ level: savedLevel(), gapScale: kind === "freestyle" ? 1.6 : 1, weekly: weeklyCombo?.label || null })
+      ? createComboCaller({ level: startingLevel(user?.experience_level), floor: levelRange(user?.experience_level).floor, gapScale: kind === "freestyle" ? 1.6 : 1, weekly: weeklyCombo?.label || null })
       : null;
     if (liveCoach) {
       axios.get(`${API}/training/ghost`, { params: { round_duration: roundDuration } })
@@ -554,7 +561,7 @@ export default function TrainPage() {
 
   const handleRoundEnd = () => {
     saveLiveRound(currentRound);
-    generateFeedback(currentRound);
+    roundWorkRef.current = generateFeedback(currentRound);
   };
 
   const handleComplete = async () => {
@@ -564,6 +571,13 @@ export default function TrainPage() {
     const calls = caller ? caller.summary() : null;
     if (caller && kind === "standard" && calls.checked > 0) saveLevel(caller.level());
     stopHypeCycle();
+    // The last round's video is still uploading and being scored. Finishing first would
+    // save the session with no scores: no breakdown and a locked scouting report.
+    if (roundWorkRef.current) {
+      setFinishing(true);
+      await Promise.race([roundWorkRef.current, new Promise((r) => setTimeout(r, FINISH_WAIT_MS))]);
+      roundWorkRef.current = null;
+    }
     stopCamera();
     if (sessionId) {
       try {
@@ -609,7 +623,8 @@ export default function TrainPage() {
     }
   };
 
-  const endTimer  = () => { setIsPaused(true); handleComplete(); };
+  // Ending mid-round still keeps that round: its video and Live Coach counts are saved first.
+  const endTimer  = () => { setIsPaused(true); if (!isResting) handleRoundEnd(); handleComplete(); };
   const resetTimer = () => {
     stopHypeCycle();
     stopCamera();
@@ -634,6 +649,13 @@ export default function TrainPage() {
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className={`min-h-screen bg-victory-bg pb-nav flex flex-col ${flashClass}`} data-testid="train-page">
+      {finishing && (
+        <div className="fixed inset-0 z-50 bg-victory-bg/95 flex flex-col items-center justify-center gap-4 p-6 text-center" data-testid="finishing-session" aria-live="polite">
+          <div className="w-10 h-10 rounded-full border-2 border-victory-border border-t-victory-lime animate-spin" />
+          <p className="text-victory-text font-heading font-bold">Scoring your last round</p>
+          <p className="text-victory-muted text-sm max-w-xs">Your video is being checked so your breakdown and scouting report are ready.</p>
+        </div>
+      )}
 
       {isConfiguring ? (
         /* ── Config screen ──────────────────────────────────────────────────── */
@@ -716,21 +738,9 @@ export default function TrainPage() {
             {canCall && kind !== "boss" && sessionMode === "private" && (
               <CoachMark id="train_combo_calls" block>
               <div className="victory-card p-4" data-testid="combo-calls-toggle">
-                <button onClick={() => { setCallsOn(!callsOn); try { localStorage.setItem(CALLS_KEY, callsOn ? "0" : "1"); } catch {} }}
-                  className="w-full flex items-center justify-between touch-target">
-                  <div className="flex items-center gap-3">
-                    <Megaphone className={`w-6 h-6 ${callsOn ? "text-victory-lime" : "text-victory-muted"}`} />
-                    <div className="text-left">
-                      <p className="text-victory-text font-medium">Combo calls</p>
-                      <p className="text-victory-muted text-sm">
-                        {kind === "freestyle" ? "Loose calls to riff on." : "Your coach calls combos. With Live Coach on, they get harder or easier to keep you in the zone."}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`w-12 h-6 rounded-full transition-colors flex-shrink-0 ${callsOn ? "bg-victory-lime" : "bg-victory-border"}`}>
-                    <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${callsOn ? "translate-x-6" : "translate-x-0.5"}`} />
-                  </div>
-                </button>
+                <ToggleRow on={callsOn} iconOn={Megaphone} title="Combo calls"
+                  onToggle={(next) => { setCallsOn(next); try { localStorage.setItem(CALLS_KEY, next ? "1" : "0"); } catch {} }}
+                  description={kind === "freestyle" ? "Loose calls to riff on." : "Your coach calls combos at your level. With Live Coach on, they get harder or easier to keep you in the zone."} />
               </div>
               </CoachMark>
             )}
@@ -905,18 +915,8 @@ export default function TrainPage() {
             {/* Voice toggle (private mode only) */}
             {sessionMode === "private" && (
               <div className="victory-card p-4">
-                <button onClick={() => setVoiceEnabled(!voiceEnabled)} className="w-full flex items-center justify-between touch-target">
-                  <div className="flex items-center gap-3">
-                    {voiceEnabled ? <Volume2 className="w-6 h-6 text-victory-lime" /> : <VolumeX className="w-6 h-6 text-victory-muted" />}
-                    <div className="text-left">
-                      <p className="text-victory-text font-medium">{t("train.voiceFeedback")}</p>
-                      <p className="text-victory-muted text-sm">{t("train.voiceDesc")}</p>
-                    </div>
-                  </div>
-                  <div className={`w-12 h-6 rounded-full transition-colors ${voiceEnabled ? "bg-victory-lime" : "bg-victory-border"}`}>
-                    <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${voiceEnabled ? "translate-x-6" : "translate-x-0.5"}`} />
-                  </div>
-                </button>
+                <ToggleRow on={voiceEnabled} onToggle={setVoiceEnabled} iconOn={Volume2} iconOff={VolumeX}
+                  title={t("train.voiceFeedback")} description={t("train.voiceDesc")} />
               </div>
             )}
 
@@ -945,18 +945,8 @@ export default function TrainPage() {
             {sessionMode === "private" && kind !== "freestyle" && videoPref !== null && (
               <CoachMark id="train_video" block>
               <div className="victory-card p-4">
-                <button onClick={() => chooseVideo(!recordVideo)} className="w-full flex items-center justify-between touch-target">
-                  <div className="flex items-center gap-3">
-                    {recordVideo ? <Video className="w-6 h-6 text-victory-lime" /> : <VideoOff className="w-6 h-6 text-victory-muted" />}
-                    <div className="text-left">
-                      <p className="text-victory-text font-medium">{t("train.recordVideo")}</p>
-                      <p className="text-victory-muted text-sm">{t("train.recordVideoDesc")}</p>
-                    </div>
-                  </div>
-                  <div className={`w-12 h-6 rounded-full transition-colors ${recordVideo ? "bg-victory-lime" : "bg-victory-border"}`}>
-                    <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${recordVideo ? "translate-x-6" : "translate-x-0.5"}`} />
-                  </div>
-                </button>
+                <ToggleRow on={recordVideo} onToggle={chooseVideo} iconOn={Video} iconOff={VideoOff}
+                  title={t("train.recordVideo")} description={t("train.recordVideoDesc")} testId="video-toggle" />
                 {cameraError && (
                   <p className="text-victory-danger text-xs mt-2">{cameraError}</p>
                 )}
@@ -971,20 +961,9 @@ export default function TrainPage() {
 
             {sessionMode === "private" && kind !== "boss" && (
               <div className="victory-card p-4" data-testid="live-coach-toggle">
-                <button onClick={() => chooseLiveCoach(!liveCoach)} className="w-full flex items-center justify-between touch-target">
-                  <div className="flex items-center gap-3">
-                    <ScanEye className={`w-6 h-6 ${liveCoach ? "text-victory-lime" : "text-victory-muted"}`} />
-                    <div className="text-left">
-                      <p className="text-victory-text font-medium">{t("train.liveCoach", "Live Coach")}</p>
-                      <p className="text-victory-muted text-sm">
-                        {t("train.liveCoachDesc", "Counts punches, combos and guard drops as you go, and races your best round. Runs on your phone — nothing is uploaded.")}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`w-12 h-6 rounded-full transition-colors flex-shrink-0 ${liveCoach ? "bg-victory-lime" : "bg-victory-border"}`}>
-                    <div className={`w-5 h-5 rounded-full bg-white mt-0.5 transition-transform ${liveCoach ? "translate-x-6" : "translate-x-0.5"}`} />
-                  </div>
-                </button>
+                <ToggleRow on={liveCoach} onToggle={chooseLiveCoach} iconOn={ScanEye}
+                  title={t("train.liveCoach", "Live Coach")}
+                  description={t("train.liveCoachDesc", "Counts punches, combos and guard drops as you go, and races your best round. Runs on your phone — nothing is uploaded.")} />
               </div>
             )}
 

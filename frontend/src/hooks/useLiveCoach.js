@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createTracker, createCueGate } from "@/lib/liveCoach";
+import { say } from "@/lib/speech";
 
 // Pinned so a library update can never change what counts as a punch mid-season.
 const MEDIAPIPE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1";
@@ -27,14 +28,7 @@ function loadLandmarker() {
 
 const nativeMotion = (action) => window.webkit?.messageHandlers?.victoryMotion?.postMessage({ action });
 
-function speak(text) {
-  try {
-    if (!window.speechSynthesis) return;
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 1.1;
-    window.speechSynthesis.speak(u);
-  } catch {}
-}
+const speak = (text) => say(text);
 
 // Watches the camera preview on the phone itself — no frame is uploaded — and counts
 // punches, combos, guard drops and head movement while `running`.
