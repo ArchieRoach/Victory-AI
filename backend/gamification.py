@@ -958,3 +958,112 @@ def reminder_message(*, partner: str, state: str, week_left: int, bad_guys: Iter
 #   that day counts double for the gym's season total only (never for personal hours).
 #   No GPS and no location saved: the code only says which gym.
 GYM_CHECKIN_MULTIPLIER = 2
+
+
+# ---- Unlock as you go (onboarding: feel smart, not swamped) ----
+# Goal: new fighters finish their first sessions and feel capable, not lost.
+# Psychology: cognitive load (a few choices at a time) and competence (Self-Determination
+#   Theory): people who succeed at something simple early see themselves as good at it.
+#   An unlock earned by training is also a small reward (Core Drive 2) that teaches the app
+#   one piece at a time instead of all at once.
+# Design: the first session is just "one round" with your partner. Each new feature arrives
+#   after a real session, with one line saying what it is. Nothing is locked behind money.
+FEATURE_UNLOCKS = [
+    ("week_plan", 1, "Pick your week", "Choose how many sessions you'll do each week. Your partner keeps pace."),
+    ("combo_calls", 2, "Combo calls", "Your coach calls combos by number: 1 is a jab, 2 a cross, 3 a lead hook."),
+    ("crew", 2, "Crews and ranks", "See where you stand this week and train with friends."),
+    ("round_types", 3, "Freestyle rounds", "A no-score round for days you just want to move."),
+    ("go_live", 3, "Go live", "Stream a session for your friends to watch."),
+    ("boss", 5, "Boss Round", "One tough round a week, set by your own best."),
+    ("give_tips", 10, "Pass it on", "Leave a tip for someone just starting out."),
+]
+NEWCOMER_SESSIONS = 3
+
+
+def unlocked_features(sessions: int) -> List[str]:
+    return [k for k, at, _, _ in FEATURE_UNLOCKS if sessions >= at]
+
+
+def next_unlock(sessions: int) -> Optional[dict]:
+    for k, at, name, line in FEATURE_UNLOCKS:
+        if sessions < at:
+            return {"key": k, "name": name, "line": line, "at": at, "sessions_to_go": at - sessions}
+    return None
+
+
+def newly_unlocked_features(before: int, after: int) -> List[dict]:
+    return [{"key": k, "name": name, "line": line} for k, at, name, line in FEATURE_UNLOCKS if before < at <= after]
+
+
+# ---- Easter eggs (Core Drive 7: sudden rewards) ----
+# Goal: a reason to try new things in training.
+# Psychology: a surprise for something you did anyway feels like a discovery, not a task.
+#   Saying how many exist (but not what they are) keeps it fair and makes people curious.
+# Design: five hidden eggs, found from real session evidence only. The shelf shows
+#   "2 of 5 found"; the rest stay hidden until earned. Never bought.
+EASTER_EGGS = {
+    "early_bird": ("Early Bird", "Trained before 7am."),
+    "century": ("Century", "Exactly 100 punches in one round."),
+    "championship": ("Championship Distance", "A 12-round session."),
+    "lucky_seven": ("Lucky Seven", "An AI score of exactly 7.7."),
+    "iron_curtain": ("Iron Curtain", "Guard up the whole round, with 30+ punches."),
+}
+
+
+def eggs_in_session(session: dict, live_rounds: Iterable[dict], local_hour: Optional[int]) -> List[str]:
+    found = []
+    if local_hour is not None and 4 <= local_hour < 7:
+        found.append("early_bird")
+    rounds = list(live_rounds or [])
+    if any(r.get("punches") == 100 for r in rounds):
+        found.append("century")
+    if ((session.get("training_config") or {}).get("total_rounds") or 0) >= 12 and len(session.get("rounds") or rounds) >= 12:
+        found.append("championship")
+    if session.get("overall_score") == 7.7:
+        found.append("lucky_seven")
+    if any(r.get("guard_pct") == 100 and (r.get("punches") or 0) >= 30 for r in rounds):
+        found.append("iron_curtain")
+    return found
+
+
+# ---- Boss vote (HEXAD Disruptors and Free Spirits; Core Drive 3) ----
+# Goal: fighters who want to change the system get a real, safe way to do it.
+# Psychology: a say in the rules builds ownership of them (autonomy, the IKEA effect).
+# Design: everyone can vote on next week's boss. Most votes wins; no votes keeps the rotation.
+def boss_from_votes(votes: Iterable[str], wk: str) -> str:
+    counts: dict = {}
+    for v in votes or []:
+        if v in BOSSES:
+            counts[v] = counts.get(v, 0) + 1
+    if not counts:
+        return boss_for_week(wk)
+    top = max(counts.values())
+    return sorted(k for k, c in counts.items() if c == top)[0]
+
+
+def next_week_id(d: Optional[date] = None) -> str:
+    d = d or datetime.now(timezone.utc).date()
+    return week_id(d + timedelta(days=7))
+
+
+# ---- Pass it on (HEXAD Philanthropists; Core Drive 1) ----
+# Goal: experienced fighters help newcomers, and newcomers feel welcomed by real people.
+# Psychology: helping with no reward is its own reward for some people (purpose); seeing that
+#   your tip helped someone closes the loop. Advice from "someone like me" lands better.
+# Design: after 10 sessions you can leave one short tip a week. It is moderated, anonymous
+#   (level and gym only, never a name) and one-way: no replies, no profiles, no chat.
+TIP_FROM_SESSIONS = 10
+TIP_MAX = 140
+TIP_HIDE_AFTER_REPORTS = 2
+
+
+def tip_byline(level: int, same_gym: bool) -> str:
+    return f"A level {level} fighter{' at your gym' if same_gym else ''}"
+
+
+# ---- Results that land one at a time (prospect theory: hedonic editing) ----
+# Goal: each reward feels like a win, and the screen doesn't swamp a newcomer.
+# Psychology: separate gains feel bigger than one lump (segregate gains); too many badges
+#   at once make each mean less (and overwhelm someone new).
+# Design: newcomers see a short "what you did" screen with the rest folded away; everyone
+#   sees rewards arrive one after another.

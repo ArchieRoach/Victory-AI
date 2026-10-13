@@ -415,6 +415,35 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Strategy recommendations and a calm onboarding (branch `octalysis-recommendations`)
+
+Built from Parts 2 and 3 of the Octalysis strategy dashboard (claude.ai/artifact/MkcdakohPww9xfnYGJcUJh).
+- **Onboarding: feel smart, not swamped** (new CLAUDE.md rule).
+  - Questions cut from 5 to 4 (no favourite counter) and partner steps from 3 to 2 (accountability
+    defaults to moderate). The affirmation reflects their own answers back as smart choices, with
+    no result promises.
+  - `FEATURE_UNLOCKS`: week plan at 1 session, combo calls and crews at 2, freestyle and going live
+    at 3, Boss at 5, giving tips at 10. `GET /api/unlocks`; `rewards.unlocked_features` says what a
+    session unlocked.
+  - Newcomers (3 sessions or fewer) get a short Home and a short results screen ("See all your
+    numbers" folds the rest).
+- **Results one at a time** (prospect theory, hedonic editing): `.reveal-stack` in `index.css`.
+- **Crew cheer** (CD5): `GET /api/crew/today`, `POST /api/crew/cheer/{id}`. One tap, no text, only for
+  crew-mates who trained today.
+- **Boss vote** (HEXAD Disruptors): `GET/POST /api/boss/vote`. Most votes picks next week's boss;
+  no votes keeps the rotation.
+- **Pass it on** (HEXAD Philanthropists): `POST /api/tips` after 10 sessions, one a week.
+  - Moderated, with no links or contact details. Anonymous ("A level 7 fighter at your gym").
+  - Newcomers see one via `/api/tips/for-me`. They can mark it helpful or report it (2 reports
+    hides it).
+- **Easter eggs** (CD7): 5 hidden, found from real session evidence, shown as "x of 5 found" on the
+  trophy shelf.
+- **Gym season story** (CD1): `GET /api/gyms/{id}/season-story` after a season ends (members only).
+- **Metrics**: `GET /api/admin/octalysis-metrics` (admin or `X-Metrics-Token`). The training complete
+  call now accepts `{calls}` so the flow-zone metric is real.
+- Tests: `backend/test_recommendations.py`, `backend/test_recommendations_api.py`,
+  `frontend/src/lib/unlocks.test.js`, `frontend/src/lib/onboardingCalm.test.js`.
+
 ## Seven frameworks, built (branch `octalysis-frameworks`)
 
 Each one has Goal → Psychology → Design comments next to its rules in `backend/gamification.py`.
