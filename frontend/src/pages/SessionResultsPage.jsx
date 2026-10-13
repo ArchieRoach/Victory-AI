@@ -14,8 +14,8 @@ import { LiveSessionStats } from "@/components/LiveCoachPanel";
 import { analytics } from "@/lib/analytics";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { usePalette } from "@/hooks/useSystemTheme";
-import { dark as SHARE_CARD } from "@/theme/palette";
+import { usePalette } from "@/hooks/useColorScheme";
+import { dark as SHARE_CARD } from "@/theme/theme";
 
 // Real grouping already used server-side (see /dimensions) — reused here so the
 // scorecard's categories match the rest of the app, not an invented split.

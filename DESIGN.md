@@ -9,6 +9,16 @@
 
 All colors are defined as Tailwind custom tokens. Always use the token name — never hardcode hex values.
 
+**Light and dark come from one file.** `src/theme/theme.js` holds both palettes. At start-up it is
+installed as CSS variables, and `useColorScheme()` (`src/hooks/useColorScheme.js`) follows the
+phone's light/dark setting live, so every screen switches at once:
+- Screens never write their own light/dark code; they just use `victory-*` classes.
+- Code that needs raw colours (canvas, SVG, share images) uses `useTheme().colors` or `usePalette()`.
+- Plain white/black is only for text and badges sitting over video or photos, which stay dark in
+  both modes.
+
+The hex values in the table below are the dark palette; the light palette lives in the same file.
+
 | Token | Hex | Usage |
 |---|---|---|
 | `victory-bg` | `#0A0A0F` | Page background — always |

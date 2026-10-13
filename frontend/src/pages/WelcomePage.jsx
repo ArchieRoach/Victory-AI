@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Swords, Shield, Footprints } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { usePalette } from "@/hooks/useSystemTheme";
+import { usePalette } from "@/hooks/useColorScheme";
 
 // Same 3-ring category pattern SessionResultsPage.jsx actually shows after a real
 // session — a real user complained the old 16-spoke radar chart here "doesn't really

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { usePalette } from "@/hooks/useSystemTheme";
+import { usePalette } from "@/hooks/useColorScheme";
 
 export const Confetti = () => {
   const p = usePalette();

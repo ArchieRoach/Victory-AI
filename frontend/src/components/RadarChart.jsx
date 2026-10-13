@@ -6,7 +6,7 @@ import {
   PolarAngleAxis,
   ResponsiveContainer,
 } from "recharts";
-import { usePalette } from "@/hooks/useSystemTheme";
+import { usePalette } from "@/hooks/useColorScheme";
 
 const DIMENSIONS = [
   "Jab",

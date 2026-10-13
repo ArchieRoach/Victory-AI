@@ -3,6 +3,7 @@
 Full-stack boxing-training + live-streaming app. See `HANDOFF.md` for current branch/status.
 
 > **UI rule**: Read `DESIGN.md` before writing any frontend code. All colors, typography, components, and patterns are defined there. Never use generic Tailwind colors or write UI without following the Victory AI design system.
+> **Colour rule**: light and dark palettes live only in `frontend/src/theme/theme.js`; `useColorScheme()` follows the phone setting live. Never add per-screen light/dark code or hex colours.
 > **Feel rule** (DESIGN.md §12): anything a finger touches answers instantly, moves on springs (`lib/motion.js`), can be grabbed mid-move, and leaves the way it came. Sheets use `BottomSheet`. Haptics only for real moments.
 
 ## How to explain things to Archie (the owner)
