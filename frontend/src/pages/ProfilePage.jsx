@@ -294,7 +294,7 @@ export default function ProfilePage() {
       </header>
 
       {/* ── Tab bar ─────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 bg-victory-bg/95 backdrop-blur-sm border-b border-victory-border z-10">
+      <div className="sticky top-0 material-header z-10">
         <div className="flex px-4 overflow-x-auto scrollbar-hide">
           {[
             { key: "settings", label: "Profile Settings", icon: User },

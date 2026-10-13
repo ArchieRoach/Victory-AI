@@ -156,7 +156,7 @@ export default function PaywallPage() {
 
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col" data-testid="paywall-page">
-      <header className="p-4 flex items-center gap-3 sticky top-0 bg-victory-bg/95 backdrop-blur-sm z-10">
+      <header className="p-4 flex items-center gap-3 sticky top-0 material-header z-10">
         <button
           onClick={back}
           className="w-10 h-10 flex items-center justify-center rounded-full bg-victory-card border border-victory-border text-victory-muted hover:text-victory-text transition-colors touch-target"

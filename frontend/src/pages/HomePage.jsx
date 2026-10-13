@@ -534,7 +534,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="home-page">
 
       {/* ── Sticky header ────────────────────────────────────────────────── */}
-      <header className="sticky top-0 bg-victory-bg/95 backdrop-blur-sm border-b border-victory-border z-20">
+      <header className="sticky top-0 material-header z-20">
         <div className="flex items-center justify-between px-4 pt-4 pb-0">
           <div>
             <p className="text-victory-muted text-xs font-medium">{greeting},</p>

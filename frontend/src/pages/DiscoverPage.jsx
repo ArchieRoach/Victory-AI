@@ -214,7 +214,7 @@ export default function DiscoverPage() {
     <div className="min-h-screen bg-victory-bg pb-24">
 
       {/* ── Sticky header ── */}
-      <div className="sticky top-0 z-20 bg-victory-bg/95 backdrop-blur border-b border-victory-border">
+      <div className="sticky top-0 z-20 material-header">
 
         {/* Search bar */}
         <div className="px-4 py-3 flex items-center gap-2">

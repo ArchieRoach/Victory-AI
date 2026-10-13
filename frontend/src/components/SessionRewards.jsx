@@ -11,6 +11,7 @@ import { IdentityCard } from "@/components/IdentityCard";
 import { BragButton } from "@/components/progress/BragButton";
 import { CornerSurprise } from "@/components/progress/CornerSurprise";
 import { sessionWin, glovesLine } from "@/lib/progression";
+import { haptic } from "@/lib/haptics";
 
 const RARITY = {
   common: { label: "SCOUTING REPORT", cls: "bg-victory-card-highlight text-victory-muted border-victory-border" },
@@ -497,6 +498,10 @@ function FirstWins({ rewards, liveStats }) {
 }
 
 export function SessionRewards({ rewards, scoutingReport, overall, liveStats, sessionId, calls }) {
+  // One success tap when the results land, only if something real was won (Apple: utility).
+  const won = Boolean(rewards?.boss?.beaten || rewards?.oracle || rewards?.unlocked_features?.length
+    || rewards?.personal_bests?.new?.length || rewards?.status?.leveled_up || rewards?.easter_eggs?.new?.length);
+  useEffect(() => { if (won) haptic("success"); }, [won]);
   if (rewards?.freestyle) {
     return (
       <div className="space-y-3" data-testid="session-rewards">

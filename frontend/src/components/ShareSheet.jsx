@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { BottomSheet } from "@/components/BottomSheet";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
@@ -78,14 +79,9 @@ export function ShareSheet({ post, onClose, onShared }) {
   const isViral    = shareCount >= 50 || (post.share_count || 0) >= 50;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div
-        className="relative mt-auto bg-victory-bg rounded-t-2xl pb-safe"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Handle */}
-        <div className="w-10 h-1 rounded-full bg-victory-border mx-auto mt-3 mb-1" />
+    <BottomSheet onClose={onClose} label="Share" className="w-full max-w-lg mx-auto">
+      {({ close }) => (
+      <div className="overflow-y-auto min-h-0 flex-1">
 
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-victory-border">
@@ -98,7 +94,7 @@ export function ShareSheet({ post, onClose, onShared }) {
               </span>
             )}
           </div>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={() => close()} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -155,6 +151,7 @@ export function ShareSheet({ post, onClose, onShared }) {
           </button>
         </div>
       </div>
-    </div>
+      )}
+    </BottomSheet>
   );
 }

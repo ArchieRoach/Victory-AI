@@ -750,7 +750,7 @@ export default function PublicProfilePage() {
       </div>
 
       {/* ── Tab bar ───────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 bg-victory-bg/95 backdrop-blur-sm border-b border-victory-border z-10">
+      <div className="sticky top-0 material-header z-10">
         <div className="flex overflow-x-auto scrollbar-hide px-4">
           {TABS.map((t) => (
             <button

@@ -187,7 +187,7 @@ export default function ScorePage() {
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="score-page">
       {loading && <AnalysisOverlay progress={analysisProgress} stepIndex={analysisStep} />}
 
-      <header className="sticky top-0 z-40 bg-victory-bg/95 backdrop-blur-sm border-b border-victory-border p-4">
+      <header className="sticky top-0 z-40 material-header p-4">
         <h1 className="text-xl font-heading font-extrabold text-victory-text mb-1">
           {t("score.title")}
         </h1>

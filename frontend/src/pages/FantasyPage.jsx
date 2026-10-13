@@ -70,7 +70,7 @@ export default function FantasyPage() {
 
   return (
     <div className="min-h-screen bg-victory-bg pb-nav">
-      <div className="sticky top-0 z-20 bg-victory-bg/95 backdrop-blur border-b border-victory-border">
+      <div className="sticky top-0 z-20 material-header">
         <header className="p-4 flex items-center gap-2">
           <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label="Back"
             onClick={() => (cardId ? open(null) : navigate(-1))}>
