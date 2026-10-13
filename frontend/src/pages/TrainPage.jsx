@@ -1240,7 +1240,7 @@ export default function TrainPage() {
                 }`}
                 aria-label={isPaused ? "Resume" : "Pause"}
               >
-                {isPaused ? <Play className="w-9 h-9 ml-1" /> : <Pause className="w-9 h-9" />}
+                {isPaused ? <Play className="w-9 h-9" /> : <Pause className="w-9 h-9" />}
               </button>
 
               {/* End session — danger */}

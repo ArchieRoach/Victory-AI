@@ -1,0 +1,384 @@
+{
+ "measured": [
+  "Activity",
+  "AlertCircle",
+  "AlertTriangle",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "Award",
+  "Ban",
+  "Bell",
+  "BellOff",
+  "BellRing",
+  "BookOpen",
+  "Bot",
+  "Bug",
+  "Building2",
+  "CalendarCheck",
+  "CalendarClock",
+  "CalendarDays",
+  "Camera",
+  "Check",
+  "CheckCircle",
+  "CheckCircle2",
+  "ChevronDown",
+  "ChevronLeft",
+  "ChevronRight",
+  "ChevronUp",
+  "Circle",
+  "Clapperboard",
+  "Clock",
+  "Coins",
+  "Compass",
+  "Copy",
+  "CreditCard",
+  "Crown",
+  "Delete",
+  "Download",
+  "Dumbbell",
+  "Edit",
+  "Egg",
+  "ExternalLink",
+  "Eye",
+  "FileText",
+  "Film",
+  "Flag",
+  "Flame",
+  "FlaskConical",
+  "Footprints",
+  "Gavel",
+  "Ghost",
+  "Gift",
+  "Globe",
+  "GraduationCap",
+  "GripVertical",
+  "Hammer",
+  "Handshake",
+  "Headphones",
+  "Heart",
+  "HeartHandshake",
+  "History",
+  "Home",
+  "Hourglass",
+  "IdCard",
+  "Info",
+  "Lightbulb",
+  "Link",
+  "Loader2",
+  "Lock",
+  "LockOpen",
+  "LogIn",
+  "LogOut",
+  "MapPin",
+  "Medal",
+  "Megaphone",
+  "MessageCircle",
+  "MessageSquare",
+  "MessageSquarePlus",
+  "MessagesSquare",
+  "Minus",
+  "MoreHorizontal",
+  "MoreVertical",
+  "Mountain",
+  "Music",
+  "Palette",
+  "PartyPopper",
+  "Pause",
+  "Pencil",
+  "Play",
+  "Plus",
+  "Printer",
+  "QrCode",
+  "Quote",
+  "Radio",
+  "RefreshCw",
+  "RotateCcw",
+  "ScanEye",
+  "ScanSearch",
+  "Scissors",
+  "Search",
+  "Send",
+  "Share",
+  "Share2",
+  "Shield",
+  "ShieldAlert",
+  "ShieldCheck",
+  "ShoppingBag",
+  "Shuffle",
+  "SkipForward",
+  "Skull",
+  "SlidersHorizontal",
+  "Smartphone",
+  "Smile",
+  "Sparkles",
+  "Square",
+  "SquarePlus",
+  "Star",
+  "Swords",
+  "Target",
+  "Telescope",
+  "ThumbsUp",
+  "Timer",
+  "Trash2",
+  "TrendingDown",
+  "TrendingUp",
+  "Trophy",
+  "Tv",
+  "Upload",
+  "User",
+  "UserCheck",
+  "UserPlus",
+  "Users",
+  "Users2",
+  "Video",
+  "VideoOff",
+  "Volume2",
+  "VolumeX",
+  "Vote",
+  "Wifi",
+  "WifiOff",
+  "X",
+  "XCircle",
+  "Zap"
+ ],
+ "nudges": {
+  "lucide-triangle-alert": [
+   0,
+   -6
+  ],
+  "lucide-arrow-down": [
+   0,
+   -6
+  ],
+  "lucide-arrow-left": [
+   6,
+   0
+  ],
+  "lucide-arrow-right": [
+   -6,
+   0
+  ],
+  "lucide-arrow-up": [
+   0,
+   6
+  ],
+  "lucide-bell-ring": [
+   0,
+   5.8
+  ],
+  "lucide-book-open": [
+   0,
+   4.2
+  ],
+  "lucide-bot": [
+   0,
+   -4.1
+  ],
+  "lucide-building2": [
+   0,
+   -5.4
+  ],
+  "lucide-camera": [
+   0,
+   -3.6
+  ],
+  "lucide-delete": [
+   -6,
+   0
+  ],
+  "lucide-download": [
+   0,
+   -6
+  ],
+  "lucide-flag": [
+   3.7,
+   6
+  ],
+  "lucide-flame": [
+   0,
+   -6
+  ],
+  "lucide-flask-conical": [
+   0,
+   -6
+  ],
+  "lucide-ghost": [
+   0,
+   -4.8
+  ],
+  "lucide-graduation-cap": [
+   -3.1,
+   0
+  ],
+  "lucide-handshake": [
+   0,
+   4.2
+  ],
+  "lucide-headphones": [
+   0,
+   -3.8
+  ],
+  "lucide-heart": [
+   0,
+   6
+  ],
+  "lucide-heart-handshake": [
+   0,
+   6
+  ],
+  "lucide-history": [
+   0,
+   3.3
+  ],
+  "lucide-house": [
+   0,
+   -6
+  ],
+  "lucide-lightbulb": [
+   0,
+   5.1
+  ],
+  "lucide-lock": [
+   0,
+   -5.2
+  ],
+  "lucide-lock-open": [
+   0,
+   -6
+  ],
+  "lucide-log-in": [
+   -6,
+   0
+  ],
+  "lucide-log-out": [
+   6,
+   0
+  ],
+  "lucide-map-pin": [
+   0,
+   4.5
+  ],
+  "lucide-medal": [
+   0,
+   6
+  ],
+  "lucide-megaphone": [
+   -3.1,
+   -4.3
+  ],
+  "lucide-message-circle": [
+   4,
+   -4
+  ],
+  "lucide-message-square": [
+   3.1,
+   4.6
+  ],
+  "lucide-message-square-plus": [
+   0,
+   5.3
+  ],
+  "lucide-messages-square": [
+   0,
+   3.7
+  ],
+  "lucide-mountain": [
+   0,
+   -6
+  ],
+  "lucide-music": [
+   -5.9,
+   0
+  ],
+  "lucide-play": [
+   6,
+   0
+  ],
+  "lucide-rotate-ccw": [
+   3.2,
+   3.2
+  ],
+  "lucide-scissors": [
+   6,
+   0
+  ],
+  "lucide-send": [
+   -6,
+   6
+  ],
+  "lucide-share": [
+   0,
+   -6
+  ],
+  "lucide-share2": [
+   -6,
+   0
+  ],
+  "lucide-shuffle": [
+   -6,
+   0
+  ],
+  "lucide-skip-forward": [
+   3.6,
+   0
+  ],
+  "lucide-skull": [
+   0,
+   -3.1
+  ],
+  "lucide-thumbs-up": [
+   3.8,
+   -6
+  ],
+  "lucide-timer": [
+   0,
+   -3.3
+  ],
+  "lucide-trending-down": [
+   -6,
+   0
+  ],
+  "lucide-trending-up": [
+   -6,
+   0
+  ],
+  "lucide-tv": [
+   0,
+   -3.2
+  ],
+  "lucide-upload": [
+   0,
+   -6
+  ],
+  "lucide-user-check": [
+   5.5,
+   0
+  ],
+  "lucide-user-plus": [
+   3.8,
+   0
+  ],
+  "lucide-users-round": [
+   -3.1,
+   0
+  ],
+  "lucide-volume-x": [
+   4.9,
+   0
+  ],
+  "lucide-vote": [
+   0,
+   -3.2
+  ],
+  "lucide-wifi": [
+   0,
+   6
+  ],
+  "lucide-wifi-off": [
+   0,
+   3.9
+  ]
+ }
+}
