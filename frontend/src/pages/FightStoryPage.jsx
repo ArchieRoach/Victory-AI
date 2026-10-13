@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, Download, Printer, BookOpen } from "lucide-react";
+import { ArrowLeft, Download, Printer, BookOpen, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
 
@@ -51,6 +51,9 @@ export default function FightStoryPage() {
           <h1 className="text-xl font-heading font-extrabold text-victory-text">Your Fight Story</h1>
           <p className="text-victory-muted text-sm">Everything you've built here. Yours to keep.</p>
         </div>
+        <button className="ml-auto text-[12px] text-victory-lime font-semibold flex items-center gap-1 min-h-[44px]" onClick={() => navigate("/wrapped")}>
+          <Sparkles className="w-3.5 h-3.5" /> Season Wrapped
+        </button>
       </header>
 
       {!story ? <div className="max-w-lg mx-auto p-4 space-y-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton-shimmer h-24 rounded-lg" />)}</div> : (

@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
-  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye, Skull, Music, Megaphone,
+  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye, Skull, Music, Megaphone, Swords,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
@@ -104,6 +104,11 @@ export default function TrainPage() {
   const [callsOn, setCallsOn] = useState(readCalls);
   const [currentCall, setCurrentCall] = useState(null);
   const callerRef = useRef(null);
+  // The combo you chose in the combo builder this week: shown here and called during rounds.
+  const [weeklyCombo, setWeeklyCombo] = useState(null);
+  useEffect(() => {
+    axios.get(`${API}/combos`).then((r) => setWeeklyCombo(r.data.active || null)).catch(() => {});
+  }, []);
   useEffect(() => {
     if (!unlocks) return;
     if (!isUnlocked(unlocks, "go_live")) setSessionMode("private");
@@ -479,7 +484,7 @@ export default function TrainPage() {
       if (!granted && kind === "boss") toast.error("Boss Rounds need the camera to count. This try won't count.");
     }
     callerRef.current = callsOn && canCall && kind !== "boss"
-      ? createComboCaller({ level: savedLevel(), gapScale: kind === "freestyle" ? 1.6 : 1 })
+      ? createComboCaller({ level: savedLevel(), gapScale: kind === "freestyle" ? 1.6 : 1, weekly: weeklyCombo?.label || null })
       : null;
     if (liveCoach) {
       axios.get(`${API}/training/ghost`, { params: { round_duration: roundDuration } })
@@ -670,6 +675,16 @@ export default function TrainPage() {
                 ))}
               </div>
             </div>
+            )}
+
+            {weeklyCombo && kind !== "boss" && (
+              <div className="victory-card p-4 flex items-center gap-3" data-testid="weekly-combo">
+                <Swords className="w-5 h-5 text-victory-lime flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-victory-text text-sm font-semibold">This week's combo: <span className="font-mono">{weeklyCombo.label}</span>{weeklyCombo.name ? ` (${weeklyCombo.name})` : ""}</p>
+                  <p className="text-victory-muted text-xs">{canCall && callsOn ? "Your coach calls it every third combo." : "Your partner watches for it in recorded rounds."}</p>
+                </div>
+              </div>
             )}
 
             {kind === "freestyle" && (
