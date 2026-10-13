@@ -504,8 +504,18 @@ export default function SessionResultsPage() {
             <span className="section-label">{t("results.breakdown")}</span>
             {showBreakdown ? <ChevronUp className="w-4 h-4 text-victory-muted" /> : <ChevronDown className="w-4 h-4 text-victory-muted" />}
           </button>
+          {showBreakdown && !session.dimension_scores?.some((d) => d.score !== null) && (
+            <div className="victory-card p-4" data-testid="breakdown-empty">
+              <p className="text-victory-text text-sm font-semibold">No scores for this session</p>
+              <p className="text-victory-muted text-xs mt-1">
+                {session.record_video
+                  ? "Your video didn't get scored this time, so there's nothing honest to show. Your next filmed round will fill this in."
+                  : "The breakdown comes from your round videos. Turn on video next session and the AI scores 16 parts of your boxing."}
+              </p>
+            </div>
+          )}
           {showBreakdown && CATEGORY_GROUPS.map(({ key, label, dims }) => {
-            const groupScores = session.dimension_scores.filter((d) => dims.includes(d.dimension_name) && d.score !== null);
+            const groupScores = (session.dimension_scores || []).filter((d) => dims.includes(d.dimension_name) && d.score !== null);
             if (!groupScores.length) return null;
             return (
               <div key={key} className="victory-card p-4">
@@ -555,7 +565,7 @@ export default function SessionResultsPage() {
           </div>
           <div>
             <p className="text-victory-text font-semibold text-sm">
-              {t("results.sessionLogged", { rounds: session.rounds?.length || session.training_config?.total_rounds || 0 })}
+              {t("results.sessionLogged", { count: session.rounds?.length || session.training_config?.total_rounds || 0, rounds: session.rounds?.length || session.training_config?.total_rounds || 0 })}
             </p>
             {currentStreak > 0 && (
               <p className="text-victory-muted text-xs mt-0.5">

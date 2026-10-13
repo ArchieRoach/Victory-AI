@@ -42,3 +42,10 @@ test("no duplicate chip when same time tomorrow is already a preset", () => {
   expect(chips[0].label).toBe("Same time tomorrow (6pm)");
   expect(chips.map((c) => c.key)).not.toContain("tomorrow-pm");
 });
+
+test("booking times read 9pm on any phone, never a bare 24-hour '21'", () => {
+  const now = new Date(2026, 9, 13, 22, 17);
+  expect(formatBooking(new Date(2026, 9, 14, 21, 0).toISOString(), now)).toBe("Tomorrow 9pm");
+  expect(formatBooking(new Date(2026, 9, 14, 7, 30).toISOString(), now)).toBe("Tomorrow 7:30am");
+  expect(formatBooking(new Date(2026, 9, 14, 12, 0).toISOString(), now)).toBe("Tomorrow 12pm");
+});

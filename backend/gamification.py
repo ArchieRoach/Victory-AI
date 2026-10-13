@@ -667,7 +667,7 @@ MASTERY_FROM_DAYS = 42
 
 STAGES = {
     "hook": ("Getting started", "Your first week: build the habit, earn your starter kit."),
-    "belong": ("Part of it", "Your crew, your shelf, your mentors: this is your gym now."),
+    "belong": ("Part of it", "Your squad, your shelf, your mentors: this is your gym now."),
     "mastery": ("In it for the craft", "Fewer numbers, more boxing. Tell us how each session felt."),
 }
 
@@ -735,16 +735,47 @@ def enjoyment_summary(reflections: List[dict]) -> Optional[dict]:
 # Psychology: variable rewards: not knowing what comes next keeps curiosity alive. Kept healthy:
 #   only earned by real actions, never bought (no loot boxes, especially for under-18s), odds
 #   shown openly, and a daily cap so it never turns into pulling a lever.
-# Design: after a session or a treasure given, a roll from a fixed, published table.
+# Design: after a session or a treasure given, a roll from a fixed, published table. Rare
+#   enough to stay a surprise: none in your first sessions (Beginner's Luck covers those),
+#   none for a token round, and a cooldown so they can't land session after session. Paid
+#   team looks are never in the table: a free roll should never give away what others buy.
 
 SURPRISE_TABLE = [
-    ("legend_tip", "A legend's tip", 15),
-    ("bonus_status", "Bonus status", 10),
-    ("deep_scout", "Deep scout of your best moment", 7),
-    ("rare_look", "A rare free team look", 3),
+    ("legend_tip", "A legend's tip", 10),
+    ("bonus_status", "Bonus status", 6),
+    ("deep_scout", "Deep scout of your best moment", 4),
 ]
-SURPRISE_DAILY_CAP = 3
+SURPRISE_DAILY_CAP = 1
 SURPRISE_BONUS_STATUS = 25
+SURPRISE_MIN_SESSIONS = 3
+SURPRISE_MIN_ROUND_SECONDS = 6 * 60
+SURPRISE_COOLDOWN_HOURS = 48
+
+
+def surprise_rules() -> List[str]:
+    return [
+        f"Surprises start after your {SURPRISE_MIN_SESSIONS}rd session.",
+        f"Only sessions with at least {SURPRISE_MIN_ROUND_SECONDS // 60} minutes of rounds can roll one.",
+        f"At most one every {SURPRISE_COOLDOWN_HOURS // 24} days.",
+    ]
+
+
+def surprise_eligible(sessions_done: int, round_seconds: Optional[int], last_at: Optional[str],
+                      now: Optional[datetime] = None) -> bool:
+    if sessions_done < SURPRISE_MIN_SESSIONS:
+        return False
+    if round_seconds is not None and round_seconds < SURPRISE_MIN_ROUND_SECONDS:
+        return False
+    if last_at:
+        try:
+            last = datetime.fromisoformat(last_at)
+        except ValueError:
+            return True
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=timezone.utc)
+        if (now or datetime.now(timezone.utc)) - last < timedelta(hours=SURPRISE_COOLDOWN_HOURS):
+            return False
+    return True
 
 
 def surprise_odds() -> List[dict]:
@@ -780,7 +811,7 @@ def roll_surprise(seed: str, *, guaranteed: bool = False, scored: bool = True) -
 QUEST_ROUTES = {
     "engine": ("Engine Room", "Train {target} sessions between you."),
     "sharp": ("Sharp Shooters", "Land {target} AI-scored sessions with a jab of 7 or better between you."),
-    "signature": ("Signature Combo", "Pick a crew combo, then drill it in {target} AI-scored sessions between you."),
+    "signature": ("Signature Combo", "Pick a squad combo, then drill it in {target} AI-scored sessions between you."),
 }
 SHARP_JAB = 7
 
@@ -980,7 +1011,7 @@ GYM_CHECKIN_MULTIPLIER = 2
 FEATURE_UNLOCKS = [
     ("week_plan", 1, "Pick your week", "Choose how many sessions you'll do each week. Your partner keeps pace."),
     ("combo_calls", 2, "Combo calls", "Your coach calls combos by number: 1 is a jab, 2 a cross, 3 a lead hook."),
-    ("crew", 2, "Crews and ranks", "See where you stand this week and train with friends."),
+    ("crew", 2, "Squads and ranks", "See where you stand this week and train with friends."),
     ("round_types", 3, "Freestyle rounds", "A no-score round for days you just want to move."),
     ("go_live", 3, "Go live", "Stream a session for your friends to watch."),
     ("boss", 5, "Boss Round", "One tough round a week, set by your own best."),
@@ -1205,7 +1236,7 @@ def crew_moments(name: str, rewards: dict) -> List[dict]:
         out.append({"kind": "boss", "text": f"{name} beat {boss.get('name')}"})
     for q in rewards.get("quests") or []:
         if q.get("just_completed"):
-            out.append({"kind": "quest", "text": f"{name} finished the crew mission", "squad_id": q.get("squad_id")})
+            out.append({"kind": "quest", "text": f"{name} finished the squad mission", "squad_id": q.get("squad_id")})
     if not out:
         out.append({"kind": "trained", "text": f"{name} trained today"})
     return out

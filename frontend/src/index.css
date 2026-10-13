@@ -418,3 +418,10 @@ h1, h2, h3 { font-optical-sizing: auto; text-wrap: balance; }
 /* Sheets: rounded top, flush with the bottom of the screen. */
 .glass.sheet-surface { --r1: var(--r-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
 .glass.glass-bar { --r1: 0px; border-radius: 0; }
+
+/* Pollinations portraits are made 4:5 with the logo in the bottom strip; showing them from the
+   top inside any square or round frame crops that strip off. */
+img[src*="image.pollinations.ai/prompt"]:not([src*="transparent=true"]) {
+  object-fit: cover;
+  object-position: 50% 0%;
+}

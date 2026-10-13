@@ -92,9 +92,11 @@ function ScoutingReport({ report }) {
         <div className="flex-1">
           <p className="text-victory-text text-sm font-semibold">{report.title}</p>
           <p className="text-victory-muted text-xs mb-2">{report.body}</p>
-          <button onClick={() => navigate("/train")} className="text-victory-lime text-xs font-heading font-bold flex items-center gap-1 touch-target">
-            <Video className="w-3.5 h-3.5" /> Turn on video next session
-          </button>
+          {report.reason !== "unscored" && (
+            <button onClick={() => navigate("/train")} className="text-victory-lime text-xs font-heading font-bold flex items-center gap-1 touch-target">
+              <Video className="w-3.5 h-3.5" /> Turn on video next session
+            </button>
+          )}
         </div>
       </section>
     );
@@ -285,7 +287,7 @@ function StatusEarned({ status, quests, gloves }) {
         <button className="w-full text-left text-[12px] text-victory-muted min-h-[44px]" onClick={() => navigate("/leaderboard?tab=quests")}>
           {quest.just_completed ? <span className="text-victory-lime font-semibold">{quest.name} just completed the mission! Pick your booster.</span>
             : quest.counted === false ? <>This one didn't count toward {quest.name}'s mission. Check what it needs.</>
-            : <>Crew mission: <span className="font-mono text-victory-text">{quest.progress}/{quest.target}</span> for {quest.name}</>}
+            : <>Squad mission: <span className="font-mono text-victory-text">{quest.progress}/{quest.target}</span> for {quest.name}</>}
         </button>
       )}
       {glove && (
@@ -429,7 +431,7 @@ function CrewCheer() {
   };
   return (
     <section className="victory-card p-4 space-y-2" data-testid="crew-cheer">
-      <p className="section-label flex items-center gap-1.5"><PartyPopper className="w-3 h-3" /> Your crew trained today too</p>
+      <p className="section-label flex items-center gap-1.5"><PartyPopper className="w-3 h-3" /> Your squad trained today too</p>
       <div className="flex flex-wrap gap-2">
         {mates.map((m) => (
           <button key={m.user_id} disabled={m.cheered} onClick={() => cheer(m.user_id)}

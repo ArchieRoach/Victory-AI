@@ -82,7 +82,7 @@ export function QuestList() {
 
           {q.route === "signature" && (
             <div className="space-y-2 rounded-xl bg-victory-card-highlight border border-victory-border p-3">
-              <p className="text-[12px] text-victory-text font-semibold flex items-center gap-1.5"><Swords className="w-3.5 h-3.5 text-victory-lime" /> Crew combo</p>
+              <p className="text-[12px] text-victory-text font-semibold flex items-center gap-1.5"><Swords className="w-3.5 h-3.5 text-victory-lime" /> Squad combo</p>
               {q.nominations.length === 0 && <p className="text-[11px] text-victory-muted">Nobody has put a combo forward yet.</p>}
               {q.nominations.map((n) => (
                 <div key={n.by} className="flex items-center gap-2">
@@ -104,7 +104,7 @@ export function QuestList() {
                 <button className="victory-btn-ghost" onClick={() => navigate("/combos")}>Build a combo to put forward</button>
               )}
               {q.signature && (
-                <button className="victory-btn-primary" onClick={() => act(() => axios.post(`${API}/quests/${q.squad_id}/signature/drill`), "Your partner will watch for the crew combo")}>Drill the crew combo</button>
+                <button className="victory-btn-primary" onClick={() => act(() => axios.post(`${API}/quests/${q.squad_id}/signature/drill`), "Your partner will watch for the squad combo")}>Drill the squad combo</button>
               )}
             </div>
           )}
@@ -141,7 +141,7 @@ function CrewFeed({ squadId }) {
   };
   return (
     <details className="pt-1 border-t border-victory-border" onToggle={(e) => setOpen(e.currentTarget.open)} data-testid="crew-feed">
-      <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[44px] flex items-center gap-1.5"><MessagesSquare className="w-3.5 h-3.5" /> Crew moments</summary>
+      <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[44px] flex items-center gap-1.5"><MessagesSquare className="w-3.5 h-3.5" /> Squad moments</summary>
       {feed === null && open && <div className="skeleton-shimmer h-16 rounded-lg" />}
       {feed && feed.events.length === 0 && <p className="text-[12px] text-victory-muted pb-2">Nothing yet. Train and it shows up here.</p>}
       {feed && (

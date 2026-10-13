@@ -121,7 +121,7 @@ export function GroupBoard() {
             <Users className="w-8 h-8 text-victory-lime/60" />
           </div>
           <p className="text-victory-text font-bold text-lg mb-1">{kind === "squad" ? "No squad yet" : "No gym yet"}</p>
-          <p className="text-victory-muted text-sm">{kind === "squad" ? "Start a squad and your crew climbs together." : "Join a gym to fight for it on this board."}</p>
+          <p className="text-victory-muted text-sm">{kind === "squad" ? "Start a squad and climb together." : "Join a gym to fight for it on this board."}</p>
         </div>
       ) : (
         <>

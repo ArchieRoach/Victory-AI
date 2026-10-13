@@ -17,9 +17,9 @@ export function inviteMoment(rewards, report) {
   const beaten = rewards?.callouts_beaten?.[0];
   if (beaten) return { dimension: beaten.dimension, headline: "Callout beaten. Bring someone who can keep up." };
   if (rewards?.boss?.beaten) return { dimension: null, headline: `You beat ${rewards.boss.name}. Who else can?` };
-  if (rewards?.season?.ranked_up) return { dimension: null, headline: `You're ${rewards.season.rank} now. Bring your crew.` };
-  if (rewards?.identity?.count === 1) return { dimension: null, headline: `New trait: ${rewards.identity.name}. Show your crew.` };
+  if (rewards?.season?.ranked_up) return { dimension: null, headline: `You're ${rewards.season.rank} now. Bring your squad.` };
+  if (rewards?.identity?.count === 1) return { dimension: null, headline: `New trait: ${rewards.identity.name}. Show your squad.` };
   const r = report ?? rewards?.scouting_report;
-  if (r && !r.locked && (r.rarity === "rare" || r.rarity === "epic")) return { dimension: null, headline: "Rare report. Show your crew." };
+  if (r && !r.locked && (r.rarity === "rare" || r.rarity === "epic")) return { dimension: null, headline: "Rare report. Show your squad." };
   return null;
 }

@@ -30,12 +30,12 @@ test("a fresh skill PB beats Overall as the brag", () => {
 
 test("callouts, rank-ups and rare reports also count as wins", () => {
   expect(inviteMoment({ callouts_beaten: [{ dimension: "Footwork" }] }).dimension).toBe("Footwork");
-  expect(inviteMoment({ season: { ranked_up: true, rank: "Contender" } })).toEqual({ dimension: null, headline: "You're Contender now. Bring your crew." });
+  expect(inviteMoment({ season: { ranked_up: true, rank: "Contender" } })).toEqual({ dimension: null, headline: "You're Contender now. Bring your squad." });
   expect(inviteMoment({}, { rarity: "rare" }).dimension).toBeNull();
 });
 
 test("a first-time trait is a win; a repeat isn't", () => {
-  expect(inviteMoment({ identity: { name: "Iron Guard", count: 1 } }).headline).toBe("New trait: Iron Guard. Show your crew.");
+  expect(inviteMoment({ identity: { name: "Iron Guard", count: 1 } }).headline).toBe("New trait: Iron Guard. Show your squad.");
   expect(inviteMoment({ boss: { beaten: true, name: "The Wall" } }).headline).toBe("You beat The Wall. Who else can?");
   expect(inviteMoment({ boss: { beaten: false, name: "The Wall" } })).toBeNull();
   expect(inviteMoment({ identity: { name: "Iron Guard", count: 3 } })).toBeNull();

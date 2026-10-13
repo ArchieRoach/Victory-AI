@@ -759,6 +759,18 @@ async def create_training_partner(partner_data: TrainingPartnerCreate, user: dic
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner": training_partner, "onboarding_completed": True}})
     return training_partner
 
+# Pollinations stamps its logo in the bottom-right corner unless the app is registered, and
+# ignores nologo=true otherwise. Portraits are made 4:5 and shown cropped from the top
+# (index.css), so the bottom strip with the logo never shows in a square avatar.
+def pollinations_portrait(prompt: str, seed) -> str:
+    import urllib.parse
+    return (f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}"
+            f"?width=512&height=640&nologo=true&referrer=victory-ai&seed={seed}")
+
+
+PARTNER_LOOKS = {"male": "male boxer", "female": "female boxer", "non-binary": "androgynous boxer"}
+
+
 @api_router.post("/onboarding/generate-avatar")
 async def generate_partner_avatar(request: Request, user: dict = Depends(get_current_user)):
     if _rate_limited(f"avatar_generate:{user['user_id']}", 10, 60):
@@ -773,17 +785,19 @@ async def generate_partner_avatar(request: Request, user: dict = Depends(get_cur
         raise HTTPException(400, "That input violates community guidelines")
 
     style_info = TRAINING_PARTNER_STYLES.get(training_partner["style"], {})
+    gender = body.get("gender") if body.get("gender") in PARTNER_LOOKS else None
+    who = PARTNER_LOOKS.get(gender, "boxing trainer")
 
     if favorite_fighter:
-        prompt = f"A boxing trainer avatar inspired by {favorite_fighter} fighting style and presence, stylized digital art portrait, athletic confident pose, dark background with electric lime green accents, original character not real person, professional boxing coach aesthetic, high quality"
+        prompt = f"A {who} avatar inspired by {favorite_fighter} fighting style and presence, stylized digital art portrait, athletic confident pose, dark background with electric lime green accents, original character not real person, professional boxing coach aesthetic, high quality"
     else:
-        prompt = f"A boxing trainer avatar, {style_info.get('name', 'coach')} personality, stylized digital art, dark background with electric lime accents, professional boxing aesthetic"
+        prompt = f"A {who} avatar, {style_info.get('name', 'coach')} personality, stylized digital art, dark background with electric lime accents, professional boxing aesthetic"
 
-    import urllib.parse
-    encoded_prompt = urllib.parse.quote(prompt)
-    avatar_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&nologo=true&seed={training_partner['partner_id']}"
-
-    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner.avatar_url": avatar_url}})
+    avatar_url = pollinations_portrait(prompt, training_partner["partner_id"])
+    update = {"training_partner.avatar_url": avatar_url}
+    if gender:
+        update["training_partner.appearance_gender"] = gender
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
     return {"avatar_url": avatar_url}
 
 @api_router.post("/training-partner/regenerate-avatar")
@@ -798,11 +812,7 @@ async def regenerate_partner_avatar_appearance(request: Request, user: dict = De
     gender = body.get("gender", "male")
     skin_tone = body.get("skin_tone", "medium")
 
-    gender_desc = {
-        "male":       "male boxer",
-        "female":     "female boxer",
-        "non-binary": "androgynous boxer",
-    }.get(gender, "boxer")
+    gender_desc = PARTNER_LOOKS.get(gender, "boxer")
 
     skin_desc = {
         "light":        "fair light skin",
@@ -821,10 +831,8 @@ async def regenerate_partner_avatar_appearance(request: Request, user: dict = De
         "electric lime green accents, original character, professional boxing aesthetic, high quality"
     )
 
-    import urllib.parse
     seed = abs(hash(f"{user['user_id']}{gender}{skin_tone}")) % 99999
-    encoded_prompt = urllib.parse.quote(prompt)
-    avatar_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&nologo=true&seed={seed}"
+    avatar_url = pollinations_portrait(prompt, seed)
 
     await db.users.update_one(
         {"user_id": user["user_id"]},
@@ -7074,10 +7082,16 @@ def session_points(overall: Optional[float], new_pbs: int, trusted_scores: bool)
 SCOUTING_TYPES = ("weakness", "strength", "percentile", "elite")
 
 
-def build_scouting_report(dims: list, seed: str, percentiles: Optional[dict] = None) -> dict:
+def build_scouting_report(dims: list, seed: str, percentiles: Optional[dict] = None, filmed: bool = False) -> dict:
     scored = [d for d in dims or [] if isinstance(d.get("score"), (int, float))]
+    if not scored and filmed:
+        # Video was on but no round came back scored (upload or AI failed). Telling them to
+        # "turn on video" would be wrong; say what actually happened.
+        return {"locked": True, "type": None, "rarity": None, "reason": "unscored",
+                "title": "Couldn't score your video this time",
+                "body": "The upload or the AI check didn't finish. Your session still counts. Next filmed round will try again."}
     if not scored:
-        return {"locked": True, "type": None, "rarity": None,
+        return {"locked": True, "type": None, "rarity": None, "reason": "no_video",
                 "title": "Scouting report locked",
                 "body": "Record a round on video and the AI will scout your technique."}
     rng = random.Random(seed)
@@ -7235,7 +7249,7 @@ def top_identity_traits(counts: dict, n: int = 3) -> list:
 
 async def apply_freestyle_rewards(user: dict, session: dict) -> dict:
     """Easy fun: no score, no rank, no points. It still counts as a day trained (partner,
-    streak, your week) and towards a crew's Engine Room mission, because the effort was real."""
+    streak, your week) and towards a squad's Engine Room mission, because the effort was real."""
     uid = user["user_id"]
     await _complete_bookings_for(uid)
     quests = await advance_squad_quests(uid, {"trusted": False, "jab": None, "combo": None})
@@ -7245,7 +7259,8 @@ async def apply_freestyle_rewards(user: dict, session: dict) -> dict:
         "reflection_tags": gx.REFLECTION_TAGS,
         "quests": quests,
         "week": await week_plan_for(uid),
-        "surprise": await corner_surprise(uid, f"session:{session.get('session_id')}", session=None),
+        "surprise": await corner_surprise(uid, f"session:{session.get('session_id')}", session=None,
+                                          round_seconds=_round_seconds(session) or 0),
     }
 
 
@@ -7291,7 +7306,7 @@ async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool)
     report = None
     if trusted_scores:
         percentiles = await _weekly_percentiles(uid, dims)
-        report = build_scouting_report(dims, session["session_id"], percentiles)
+        report = build_scouting_report(dims, session["session_id"], percentiles, filmed=bool(session.get("record_video")))
         if report.get("type"):
             await db.users.update_one({"user_id": uid}, {"$addToSet": {"scouting_types_found": report["type"]}})
             found = await db.users.find_one({"user_id": uid}, {"scouting_types_found": 1}) or {}
@@ -7306,7 +7321,8 @@ async def apply_session_rewards(user: dict, session: dict, trusted_scores: bool)
     jab = next((d["score"] for d in dims or [] if d.get("dimension_name") == "Jab" and isinstance(d.get("score"), (int, float))), None)
     quests = await advance_squad_quests(uid, {"trusted": trusted_scores, "jab": jab,
                                               "combo": (combo_doc.get("active_combo") or {}).get("label")})
-    surprise = await corner_surprise(uid, f"session:{session.get('session_id')}", session=session if trusted_scores else None)
+    surprise = await corner_surprise(uid, f"session:{session.get('session_id')}", session=session if trusted_scores else None,
+                                     round_seconds=_round_seconds(session) or 0)
     if trusted_scores:
         gloves = await award_verified_time(uid, round_seconds=gx.verified_round_seconds(session.get("rounds")))
     else:
@@ -9981,8 +9997,8 @@ async def drill_signature(squad_id: str, user: dict = Depends(get_current_user))
     winner = gx.plurality(q.get("signature_votes") or {})
     nom = (q.get("nominations") or {}).get(winner) if winner else None
     if not nom:
-        raise HTTPException(400, "Your crew hasn't picked a combination yet")
-    active = {"combo_id": f"crew_{squad_id[-8:]}", "name": nom.get("name") or "Crew combo", "moves": nom["moves"],
+        raise HTTPException(400, "Your squad hasn't picked a combination yet")
+    active = {"combo_id": f"crew_{squad_id[-8:]}", "name": nom.get("name") or "Squad combo", "moves": nom["moves"],
               "label": nom["label"], "focus": nom["focus"], "set_at": datetime.now(timezone.utc).isoformat()}
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"training_partner": 1}) or {}
     update = {"active_combo": active}
@@ -10735,15 +10751,29 @@ async def reflect_on_session(session_id: str, data: ReflectionIn, user: dict = D
 
 # ---- Corner Surprises (rules and reasoning in gamification.py) ----
 
-async def corner_surprise(uid: str, seed: str, session: Optional[dict] = None) -> Optional[dict]:
+def _round_seconds(session: Optional[dict]) -> Optional[int]:
+    cfg = (session or {}).get("training_config") or {}
+    if not cfg.get("round_duration"):
+        return None
+    done = ((session or {}).get("live_stats") or {}).get("rounds") or len((session or {}).get("rounds") or [])
+    return cfg["round_duration"] * (done or cfg.get("total_rounds") or 1)
+
+
+async def corner_surprise(uid: str, seed: str, session: Optional[dict] = None,
+                          round_seconds: Optional[int] = None) -> Optional[dict]:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     fresh = await db.users.find_one({"user_id": uid}, {"surprise_day": 1, "guaranteed_surprises": 1, "personal_bests": 1,
-                                                       "fantasy_cosmetics": 1}) or {}
+                                                       "surprises": {"$slice": -1}}) or {}
     day = fresh.get("surprise_day") or {}
     used = day.get("count", 0) if day.get("date") == today else 0
     if used >= gx.SURPRISE_DAILY_CAP:
         return None
     guaranteed = fresh.get("guaranteed_surprises", 0) > 0
+    if not guaranteed:
+        last = (fresh.get("surprises") or [{}])[-1].get("at")
+        done = await db.sessions.count_documents({"user_id": uid})
+        if not gx.surprise_eligible(done, round_seconds, last):
+            return None
     kind = gx.roll_surprise(seed, guaranteed=guaranteed, scored=bool(session))
     if not kind:
         return None
@@ -10757,15 +10787,6 @@ async def corner_surprise(uid: str, seed: str, session: Optional[dict] = None) -
 
 
 async def _surprise_content(uid: str, kind: str, fresh: dict, session: Optional[dict]) -> dict:
-    if kind == "rare_look":
-        owned = set(fresh.get("fantasy_cosmetics") or [])
-        options = [c for c in FANTASY_COSMETICS if c not in owned]
-        if options:
-            pick = random.choice(options)
-            await _grant_cosmetic(uid, pick)
-            item = FANTASY_COSMETICS[pick]
-            return {"kind": kind, "title": f"Rare drop: {item['name']}", "body": f"{item['description']} It's yours. Find it in Fantasy → Team looks."}
-        kind = "bonus_status"
     if kind == "bonus_status":
         await award_status(uid, gx.SURPRISE_BONUS_STATUS, boostable=False, weekly=False)
         return {"kind": kind, "title": f"+{gx.SURPRISE_BONUS_STATUS} bonus status", "body": "Your corner thought you earned a little extra today."}
@@ -10789,7 +10810,7 @@ async def _surprise_content(uid: str, kind: str, fresh: dict, session: Optional[
 @api_router.get("/surprises")
 async def my_surprises(user: dict = Depends(get_current_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"surprises": 1, "guaranteed_surprises": 1}) or {}
-    return {"odds": gx.surprise_odds(), "daily_cap": gx.SURPRISE_DAILY_CAP,
+    return {"odds": gx.surprise_odds(), "daily_cap": gx.SURPRISE_DAILY_CAP, "rules": gx.surprise_rules(),
             "recent": list(reversed(fresh.get("surprises") or [])), "guaranteed": fresh.get("guaranteed_surprises", 0)}
 
 
@@ -11129,9 +11150,9 @@ async def crew_trained_today(user: dict = Depends(get_current_user)):
 async def cheer_crewmate(recipient_id: str, user: dict = Depends(get_current_user)):
     uid, today = user["user_id"], datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if recipient_id not in await _crewmates(uid):
-        raise HTTPException(403, "You can cheer people in your crews")
+        raise HTTPException(403, "You can cheer people in your squads")
     if await _is_blocked(recipient_id, uid):
-        raise HTTPException(403, "You can cheer people in your crews")
+        raise HTTPException(403, "You can cheer people in your squads")
     if not await db.sessions.find_one({"user_id": recipient_id, "date": today}):
         raise HTTPException(400, "They haven't trained today yet")
     if await db.crew_cheers.count_documents({"actor_id": uid, "date": today}) >= CHEERS_PER_DAY:
@@ -11140,8 +11161,8 @@ async def cheer_crewmate(recipient_id: str, user: dict = Depends(get_current_use
                                            {"$setOnInsert": {"at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
     if not done.upserted_id:
         raise HTTPException(400, "Already cheered today")
-    name = (user.get("display_name") or user.get("name") or "A crew-mate").split()[0]
-    await _send_push(recipient_id, title=f"{name} cheered your session", body="Your crew saw you train today.",
+    name = (user.get("display_name") or user.get("name") or "A squad-mate").split()[0]
+    await _send_push(recipient_id, title=f"{name} cheered your session", body="Your squad saw you train today.",
                      url="/leaderboard?tab=quests", tag=f"crew-cheer-{today}")
     return {"ok": True}
 
@@ -11421,8 +11442,8 @@ async def _season_facts(uid: str, season: dict) -> dict:
         done = await db.squad_quests.count_documents({"squad_id": {"$in": [s["squad_id"] for s in squads]},
                                                       "week_id": {"$in": sorted(weeks)}, "completed": True})
         if done:
-            crew = {"big": str(done), "label": f"crew mission{'s' if done != 1 else ''} done",
-                    "line": f"You and {squads[0].get('name') or 'your crew'} finished {done} mission{'s' if done != 1 else ''} together."}
+            crew = {"big": str(done), "label": f"squad mission{'s' if done != 1 else ''} done",
+                    "line": f"You and {squads[0].get('name') or 'your squad'} finished {done} mission{'s' if done != 1 else ''} together."}
     weeks = {gx.week_id(date.fromisoformat(season["starts"]) + timedelta(days=7 * i)) for i in range(SEASON_DAYS // 7)}
     bosses = sum(1 for w in u.get("boss_wins") or [] if w.get("week_id") in weeks)
     counts = u.get("identity_traits") or {}
@@ -11506,7 +11527,7 @@ async def post_crew_moments(user: dict, rewards: dict):
     squads = await db.squads.find({"members": uid}, {"squad_id": 1}).to_list(MAX_SQUADS_PER_USER)
     if not squads:
         return
-    name = (user.get("display_name") or user.get("name") or "A crew-mate").split()[0]
+    name = (user.get("display_name") or user.get("name") or "A squad-mate").split()[0]
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     for m in gx.crew_moments(name, rewards or {}):
         for sq in squads:
@@ -11725,11 +11746,26 @@ async def run_once_migrations():
     # The first 19 founder spots were all pre-launch test sign-ups, so the public counter
     # starts again from 0. The marker makes it run exactly once, on the first deploy.
     marker = "reset_founder_spots_2026_10_04"
+    if not await db.migrations.find_one({"_id": marker}):
+        await db.counters.update_one({"_id": "founder_spots"}, {"$set": {"n": 0}}, upsert=True)
+        await db.migrations.insert_one({"_id": marker, "ran_at": datetime.now(timezone.utc).isoformat()})
+        logger.info("Migration: founder spot counter reset to 0")
+    await migrate_square_partner_avatars()
+
+
+async def migrate_square_partner_avatars():
+    # Square partner pictures show the Pollinations logo; remake them 4:5 so it's cropped off.
+    marker = "partner_avatars_4x5_2026_10_13"
     if await db.migrations.find_one({"_id": marker}):
         return
-    await db.counters.update_one({"_id": "founder_spots"}, {"$set": {"n": 0}}, upsert=True)
+    n = 0
+    async for u in db.users.find({"training_partner.avatar_url": {"$regex": "height=512&nologo=true"}},
+                                 {"user_id": 1, "training_partner.avatar_url": 1}):
+        url = u["training_partner"]["avatar_url"].replace("height=512&nologo=true", "height=640&nologo=true&referrer=victory-ai")
+        await db.users.update_one({"user_id": u["user_id"]}, {"$set": {"training_partner.avatar_url": url}})
+        n += 1
     await db.migrations.insert_one({"_id": marker, "ran_at": datetime.now(timezone.utc).isoformat()})
-    logger.info("Migration: founder spot counter reset to 0")
+    logger.info(f"Migration: {n} partner avatars remade at 4:5")
 
 
 @app.on_event("startup")

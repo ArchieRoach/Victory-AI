@@ -474,6 +474,7 @@ const GeneratingScreen = ({ partnerData, styles, onComplete }) => {
 const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
   const { t } = useTranslation();
   const [name, setName] = useState("");
+  const [look, setLook] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const styleName = styles?.[partnerData.training_partner_style]?.name || "Training Partner";
@@ -494,7 +495,7 @@ const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
     }
     setLoading(true);
     try {
-      await onComplete(name);
+      await onComplete(name, look);
     } finally {
       // Reset so a failed create-partner call doesn't leave the button stuck spinning.
       setLoading(false);
@@ -525,6 +526,27 @@ const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
         />
       </div>
 
+      {/* Their partner's picture was a coin toss before; who you train with is your call. */}
+      <div>
+        <p className="victory-label">Your partner is</p>
+        <div className="flex gap-2" role="radiogroup" aria-label="Your partner is">
+          {[["male", "A man"], ["female", "A woman"]].map(([value, label]) => (
+            <button
+              key={value}
+              role="radio"
+              aria-checked={look === value}
+              onClick={() => setLook(value)}
+              className={`touch-target flex-1 rounded-full text-sm font-semibold transition-colors ${
+                look === value ? "bg-victory-lime text-victory-bg" : "bg-victory-card border border-victory-border text-victory-text"
+              }`}
+              data-testid={`partner-look-${value}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div>
         <p className="text-victory-muted text-xs mb-2">{t("onboarding.naming.orPick")}</p>
         <div className="flex flex-wrap gap-2">
@@ -544,7 +566,7 @@ const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
 
       <button
         onClick={handleComplete}
-        disabled={!name.trim() || loading}
+        disabled={!name.trim() || !look || loading}
         className="victory-btn-primary flex items-center justify-center gap-2"
         data-testid="complete-partner"
       >
@@ -775,7 +797,7 @@ export default function OnboardingFlow() {
     setPhase("naming");
   };
 
-  const handlePartnerComplete = async (name) => {
+  const handlePartnerComplete = async (name, look) => {
     try {
       await axios.post(
         `${API}/onboarding/create-partner`,
@@ -788,7 +810,7 @@ export default function OnboardingFlow() {
         { withCredentials: true }
       );
 
-      axios.post(`${API}/onboarding/generate-avatar`, { favorite_fighter: answers.favorite_fighter }, { withCredentials: true }).catch(() => {});
+      axios.post(`${API}/onboarding/generate-avatar`, { favorite_fighter: answers.favorite_fighter, gender: look }, { withCredentials: true }).catch(() => {});
 
       sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
       setCreatedPartnerName(name);
