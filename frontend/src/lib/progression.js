@@ -92,8 +92,16 @@ export function glovesLine(gloves) {
   return null;
 }
 
+// Talks about the next badge only. "0 of 10,000" tells a newcomer how far away the top is;
+// "0.4 of 1 hour to First Hour" tells them they're nearly there (goal-gradient effect).
 export function masteryLine(m) {
   if (!m) return "";
-  const now = `${m.verified_hours.toLocaleString()} of ${m.expert_hours.toLocaleString()} expert hours`;
-  return m.next_tier ? `${now} · next: ${m.next_tier} at ${m.next_at_hours.toLocaleString()}h` : now;
+  if (!m.next_tier) return `${m.verified_hours.toLocaleString()} proven hours. You reached the top.`;
+  return `${m.verified_hours.toLocaleString()} of ${m.next_at_hours.toLocaleString()} hours to ${m.next_tier}`;
+}
+
+export function masteryPct(m) {
+  if (!m?.next_tier) return 100;
+  const span = m.next_at_hours - (m.prev_at_hours || 0);
+  return Math.max(0, Math.min(100, Math.round((100 * (m.verified_hours - (m.prev_at_hours || 0))) / span)));
 }

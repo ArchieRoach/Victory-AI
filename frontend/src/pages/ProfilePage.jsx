@@ -12,6 +12,7 @@ import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Ca
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FightFilm } from "@/components/FightFilm";
 import { TrophyShelf } from "@/components/progress/TrophyShelf";
+import { HoursLadder } from "@/components/progress/HoursLadder";
 import { ThenVsNow } from "@/components/progress/ThenVsNow";
 import { ClipsTab, ScheduleTab } from "@/pages/PublicProfilePage";
 import { useTranslation } from "react-i18next";
@@ -732,6 +733,7 @@ export default function ProfilePage() {
           </button>
         )}
         {user?.user_id && <TrophyShelf userId={user.user_id} isMe />}
+        {user?.user_id && <HoursLadder />}
 
         {/* Belts & Titles */}
         {beltCatalogue.length > 0 && (

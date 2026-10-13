@@ -10338,6 +10338,14 @@ async def _video_seconds(public_id: str) -> Optional[float]:
         return None
 
 
+# The hours ladder lives on the profile, apart from the season's Golden Gloves: a newcomer
+# should see "next badge: First Hour", not "0 of 10,000".
+@api_router.get("/mastery")
+async def my_mastery(user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"verified_seconds": 1}) or {}
+    return gx.mastery(fresh.get("verified_seconds", 0))
+
+
 @api_router.get("/gloves")
 async def golden_gloves(user: dict = Depends(get_current_user)):
     season = current_season()

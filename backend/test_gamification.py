@@ -117,6 +117,8 @@ def test_daily_cap_stops_grinding():
 
 def test_road_to_ten_thousand_hours():
     assert gx.mastery(0)["tier"] is None and gx.mastery(0)["next_tier"] == "First Hour"
+    assert gx.mastery(0)["prev_at_hours"] == 0 and gx.mastery(120 * 3600)["prev_at_hours"] == 100
+    assert gx.mastery(120 * 3600)["tiers_earned"] == 4 and gx.mastery(0)["tiers_total"] == 8
     m = gx.mastery(120 * 3600)
     assert m["tier"] == "Seasoned" and m["next_tier"] == "Veteran" and m["next_at_hours"] == 500
     assert m["expert_pct"] == 1.2
