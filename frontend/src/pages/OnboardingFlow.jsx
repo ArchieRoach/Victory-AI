@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { whyWeAsk } from "@/lib/onboardingWhy";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
@@ -176,6 +177,7 @@ const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }
         </p>
         <h1 className="text-xl font-heading font-extrabold text-victory-text mb-1">{q.question}</h1>
         {q.subtitle && <p className="text-victory-muted text-sm">{q.subtitle}</p>}
+        <WhyLine text={whyWeAsk(q.id, answers)} />
       </div>
 
       <div className="space-y-3">
@@ -202,6 +204,11 @@ const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }
     </div>
   );
 };
+
+function WhyLine({ text }) {
+  if (!text) return null;
+  return <p className="text-victory-muted text-xs mt-2 flex items-start gap-1.5" data-testid="why-we-ask"><span aria-hidden="true" className="text-victory-lime">•</span>{text}</p>;
+}
 
 // PHASE 3: PERSONALIZED AFFIRMATION
 const PersonalizedAffirmation = ({ answers, onNext }) => {
@@ -289,7 +296,7 @@ const PersonalizedAffirmation = ({ answers, onNext }) => {
 };
 
 // PHASE 4: PARTNER CREATION
-const PartnerCreationPhase = ({ styles, onAnswer, onBack, currentStep, partnerData }) => {
+const PartnerCreationPhase = ({ styles, onAnswer, onBack, currentStep, partnerData, answers = {} }) => {
   const { t } = useTranslation();
 
   const steps = [
@@ -352,6 +359,7 @@ const PartnerCreationPhase = ({ styles, onAnswer, onBack, currentStep, partnerDa
       <div className="mb-6">
         <h1 className="text-xl font-heading font-extrabold text-victory-text mb-1">{step.question}</h1>
         {step.subtitle && <p className="text-victory-muted text-sm">{step.subtitle}</p>}
+        <WhyLine text={whyWeAsk(step.id, answers)} />
       </div>
 
       <div className="space-y-3">
@@ -853,6 +861,7 @@ export default function OnboardingFlow() {
             partnerData={partnerData}
             onAnswer={handlePartnerAnswer}
             onBack={handlePartnerBack}
+            answers={answers}
           />
         )}
 

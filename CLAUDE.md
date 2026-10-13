@@ -4,6 +4,7 @@ Full-stack boxing-training + live-streaming app. See `HANDOFF.md` for current br
 
 > **UI rule**: Read `DESIGN.md` before writing any frontend code. All colors, typography, components, and patterns are defined there. Never use generic Tailwind colors or write UI without following the Victory AI design system.
 > **Colour rule**: light and dark palettes live only in `frontend/src/theme/theme.js`; `useColorScheme()` follows the phone setting live. Never add per-screen light/dark code or hex colours.
+> **Shape & glass rule** (DESIGN.md §13): corners are concentric (inner = outer − padding, automatic inside cards/glass); glass is `GlassView` from `"expo-glass-effect"` (web build of Expo's API); first-run help is a `CoachMark`, one at a time.
 > **Feel rule** (DESIGN.md §12): anything a finger touches answers instantly, moves on springs (`lib/motion.js`), can be grabbed mid-move, and leaves the way it came. Sheets use `BottomSheet`. Haptics only for real moments.
 
 ## How to explain things to Archie (the owner)

@@ -12,6 +12,7 @@ import { BragButton } from "@/components/progress/BragButton";
 import { CornerSurprise } from "@/components/progress/CornerSurprise";
 import { sessionWin, glovesLine } from "@/lib/progression";
 import { haptic } from "@/lib/haptics";
+import { CoachMark } from "@/components/CoachMark";
 
 const RARITY = {
   common: { label: "SCOUTING REPORT", cls: "bg-victory-card-highlight text-victory-muted border-victory-border" },
@@ -523,7 +524,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
   if (rewards?.newcomer) {
     return (
       <div className="space-y-3 reveal-stack" data-testid="session-rewards">
-        <FirstWins rewards={rewards} liveStats={liveStats} />
+        <CoachMark id="results_first" position="bottom" block><FirstWins rewards={rewards} liveStats={liveStats} /></CoachMark>
         <IdentityCard identity={rewards?.identity} />
         <Unlocked features={rewards?.unlocked_features} />
         <EasterEgg eggs={rewards?.easter_eggs} />

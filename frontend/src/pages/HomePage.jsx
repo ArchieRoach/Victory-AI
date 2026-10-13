@@ -20,6 +20,7 @@ import { DriveCards } from "@/components/home/DriveCards";
 import { NextUnlock, TipForNewcomer, PassItOn } from "@/components/home/NewcomerCards";
 import { ComingUp, OracleCard, WrappedCard } from "@/components/home/ComingUp";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
+import { CoachMark } from "@/components/CoachMark";
 import { STYLE_STORAGE_KEY, withArticle } from "@/lib/fighterStyle";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -616,16 +617,20 @@ export default function HomePage() {
       {tab === "foryou" && (
         <div className="px-4 pt-3 space-y-3">
           <WrappedCard />
-          <OneRoundButton />
-          <PartnerCondition />
+          <CoachMark id="home_one_round" position="bottom" block hold={!unlocks?.newcomer}>
+            <OneRoundButton />
+          </CoachMark>
+          <CoachMark id="home_partner" position="bottom" block hold={!unlocks?.newcomer}>
+            <PartnerCondition />
+          </CoachMark>
           <OracleCard />
-          {isUnlocked(unlocks, "week_plan") && <WeekPlanCard />}
+          {isUnlocked(unlocks, "week_plan") && <CoachMark id="home_week_plan" position="bottom" block><WeekPlanCard /></CoachMark>}
           <JourneyCard />
           {unlocks?.newcomer && <TipForNewcomer />}
-          {isUnlocked(unlocks, "crew") && <DriveCards unlocks={unlocks} />}
+          {isUnlocked(unlocks, "crew") && <CoachMark id="home_drive_cards" block><DriveCards unlocks={unlocks} /></CoachMark>}
           {unlocks && !unlocks.newcomer && <EpicWinCard />}
           {isUnlocked(unlocks, "give_tips") && <PassItOn />}
-          {unlocks?.newcomer ? <NextUnlock next={unlocks?.next} /> : <ComingUp />}
+          {unlocks?.newcomer ? <NextUnlock next={unlocks?.next} /> : <CoachMark id="home_coming_up" block><ComingUp /></CoachMark>}
         </div>
       )}
 

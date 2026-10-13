@@ -462,3 +462,39 @@ The tools live in `src/lib/motion.js`, `src/lib/haptics.js` and `src/components/
 **Reduced motion**
 - Springs and slides become plain cross-fades or instant changes.
 - Spinners keep turning, because they tell people something is happening.
+
+---
+
+## 13. First-run tips, glass and concentric corners
+
+**First-run tips (coach marks).**
+- Wrap a feature in `<CoachMark id="…">` (or the older `FirstUseTip`) and add its words to `TIPS` in
+  `src/lib/coachMarks.js`.
+- Tips use the fighter's own name, partner and focus.
+- The rules are enforced for you:
+  - one tip on screen at a time;
+  - at most 3 a day;
+  - each shown once;
+  - they fade after about 9 seconds.
+- Pass `hold` while a round is running, so the tip waits for a pause.
+- Onboarding questions carry one "why we ask" line (`src/lib/onboardingWhy.js`) built from earlier
+  answers. No extra screens.
+
+**Glass.**
+- `import { GlassView } from "expo-glass-effect"` takes Expo's props: `glassEffectStyle` ("regular"
+  | "clear" | "none"), `tintColor` and `isInteractive`.
+- On the web it resolves to `src/lib/glass/expo-glass-effect.js`, a CSS glass with the same API. The
+  real Expo package is a native React Native module and can't run in this web app.
+- Native SwiftUI screens use Apple's real Liquid Glass through `GlassView` / `.glassSurface()` in
+  `ios/VictoryAI/Shared/GlassView.swift`. It falls back to frosted material before iOS 26.
+- Use regular glass for chrome and sheets, and clear glass over photos and video. Never stack glass
+  on glass.
+
+**Concentric corners (Apple HIG).**
+- Nested corners share one centre: inner radius = outer radius − the padding between them, never
+  below `--r-min` (6px).
+- Containers (`victory-card`, `victory-card-highlight`, `glass`, or any `.concentric`) work out the
+  radius for their contents. Buttons, inputs and rounded blocks inside pick it up automatically.
+- Tokens: card 24px, tile 16px, sheet 28px (top corners only). Capsules (`rounded-full`) are left
+  alone.
+- Don't fight it with a bigger radius on an inner element.

@@ -164,12 +164,23 @@ struct SocialSignInButton: View {
             .foregroundColor(isApple ? .black : .white)
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(isApple ? Color.white : Color(hex: "#1E1E2E"))
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(isApple ? Color.clear : Color(hex: "#2A2A3A"))
-            )
+            .modifier(SocialButtonSurface(isApple: isApple))
+        }
+    }
+}
+
+/// Apple's button stays solid white (Apple's sign-in guidelines); Google's sits on Liquid Glass.
+private struct SocialButtonSurface: ViewModifier {
+    let isApple: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if isApple {
+            content
+                .background(Color.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        } else {
+            content
+                .glassSurface(cornerRadius: 12, interactive: true)
         }
     }
 }

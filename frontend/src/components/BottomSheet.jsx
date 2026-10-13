@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { createSpring, createVelocityTracker, project, rubberband, prefersReducedMotion, SPRING } from "@/lib/motion";
 import { haptic } from "@/lib/haptics";
+import { GlassView } from "expo-glass-effect";
 
 // A sheet that behaves like a physical object (Apple's fluid-interface rules):
 // - it rises from the bottom and leaves the same way (spatial consistency);
@@ -125,13 +126,14 @@ export function BottomSheet({ onClose, label, children, className = "", testId }
   return (
     <div className="fixed inset-0 z-50 flex flex-col" data-testid={testId}>
       <div ref={scrimRef} className="absolute inset-0 bg-black/55 sheet-scrim" style={{ opacity: 0 }} onClick={() => close()} aria-hidden="true" />
-      <div
+      <GlassView
         ref={sheetRef}
+        glassEffectStyle="regular"
         role="dialog"
         aria-modal="true"
         aria-label={label}
         tabIndex={-1}
-        className={`relative mt-auto max-h-[92vh] flex flex-col rounded-t-3xl material-sheet pb-safe outline-none ${className}`}
+        className={`sheet-surface relative mt-auto max-h-[92vh] flex flex-col pb-safe outline-none ${className}`}
         style={{ transform: "translate3d(0, 100vh, 0)", touchAction: "none" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -142,7 +144,7 @@ export function BottomSheet({ onClose, label, children, className = "", testId }
           <div className="w-10 h-1 rounded-full bg-victory-muted/40" />
         </div>
         {typeof children === "function" ? children({ close }) : children}
-      </div>
+      </GlassView>
     </div>
   );
 }
