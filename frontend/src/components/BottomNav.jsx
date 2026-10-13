@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { Home, Search, Dumbbell, User, Tv } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { GlassView } from "expo-glass-effect";
 
 const NAV_ITEMS = [
   { path: "/live",     icon: Tv,       key: "live"     },
@@ -15,8 +16,10 @@ export const BottomNav = () => {
   const { t } = useTranslation();
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 material-bar z-40 bottom-nav"
+    <GlassView
+      as="nav"
+      glassEffectStyle="regular"
+      className="glass-bar fixed bottom-0 left-0 right-0 z-40 bottom-nav"
       data-testid="bottom-nav"
     >
       <div className="flex justify-around items-center h-20 max-w-lg mx-auto px-1">
@@ -53,6 +56,6 @@ export const BottomNav = () => {
           );
         })}
       </div>
-    </nav>
+    </GlassView>
   );
 };

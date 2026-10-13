@@ -15,6 +15,7 @@ import { currentEntry } from "@/lib/entrySource";
 import { getVideoPref, setVideoPref } from "@/lib/videoPref";
 import { analytics } from "@/lib/analytics";
 import { FirstUseTip } from "@/components/FirstUseTip";
+import { CoachMark } from "@/components/CoachMark";
 import { useLiveCoach } from "@/hooks/useLiveCoach";
 import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
@@ -655,6 +656,7 @@ export default function TrainPage() {
             )}
 
             {canPickKind && (
+            <CoachMark id="train_round_types" position="bottom" block>
             <div>
               <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">Round type</p>
               <div className={`grid gap-2 ${kindsOpen.length === 3 ? "grid-cols-3" : "grid-cols-2"}`} role="radiogroup" aria-label="Round type">
@@ -675,6 +677,7 @@ export default function TrainPage() {
                 ))}
               </div>
             </div>
+            </CoachMark>
             )}
 
             {weeklyCombo && kind !== "boss" && (
@@ -711,6 +714,7 @@ export default function TrainPage() {
             )}
 
             {canCall && kind !== "boss" && sessionMode === "private" && (
+              <CoachMark id="train_combo_calls" block>
               <div className="victory-card p-4" data-testid="combo-calls-toggle">
                 <button onClick={() => { setCallsOn(!callsOn); try { localStorage.setItem(CALLS_KEY, callsOn ? "0" : "1"); } catch {} }}
                   className="w-full flex items-center justify-between touch-target">
@@ -728,6 +732,7 @@ export default function TrainPage() {
                   </div>
                 </button>
               </div>
+              </CoachMark>
             )}
 
             {focus && (
@@ -938,6 +943,7 @@ export default function TrainPage() {
             )}
 
             {sessionMode === "private" && kind !== "freestyle" && videoPref !== null && (
+              <CoachMark id="train_video" block>
               <div className="victory-card p-4">
                 <button onClick={() => chooseVideo(!recordVideo)} className="w-full flex items-center justify-between touch-target">
                   <div className="flex items-center gap-3">
@@ -960,6 +966,7 @@ export default function TrainPage() {
                   </p>
                 )}
               </div>
+              </CoachMark>
             )}
 
             {sessionMode === "private" && kind !== "boss" && (
@@ -1157,7 +1164,7 @@ export default function TrainPage() {
                       </p>
                       <p className="text-victory-muted text-xs">Round {currentRound} debrief</p>
                     </div>
-                    <FirstUseTip id="train_voice_toggle" tip="Tap to mute or unmute your coach's spoken feedback." position="top">
+                    <FirstUseTip id="train_voice_toggle" position="top">
                       <button onClick={() => setVoiceEnabled((v) => !v)}
                         aria-label={voiceEnabled ? "Disable voice" : "Enable voice"}
                         className="w-11 h-11 flex items-center justify-center text-victory-muted hover:text-victory-text">
@@ -1220,7 +1227,7 @@ export default function TrainPage() {
             {/* Controls */}
             <div className="flex items-center justify-center gap-5 mt-6">
               {/* Skip — secondary */}
-              <FirstUseTip id="train_skip_btn" tip="Skips ahead to the next round or rest period." position="top">
+              <FirstUseTip id="train_skip_btn" position="top" hold={!isPaused && !isResting}>
                 <button
                   onClick={skipToNext}
                   className="w-14 h-14 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-muted hover:text-victory-text touch-target transition-all active:scale-90"
@@ -1244,7 +1251,7 @@ export default function TrainPage() {
               </button>
 
               {/* End session — danger */}
-              <FirstUseTip id="train_end_btn" tip="Ends the session now and saves whatever rounds you've completed." position="top">
+              <FirstUseTip id="train_end_btn" position="top" hold={!isPaused && !isResting}>
                 <button
                   onClick={endTimer}
                   className="w-14 h-14 rounded-full bg-victory-card border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/10 touch-target transition-all active:scale-90"

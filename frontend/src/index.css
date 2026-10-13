@@ -334,3 +334,87 @@ h1, h2, h3 { font-optical-sizing: auto; text-wrap: balance; }
 .lucide-wifi { translate: 0% 6%; }
 .lucide-wifi-off { translate: 0% 3.9%; }
 /* optical-icons:end */
+
+/* ── Glass (GlassView, see src/lib/glass/expo-glass-effect.js) ─────────────────────────────
+   Regular glass: frosted, a bright edge where light catches it, and depth from a soft shadow.
+   Clear glass: thinner, for sitting over photos and video. A tint washes through the glass.
+   Interactive glass lights up under the finger. */
+:where(.glass) { position: relative; isolation: isolate; }
+.glass::before, .glass-interactive::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+}
+.glass::before { background: var(--glass-tint, transparent); opacity: 0.18; }
+.glass-regular {
+  background: rgb(var(--victory-card) / 0.62);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  backdrop-filter: blur(24px) saturate(190%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), inset 0 0 0 1px rgb(var(--victory-text) / 0.08), 0 10px 30px rgb(0 0 0 / 0.22);
+}
+.glass-clear {
+  background: rgb(var(--victory-card) / 0.22);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), inset 0 0 0 1px rgb(255 255 255 / 0.10);
+}
+.glass-interactive::after {
+  background: radial-gradient(140px circle at var(--glass-x, 50%) var(--glass-y, 0%), rgb(255 255 255 / 0.16), transparent 65%);
+  opacity: 0; transition: opacity 160ms ease-out; z-index: 0;
+}
+.glass-interactive:hover::after, .glass-interactive:active::after { opacity: 1; }
+.glass-container { display: flex; }
+.glass.glass-bar { border-radius: 0; box-shadow: inset 0 1px 0 rgb(var(--victory-text) / 0.06); }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass-regular, .glass-clear { background: rgb(var(--victory-card)); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .glass::before, .glass-interactive::after { display: none; }
+}
+@media (prefers-contrast: more) {
+  .glass-regular, .glass-clear { box-shadow: inset 0 0 0 1px rgb(var(--victory-text) / 0.6); }
+}
+
+/* ── Corner concentricity (Apple HIG) ──────────────────────────────────────────────────────
+   Nested corners share one centre: an inner corner's radius is the outer radius minus the gap
+   between them (the padding). So a button inside a card curves in step with the card instead of
+   looking pinched or bloated. Containers work out the radius their contents should use; contents
+   take it automatically. Capsules (rounded-full) are always concentric and are left alone.
+   Two levels deep is enough for this app: a card, and a tile inside a card.
+   Utility names are matched as [class~="…"] so Tailwind's @apply doesn't copy these rules into
+   the components built from those utilities. */
+:root { --r-card: 24px; --r-tile: 16px; --r-sheet: 28px; --r-min: 6px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric) { --pad: 16px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="p-1"]) { --pad: 4px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="p-2"]) { --pad: 8px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="p-3"]) { --pad: 12px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="p-4"]) { --pad: 16px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="p-5"]) { --pad: 20px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="p-6"]) { --pad: 24px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="p-8"]) { --pad: 32px; }
+.victory-card { --r1: var(--r-card); }
+:is(.victory-card-highlight, .glass, .concentric) { --r1: var(--r-tile); }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="rounded-lg"]) { --r1: 8px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="rounded-xl"]) { --r1: 12px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="rounded-2xl"]) { --r1: 16px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric):is([class~="rounded-3xl"]) { --r1: 24px; }
+:is(.victory-card, .victory-card-highlight, .glass, .concentric) {
+  border-radius: var(--r1);
+  --cr1: max(var(--r-min), calc(var(--r1) - var(--pad)));
+}
+/* A container inside a container takes its parent's inner radius. */
+:is(.victory-card, .victory-card-highlight, .glass, .concentric) :is(.victory-card, .victory-card-highlight, .glass, .concentric) {
+  --cr1: inherit;
+  border-radius: var(--cr1);
+  --cr2: max(var(--r-min), calc(var(--cr1) - var(--pad)));
+}
+/* Controls and rounded blocks inside a container follow it. */
+:is(.victory-card, .victory-card-highlight, .glass, .concentric)
+  :is(.victory-btn-primary, .victory-btn-secondary, .victory-btn-ghost, .victory-input, .stat-pill, .concentric-inner,
+      [class~="rounded-lg"], [class~="rounded-xl"], [class~="rounded-2xl"], [class~="rounded-3xl"]):not(.victory-card, .victory-card-highlight, .glass, .concentric) {
+  border-radius: var(--cr1);
+}
+:is(.victory-card, .victory-card-highlight, .glass, .concentric) :is(.victory-card, .victory-card-highlight, .glass, .concentric)
+  :is(.victory-btn-primary, .victory-btn-secondary, .victory-btn-ghost, .victory-input, .stat-pill, .concentric-inner,
+      [class~="rounded-lg"], [class~="rounded-xl"], [class~="rounded-2xl"], [class~="rounded-3xl"]):not(.victory-card, .victory-card-highlight, .glass, .concentric) {
+  border-radius: var(--cr2);
+}
+/* Sheets: rounded top, flush with the bottom of the screen. */
+.glass.sheet-surface { --r1: var(--r-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
+.glass.glass-bar { --r1: 0px; border-radius: 0; }
