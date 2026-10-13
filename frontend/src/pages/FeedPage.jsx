@@ -288,7 +288,7 @@ export default function FeedPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="feed-page">
       {/* Header */}
-      <header className="sticky top-0 bg-victory-bg/95 backdrop-blur-sm border-b border-victory-border z-10">
+      <header className="sticky top-0 material-header z-10">
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <h1 className="text-xl font-heading font-extrabold text-victory-text">{t("feed.title")}</h1>
           <button

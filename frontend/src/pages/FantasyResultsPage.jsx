@@ -48,7 +48,7 @@ export default function FantasyResultsPage() {
 
   return (
     <div className="min-h-screen bg-victory-bg pb-8">
-      <div className="sticky top-0 z-20 bg-victory-bg/95 backdrop-blur border-b border-victory-border">
+      <div className="sticky top-0 z-20 material-header">
         <header className="p-4">
           <h1 className="text-xl font-heading font-extrabold text-victory-text">{card.title}</h1>
           <p className="text-victory-muted text-sm">Results desk · {card.status === "upcoming" ? "picks open" : card.status === "live" ? "picks locked" : "finished"}</p>

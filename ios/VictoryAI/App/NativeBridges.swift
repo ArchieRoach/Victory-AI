@@ -96,3 +96,21 @@ final class StoreBridge: OriginCheckedBridge {
         }
     }
 }
+
+/// `victoryHaptic`: Taptic Engine feedback for meaningful moments only (a real win, a sheet
+/// snapping shut, a problem). frontend/src/lib/haptics.js decides when.
+final class HapticBridge: OriginCheckedBridge {
+    static let name = "victoryHaptic"
+
+    override func handle(action: String, body: [String: Any], webView: WKWebView?, reply: @escaping (Any?, String?) -> Void) {
+        Task { @MainActor in
+            switch action {
+            case "success": UINotificationFeedbackGenerator().notificationOccurred(.success)
+            case "warning": UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            case "snap": UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            default: UISelectionFeedbackGenerator().selectionChanged()
+            }
+            reply(nil, nil)
+        }
+    }
+}

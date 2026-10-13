@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { BottomSheet } from "@/components/BottomSheet";
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
@@ -142,13 +143,9 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
   const shareLabel = file && !canShareFile(file) ? "Download to share" : "Share video";
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-      <div
-        className="relative mt-auto w-full max-w-lg mx-auto bg-victory-bg rounded-t-2xl pb-safe max-h-[92vh] overflow-y-auto animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="w-10 h-1 rounded-full bg-victory-border mx-auto mt-3 mb-1" />
+    <BottomSheet onClose={onClose} label="Share highlight" className="w-full max-w-lg mx-auto">
+      {({ close }) => (
+      <div className="overflow-y-auto min-h-0 flex-1">
 
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -167,7 +164,7 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
             )}
             <p className="text-victory-muted text-xs truncate">{hl?.stream_title}</p>
           </div>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 -mr-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={() => close()} aria-label="Close" className="w-11 h-11 -mr-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -316,6 +313,7 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
           )}
         </div>
       </div>
-    </div>
+      )}
+    </BottomSheet>
   );
 }

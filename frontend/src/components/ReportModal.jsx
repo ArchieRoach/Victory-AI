@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BottomSheet } from "@/components/BottomSheet";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
@@ -38,17 +39,16 @@ export function ReportModal({ contentType, contentId, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div className="relative mt-auto bg-victory-bg rounded-t-2xl pb-safe" onClick={(e) => e.stopPropagation()}>
-        <div className="w-10 h-1 rounded-full bg-victory-border mx-auto mt-3 mb-1" />
+    <BottomSheet onClose={onClose} label="Report" className="w-full max-w-lg mx-auto">
+      {({ close }) => (
+      <div className="overflow-y-auto min-h-0 flex-1">
 
         <div className="flex items-center justify-between px-4 py-3 border-b border-victory-border">
           <div className="flex items-center gap-2">
             <Flag className="w-4 h-4 text-victory-danger" />
             <p className="text-victory-text font-bold text-sm">Report</p>
           </div>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={() => close()} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -57,7 +57,7 @@ export function ReportModal({ contentType, contentId, onClose }) {
           <div className="flex flex-col items-center justify-center py-10 px-6 gap-2 text-center">
             <p className="text-victory-text font-bold">Thanks — we'll review this.</p>
             <p className="text-victory-muted text-sm">Reports help keep Victory AI safe for everyone.</p>
-            <button onClick={onClose} className="victory-btn-primary mt-4 px-8">Done</button>
+            <button onClick={() => close()} className="victory-btn-primary mt-4 px-8">Done</button>
           </div>
         ) : (
           <div className="p-4 space-y-2 pb-8">
@@ -92,6 +92,7 @@ export function ReportModal({ contentType, contentId, onClose }) {
           </div>
         )}
       </div>
-    </div>
+      )}
+    </BottomSheet>
   );
 }

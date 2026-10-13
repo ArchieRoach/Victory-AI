@@ -387,3 +387,57 @@ export default function ExamplePage() {
   {pills}
 </div>
 ```
+
+---
+
+## 12. Feel: motion, materials and feedback (Apple design)
+
+From Apple's *Designing Fluid Interfaces* (WWDC 2018) and related talks, translated for the web.
+The tools live in `src/lib/motion.js`, `src/lib/haptics.js` and `src/components/BottomSheet.jsx`.
+
+**Response**
+- Every press answers the instant a finger lands: a global `scale: 0.97` on `:active`, about 100ms.
+- No 300ms tap delay (`touch-action: manipulation`). Never put a timer or debounce on the input path.
+
+**Springs, not timed animations, for anything you can touch**
+- Use `createSpring` with Apple's two numbers:
+
+  | Spring | Damping | Response | Use it for |
+  |---|---|---|---|
+  | `SPRING.default` | 1.0 | 0.35s | almost everything: settles without bouncing |
+  | `SPRING.sheet` | 0.8 | 0.3s | only after a flick: a small bounce is earned by momentum |
+
+- Springs start from the value on screen and keep their speed, so anything can be grabbed mid-move
+  and reversed. Never block input during a transition.
+
+**Gestures**
+- Drags track the finger 1:1 from where it grabbed. Wait about 10px before committing to a direction.
+- On release:
+  1. Hand the finger's velocity to the spring.
+  2. Use `project()` to pick the target from where the flick was heading.
+- Past an edge, use `rubberband()`. Never stop hard.
+- Things leave the way they came. A sheet rises from the bottom and drops back down.
+- Use `BottomSheet` for any sheet. Close it with its `close()` so it animates out.
+
+**Materials**
+- Chrome is a translucent layer the content scrolls under:
+  - `.material-bar` for the bottom nav;
+  - `.material-header` for sticky headers (with a soft scroll-edge fade, not a hard border);
+  - `.material-sheet` for sheets (thicker blur, deeper shadow).
+- Never stack a translucent surface on another one.
+- These turn solid automatically for `prefers-reduced-transparency` and `prefers-contrast: more`.
+
+**Feedback (haptics)**
+- `haptic("success" | "snap" | "warning" | "selection")` is for meaningful moments only: a real
+  win, a sheet snapping shut, a problem.
+- Fire it on the same frame as the visual change. It uses the iPhone Taptic Engine in the App Store
+  app and vibration on Android.
+
+**Typography**
+- Tracking and leading change with size: big text tightens, tiny text opens up a little.
+- An explicit `tracking-*` or `leading-*` class still wins.
+- Headings use `text-wrap: balance`.
+
+**Reduced motion**
+- Springs and slides become plain cross-fades or instant changes.
+- Spinners keep turning, because they tell people something is happening.
