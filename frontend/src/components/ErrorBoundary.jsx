@@ -31,17 +31,17 @@ export class ErrorBoundary extends Component {
       <div style={{
         minHeight: "100vh", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", gap: 16, padding: 24,
-        background: "#0A0A0F", color: "#F0F0F5", textAlign: "center", fontFamily: "sans-serif",
+        background: "rgb(var(--victory-bg))", color: "rgb(var(--victory-text))", textAlign: "center", fontFamily: "sans-serif",
       }}>
         <p style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Something went wrong.</p>
-        <p style={{ fontSize: 14, color: "#8888A0", margin: 0, maxWidth: 320 }}>
+        <p style={{ fontSize: 14, color: "rgb(var(--victory-muted))", margin: 0, maxWidth: 320 }}>
           We've been notified. Reloading usually fixes it.
         </p>
         <button
           onClick={() => window.location.reload()}
           style={{
             marginTop: 8, padding: "12px 32px", borderRadius: 999, border: "none",
-            background: "#E8FF47", color: "#0A0A0F", fontWeight: 700, fontSize: 14, cursor: "pointer",
+            background: "rgb(var(--victory-lime))", color: "rgb(var(--victory-bg))", fontWeight: 700, fontSize: 14, cursor: "pointer",
           }}
         >
           Reload

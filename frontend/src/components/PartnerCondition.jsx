@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { TrendingDown, TrendingUp, Info, User } from "lucide-react";
-import { usePalette } from "@/hooks/useSystemTheme";
+import { usePalette } from "@/hooks/useColorScheme";
 import { API } from "@/App";
 
 // Goal: fighters train a few times every week, and open the app to check on their partner.

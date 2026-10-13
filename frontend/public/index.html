@@ -4,7 +4,12 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0A0A0F" />
+    <!-- Before the app's script runs: paint the page in the phone's own light/dark mode (no white
+         flash), and colour the browser bar to match. Values mirror src/theme/theme.js (bg);
+         src/theme/theme.test.js checks they stay in sync. -->
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F6F6F9" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A0A0F" />
     <meta name="description" content="Victory AI - AI-assisted boxing technique tracker for amateur boxers" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

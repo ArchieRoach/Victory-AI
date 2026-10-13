@@ -53,7 +53,7 @@ module.exports = {
         },
         // Victory AI custom colors — resolve to CSS vars set in src/index.css
         // (light by default, dark via prefers-color-scheme / <html data-theme>).
-        // Hex source of truth: src/theme/palette.js
+        // Hex source of truth: src/theme/theme.js (the one theme file; installed as CSS variables at start-up)
         victory: {
           bg: "rgb(var(--victory-bg) / <alpha-value>)",
           card: "rgb(var(--victory-card) / <alpha-value>)",

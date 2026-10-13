@@ -1,6 +1,6 @@
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { Lock, Zap, Sparkles } from "lucide-react";
-import { usePalette } from "@/hooks/useSystemTheme";
+import { usePalette } from "@/hooks/useColorScheme";
 import { weekLabel } from "@/lib/progression";
 
 // Goal: visible progress that only ever goes up.

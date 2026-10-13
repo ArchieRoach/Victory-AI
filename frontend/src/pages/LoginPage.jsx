@@ -1,6 +1,6 @@
 import { SignIn } from "@clerk/clerk-react";
 import { useTranslation } from "react-i18next";
-import { usePalette } from "@/hooks/useSystemTheme";
+import { usePalette } from "@/hooks/useColorScheme";
 
 export default function LoginPage() {
   const { t } = useTranslation();

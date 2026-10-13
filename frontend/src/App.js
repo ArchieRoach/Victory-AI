@@ -19,7 +19,7 @@ import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-re
 import { FeaturebaseProvider, useFeaturebase } from "featurebase-js/react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalCrashReporting } from "@/utils/crashReporter";
-import { useSystemTheme } from "@/hooks/useSystemTheme";
+import { useApplyColorScheme } from "@/hooks/useColorScheme";
 import { initAnalytics, analytics } from "@/lib/analytics";
 import { isNativeShell } from "@/lib/nativeShell";
 import { NativePurchaseNoticePage } from "@/components/NativePurchaseNotice";
@@ -534,9 +534,9 @@ function AnalyticsTracker() {
 }
 
 function App() {
-  // Mirrors the OS light/dark setting onto <html data-theme> in real time, which
-  // flips every --victory-* CSS variable (and thus every victory-* class) instantly.
-  useSystemTheme();
+  // Follows the phone's light/dark setting in real time. The colours themselves come from the
+  // one theme file (src/theme/theme.js), so every screen updates at once.
+  useApplyColorScheme();
   return (
     // Outermost on purpose — catches a crash even in ClerkProvider's own first render
     // (this app has hit exactly that locally: a missing key throws from inside
