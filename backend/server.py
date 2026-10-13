@@ -1609,6 +1609,7 @@ async def get_payment_status(session_id: str, user: dict = Depends(get_current_u
 
 @api_router.get("/subscription/status")
 async def get_subscription_status(user: dict = Depends(get_current_user)):
+    await grant_review_access(user)
     subscription = await db.subscriptions.find_one({"user_id": user["user_id"]}, {"_id": 0})
     if not subscription:
         return {"has_subscription": False, "status": None}
@@ -5388,10 +5389,35 @@ async def revenuecat_sync_me(user: dict = Depends(get_current_user)):
     return {"active": bool(doc and doc["subscription_active"]), "status": (doc or {}).get("status")}
 
 
+# App Review: Apple's reviewers need a signed-in account with Pro already on (they can't
+# buy through Stripe, and IAP sandbox purchases may not be set up). Emails listed in the
+# APP_REVIEW_EMAILS Railway variable get a free "review" subscription on sign-in. Clerk
+# verifies the email before an account exists, so the list can't be claimed by a stranger.
+APP_REVIEW_EMAILS = {e.strip().lower() for e in os.environ.get("APP_REVIEW_EMAILS", "").split(",") if e.strip()}
+
+
+async def grant_review_access(user: dict) -> bool:
+    email = (user.get("email") or "").strip().lower()
+    if not email or email not in APP_REVIEW_EMAILS:
+        return False
+    await db.subscriptions.update_one(
+        {"user_id": user["user_id"], "source": "app_review"},
+        {"$set": {"subscription_id": f"review_{user['user_id']}", "status": "active", "subscription_active": True,
+                  "plan_id": "pro_review"},
+         "$setOnInsert": {"created_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"access_granted": True}})
+    return True
+
+
 @api_router.post("/auth/validate")
 async def validate_access(user: dict = Depends(get_current_user)):
     """iOS: verify Stripe subscription live and check access_granted flag."""
     import asyncio as _asyncio
+
+    if await grant_review_access(user):
+        return {"access_granted": True, "subscription_active": True}
 
     rc = await db.subscriptions.find_one({"user_id": user["user_id"], "source": "app_store"}, {"_id": 0})
     if rc and REVENUECAT_SECRET_API_KEY:

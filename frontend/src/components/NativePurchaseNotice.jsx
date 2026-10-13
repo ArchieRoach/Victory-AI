@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { nativePaywall } from "@/lib/nativeBridge";
 import { ArrowLeft, Lock, X } from "lucide-react";
 
 // Deliberately neutral: Guideline 3.1.3(b) lets the iOS app unlock purchases made
@@ -51,4 +53,18 @@ export function NativePurchaseNoticeModal({ onClose }) {
       </div>
     </div>
   );
+}
+
+// /paywall inside the iOS app: open Apple's own paywall sheet and step back to where the
+// fighter was. Only if the App Store isn't set up does it fall back to the neutral notice.
+export function NativePaywallRoute() {
+  const navigate = useNavigate();
+  const [fallback, setFallback] = useState(false);
+  useEffect(() => {
+    nativePaywall().then((r) => {
+      if (r?.shown) { if (window.history.length > 1) navigate(-1); else navigate("/home", { replace: true }); }
+      else setFallback(true);
+    });
+  }, [navigate]);
+  return fallback ? <NativePurchaseNoticePage /> : <div className="min-h-screen bg-victory-bg" />;
 }
