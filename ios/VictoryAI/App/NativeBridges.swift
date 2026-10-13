@@ -1,5 +1,6 @@
 import WebKit
 import SwiftUI
+import RevenueCat
 import RevenueCatUI
 
 /// Message handlers the web app calls during training (frontend/src/lib/nativeBridge.js
@@ -79,19 +80,24 @@ final class RoundBridge: OriginCheckedBridge {
 }
 
 /// `victoryStore`: opens RevenueCat's Customer Center (manage or cancel an App Store
-/// subscription, request a refund, restore) from the web app's Billing page.
+/// subscription, request a refund, restore) from the web app's Billing page, or the App Store
+/// paywall ("paywall") from any "Upgrade to Pro" button inside the app (Guideline 3.1.1).
 final class StoreBridge: OriginCheckedBridge {
     static let name = "victoryStore"
 
     override func handle(action: String, body: [String: Any], webView: WKWebView?, reply: @escaping (Any?, String?) -> Void) {
         Task { @MainActor in
-            guard action == "customerCenter", StoreManager.shared.isConfigured,
+            guard ["customerCenter", "paywall"].contains(action), StoreManager.shared.isConfigured,
                   var top = webView?.window?.rootViewController else {
                 reply(["shown": false], nil)
                 return
             }
             while let presented = top.presentedViewController { top = presented }
-            top.present(UIHostingController(rootView: CustomerCenterView()), animated: true)
+            if action == "paywall" {
+                top.present(UIHostingController(rootView: WebPaywallSheet(webView: webView)), animated: true)
+            } else {
+                top.present(UIHostingController(rootView: CustomerCenterView()), animated: true)
+            }
             reply(["shown": true], nil)
         }
     }
@@ -111,6 +117,30 @@ final class HapticBridge: OriginCheckedBridge {
             default: UISelectionFeedbackGenerator().selectionChanged()
             }
             reply(nil, nil)
+        }
+    }
+}
+
+/// The App Store paywall opened from inside the web app. After a purchase or restore the
+/// server re-reads RevenueCat, then the page reloads so Pro features switch on straight away.
+private struct WebPaywallSheet: View {
+    weak var webView: WKWebView?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        RevenueCatUI.PaywallView(displayCloseButton: true)
+            .onPurchaseCompleted { info in finish(info) }
+            .onRestoreCompleted { info in finish(info) }
+    }
+
+    private func finish(_ info: RevenueCat.CustomerInfo) {
+        Task { @MainActor in
+            StoreManager.shared.apply(info)
+            if StoreManager.shared.isPro {
+                await AuthService.shared.syncPurchases()
+                webView?.reload()
+            }
+            dismiss()
         }
     }
 }

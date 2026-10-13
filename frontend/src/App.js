@@ -22,7 +22,7 @@ import { installGlobalCrashReporting } from "@/utils/crashReporter";
 import { useApplyColorScheme } from "@/hooks/useColorScheme";
 import { initAnalytics, analytics } from "@/lib/analytics";
 import { isNativeShell } from "@/lib/nativeShell";
-import { NativePurchaseNoticePage } from "@/components/NativePurchaseNotice";
+import { NativePurchaseNoticePage, NativePaywallRoute } from "@/components/NativePurchaseNotice";
 import { lazyPage } from "@/lib/lazyPage";
 
 // Catches crashes outside React's render cycle (event handlers, timers, async code) —
@@ -360,13 +360,11 @@ const AppRouter = () => {
       (r) => r,
       (err) => {
         if (err?.response?.status === 402 && err?.response?.data?.detail === "ai_quota_exceeded") {
-          toast("Monthly AI limit reached", isNativeShell()
-            ? { description: "You've used your 10,000 free AI credits. They reset on the 1st.", duration: 6000 }
-            : {
-                description: "You've used your 10,000 free AI credits. Upgrade to Pro for unlimited access.",
-                action: { label: "Upgrade", onClick: () => navigate("/paywall") },
-                duration: 6000,
-              });
+          toast("Monthly AI limit reached", {
+            description: "You've used your 10,000 free AI credits. Upgrade to Pro for unlimited access.",
+            action: { label: "Upgrade", onClick: () => navigate("/paywall") },
+            duration: 6000,
+          });
         }
         return Promise.reject(err);
       }
@@ -395,7 +393,7 @@ const AppRouter = () => {
         <Route path="/login/*" element={<LoginPage />} />
 
         <Route path="/onboarding" element={<OnboardingRoute><OnboardingFlow /></OnboardingRoute>} />
-        <Route path="/paywall" element={isNativeShell() ? <NativePurchaseNoticePage /> : <OnboardingRoute><PaywallPage /></OnboardingRoute>} />
+        <Route path="/paywall" element={isNativeShell() ? <NativePaywallRoute /> : <OnboardingRoute><PaywallPage /></OnboardingRoute>} />
         <Route path="/payment/success" element={<OnboardingRoute><PaymentSuccess /></OnboardingRoute>} />
 
         {/* Free for all authenticated users */}

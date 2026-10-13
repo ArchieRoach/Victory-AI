@@ -13,3 +13,7 @@ export const nativeRound = (action, payload = {}) => post("victoryRound", { acti
 
 // App Store subscribers manage, cancel or request refunds in RevenueCat's Customer Center.
 export const nativeCustomerCenter = () => post("victoryStore", { action: "customerCenter" });
+
+// Pro upgrades inside the iOS app go through the App Store paywall (Guideline 3.1.1).
+// Resolves { shown: true } when the native sheet opened.
+export const nativePaywall = () => post("victoryStore", { action: "paywall" });
