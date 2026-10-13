@@ -5,9 +5,10 @@ import { Trophy, Users, Compass, Skull, ChevronRight } from "lucide-react";
 import { API } from "@/App";
 import { rankHeadline } from "@/lib/progression";
 import { orderCards, readTaps, recordTap, resetTaps } from "@/lib/homeOrder";
+import { isUnlocked } from "@/lib/unlocks";
 
 // Ordered by what this fighter actually taps (reasoning in lib/homeOrder.js).
-export function DriveCards() {
+export function DriveCards({ unlocks }) {
   const navigate = useNavigate();
   const [order, setOrder] = useState(() => orderCards(readTaps()));
   const [ranks, setRanks] = useState(null);
@@ -32,9 +33,11 @@ export function DriveCards() {
       icon: Users, title: quest ? quest.name : "Your crew", path: quest ? "/leaderboard?tab=quests" : "/squads",
       line: quest ? (quest.completed ? "Mission done. Pick your booster." : `${quest.progress}/${quest.target} on this week's mission`) : "Missions are better with a crew.",
     },
-    explore: boss && !boss.beaten && boss.attempts_left > 0
+    explore: isUnlocked(unlocks, "boss") && boss && !boss.beaten && boss.attempts_left > 0
       ? { icon: Skull, title: `Boss: ${boss.name}`, path: "/train?mode=boss", line: `${boss.target.line}. ${boss.attempts_left} tries left.` }
-      : { icon: Compass, title: "Try something new", path: "/train?mode=freestyle", line: "A freestyle round: no score, just you and your music." },
+      : isUnlocked(unlocks, "round_types")
+        ? { icon: Compass, title: "Try something new", path: "/train?mode=freestyle", line: "A freestyle round: no score, just you and your music." }
+        : { icon: Compass, title: "Build a combination", path: "/combos", line: "Put your own combo together and drill it." },
   };
 
   return (

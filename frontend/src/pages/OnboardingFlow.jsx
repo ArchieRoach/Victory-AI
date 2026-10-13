@@ -100,25 +100,6 @@ const AffirmationPhase = ({ stats, testimonials, onNext }) => {
 const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }) => {
   const { t } = useTranslation();
 
-  const getCounterOptions = (stance) => {
-    if (stance === "southpaw") {
-      return [
-        { value: "jab", label: t("onboarding.favorite_counter.jab_southpaw"), icon: "👊" },
-        { value: "cross", label: t("onboarding.favorite_counter.cross_southpaw"), icon: "💥" },
-        { value: "right_hook", label: t("onboarding.favorite_counter.right_hook"), icon: "🪝" },
-        { value: "uppercut", label: t("onboarding.favorite_counter.uppercut"), icon: "⬆️" },
-        { value: "body_shot", label: t("onboarding.favorite_counter.body_shot"), icon: "🎯" },
-      ];
-    }
-    return [
-      { value: "jab", label: t("onboarding.favorite_counter.jab_orthodox"), icon: "👊" },
-      { value: "cross", label: t("onboarding.favorite_counter.cross_orthodox"), icon: "💥" },
-      { value: "left_hook", label: t("onboarding.favorite_counter.left_hook"), icon: "🪝" },
-      { value: "uppercut", label: t("onboarding.favorite_counter.uppercut"), icon: "⬆️" },
-      { value: "body_shot", label: t("onboarding.favorite_counter.body_shot"), icon: "🎯" },
-    ];
-  };
-
   const questions = [
     {
       id: "biggest_frustration",
@@ -153,12 +134,6 @@ const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }
         { value: "switch", label: t("onboarding.boxing_stance.switch"), icon: "⚡" },
         { value: "not_sure", label: t("onboarding.boxing_stance.not_sure"), icon: "🤔" },
       ],
-    },
-    {
-      id: "favorite_counter",
-      question: t("onboarding.favorite_counter.question"),
-      subtitle: t("onboarding.favorite_counter.subtitle"),
-      options: getCounterOptions(answers.boxing_stance),
     },
     {
       id: "favorite_fighter",
@@ -232,31 +207,50 @@ const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }
 const PersonalizedAffirmation = ({ answers, onNext }) => {
   const { t } = useTranslation();
 
+  // Goal: the fighter finishes onboarding feeling capable, and believes what we say.
+  // Psychology: competence (Self-Determination Theory) and the labelling effect: reflect back
+  //   something smart they actually did (named their weak spot, picked a role model) rather
+  //   than promising results. Honest expectations beat hype for trust.
+  // Design: three short cards built only from their own answers.
   const getAffirmation = () => {
     const frustration = answers.biggest_frustration;
-    const counter = answers.favorite_counter;
+    const fighter = answers.favorite_fighter;
 
-    const affirmations = {
-      no_feedback: "Getting real-time feedback on every punch is about to change everything for you.",
-      bad_habits: "Your training partner will catch those habits and call them out every single round.",
-      defense_weak: "Defense is 100% trainable. You'll be slipping punches like a pro within weeks.",
-      no_power: "Power comes from technique. We'll fix your hip rotation and weight transfer.",
-      footwork: "Footwork is the foundation. Daily reminders will make it second nature.",
+    const weakSpot = {
+      no_feedback: "real feedback",
+      bad_habits: "bad habits",
+      defense_weak: "defence",
+      no_power: "power",
+      footwork: "footwork",
     };
 
-    const counterGoals = {
-      jab: "Landing 2x more jabs in sparring",
-      cross: "Making your cross a real weapon",
-      left_hook: "Timing that left hook perfectly",
-      right_hook: "Timing that right hook perfectly",
-      uppercut: "Finding those uppercut openings",
-      body_shot: "Breaking opponents down to the body",
+    // What each fighter is known for, so the pick reads as boxing knowledge, not trivia.
+    const fighterSkill = {
+      "Muhammad Ali": "his jab and footwork",
+      "Mike Tyson": "head movement before every attack",
+      "Floyd Mayweather": "defence: making people miss",
+      "Terence Crawford": "switching stance mid-fight",
+      "Usyk": "footwork and angles",
+      "Canelo Alvarez": "counter-punching and body work",
+      "Manny Pacquiao": "hand speed and angles",
+      "Artur Beterbiev": "pressure and heavy shots",
+      "Roberto Duran": "fighting on the inside",
     };
 
+    const level = answers.experience_level;
+    const start = level === "complete_beginner"
+      ? "Starting from zero is fine. Your first rounds are short and simple, and new tools unlock as you train."
+      : "You already know your way around a round, so your partner will skip the basics you don't need.";
+
+    const skill = fighterSkill[fighter];
     return {
-      main: affirmations[frustration] || "Your training partner will focus on exactly what you need.",
-      counter: counterGoals[counter] || "Improving your counter game",
-      honesty: "Real talk: the first two weeks feel slow. But by week 3, you'll wonder how you trained without this.",
+      main: weakSpot[frustration]
+        ? `You named your weak spot: ${weakSpot[frustration]}. Knowing exactly what to fix is how good boxers train.`
+        : "Your partner will focus on exactly what you need.",
+      fighter: skill
+        ? `${fighter} was famous for ${skill}. Your partner will point it out when you do it too.`
+        : "Your partner will point out what you do well, not just what to fix.",
+      honesty: start,
     };
   };
 
@@ -278,8 +272,7 @@ const PersonalizedAffirmation = ({ answers, onNext }) => {
           <p className="text-victory-text">{aff.main}</p>
         </div>
         <div className="victory-card p-4 border-l-4 border-victory-teal">
-          <p className="text-victory-muted text-sm mb-1">{t("onboarding.personalized.realisticGoal")}</p>
-          <p className="text-victory-text font-semibold">{aff.counter} {t("onboarding.personalized.withinWeeks")}</p>
+          <p className="text-victory-text text-sm">{aff.fighter}</p>
         </div>
         <div className="victory-card p-4 border-l-4 border-victory-orange">
           <p className="text-victory-muted text-sm mb-1">{t("onboarding.personalized.honestExpectation")}</p>
@@ -310,16 +303,6 @@ const PartnerCreationPhase = ({ styles, onAnswer, onBack, currentStep, partnerDa
         description: style.personality,
         icon: key === "tough_love" ? "💪" : key === "hype_man" ? "🔥" : key === "analytical_technician" ? "🧠" : key === "old_school_trainer" ? "🎖️" : "❤️",
       })),
-    },
-    {
-      id: "accountability_level",
-      question: t("onboarding.accountability_level.question"),
-      subtitle: t("onboarding.accountability_level.subtitle"),
-      options: [
-        { value: "gentle", label: t("onboarding.accountability_level.gentle"), description: t("onboarding.accountability_level.gentle_desc"), icon: "🌱" },
-        { value: "moderate", label: t("onboarding.accountability_level.moderate"), description: t("onboarding.accountability_level.moderate_desc"), icon: "⚖️" },
-        { value: "high", label: t("onboarding.accountability_level.high"), description: t("onboarding.accountability_level.high_desc"), icon: "🔥" },
-      ],
     },
     {
       id: "focus_areas",
@@ -728,8 +711,8 @@ export default function OnboardingFlow() {
     }
   };
 
-  const totalQuestions = 5;
-  const totalPartnerSteps = 3;
+  const totalQuestions = 4;
+  const totalPartnerSteps = 2;
 
   const getProgress = () => {
     if (phase === "birth_date") return 2;

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
-import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown, UserPlus, Check, Skull, Mountain, Music, CalendarCheck } from "lucide-react";
+import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown, UserPlus, Check, Skull, Mountain, Music, CalendarCheck, LockOpen, Egg, PartyPopper, Vote } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { seasonProgress, inviteMoment } from "@/lib/rewards";
 import { FighterCardButton } from "@/components/FighterCard";
@@ -347,7 +347,89 @@ function BossResult({ boss }) {
       <p className="text-[12px] text-victory-muted">{boss.target?.line}. You got: {Object.entries(boss.got || {}).map(([k, v]) => `${v} ${k.replace("_", " ")}`).join(", ") || "nothing counted"}.</p>
       {boss.status > 0 && <p className="text-[12px] text-victory-lime">+{boss.status} status</p>}
       {boss.beaten && <BragButton win={{ kind: "boss", name: boss.name }} label="Show off the win" />}
+      <BossVote />
     </section>
+  );
+}
+
+// Unlock as you go: one new feature at a time, earned by training (gamification.py FEATURE_UNLOCKS).
+function Unlocked({ features }) {
+  if (!features?.length) return null;
+  return (
+    <section className="victory-card p-4 space-y-2 border-victory-lime/40" data-testid="unlocked">
+      <p className="section-label flex items-center gap-1.5"><LockOpen className="w-3 h-3" /> Unlocked</p>
+      {features.map((f) => (
+        <div key={f.key}>
+          <p className="text-victory-text font-heading font-bold">{f.name}</p>
+          <p className="text-[12px] text-victory-muted">{f.line}</p>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+// Easter eggs (Core Drive 7): found from what you actually did; how many exist is public.
+function EasterEgg({ eggs }) {
+  if (!eggs?.new?.length) return null;
+  return (
+    <section className="victory-card p-4 space-y-1 border-victory-orange/40" data-testid="easter-egg">
+      <p className="section-label flex items-center gap-1.5"><Egg className="w-3 h-3" /> Hidden egg found</p>
+      {eggs.new.map((e) => <p key={e.key} className="text-victory-text text-sm"><span className="font-heading font-bold">{e.name}</span> · {e.desc}</p>)}
+      <p className="text-[11px] text-victory-muted"><span className="font-mono">{eggs.found}</span> of {eggs.total} found. The rest are still hidden.</p>
+    </section>
+  );
+}
+
+// Crew cheer (Core Drive 5): one tap, no text, only for crew-mates who trained today.
+function CrewCheer() {
+  const [mates, setMates] = useState(null);
+  useEffect(() => {
+    axios.get(`${API}/crew/today`).then((r) => setMates(r.data.mates)).catch(() => setMates([]));
+  }, []);
+  if (!mates?.length) return null;
+  const cheer = async (id) => {
+    try {
+      await axios.post(`${API}/crew/cheer/${id}`);
+      setMates((m) => m.map((x) => (x.user_id === id ? { ...x, cheered: true } : x)));
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Couldn't send that cheer");
+    }
+  };
+  return (
+    <section className="victory-card p-4 space-y-2" data-testid="crew-cheer">
+      <p className="section-label flex items-center gap-1.5"><PartyPopper className="w-3 h-3" /> Your crew trained today too</p>
+      <div className="flex flex-wrap gap-2">
+        {mates.map((m) => (
+          <button key={m.user_id} disabled={m.cheered} onClick={() => cheer(m.user_id)}
+            className={`filter-pill min-h-[44px] ${m.cheered ? "filter-pill-active" : "filter-pill-inactive"}`}>
+            {m.cheered ? `Cheered ${m.name}` : `Cheer ${m.name}`}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// Boss vote (HEXAD Disruptors): fighters choose next week's boss.
+function BossVote() {
+  const [v, setV] = useState(null);
+  useEffect(() => {
+    axios.get(`${API}/boss/vote`).then((r) => setV(r.data)).catch(() => {});
+  }, []);
+  if (!v) return null;
+  const vote = (key) => axios.post(`${API}/boss/vote`, { key }).then((r) => setV(r.data)).catch(() => toast.error("Couldn't count that vote"));
+  return (
+    <div className="pt-2 border-t border-victory-border space-y-2" data-testid="boss-vote">
+      <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Vote className="w-3.5 h-3.5" /> Pick next week's boss. Most votes wins.</p>
+      <div className="grid grid-cols-2 gap-2">
+        {v.options.map((o) => (
+          <button key={o.key} onClick={() => vote(o.key)} aria-pressed={v.my_vote === o.key}
+            className={`filter-pill min-h-[44px] ${v.my_vote === o.key ? "filter-pill-active" : "filter-pill-inactive"}`}>
+            {o.name} <span className="font-mono">{o.votes}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -361,6 +443,23 @@ function CallsSummary({ calls }) {
         {calls.calls} combos called.
         {calls.rate != null ? <> You landed <span className="font-mono text-victory-text">{calls.rate}%</span>; next session starts at that level.</> : " Turn on Live Coach and the calls adapt to you."}
       </span>
+    </section>
+  );
+}
+
+// Make a newcomer feel capable: name what they actually did, in plain words, from real data.
+function FirstWins({ rewards, liveStats }) {
+  const n = rewards?.sessions_total;
+  const lines = [];
+  if (n === 1) lines.push("First session done. That's the hardest one.");
+  else if (n) lines.push(`Session ${n} done. You're building a habit.`);
+  if (liveStats?.punches) lines.push(`You threw ${liveStats.punches} punches${liveStats.best_combo >= 3 ? `, with a ${liveStats.best_combo}-punch combination` : ""}.`);
+  if (rewards?.personal_bests?.new?.length) lines.push("You set your first personal bests. Every session from now is measured against you, not anyone else.");
+  if (!lines.length) return null;
+  return (
+    <section className="victory-card p-4 space-y-1 border-victory-lime/40 bg-victory-lime/5" data-testid="first-wins">
+      <p className="text-victory-text font-heading font-extrabold text-lg">{lines[0]}</p>
+      {lines.slice(1).map((l) => <p key={l} className="text-victory-text text-sm">{l}</p>)}
     </section>
   );
 }
@@ -382,6 +481,30 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
   }
   const moment = inviteMoment(rewards, scoutingReport);
   const mastery = rewards?.stage?.stage === "mastery";
+  // Newcomers: what they did, what they unlocked, one next step. The rest is one tap away,
+  // so the first screens build confidence instead of burying it in numbers.
+  if (rewards?.newcomer) {
+    return (
+      <div className="space-y-3 reveal-stack" data-testid="session-rewards">
+        <FirstWins rewards={rewards} liveStats={liveStats} />
+        <IdentityCard identity={rewards?.identity} />
+        <Unlocked features={rewards?.unlocked_features} />
+        <EasterEgg eggs={rewards?.easter_eggs} />
+        <CornerSurprise surprise={rewards?.surprise} />
+        <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />
+        <details className="victory-card p-3" data-testid="newcomer-details">
+          <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[44px] flex items-center">See all your numbers</summary>
+          <div className="space-y-3 mt-3">
+            <PersonalBests pb={rewards?.personal_bests} />
+            <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
+            <SeasonProgress season={rewards?.season} />
+            <StatusEarned status={rewards?.status} quests={rewards?.quests} gloves={rewards?.gloves} />
+            <CallsSummary calls={calls} />
+          </div>
+        </details>
+      </div>
+    );
+  }
   const points = (
     <>
       <SeasonProgress season={rewards?.season} />
@@ -389,8 +512,10 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
     </>
   );
   return (
-    <div className="space-y-3" data-testid="session-rewards">
+    <div className="space-y-3 reveal-stack" data-testid="session-rewards">
       <BossResult boss={rewards?.boss} />
+      <Unlocked features={rewards?.unlocked_features} />
+      <EasterEgg eggs={rewards?.easter_eggs} />
       {rewards?.epic_line && (
         <p className="victory-card p-3 text-sm text-victory-text flex items-start gap-2" data-testid="epic-line">
           <Mountain className="w-4 h-4 text-victory-teal mt-0.5 flex-shrink-0" /> {rewards.epic_line}
@@ -410,6 +535,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
       ) : points}
       <CallsSummary calls={calls} />
       {!mastery && <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />}
+      <CrewCheer />
       {moment && <FighterCardButton rewards={rewards} overall={overall} liveStats={liveStats} />}
       {moment && <BringYourCrew moment={moment} />}
     </div>

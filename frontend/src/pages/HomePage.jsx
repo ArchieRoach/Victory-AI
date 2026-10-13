@@ -17,6 +17,8 @@ import { OneRoundButton } from "@/components/home/OneRoundButton";
 import { WeekPlanCard } from "@/components/home/WeekPlanCard";
 import { EpicWinCard } from "@/components/home/EpicWinCard";
 import { DriveCards } from "@/components/home/DriveCards";
+import { NextUnlock, TipForNewcomer, PassItOn } from "@/components/home/NewcomerCards";
+import { useUnlocks, isUnlocked } from "@/lib/unlocks";
 import { STYLE_STORAGE_KEY, withArticle } from "@/lib/fighterStyle";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -398,6 +400,8 @@ export default function HomePage() {
       .finally(() => { try { localStorage.removeItem(STYLE_STORAGE_KEY); } catch { /* ignore */ } });
   }, [user?.user_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Newcomers see a short Home; features arrive one at a time as they train (lib/unlocks.js).
+  const unlocks = useUnlocks(API);
   const [tab,             setTab]            = useState("foryou"); // "foryou" | "following" | "notifications"
   const [feed,            setFeed]            = useState([]);
   const [followingFeed,   setFollowingFeed]   = useState([]);
@@ -612,10 +616,13 @@ export default function HomePage() {
         <div className="px-4 pt-3 space-y-3">
           <OneRoundButton />
           <PartnerCondition />
-          <WeekPlanCard />
+          {isUnlocked(unlocks, "week_plan") && <WeekPlanCard />}
           <JourneyCard />
-          <DriveCards />
-          <EpicWinCard />
+          {unlocks?.newcomer && <TipForNewcomer />}
+          {isUnlocked(unlocks, "crew") && <DriveCards unlocks={unlocks} />}
+          {unlocks && !unlocks.newcomer && <EpicWinCard />}
+          {isUnlocked(unlocks, "give_tips") && <PassItOn />}
+          <NextUnlock next={unlocks?.next} />
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import { Crown, Award, Heart, Sparkles, Flame, Medal, Trophy, Gift } from "lucide-react";
+import { Crown, Award, Heart, Sparkles, Flame, Medal, Trophy, Gift, Egg } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
 import { BragButton } from "./BragButton";
@@ -79,6 +79,14 @@ export function TrophyShelf({ userId, isMe = false }) {
       {shelf.mastery?.tier && (
         <p className="text-[11px] text-victory-muted">
           <span className="text-victory-teal font-semibold">{shelf.mastery.tier}</span> · <span className="font-mono text-victory-text">{shelf.mastery.verified_hours}</span> proven hours on the road to 10,000
+        </p>
+      )}
+
+      {shelf.eggs?.found?.length > 0 && (
+        <p className="text-[11px] text-victory-muted flex items-center gap-1.5 flex-wrap" data-testid="shelf-eggs">
+          <Egg className="w-3.5 h-3.5 text-victory-orange" />
+          {shelf.eggs.found.map((e) => <span key={e.key} title={e.desc} className="text-victory-text">{e.name}</span>)}
+          <span>· {shelf.eggs.found.length} of {shelf.eggs.total} hidden eggs found</span>
         </p>
       )}
 

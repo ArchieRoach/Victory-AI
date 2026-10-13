@@ -31,6 +31,17 @@ usually happens at the first major win state.
   quest done), and the invite carries that win. Contact matching only runs when the user taps it.
 - Guarded by `frontend/src/lib/inviteRule.test.js` (onboarding must not prompt invites, contacts or shares).
 
+## Onboarding rule: make people feel smart, never swamped
+New users decide in their first few sessions whether they're "good at this". Onboarding and the
+first sessions must build that feeling, not test it.
+- Ask only what we use (4 questions + 2 partner steps max). Reflect their own answers back as
+  smart choices; promise no results we can't prove.
+- The first session is one clear thing: one round with your partner. Features unlock one at a
+  time after real sessions (`FEATURE_UNLOCKS` in `backend/gamification.py`, `lib/unlocks.js`),
+  each with one plain line explaining it. Newcomers get a short results screen, with the rest
+  folded under "See all your numbers".
+- Guarded by `frontend/src/lib/onboardingCalm.test.js`.
+
 ## Stack
 - **Frontend:** React (CRA + CRACO), JavaScript `.jsx` (no TypeScript, no Next.js). Tailwind only.
   Deployed to **Vercel** (`victory-ai-alpha.vercel.app`).

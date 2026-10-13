@@ -20,6 +20,7 @@ import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
 import { createComboCaller, sayCombo, savedLevel, saveLevel } from "@/lib/comboCaller";
+import { useUnlocks, isUnlocked } from "@/lib/unlocks";
 
 const LIVE_COACH_KEY = "victory_live_coach";
 // On unless the fighter switched it off: it runs on the phone and uploads nothing, so it's
@@ -91,11 +92,23 @@ export default function TrainPage() {
   const focus = searchParams.get("focus");
   // "/train?quick=1" is the Just One Round button; "/train?mode=boss|freestyle" picks a round type.
   const quick = searchParams.get("quick") === "1";
+  // New fighters get a simple setup; round types, combo calls and going live arrive as they
+  // train (lib/unlocks.js), so the first session is one clear thing to do.
+  const unlocks = useUnlocks(API);
   const [kind, setKind] = useState(() => (["freestyle", "boss"].includes(searchParams.get("mode")) ? searchParams.get("mode") : "standard"));
+  const canPickKind = isUnlocked(unlocks, "round_types");
+  const canCall = isUnlocked(unlocks, "combo_calls");
+  const canGoLive = isUnlocked(unlocks, "go_live");
+  const kindsOpen = KINDS.filter((k) => k.key !== "boss" || isUnlocked(unlocks, "boss"));
   const [boss, setBoss] = useState(null);
   const [callsOn, setCallsOn] = useState(readCalls);
   const [currentCall, setCurrentCall] = useState(null);
   const callerRef = useRef(null);
+  useEffect(() => {
+    if (!unlocks) return;
+    if (!isUnlocked(unlocks, "go_live")) setSessionMode("private");
+    if ((kind === "boss" && !isUnlocked(unlocks, "boss")) || (kind === "freestyle" && !isUnlocked(unlocks, "round_types"))) setKind("standard");
+  }, [unlocks, kind]);
   useEffect(() => {
     if (kind !== "boss") return;
     axios.get(`${API}/boss`, { params: { round_duration: FIXED_ROUND_SECONDS } }).then((r) => setBoss(r.data)).catch(() => setBoss(null));
@@ -465,7 +478,7 @@ export default function TrainPage() {
       if (granted && filming) startRoundRecording();
       if (!granted && kind === "boss") toast.error("Boss Rounds need the camera to count. This try won't count.");
     }
-    callerRef.current = callsOn && kind !== "boss"
+    callerRef.current = callsOn && canCall && kind !== "boss"
       ? createComboCaller({ level: savedLevel(), gapScale: kind === "freestyle" ? 1.6 : 1 })
       : null;
     if (liveCoach) {
@@ -548,7 +561,7 @@ export default function TrainPage() {
     stopCamera();
     if (sessionId) {
       try {
-        const res = await axios.post(`${API}/training/${sessionId}/complete`, {}, { withCredentials: true });
+        const res = await axios.post(`${API}/training/${sessionId}/complete`, calls ? { calls } : {}, { withCredentials: true });
         navigate(`/score/results/${res.data.session_id}`, { state: { session: res.data, fromTraining: true, calls } });
         return;
       } catch {
@@ -636,10 +649,11 @@ export default function TrainPage() {
               </div>
             )}
 
+            {canPickKind && (
             <div>
               <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">Round type</p>
-              <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Round type">
-                {KINDS.map(({ key, label, icon: Icon, desc }) => (
+              <div className={`grid gap-2 ${kindsOpen.length === 3 ? "grid-cols-3" : "grid-cols-2"}`} role="radiogroup" aria-label="Round type">
+                {kindsOpen.map(({ key, label, icon: Icon, desc }) => (
                   <button key={key} role="radio" aria-checked={kind === key}
                     onClick={() => {
                       setKind(key);
@@ -656,6 +670,7 @@ export default function TrainPage() {
                 ))}
               </div>
             </div>
+            )}
 
             {kind === "freestyle" && (
               <div className="victory-card p-4" data-testid="freestyle-note">
@@ -680,7 +695,7 @@ export default function TrainPage() {
               </div>
             )}
 
-            {kind !== "boss" && sessionMode === "private" && (
+            {canCall && kind !== "boss" && sessionMode === "private" && (
               <div className="victory-card p-4" data-testid="combo-calls-toggle">
                 <button onClick={() => { setCallsOn(!callsOn); try { localStorage.setItem(CALLS_KEY, callsOn ? "0" : "1"); } catch {} }}
                   className="w-full flex items-center justify-between touch-target">
@@ -793,7 +808,7 @@ export default function TrainPage() {
             </>)}
 
             {/* ── Mode toggle — replaces Record & Analyse ────────────────────── */}
-            {kind === "standard" && (
+            {kind === "standard" && canGoLive && (
             <div>
               <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">Session Mode</p>
               <div className="grid grid-cols-2 gap-3">
