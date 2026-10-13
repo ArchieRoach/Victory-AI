@@ -367,6 +367,9 @@ def mastery(seconds: int) -> dict:
     upcoming = next(((at, name) for at, name in MASTERY_TIERS if h < at), None)
     return {
         "verified_hours": round(h, 1),
+        "prev_at_hours": reached[-1][0] if reached else 0,
+        "tiers_earned": len(reached),
+        "tiers_total": len(MASTERY_TIERS),
         "tier": reached[-1][1] if reached else None,
         "next_tier": upcoming[1] if upcoming else None,
         "next_at_hours": upcoming[0] if upcoming else None,

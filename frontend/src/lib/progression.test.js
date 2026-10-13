@@ -54,5 +54,13 @@ test("gloves lines use only real numbers", () => {
   expect(glovesLine({ counted: true, minutes: 6, gloves: "not_pledged" })).toBe("+6 verified minutes");
   expect(glovesLine({ just_earned: "Season 9 Golden Gloves" })).toBe("You earned the Season 9 Golden Gloves!");
   expect(masteryLine({ verified_hours: 120, expert_hours: 10000, next_tier: "Veteran", next_at_hours: 500 }))
-    .toBe("120 of 10,000 expert hours · next: Veteran at 500h");
+    .toBe("120 of 500 hours to Veteran");
+  expect(masteryLine({ verified_hours: 0.4, next_tier: "First Hour", next_at_hours: 1 })).not.toMatch(/10,000/);
+});
+
+test("the hours bar fills from your last badge to the next, not toward 10,000", () => {
+  const { masteryPct } = require("./progression");
+  expect(masteryPct({ verified_hours: 0.5, prev_at_hours: 0, next_at_hours: 1, next_tier: "First Hour" })).toBe(50);
+  expect(masteryPct({ verified_hours: 300, prev_at_hours: 100, next_at_hours: 500, next_tier: "Veteran" })).toBe(50);
+  expect(masteryPct({ verified_hours: 10001, next_tier: null })).toBe(100);
 });

@@ -3,7 +3,7 @@ import axios from "axios";
 import { Lock, ShieldCheck, Trophy, Video, Hourglass } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
-import { glovesHeadline, masteryLine } from "@/lib/progression";
+import { glovesHeadline } from "@/lib/progression";
 import { BragButton } from "./BragButton";
 
 // Goal: one prize per season that's genuinely hard to get and only goes to real training.
@@ -65,17 +65,6 @@ export function GoldenGloves() {
         </>
       )}
 
-      {g.mastery && (
-        <div className="rounded-lg bg-victory-card-highlight border border-victory-border p-3" data-testid="mastery">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-heading font-bold uppercase text-victory-muted">Road to 10,000 hours</p>
-            {g.mastery.tier && <span className="text-[11px] font-heading font-bold text-victory-teal">{g.mastery.tier}</span>}
-          </div>
-          <p className="text-[12px] text-victory-text mt-1">{masteryLine(g.mastery)}</p>
-          <p className="text-[10px] text-victory-muted mt-1">Only time the AI has seen you box counts. 10,000 hours is the mark of an expert.</p>
-        </div>
-      )}
-
       {g.earned && <BragButton win={{ kind: "crown", name: g.name }} label="Show them off" />}
 
       {!g.pledged && g.window.open && (
@@ -93,7 +82,7 @@ export function GoldenGloves() {
       )}
 
       {g.preseason && (
-        <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" /> Entries open on launch day. Every AI-verified round you do before then still counts on your road to 10,000 hours.</p>
+        <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" /> Entries open on launch day. Train with video on before then and you'll start ready.</p>
       )}
 
       {!g.preseason && !g.pledged && !g.window.open && !g.earned && (
