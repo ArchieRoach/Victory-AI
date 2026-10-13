@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Target, CheckCircle2, Zap, Vote, Swords } from "lucide-react";
+import { Target, CheckCircle2, Zap, Vote, Swords, MessagesSquare } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
 import { resetCountdown } from "@/lib/progression";
@@ -121,8 +121,46 @@ export function QuestList() {
             ))}
           </ul>
           {q.completed && <BragButton win={{ kind: "quest" }} label="Show off the squad" />}
+          <CrewFeed squadId={q.squad_id} />
         </section>
       ))}
     </div>
+  );
+}
+
+// The water cooler: real crew moments with a few fixed stamps. No free text, so it stays safe
+// for under-18s. Reasoning in backend/gamification.py (crew_moments).
+function CrewFeed({ squadId }) {
+  const [feed, setFeed] = useState(null);
+  const [open, setOpen] = useState(false);
+  const load = useCallback(() => axios.get(`${API}/squads/${squadId}/feed`).then((r) => setFeed(r.data)).catch(() => setFeed(false)), [squadId]);
+  useEffect(() => { if (open && feed === null) load(); }, [open, feed, load]);
+  const stamp = async (id, mine, key) => {
+    try { await axios.post(`${API}/squads/feed/${id}/stamp`, { stamp: mine === key ? null : key }); load(); }
+    catch { toast.error("Couldn't add that stamp"); }
+  };
+  return (
+    <details className="pt-1 border-t border-victory-border" onToggle={(e) => setOpen(e.currentTarget.open)} data-testid="crew-feed">
+      <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[44px] flex items-center gap-1.5"><MessagesSquare className="w-3.5 h-3.5" /> Crew moments</summary>
+      {feed === null && open && <div className="skeleton-shimmer h-16 rounded-lg" />}
+      {feed && feed.events.length === 0 && <p className="text-[12px] text-victory-muted pb-2">Nothing yet. Train and it shows up here.</p>}
+      {feed && (
+        <ul className="space-y-2 pb-1">
+          {feed.events.map((e) => (
+            <li key={e.event_id} className="space-y-1">
+              <p className="text-sm text-victory-text">{e.text}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(feed.stamp_names).map(([key, label]) => (
+                  <button key={key} onClick={() => stamp(e.event_id, e.mine, key)} aria-pressed={e.mine === key}
+                    className={`filter-pill text-[11px] ${e.mine === key ? "filter-pill-active" : "filter-pill-inactive"}`}>
+                    {label}{e.stamps[key] ? ` ${e.stamps[key]}` : ""}
+                  </button>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </details>
   );
 }

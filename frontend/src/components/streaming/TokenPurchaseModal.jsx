@@ -63,7 +63,7 @@ function TokenStorePrompt({ onClose }) {
                 )}
                 <p className="text-victory-text text-xs font-semibold mt-1">{p.label}</p>
                 <p className="text-victory-lime font-mono font-black text-lg">⚡{p.tokens >= 1000 ? `${p.tokens/1000}K` : p.tokens}</p>
-                <p className="text-victory-muted text-xs">${p.price.toFixed(2)}</p>
+                <p className="text-victory-muted text-xs">£{p.price.toFixed(2)}</p>
               </div>
             ))}
           </div>

@@ -19,7 +19,10 @@ export const HIT_LOW = 0.6;
 export const RESULTS_WINDOW = 5;
 export const LEVEL_KEY = "victory_caller_level";
 
-export const punchCount = (combo) => combo.split("-").length;
+// Only numbered moves are punches the camera can count; "slip" or "pivot" in a combo aren't.
+export const punchCount = (combo) => Math.max(1, combo.split("-").filter((m) => /^[1-6]$/.test(m)).length);
+// Your weekly combo (from the combo builder) is called every third time.
+export const WEEKLY_EVERY = 3;
 export const landWindowMs = (n) => 1200 + n * 450;
 
 export function nextLevel(level, results) {
@@ -31,7 +34,7 @@ export function nextLevel(level, results) {
   return level;
 }
 
-export function createComboCaller({ level = 0, gapScale = 1, pick = Math.random } = {}) {
+export function createComboCaller({ level = 0, gapScale = 1, pick = Math.random, weekly = null } = {}) {
   let lvl = Math.max(0, Math.min(CALL_LEVELS.length - 1, level));
   let results = [];
   let pending = null;
@@ -62,13 +65,14 @@ export function createComboCaller({ level = 0, gapScale = 1, pick = Math.random 
       if (nextAt == null) nextAt = now + 1500;
       if (pending || now < nextAt) return null;
       const options = CALL_LEVELS[lvl].combos.filter((c) => c !== last);
-      const combo = options[Math.floor(pick() * options.length) % options.length];
+      const useWeekly = weekly && weekly !== last && (stats.calls + 1) % WEEKLY_EVERY === 0;
+      const combo = useWeekly ? weekly : options[Math.floor(pick() * options.length) % options.length];
       const n = punchCount(combo);
       pending = { combo, n, punches: 0, deadline: now + landWindowMs(n) };
       nextAt = now + CALL_LEVELS[lvl].gapMs * gapScale;
       last = combo;
       stats.calls += 1;
-      return { combo, level: lvl, levelName: CALL_LEVELS[lvl].name };
+      return { combo, level: lvl, levelName: useWeekly ? "Your weekly combo" : CALL_LEVELS[lvl].name };
     },
     punch(now) {
       if (pending && now <= pending.deadline) pending.punches += 1;

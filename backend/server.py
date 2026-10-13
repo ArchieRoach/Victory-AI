@@ -1390,6 +1390,7 @@ async def complete_training_session(session_id: str, data: Optional[CompleteIn] 
     result["new_belts"] = new_belts
     try:
         rewards = {**rewards, **await after_session_extras(user, session_record, session.get("live_rounds") or [])}
+        await post_crew_moments(user, rewards)
     except Exception as e:
         logger.error(f"Session extras failed for {session_id}: {e}")
     result["rewards"] = rewards
@@ -1946,7 +1947,7 @@ async def purchase_tokens(
             payment_method_types=["card"],
             line_items=[{
                 "price_data": {
-                    "currency": "usd",
+                    "currency": PLAN_CURRENCY,
                     "product_data": {
                         "name": f"Victory — {pkg['tokens']:,} Tokens ({pkg['label']})",
                         "description": pkg["tagline"],
@@ -2088,7 +2089,7 @@ async def gift_subscription(stream_id: str, req: GiftSubRequest, user: dict = De
             stripe_lib.checkout.Session.create,
             mode="payment",
             payment_method_types=["card"],
-            line_items=[{"price_data": {"currency": "usd", "product_data": {"name": f"Victory AI — {label}"}, "unit_amount": int(price * 100)}, "quantity": 1}],
+            line_items=[{"price_data": {"currency": PLAN_CURRENCY, "product_data": {"name": f"Victory AI — {label}"}, "unit_amount": int(price * 100)}, "quantity": 1}],
             allow_promotion_codes=True,
             success_url=f"{host}/stream/{stream_id}?gift=success",
             cancel_url=f"{host}/stream/{stream_id}",
@@ -2158,7 +2159,7 @@ async def create_ad_checkout(request: Request, req: AdCampaignRequest):
             payment_method_types=["card"],
             line_items=[{
                 "price_data": {
-                    "currency": "usd",
+                    "currency": PLAN_CURRENCY,
                     "product_data": {"name": f"Victory AI Sponsor Banner — {pkg['label']} ({pkg['days']} days)"},
                     "unit_amount": int(pkg["price"] * 100),
                 },
@@ -2393,6 +2394,7 @@ async def create_session(data: SessionCreate, user: dict = Depends(get_current_u
     rewards = await safe_session_rewards(user, session_record, trusted_scores=False)
     try:
         rewards = {**rewards, **await after_session_extras(user, session_record, [])}
+        await post_crew_moments(user, rewards)
     except Exception as e:
         logger.error(f"Session extras failed for {session_record['session_id']}: {e}")
     result["rewards"] = rewards
@@ -2481,6 +2483,7 @@ async def delete_account(user: dict = Depends(get_current_user)):
     await db.treasures.delete_many({"$or": [{"giver_id": user_id}, {"recipient_id": user_id}]})
     await db.gym_checkins.delete_many({"user_id": user_id})
     await db.boss_votes.delete_many({"user_id": user_id})
+    await db.crew_feed.delete_many({"user_id": user_id})
     await db.crew_cheers.delete_many({"$or": [{"actor_id": user_id}, {"recipient_id": user_id}]})
     await db.tips.delete_many({"user_id": user_id})
     await db.tip_votes.delete_many({"user_id": user_id})
@@ -2542,6 +2545,7 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "bookings": await db.bookings.find({"user_id": user_id}, proj).to_list(1000),
         "gym_checkins": await db.gym_checkins.find({"user_id": user_id}, proj).to_list(10000),
         "boss_votes": await db.boss_votes.find({"user_id": user_id}, proj).to_list(1000),
+        "crew_moments": await db.crew_feed.find({"user_id": user_id}, proj).to_list(10000),
         "crew_cheers": await db.crew_cheers.find({"$or": [{"actor_id": user_id}, {"recipient_id": user_id}]}, proj).to_list(10000),
         "tips_left": await db.tips.find({"user_id": user_id}, proj).to_list(1000),
         "callouts_sent": await db.callouts.find({"challenger_id": user_id}, proj).to_list(1000),
@@ -10003,6 +10007,8 @@ async def pick_booster(data: BoosterPick, user: dict = Depends(get_current_user)
         await db.users.update_one({"user_id": user["user_id"]}, {"$push": {"boosters": gx.make_booster("double_status", "Mission booster")}})
     elif data.choice == "guaranteed_surprise":
         await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {"guaranteed_surprises": 1}})
+    elif data.choice == "coach_eye":
+        await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {"coach_eye_pending": 1}})
     else:
         await award_status(user["user_id"], 100, boostable=False, weekly=False)
     return {"picked": data.choice, "label": gx.BOOSTER_CHOICES[data.choice]}
@@ -11031,7 +11037,20 @@ async def after_session_extras(user: dict, session: dict, live_rounds: list) -> 
             name, desc = gx.EASTER_EGGS[key]
             eggs.append({"key": key, "name": name, "desc": desc})
     found = len(have) + len(eggs)
-    return {"unlocked_features": gx.newly_unlocked_features(after - 1, after), "next_unlock": gx.next_unlock(after),
+    extras = {}
+    trusted = bool(session.get("scored")) and session.get("source") != "manual"
+    dims = [d for d in session.get("dimension_scores") or [] if isinstance(d.get("score"), (int, float))]
+    # Beginner's luck, honestly: a newcomer hears their strongest area, but only one the AI scored.
+    if trusted and dims and after <= gx.NEWCOMER_SESSIONS:
+        top = max(dims, key=lambda d: d["score"])
+        extras["strongest"] = {"dimension": top["dimension_name"], "score": top["score"]}
+    if trusted:
+        extras["oracle"] = await resolve_oracle(uid, session)
+        eye = await db.users.find_one_and_update({"user_id": uid, "coach_eye_pending": {"$gt": 0}},
+                                                 {"$inc": {"coach_eye_pending": -1}})
+        if eye:
+            extras["coach_eye"] = gx.coach_eye_report(dims, DRILLS)
+    return {**extras, "unlocked_features": gx.newly_unlocked_features(after - 1, after), "next_unlock": gx.next_unlock(after),
             "sessions_total": after, "newcomer": after <= gx.NEWCOMER_SESSIONS,
             "easter_eggs": {"new": eggs, "found": found, "total": len(gx.EASTER_EGGS)} if eggs else None}
 
@@ -11305,6 +11324,230 @@ async def octalysis_metrics(request: Request):
                        "under18_after_9pm": "Blocked in code (gx.reminder_hour_allowed)"},
         "not_here": "Invites per win (analytics), trial-to-paid and churn (Stripe/RevenueCat).",
     }
+
+
+# ---- Seasons by number ----
+
+def season_by_number(n: int) -> dict:
+    if n <= 0:
+        start = SEASON_EPOCH - timedelta(days=SEASON_DAYS)
+        return {"season_id": "S0", "number": 0, "preseason": True, "starts": start.isoformat(), "ends": SEASON_EPOCH.isoformat(),
+                "name": "Preseason"}
+    start = SEASON_EPOCH + timedelta(days=(n - 1) * SEASON_DAYS)
+    return {"season_id": f"S{n}", "number": n, "starts": start.isoformat(),
+            "ends": (start + timedelta(days=SEASON_DAYS)).isoformat(), "name": f"Season {n}"}
+
+
+# ---- Anticipation Parade (rules and reasoning in gamification.py) ----
+
+@api_router.get("/coming-up")
+async def coming_up(user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    today = datetime.now(timezone.utc).date()
+    n = await db.sessions.count_documents({"user_id": uid})
+    u = await db.users.find_one({"user_id": uid}, {"status_points": 1, "oracle": 1, "boss_wins": 1}) or {}
+    items = []
+    nxt = gx.next_unlock(n)
+    if nxt:
+        items.append({"kind": "unlock", "sort": nxt["sessions_to_go"], "title": nxt["name"],
+                      "when": f"{nxt['sessions_to_go']} session{'s' if nxt['sessions_to_go'] != 1 else ''} away"})
+    prog = gx.progression(u.get("status_points", 0))
+    if prog.get("next_milestone"):
+        m = prog["next_milestone"]
+        items.append({"kind": "level", "sort": 5, "title": m.get("name") or "Next unlock", "when": f"{m['to_go']} status to go"})
+    scored = await db.sessions.find({"user_id": uid, "scored": True}, {"created_at": 1}).sort("created_at", 1).to_list(5000)
+    if scored:
+        try:
+            first = date.fromisoformat(str(scored[0]["created_at"])[:10])
+            days = gx.THEN_NOW_MIN_DAYS - (today - first).days
+        except (TypeError, ValueError):
+            days = None
+        if days is not None and days > 0:
+            items.append({"kind": "then_now", "sort": days, "title": "Then vs now", "when": f"in {days} day{'s' if days != 1 else ''}"})
+        elif len(scored) < 2:
+            items.append({"kind": "then_now", "sort": 3, "title": "Then vs now", "when": "after one more AI-scored session"})
+    season = current_season(today)
+    window = gx.pledge_window(season, today)
+    if season.get("preseason"):
+        items.append({"kind": "gloves", "sort": season["days_left"], "title": "First Golden Gloves open",
+                      "when": f"in {season['days_left']} days"})
+    elif window["open"]:
+        stats = await db.proof_stats.find_one({"user_id": uid, "season_id": season["season_id"]}, {"pledged_at": 1}) or {}
+        if not stats.get("pledged_at"):
+            items.append({"kind": "gloves", "sort": window["days_to_close"], "title": "Golden Gloves entries close",
+                          "when": f"in {window['days_to_close']} days"})
+    if gx.FEATURE_UNLOCKS and n >= dict((k, at) for k, at, _, _ in gx.FEATURE_UNLOCKS)["boss"]:
+        days = 7 - today.weekday()
+        items.append({"kind": "boss", "sort": days, "title": "A new boss arrives", "when": f"in {days} day{'s' if days != 1 else ''}"})
+    oracle = u.get("oracle") or {}
+    if oracle.get("status") == "open":
+        try:
+            left = (date.fromisoformat(oracle["expires"][:10]) - today).days
+        except (KeyError, ValueError):
+            left = None
+        if left is not None and left >= 0:
+            items.append({"kind": "oracle", "sort": left, "title": f"{oracle['dimension']} past {oracle['target']}",
+                          "when": f"{left} day{'s' if left != 1 else ''} to prove it"})
+    if not season.get("preseason"):
+        items.append({"kind": "season", "sort": season["days_left"], "title": f"Season {season['number']} Wrapped",
+                      "when": f"in {season['days_left']} days"})
+    return {"items": gx.anticipation(items)}
+
+
+# ---- Season Wrapped (rules and reasoning in gamification.py) ----
+
+async def _season_facts(uid: str, season: dict) -> dict:
+    sid = season["season_id"]
+    sessions = await db.sessions.find({"user_id": uid, "date": {"$gte": season["starts"], "$lt": season["ends"]}},
+                                      {"_id": 0}).sort("created_at", 1).to_list(5000)
+    u = await db.users.find_one({"user_id": uid}, {"season_verified": 1, "identity_traits": 1, "boss_wins": 1}) or {}
+    scored = [x for x in sessions if x.get("scored")]
+    tvn = None
+    if len(scored) >= 2:
+        v = gx.then_vs_now(scored[0], scored[-1])
+        if isinstance(v.get("overall_change"), (int, float)):
+            tvn = {"then": v["then"]["overall"], "now": v["now"]["overall"], "change": v["overall_change"]}
+    loved = None
+    rated = [x for x in sessions if isinstance((x.get("reflection") or {}).get("enjoyment"), int)]
+    if rated:
+        best = max(rated, key=lambda x: (x["reflection"]["enjoyment"], x.get("date", "")))
+        tag = next((t for t in best["reflection"].get("tags") or [] if t in gx._TAG_PHRASE), None)
+        loved = {"date": datetime.fromisoformat(best["date"]).strftime("%-d %b"), "enjoyment": best["reflection"]["enjoyment"],
+                 "why": gx._TAG_PHRASE.get(tag) if tag else None}
+    crew = None
+    squads = await db.squads.find({"members": uid}, {"squad_id": 1, "name": 1}).to_list(MAX_SQUADS_PER_USER)
+    if squads:
+        weeks = {gx.week_id(date.fromisoformat(season["starts"]) + timedelta(days=7 * i)) for i in range(SEASON_DAYS // 7)}
+        done = await db.squad_quests.count_documents({"squad_id": {"$in": [s["squad_id"] for s in squads]},
+                                                      "week_id": {"$in": sorted(weeks)}, "completed": True})
+        if done:
+            crew = {"big": str(done), "label": f"crew mission{'s' if done != 1 else ''} done",
+                    "line": f"You and {squads[0].get('name') or 'your crew'} finished {done} mission{'s' if done != 1 else ''} together."}
+    weeks = {gx.week_id(date.fromisoformat(season["starts"]) + timedelta(days=7 * i)) for i in range(SEASON_DAYS // 7)}
+    bosses = sum(1 for w in u.get("boss_wins") or [] if w.get("week_id") in weeks)
+    counts = u.get("identity_traits") or {}
+    trait = None
+    if counts:
+        key, c = max(counts.items(), key=lambda kv: kv[1])
+        if key in IDENTITY_TRAITS and c > 0:
+            trait = {"name": IDENTITY_TRAITS[key][0], "statement": IDENTITY_TRAITS[key][1], "count": c}
+    return {"sessions": len({x.get("date") for x in sessions}), "hours": gx.hours((u.get("season_verified") or {}).get(sid, 0)),
+            "then_vs_now": tvn, "loved": loved, "crew_moment": crew, "bosses": bosses, "trait": trait if sessions else None}
+
+
+@api_router.get("/users/me/season-wrapped")
+async def my_season_wrapped(season: Optional[int] = Query(None, ge=0, le=500), user: dict = Depends(get_current_user)):
+    now = current_season()
+    finished = now["number"] - 1
+    if now.get("preseason") or finished < 0:
+        return {"ready": False, "opens_in_days": now["days_left"], "next": "Preseason Wrapped"}
+    n = finished if season is None else season
+    if n > finished:
+        raise HTTPException(400, "That season hasn't finished yet")
+    s = season_by_number(n)
+    cards = gx.wrapped_cards(await _season_facts(user["user_id"], s))
+    return {"ready": bool(cards), "season": n, "name": s["name"], "cards": cards}
+
+
+# ---- Oracle Effect (rules and reasoning in gamification.py) ----
+
+async def _scored_history(uid: str) -> List[dict]:
+    rows = await db.sessions.find({"user_id": uid, "scored": True, "source": {"$ne": "manual"}},
+                                  {"dimension_scores": 1}).sort("created_at", -1).limit(gx.ORACLE_WINDOW + 2).to_list(gx.ORACLE_WINDOW + 2)
+    return [{d["dimension_name"]: d["score"] for d in r.get("dimension_scores") or [] if isinstance(d.get("score"), (int, float))}
+            for r in reversed(rows)]
+
+
+async def oracle_for(uid: str) -> Optional[dict]:
+    u = await db.users.find_one({"user_id": uid}, {"oracle": 1, "training_partner": 1}) or {}
+    cur = u.get("oracle") or {}
+    today = datetime.now(timezone.utc).date()
+    if cur.get("status") == "open":
+        if cur.get("expires", "") >= today.isoformat():
+            return cur
+        await db.users.update_one({"user_id": uid, "oracle.made_at": cur.get("made_at")}, {"$set": {"oracle.status": "retired"}})
+    p = gx.oracle_prediction(await _scored_history(uid))
+    if not p:
+        return None
+    doc = {**p, "status": "open", "made_at": datetime.now(timezone.utc).isoformat(),
+           "expires": (today + timedelta(days=gx.ORACLE_DAYS)).isoformat(),
+           "line": gx.oracle_line(_partner_name(u), p)}
+    await db.users.update_one({"user_id": uid}, {"$set": {"oracle": doc}})
+    return doc
+
+
+@api_router.get("/oracle")
+async def my_oracle(user: dict = Depends(get_current_user)):
+    p = await oracle_for(user["user_id"])
+    return {"prediction": p, "note": "A prediction from your recent AI scores, not a promise."}
+
+
+async def resolve_oracle(uid: str, session: dict) -> Optional[dict]:
+    u = await db.users.find_one({"user_id": uid}, {"oracle": 1, "training_partner": 1}) or {}
+    p = u.get("oracle") or {}
+    if p.get("status") != "open":
+        return None
+    score = next((d.get("score") for d in session.get("dimension_scores") or [] if d.get("dimension_name") == p["dimension"]), None)
+    if not isinstance(score, (int, float)) or score < p["target"]:
+        return None
+    done = await db.users.update_one({"user_id": uid, "oracle.status": "open", "oracle.made_at": p["made_at"]},
+                                     {"$set": {"oracle.status": "proved", "oracle.proved_at": datetime.now(timezone.utc).isoformat()}})
+    if not done.modified_count:
+        return None
+    await award_status(uid, gx.ORACLE_STATUS, boostable=False, weekly=False)
+    return {"dimension": p["dimension"], "target": p["target"], "score": score, "status": gx.ORACLE_STATUS,
+            "line": f"{_partner_name(u)}: called it. Your {p['dimension'].lower()} hit {score:g}. You proved me right."}
+
+
+# ---- Crew feed (rules and reasoning in gamification.py) ----
+
+async def post_crew_moments(user: dict, rewards: dict):
+    uid = user["user_id"]
+    squads = await db.squads.find({"members": uid}, {"squad_id": 1}).to_list(MAX_SQUADS_PER_USER)
+    if not squads:
+        return
+    name = (user.get("display_name") or user.get("name") or "A crew-mate").split()[0]
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    for m in gx.crew_moments(name, rewards or {}):
+        for sq in squads:
+            if m.get("squad_id") and m["squad_id"] != sq["squad_id"]:
+                continue
+            key = {"squad_id": sq["squad_id"], "user_id": uid, "kind": m["kind"], "date": today}
+            if m["kind"] in ("trained", "quest") and await db.crew_feed.find_one(key):
+                continue
+            await db.crew_feed.insert_one({**key, "event_id": f"fe_{uuid.uuid4().hex[:12]}", "text": m["text"],
+                                           "stamps": {}, "at": datetime.now(timezone.utc).isoformat()})
+
+
+@api_router.get("/squads/{squad_id}/feed")
+async def crew_feed(squad_id: str, user: dict = Depends(get_current_user)):
+    sq = await db.squads.find_one({"squad_id": squad_id, "members": user["user_id"]}, {"_id": 1})
+    if not sq:
+        raise HTTPException(404, "Squad not found")
+    rows = await db.crew_feed.find({"squad_id": squad_id}, {"_id": 0}).sort("at", -1).limit(gx.FEED_MAX).to_list(gx.FEED_MAX)
+    out = []
+    for r in rows:
+        stamps = r.get("stamps") or {}
+        out.append({"event_id": r["event_id"], "text": r["text"], "kind": r["kind"], "at": r["at"],
+                    "stamps": {k: sum(1 for v in stamps.values() if v == k) for k in gx.FEED_STAMPS},
+                    "mine": stamps.get(user["user_id"])})
+    return {"events": out, "stamp_names": gx.FEED_STAMPS}
+
+
+class FeedStamp(BaseModel):
+    stamp: Optional[str] = Field(None, max_length=10)
+
+
+@api_router.post("/squads/feed/{event_id}/stamp")
+async def stamp_crew_moment(event_id: str, data: FeedStamp, user: dict = Depends(get_current_user)):
+    ev = await db.crew_feed.find_one({"event_id": event_id[:20]}, {"squad_id": 1})
+    if not ev or not await db.squads.find_one({"squad_id": ev["squad_id"], "members": user["user_id"]}, {"_id": 1}):
+        raise HTTPException(404, "Moment not found")
+    if data.stamp is not None and data.stamp not in gx.FEED_STAMPS:
+        raise HTTPException(400, "Pick one of the stamps")
+    op = {"$set": {f"stamps.{user['user_id']}": data.stamp}} if data.stamp else {"$unset": {f"stamps.{user['user_id']}": ""}}
+    await db.crew_feed.update_one({"event_id": event_id[:20]}, op)
+    return {"ok": True}
 
 
 

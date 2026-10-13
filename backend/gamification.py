@@ -816,8 +816,17 @@ def session_counts(route: str, *, trusted: bool, jab: Optional[float], combo: Op
 BOOSTER_CHOICES = {
     "double_status": "2x status on your next session",
     "guaranteed_surprise": "A guaranteed Corner Surprise next session",
+    "coach_eye": "Coach's Eye: a full report on your next AI-scored session",
     "status_now": "+100 status right now",
 }
+
+
+def coach_eye_report(dims: list, drills: dict) -> List[dict]:
+    """Every scored dimension, weakest first, each with the drill that fixes it."""
+    scored = [d for d in dims or [] if isinstance(d.get("score"), (int, float))]
+    return [{"dimension": d["dimension_name"], "score": d["score"],
+             "drill": (drills.get(d["dimension_name"]) or {}).get("name")}
+            for d in sorted(scored, key=lambda d: (d["score"], d["dimension_name"]))]
 
 
 # ---- Pick your week (Self-Determination Theory: autonomy) ----
@@ -1067,3 +1076,136 @@ def tip_byline(level: int, same_gym: bool) -> str:
 #   at once make each mean less (and overwhelm someone new).
 # Design: newcomers see a short "what you did" screen with the rest folded away; everyone
 #   sees rewards arrive one after another.
+
+
+# ---- Anticipation Parade (Core Drive 2 + 6) ----
+# Goal: a reason to come back tomorrow that isn't a nag.
+# Psychology: anticipation is part of the reward; a near, specific next thing pulls harder
+#   than a vague one (goal gradient). Only real dates and real counts: no invented urgency.
+# Design: a short "coming up" strip on Home, soonest first, at most four items.
+PARADE_MAX = 4
+
+
+def anticipation(items: Iterable[Optional[dict]]) -> List[dict]:
+    real = [i for i in items or [] if i and i.get("title")]
+    return sorted(real, key=lambda i: (i.get("sort", 99), i["title"]))[:PARADE_MAX]
+
+
+# ---- Season Wrapped (peak-end, identity) ----
+# Goal: fighters carry into the next season because of who they became, not what they got.
+# Psychology: the peak-end rule (we remember how something ended) and self-perception: a
+#   story of your own season, told from your real numbers, becomes part of how you see yourself.
+# Design: a few tap-through cards at season end: sessions and hours, then vs now, your crew's
+#   best moment, the session you loved most (from your own reflections), and a closing line
+#   about the fighter you became. Every line comes from data; a missing fact is left out.
+def wrapped_cards(f: dict) -> List[dict]:
+    cards = []
+    if f.get("sessions"):
+        hrs = f.get("hours") or 0
+        cards.append({"kind": "showed_up", "big": str(f["sessions"]), "label": "sessions",
+                      "line": f"You trained {f['sessions']} times this season" + (f", with {hrs} proven hours." if hrs else ".")})
+    tvn = f.get("then_vs_now")
+    if tvn and tvn.get("change") is not None and tvn["change"] > 0:
+        cards.append({"kind": "growth", "big": f"+{tvn['change']}", "label": "AI score",
+                      "line": f"From {tvn['then']} to {tvn['now']} on your AI-scored rounds."})
+    if f.get("crew_moment"):
+        cards.append({"kind": "crew", "big": f["crew_moment"]["big"], "label": f["crew_moment"]["label"],
+                      "line": f["crew_moment"]["line"]})
+    if f.get("loved"):
+        cards.append({"kind": "loved", "big": f["loved"]["date"], "label": "your favourite session",
+                      "line": f"You rated it {f['loved']['enjoyment']}/5" + (f" and said it made you {f['loved']['why']}." if f['loved'].get('why') else ".")})
+    if f.get("bosses"):
+        cards.append({"kind": "boss", "big": str(f["bosses"]), "label": f"boss{'es' if f['bosses'] != 1 else ''} beaten",
+                      "line": "Hard rounds, won."})
+    trait = f.get("trait")
+    if trait:
+        cards.append({"kind": "became", "big": trait["name"], "label": "who you became",
+                      "line": f"You showed it {trait['count']} time{'s' if trait['count'] != 1 else ''}. {trait['statement']}"})
+    elif cards:
+        cards.append({"kind": "became", "big": "A fighter", "label": "who you became",
+                      "line": "You kept showing up. That's where every fighter starts."})
+    return cards
+
+
+# ---- Oracle Effect (Core Drive 7 + 2) ----
+# Goal: give the next session a clear, personal purpose.
+# Psychology: a prediction about you creates curiosity ("will I?") and, when it comes true,
+#   competence ("I did that"). It must come from your real trend, or it's a lie.
+# Design: from the last six AI-scored sessions, find a skill that's rising and close to the
+#   next whole number. The partner predicts how many scored sessions it'll take (1-3). Prove it
+#   and earn status; miss it and the prediction quietly retires after 10 days.
+ORACLE_DAYS = 10
+ORACLE_STATUS = 40
+ORACLE_WINDOW = 6
+ORACLE_MIN_SLOPE = 0.05
+
+
+def _slope(vals: List[float]) -> float:
+    n = len(vals)
+    xs = range(n)
+    mx, my = (n - 1) / 2, sum(vals) / n
+    den = sum((x - mx) ** 2 for x in xs)
+    return sum((x - mx) * (v - my) for x, v in zip(xs, vals)) / den if den else 0.0
+
+
+def oracle_prediction(history: List[dict]) -> Optional[dict]:
+    """history: AI-scored sessions oldest first, each {dimension_name: score}."""
+    import math
+    best = None
+    dims = {k for h in history for k in h}
+    for dim in sorted(dims):
+        vals = [h[dim] for h in history if isinstance(h.get(dim), (int, float))][-ORACLE_WINDOW:]
+        if len(vals) < 3:
+            continue
+        slope = _slope(vals)
+        if slope < ORACLE_MIN_SLOPE:
+            continue
+        latest = sum(vals[-2:]) / 2
+        target = math.floor(latest) + 1
+        if target > 10:
+            continue
+        need = max(1, math.ceil((target - latest) / slope))
+        if need > 3:
+            continue
+        cand = (need, -slope, dim, target)
+        if best is None or cand < best:
+            best = cand
+    if not best:
+        return None
+    need, neg_slope, dim, target = best
+    return {"dimension": dim, "target": target, "sessions": need}
+
+
+def oracle_line(partner: str, p: dict) -> str:
+    n = p["sessions"]
+    return (f"{partner}: {'one more' if n == 1 else n} AI-scored session{'s' if n != 1 else ''} at this rate "
+            f"and your {p['dimension'].lower()} passes {p['target']}. Prove me right.")
+
+
+# ---- Crew feed: the water cooler (Core Drive 5) ----
+# Goal: crews feel alive between sessions without the risks of open chat.
+# Psychology: seeing friends' wins (and being seen) builds belonging; stamps let people
+#   react warmly with no room for bullying or contact from strangers (under-18 safety).
+# Design: real moments only (trained, PB, boss beaten, mission done, level up), one line each,
+#   and a few fixed stamps. No free text anywhere.
+FEED_STAMPS = {"fire": "Fire", "respect": "Respect", "strong": "Strong", "wow": "Wow"}
+FEED_MAX = 30
+
+
+def crew_moments(name: str, rewards: dict) -> List[dict]:
+    out = []
+    status = rewards.get("status") or {}
+    if status.get("leveled_up"):
+        out.append({"kind": "level", "text": f"{name} hit level {status.get('level')}"})
+    for pb in (rewards.get("personal_bests") or {}).get("new") or []:
+        out.append({"kind": "pb", "text": f"{name} set a new {pb.get('name')} PB"})
+        break
+    boss = rewards.get("boss") or {}
+    if boss.get("beaten"):
+        out.append({"kind": "boss", "text": f"{name} beat {boss.get('name')}"})
+    for q in rewards.get("quests") or []:
+        if q.get("just_completed"):
+            out.append({"kind": "quest", "text": f"{name} finished the crew mission", "squad_id": q.get("squad_id")})
+    if not out:
+        out.append({"kind": "trained", "text": f"{name} trained today"})
+    return out

@@ -415,6 +415,38 @@ Coach as well as recording.
 - **Tests:** `backend/test_fantasy_engine.py` (8), `backend/test_fantasy_api.py` (9, with the feed
   and email mocked) and `frontend/src/lib/fantasyApi.test.js` (2).
 
+## Season Wrapped, the Oracle and the rest of the campaign (branch `season-wrapped-and-more`)
+
+The rest of the "Fight Camp Season" campaign ideas. Rules and Goal → Psychology → Design notes are in `backend/gamification.py`.
+- **Anticipation Parade:** `GET /api/coming-up` returns up to 4 real upcoming things, soonest first:
+  - the next unlock
+  - the next level milestone
+  - then vs now
+  - Golden Gloves opening, or entries closing
+  - a new boss on Monday
+  - an Oracle deadline
+  - Season Wrapped
+
+  It shows on Home for non-newcomers (newcomers keep the single "next unlock" line).
+- **Season Wrapped:** `GET /api/users/me/season-wrapped` (the last finished season; Preseason Wrapped opens on launch day).
+  - Cards built from real data: sessions and hours, then vs now (only if it went up), crew missions,
+    the favourite session from reflections, bosses beaten, and "who you became" (top identity trait).
+  - Shown at `/wrapped`, with a Home card and a link from the Fight Story page.
+- **Oracle Effect:** `GET /api/oracle` makes a prediction from the last 6 AI-scored sessions.
+  - It's only made for a skill that's rising and 1–3 sessions from the next whole number.
+  - Proving it gives +40 status, once. Predictions retire after 10 days.
+- **Beginner's luck:** newcomers hear their strongest *AI-scored* area (`rewards.strongest`). Self-scored rounds never count.
+- **Coach's Eye:** a new booster choice; the next scored session returns `rewards.coach_eye`
+  (every scored skill, weakest first, each with a drill).
+- **Crew moments (water cooler):** real moments (trained, PB, boss, mission, level) go to
+  `crew_feed`; `GET /api/squads/{id}/feed`.
+  - Stamps only (Fire, Respect, Strong, Wow) via `POST /api/squads/feed/{id}/stamp`. No free text.
+- **Weekly combo on Train:** the Train screen shows your active combo, and the combo caller calls it
+  every third time. Only numbered moves count as punches.
+- **One currency:** token packs, gift subs and sponsor banners now charge in GBP (they were USD),
+  and show £. Prices are unchanged.
+- Tests: `backend/test_wrapped.py`, `backend/test_wrapped_api.py`, plus additions to `comboCaller.test.js` and `progression.test.js`.
+
 ## Strategy recommendations and a calm onboarding (branch `octalysis-recommendations`)
 
 Built from Parts 2 and 3 of the Octalysis strategy dashboard (claude.ai/artifact/MkcdakohPww9xfnYGJcUJh).

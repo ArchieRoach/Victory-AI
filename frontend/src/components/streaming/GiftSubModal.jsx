@@ -75,7 +75,7 @@ function GiftSubCheckout({ streamId, onClose }) {
               >
                 <p className={`font-bold text-sm ${selected === t.count ? "text-victory-lime" : "text-victory-text"}`}>{t.label}</p>
                 <p className="text-victory-muted text-xs mt-0.5">{t.description}</p>
-                <p className={`font-mono font-extrabold text-base mt-1.5 ${selected === t.count ? "text-victory-lime" : "text-victory-text"}`}>${t.price}</p>
+                <p className={`font-mono font-extrabold text-base mt-1.5 ${selected === t.count ? "text-victory-lime" : "text-victory-text"}`}>£{t.price}</p>
               </button>
             ))}
           </div>
@@ -106,7 +106,7 @@ function GiftSubCheckout({ streamId, onClose }) {
             ) : (
               <>
                 <Gift className="w-5 h-5" />
-                Gift {tier?.label} — ${tier?.price}
+                Gift {tier?.label} — £{tier?.price}
               </>
             )}
           </button>

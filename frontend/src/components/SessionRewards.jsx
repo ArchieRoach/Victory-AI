@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
-import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown, UserPlus, Check, Skull, Mountain, Music, CalendarCheck, LockOpen, Egg, PartyPopper, Vote } from "lucide-react";
+import { Trophy, Target, ScanSearch, Lock, Sparkles, Shield, Video, Megaphone, Crown, UserPlus, Check, Skull, Mountain, Music, CalendarCheck, LockOpen, Egg, PartyPopper, Vote, Telescope, Eye } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { seasonProgress, inviteMoment } from "@/lib/rewards";
 import { FighterCardButton } from "@/components/FighterCard";
@@ -380,6 +380,36 @@ function EasterEgg({ eggs }) {
   );
 }
 
+// Oracle Effect: the partner's prediction came true, and the fighter made it happen.
+function OracleProved({ oracle }) {
+  if (!oracle) return null;
+  return (
+    <section className="victory-card p-4 space-y-1 border-victory-teal/40 bg-victory-teal/5" data-testid="oracle-proved">
+      <p className="section-label flex items-center gap-1.5"><Telescope className="w-3 h-3" /> Prediction proved</p>
+      <p className="text-victory-text text-sm font-semibold">{oracle.line}</p>
+      <p className="text-[12px] text-victory-lime">+{oracle.status} status</p>
+    </section>
+  );
+}
+
+// Coach's Eye booster: every scored skill, weakest first, each with its drill.
+function CoachEye({ report }) {
+  if (!report?.length) return null;
+  return (
+    <section className="victory-card p-4 space-y-2" data-testid="coach-eye">
+      <p className="section-label flex items-center gap-1.5"><Eye className="w-3 h-3" /> Coach's Eye</p>
+      <ul className="space-y-1.5">
+        {report.map((r) => (
+          <li key={r.dimension} className="flex items-center justify-between gap-2 text-sm">
+            <span className="text-victory-text">{r.dimension}{r.drill ? <span className="text-victory-muted text-[12px]"> · drill: {r.drill}</span> : null}</span>
+            <span className="font-mono text-victory-text">{r.score}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 // Crew cheer (Core Drive 5): one tap, no text, only for crew-mates who trained today.
 function CrewCheer() {
   const [mates, setMates] = useState(null);
@@ -454,6 +484,8 @@ function FirstWins({ rewards, liveStats }) {
   if (n === 1) lines.push("First session done. That's the hardest one.");
   else if (n) lines.push(`Session ${n} done. You're building a habit.`);
   if (liveStats?.punches) lines.push(`You threw ${liveStats.punches} punches${liveStats.best_combo >= 3 ? `, with a ${liveStats.best_combo}-punch combination` : ""}.`);
+  // Beginner's luck, honestly: only an area the AI actually scored.
+  if (rewards?.strongest) lines.push(`Your strongest area today: ${rewards.strongest.dimension}, ${rewards.strongest.score}/10. That's a real start.`);
   if (rewards?.personal_bests?.new?.length) lines.push("You set your first personal bests. Every session from now is measured against you, not anyone else.");
   if (!lines.length) return null;
   return (
@@ -514,6 +546,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
   return (
     <div className="space-y-3 reveal-stack" data-testid="session-rewards">
       <BossResult boss={rewards?.boss} />
+      <OracleProved oracle={rewards?.oracle} />
       <Unlocked features={rewards?.unlocked_features} />
       <EasterEgg eggs={rewards?.easter_eggs} />
       {rewards?.epic_line && (
@@ -527,6 +560,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
       <CalloutsBeaten beaten={rewards?.callouts_beaten} />
       <PersonalBests pb={rewards?.personal_bests} />
       <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
+      <CoachEye report={rewards?.coach_eye} />
       {mastery ? (
         <details className="victory-card p-3">
           <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[32px] flex items-center">Points, status and season</summary>

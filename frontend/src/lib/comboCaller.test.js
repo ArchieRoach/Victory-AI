@@ -1,4 +1,4 @@
-import { createComboCaller, nextLevel, CALL_LEVELS, landWindowMs } from "./comboCaller";
+import { createComboCaller, nextLevel, CALL_LEVELS, landWindowMs, punchCount } from "./comboCaller";
 
 test("level moves only on a full window, up over 80% and down under 60%", () => {
   expect(nextLevel(1, [true, true, true, true])).toBe(1);
@@ -46,4 +46,17 @@ test("never calls the same combo twice in a row and punches after the window don
   while (!b) { t += 250; b = c.tick(t, { adaptive: true }); }
   expect(b.combo).not.toBe(a.x.combo);
   expect(c.summary().landed).toBe(0);
+});
+
+test("the weekly combo is called every third time and only punches are counted", () => {
+  const c = createComboCaller({ level: 0, pick: () => 0, weekly: "1-2-slip-3" });
+  const calls = [];
+  let t = 0;
+  while (calls.length < 6) { t += 250; const x = c.tick(t); if (x) { calls.push(x); t += landWindowMs(5); c.tick(t); } }
+  expect(calls[2].combo).toBe("1-2-slip-3");
+  expect(calls[2].levelName).toBe("Your weekly combo");
+  expect(calls[5].combo).toBe("1-2-slip-3");
+  expect(calls[0].combo).not.toBe("1-2-slip-3");
+  expect(punchCount("1-2-slip-3")).toBe(3);
+  expect(punchCount("slip-roll")).toBe(1);
 });

@@ -87,7 +87,7 @@ function PackageCard({ pkg, selected, onSelect }) {
           </p>
           <p className={`text-xs mt-0.5 ${isSelected ? "text-victory-lime/70" : "text-victory-muted"}`}>tokens</p>
           <p className={`font-bold text-sm mt-2 ${isSelected ? "text-victory-lime" : "text-victory-text"}`}>
-            ${pkg.price.toFixed(2)}
+            £{pkg.price.toFixed(2)}
           </p>
           {pkg.savings_pct > 0 && (
             <p className="text-victory-lime text-[10px] font-semibold mt-0.5">
@@ -217,7 +217,7 @@ export default function TokensPage() {
             {loading ? (
               <><RefreshCw className="w-5 h-5 animate-spin" /> Opening checkout…</>
             ) : pkg ? (
-              <><Zap className="w-5 h-5" /> Buy {pkg.tokens.toLocaleString()} tokens — ${pkg.price.toFixed(2)}</>
+              <><Zap className="w-5 h-5" /> Buy {pkg.tokens.toLocaleString()} tokens — £{pkg.price.toFixed(2)}</>
             ) : null}
           </button>
           {pkg?.savings_pct > 0 && !loading && (

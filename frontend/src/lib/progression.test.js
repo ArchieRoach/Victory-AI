@@ -21,6 +21,7 @@ test("brag text only states what was earned", () => {
   expect(bragText({ kind: "shelf", level: 7, crowns: 1 })).toBe("My Victory AI trophy shelf: level 7, 1 crown.");
   expect(bragText({ kind: "progress", change: 1.8, days: 39 })).toBe("Up 1.8 on my AI-scored rounds in 39 days on Victory AI.");
   expect(bragText({ kind: "boss", name: "The Machine" })).toBe("Beat The Machine, this week's Boss Round on Victory AI.");
+  expect(bragText({ kind: "wrapped", season: "Season 1", trait: "Iron Guard" })).toBe("My Season 1 on Victory AI: Iron Guard.");
 });
 
 test("brag uses the share sheet, then falls back to copying", async () => {

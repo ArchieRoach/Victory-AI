@@ -226,7 +226,7 @@ export default function AdvertisePage({ success = false }) {
 
                 <div className="text-right flex-shrink-0">
                   <p className={`font-mono font-extrabold text-lg ${selectedPkg === p.id ? "text-victory-lime" : "text-victory-text"}`}>
-                    ${p.price}
+                    £{p.price}
                   </p>
                   <p className="text-victory-muted text-[10px]">{p.days} days</p>
                 </div>
@@ -298,7 +298,7 @@ export default function AdvertisePage({ success = false }) {
                 <div className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  Start {pkg?.label} Campaign — ${pkg?.price}
+                  Start {pkg?.label} Campaign — £{pkg?.price}
                 </>
               )}
             </button>

@@ -18,6 +18,7 @@ import { WeekPlanCard } from "@/components/home/WeekPlanCard";
 import { EpicWinCard } from "@/components/home/EpicWinCard";
 import { DriveCards } from "@/components/home/DriveCards";
 import { NextUnlock, TipForNewcomer, PassItOn } from "@/components/home/NewcomerCards";
+import { ComingUp, OracleCard, WrappedCard } from "@/components/home/ComingUp";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
 import { STYLE_STORAGE_KEY, withArticle } from "@/lib/fighterStyle";
 
@@ -614,15 +615,17 @@ export default function HomePage() {
 
       {tab === "foryou" && (
         <div className="px-4 pt-3 space-y-3">
+          <WrappedCard />
           <OneRoundButton />
           <PartnerCondition />
+          <OracleCard />
           {isUnlocked(unlocks, "week_plan") && <WeekPlanCard />}
           <JourneyCard />
           {unlocks?.newcomer && <TipForNewcomer />}
           {isUnlocked(unlocks, "crew") && <DriveCards unlocks={unlocks} />}
           {unlocks && !unlocks.newcomer && <EpicWinCard />}
           {isUnlocked(unlocks, "give_tips") && <PassItOn />}
-          <NextUnlock next={unlocks?.next} />
+          {unlocks?.newcomer ? <NextUnlock next={unlocks?.next} /> : <ComingUp />}
         </div>
       )}
 
