@@ -98,7 +98,7 @@ function ClipCard({ clip, onLike, onShare }) {
               className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/20 transition-colors"
             >
               <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Play className="w-7 h-7 text-white fill-white ml-1" />
+                <Play className="w-7 h-7 text-white fill-white" />
               </div>
             </button>
           )}

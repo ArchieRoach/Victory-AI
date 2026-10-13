@@ -386,6 +386,17 @@ export default function ExamplePage() {
 
 ---
 
+**Optical alignment.** A lopsided icon that's centred by its box still looks off-centre, because
+the box centre isn't where its ink sits. A play triangle, for example, has its fat end on the left.
+- `scripts/measure-icon-optics.js` draws every lucide icon the app imports and measures where its
+  ink sits. It nudges each icon 3–6% of its width so the ink lands in the middle. Offsets under 3%
+  are left alone, bigger ones are capped at 6%, and spinners are skipped.
+- The nudges live in `src/theme/opticalIcons.json` and a generated block in `src/index.css`
+  (CSS `translate`, which composes with any transform).
+- Never nudge an icon by hand with margins.
+- After adding a new icon, run `node scripts/measure-icon-optics.js`; `opticalIcons.test.js` fails
+  until you do.
+
 ## 11. Scrolling
 
 ```jsx
