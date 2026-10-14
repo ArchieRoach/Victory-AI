@@ -8,15 +8,16 @@ Code-side readiness is tracked in the App Review Scorecard artifact.
 | Done | Job | Where |
 |---|---|---|
 | ☐ | Apple Services ID + Sign in with Apple key, then paste into Clerk → SSO → Apple | Apple Developer → Identifiers / Keys |
-| ☐ | Google OAuth web client, then paste into Clerk → SSO → Google | Google Cloud Console → Credentials |
+| ☑ | Google OAuth web client, then paste into Clerk → SSO → Google | Google Cloud Console → Credentials |
 | ☐ | APNs key: set `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_KEY`, `APNS_BUNDLE_ID` | Railway → Variables |
-| ☐ | RevenueCat: App Store products + "pro" entitlement + a paywall; set `REVENUECAT_API_KEY` (iOS) and `REVENUECAT_SECRET_API_KEY` (Railway) | RevenueCat dashboard |
-| ☐ | `REACT_APP_POSTHOG_KEY` on Vercel (analytics stay off without it) | Vercel → Environment Variables |
+| ☐ | RevenueCat: App Store products + "pro" entitlement + a paywall; set the GitHub variable `REVENUECAT_IOS_API_KEY` and `REVENUECAT_SECRET_API_KEY` (Railway) | RevenueCat dashboard |
+| ☑ | `REACT_APP_POSTHOG_KEY` on Vercel (analytics stay off without it) | Vercel → Environment Variables |
 | ☐ | **Demo account** (section 2) | Clerk + Railway |
 
 ## 2. Demo account for App Review
 
-1. In Clerk, create a user with email + password (e.g. `appreview@<your domain>`). Verify the email.
+1. In Clerk, create a user with email + password (e.g. `appreview@<your domain>`). Users made in
+   the dashboard count as verified. Don't use your own login: reviewers would see your data.
 2. In Railway → Variables set `APP_REVIEW_EMAILS=appreview@<your domain>` and redeploy.
    On sign-in that account gets Pro for free (`grant_review_access` in `backend/server.py`).
 3. Sign in once on a phone, finish onboarding, and do one 1-round session, so the reviewer
@@ -75,6 +76,8 @@ Must match `ios/VictoryAI/PrivacyInfo.xcprivacy`. Tracking: **No**. No data is u
 
 ## 6. Store listing
 
+- Name, subtitle, keywords, promotional text, description and What's New are ready to paste in
+  [`APP_STORE_LISTING.md`](APP_STORE_LISTING.md).
 - Description must include links to **Terms** (`https://victory-ai-alpha.vercel.app/terms`) and
   **Privacy** (`https://victory-ai-alpha.vercel.app/privacy`), required for auto-renewing subscriptions.
 - Screenshots: 6.9" and 6.5" iPhone (portrait). Suggested set: Home, a round with a combo call,
