@@ -29,6 +29,22 @@ def test_review_account_gets_pro_and_into_the_ios_app():
     assert run(server.db.subscriptions.count_documents({"user_id": "u_rev"})) == 1, "no duplicates on every launch"
 
 
+def test_review_account_is_pro_on_the_website_too():
+    current["user"] = {"user_id": "u_web", "email": "review@victory.ai"}
+    run(server.db.users.insert_one(dict(current["user"])))
+    assert client.get("/api/usage").json()["plan"] == "pro", "no free-credit bar or Go Pro button"
+    assert run(server.has_active_subscription({"user_id": "u_web", "email": "review@victory.ai"}))
+
+
+def test_paying_members_are_never_metered_like_free_users():
+    run(server.db.subscriptions.insert_one({"user_id": "u_paid", "status": "active", "subscription_id": "sub_x"}))
+    current["user"] = {"user_id": "u_paid", "email": "paid@x.com"}
+    run(server.db.users.insert_one(dict(current["user"])))
+    assert client.get("/api/usage").json()["plan"] == "pro"
+    assert run(server.check_and_consume_ai_tokens({"user_id": "u_paid"}, "analyze_video"))["allowed"]
+    assert "ai_tokens_used" not in run(server.db.users.find_one({"user_id": "u_paid"})), "nothing deducted"
+
+
 def test_everyone_else_still_needs_a_real_subscription():
     current["user"] = {"user_id": "u_x", "email": "someone@else.com"}
     run(server.db.users.insert_one(dict(current["user"])))
