@@ -659,6 +659,7 @@ async def get_current_user(request: Request) -> dict:
 
 async def get_current_user_with_subscription(request: Request) -> dict:
     user = await get_current_user(request)
+    await grant_review_access(user)
     subscription = await db.subscriptions.find_one({"user_id": user["user_id"], "status": {"$in": ["active", "trialing"]}}, {"_id": 0})
     user["has_subscription"] = subscription is not None
     user["subscription_status"] = subscription.get("status") if subscription else None
@@ -928,9 +929,20 @@ async def register_uploaded_video(video_data: RoundVideoUpload, user: dict = Dep
     await db.round_videos.insert_one(video_doc)
     return {"video_id": video_doc["video_id"], "message": "Video registered"}
 
+# Most endpoints get the plain user doc, which doesn't carry has_subscription, so the credit
+# meter looks the subscription up itself; otherwise paying members were metered like free users.
+async def has_active_subscription(user: dict) -> bool:
+    if "has_subscription" in user:
+        return bool(user["has_subscription"])
+    await grant_review_access(user)
+    sub = await db.subscriptions.find_one({"user_id": user["user_id"], "status": {"$in": ["active", "trialing"]}}, {"_id": 1})
+    user["has_subscription"] = sub is not None
+    return user["has_subscription"]
+
+
 async def check_and_consume_ai_tokens(user: dict, feature: str) -> dict:
     """Deduct tokens for a free-tier user. Subscribed users are always allowed."""
-    if user.get("has_subscription"):
+    if await has_active_subscription(user):
         return {"allowed": True, "tokens_remaining": -1}
     cost = AI_TOKEN_COSTS.get(feature, 1_000)
     current_month = datetime.now(timezone.utc).strftime("%Y-%m")
@@ -957,7 +969,7 @@ async def check_and_consume_ai_tokens(user: dict, feature: str) -> dict:
 
 
 async def refund_ai_tokens(user: dict, feature: str):
-    if user.get("has_subscription"):
+    if await has_active_subscription(user):
         return
     await db.users.update_one(
         {"user_id": user["user_id"], "ai_tokens_used": {"$gte": AI_TOKEN_COSTS.get(feature, 1_000)}},
@@ -967,7 +979,7 @@ async def refund_ai_tokens(user: dict, feature: str):
 
 @api_router.get("/usage")
 async def get_ai_usage(user: dict = Depends(get_current_user)):
-    if user.get("has_subscription"):
+    if await has_active_subscription(user):
         return {"plan": "pro", "unlimited": True, "tokens_used": 0, "tokens_remaining": None, "monthly_limit": None}
     current_month = datetime.now(timezone.utc).strftime("%Y-%m")
     tokens_used = user.get("ai_tokens_used", 0) if user.get("ai_tokens_month") == current_month else 0
