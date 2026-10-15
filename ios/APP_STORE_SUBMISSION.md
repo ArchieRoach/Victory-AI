@@ -45,17 +45,23 @@ Steps:
 6. Clerk → **Deploy certificates** once the home page shows nothing left to do.
 7. Sign in on the new address with your own email. You should land in your existing account with
    your history and Pro.
-8. Create the App Review demo user again **in Production** (section 2). Users don't copy over.
+8. Turn off **Device Trust** in Production too (section 2, step 2). Settings don't copy over.
+9. Create the App Review demo user again **in Production** (section 2). Users don't copy over.
 
 ## 2. Demo account for App Review
 
 1. In Clerk, create a user with email + password (e.g. `appreview@<your domain>`). Users made in
    the dashboard count as verified. Don't use your own login: reviewers would see your data.
-2. In Railway → Variables set `APP_REVIEW_EMAILS=appreview@<your domain>` and redeploy.
+2. Turn off **Device Trust**: Clerk Dashboard → **Protect** → **Protections** → **Device Trust** →
+   **Manage** → switch **Enable** off → **Save**. With it on, a password sign-in from a new device
+   asks for a 6-digit code emailed to the account. Reviewers are always on a new device and can't
+   read the demo inbox, so they'd be stuck and the app rejected. Do this in Development and again
+   in Production (the setting is per instance).
+3. In Railway → Variables set `APP_REVIEW_EMAILS=appreview@<your domain>` and redeploy.
    On sign-in that account gets Pro for free (`grant_review_access` in `backend/server.py`).
-3. Sign in once on a phone, finish onboarding, and do one 1-round session, so the reviewer
-   sees real screens rather than empty ones.
-4. Put the email and password in App Store Connect → App Review Information → Sign-in required.
+4. Sign in once on a phone, finish onboarding, and do one 1-round session, so the reviewer
+   sees real screens rather than empty ones. It should go straight in, with no code asked.
+5. Put the email and password in App Store Connect → App Review Information → Sign-in required.
 
 ## 3. App Review notes (paste as-is, fill the blanks)
 
