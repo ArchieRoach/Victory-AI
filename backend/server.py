@@ -115,7 +115,12 @@ FEATUREBASE_JWT_SECRET = os.environ.get('FEATUREBASE_JWT_SECRET', '')
 
 # Clerk Settings
 CLERK_SECRET_KEY = os.environ.get('CLERK_SECRET_KEY', '')
-CLERK_JWKS_URL = "https://allowing-dragon-5.clerk.accounts.dev/.well-known/jwks.json"
+# The signing keys follow whichever Clerk instance CLERK_SECRET_KEY belongs to (sk_test_ =
+# development, sk_live_ = production), so moving to production is a key swap, not a code change.
+# CLERK_JWKS_URL overrides it; the old development URL is the last resort.
+CLERK_JWKS_URL = os.environ.get('CLERK_JWKS_URL', '').strip() or (
+    "https://api.clerk.com/v1/jwks" if CLERK_SECRET_KEY
+    else "https://allowing-dragon-5.clerk.accounts.dev/.well-known/jwks.json")
 _clerk_jwks_cache: dict = {"keys": [], "fetched_at": 0}
 
 # OpenAI
@@ -523,7 +528,9 @@ async def verify_clerk_token(token: str) -> Optional[str]:
         if now - _clerk_jwks_cache.get("fetched_at", 0) > 3600:
             try:
                 async with httpx.AsyncClient() as client:
-                    resp = await CLERK_API_BREAKER.call(lambda: client.get(CLERK_JWKS_URL, timeout=5))
+                    headers = ({"Authorization": f"Bearer {CLERK_SECRET_KEY}"}
+                               if CLERK_JWKS_URL.startswith("https://api.clerk.com/") else {})
+                    resp = await CLERK_API_BREAKER.call(lambda: client.get(CLERK_JWKS_URL, headers=headers, timeout=5))
                     resp.raise_for_status()
                     _clerk_jwks_cache = {**resp.json(), "fetched_at": now}
             except Exception as e:
@@ -544,18 +551,45 @@ async def verify_clerk_token(token: str) -> Optional[str]:
         logger.error(f"Clerk token verification error: {e}")
         return None
 
+# Moving Clerk from development to production gives every person a new Clerk ID, while
+# user_id (the key on every session, squad and subscription) must stay the same. So a user
+# keeps their first user_id and `clerk_id` holds the ID Clerk uses today. A new Clerk ID is
+# linked to an existing account only through an email Clerk has verified on it.
+def clerk_id_of(user: dict) -> str:
+    return user.get("clerk_id") or user["user_id"]
+
+
+async def find_user_by_clerk_id(clerk_user_id: str) -> Optional[dict]:
+    return await db.users.find_one({"$or": [{"user_id": clerk_user_id}, {"clerk_id": clerk_user_id}]},
+                                   {"_id": 0, "password": 0})
+
+
+async def _link_by_verified_email(clerk_user_id: str, verified: set) -> Optional[dict]:
+    if not verified:
+        return None
+    pattern = "^(" + "|".join(re.escape(e) for e in sorted(verified)) + ")$"
+    old = await db.users.find_one({"email": {"$regex": pattern, "$options": "i"}, "user_id": {"$ne": clerk_user_id}},
+                                  {"_id": 0, "password": 0})
+    if not old:
+        return None
+    await db.users.update_one({"user_id": old["user_id"]}, {"$set": {"clerk_id": clerk_user_id}})
+    logger.info(f"Linked Clerk ID {clerk_user_id} to existing user {old['user_id']}")
+    return {**old, "clerk_id": clerk_user_id}
+
+
 async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
     """Look up MongoDB user by Clerk ID, creating one on first login."""
-    user = await db.users.find_one({"user_id": clerk_user_id}, {"_id": 0, "password": 0})
+    user = await find_user_by_clerk_id(clerk_user_id)
     if user:
         # Self-healing backfill: contact-sync matching needs email_hash, but it didn't
         # exist before that feature shipped — set it the first time an existing user is
         # ever looked up again, instead of a one-off migration script.
         if user.get("email") and not user.get("email_hash"):
             user["email_hash"] = _email_hash(user["email"])
-            await db.users.update_one({"user_id": clerk_user_id}, {"$set": {"email_hash": user["email_hash"]}})
+            await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"email_hash": user["email_hash"]}})
         return user
     email, name, picture = "", "", ""
+    verified: set = set()
     try:
         async with httpx.AsyncClient() as client:
             resp = await CLERK_API_BREAKER.call(lambda: client.get(
@@ -569,8 +603,13 @@ async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
                 email = emails[0]["email_address"] if emails else ""
                 name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip() or email
                 picture = data.get("image_url", "")
+                verified = {(e.get("email_address") or "").strip().lower() for e in emails
+                            if (e.get("verification") or {}).get("status") == "verified"}
     except Exception as e:
         logger.error(f"Failed to fetch Clerk user details: {e}")
+    linked = await _link_by_verified_email(clerk_user_id, verified - {""})
+    if linked:
+        return linked
     user_doc = {
         "user_id": clerk_user_id, "email": email, "name": name, "picture": picture,
         "email_hash": _email_hash(email) if email else None,
@@ -5067,7 +5106,7 @@ async def _clerk_verified_emails(clerk_user_id: str) -> set:
 async def is_admin(user: dict) -> bool:
     if (user.get("email") or "").strip().lower() in ADMIN_LOGINS:
         return True
-    verified = await _clerk_verified_emails(user["user_id"])
+    verified = await _clerk_verified_emails(clerk_id_of(user))
     if verified & ADMIN_LOGINS:
         # Repair the saved email so the next check is instant and admin emails show correctly.
         match = sorted(verified & ADMIN_LOGINS)[0]
@@ -5321,7 +5360,9 @@ def _rc_parse_date(raw: Optional[str]) -> Optional[datetime]:
 
 async def sync_revenuecat(user_id: str) -> Optional[dict]:
     """RevenueCat is the source of truth for App Store Pro; mirror it into db.subscriptions."""
-    subscriber = await _revenuecat_subscriber(user_id)
+    # The iOS app logs in to RevenueCat with today's Clerk ID, which can differ from user_id.
+    owner = await db.users.find_one({"user_id": user_id}, {"clerk_id": 1}) or {}
+    subscriber = await _revenuecat_subscriber(owner.get("clerk_id") or user_id)
     if subscriber is None:
         return None
     ent = (subscriber.get("entitlements") or {}).get(REVENUECAT_ENTITLEMENT)
@@ -5363,8 +5404,10 @@ async def revenuecat_webhook(request: Request):
     # Sandbox events are honoured on purpose: App Review and TestFlight purchase in sandbox.
     ids = {event.get("app_user_id"), event.get("original_app_user_id"), *(event.get("aliases") or [])}
     ids = {i for i in ids if i and not i.startswith("$RCAnonymousID")}
-    for uid in ids:
-        if await db.users.find_one({"user_id": uid}, {"_id": 1}):
+    for rc_id in ids:
+        owner = await find_user_by_clerk_id(rc_id)
+        if owner:
+            uid = owner["user_id"]
             try:
                 await sync_revenuecat(uid)
             except Exception as e:
@@ -6660,7 +6703,7 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
         await websocket.close(code=4003)
         return
 
-    ws_user = await db.users.find_one({"user_id": clerk_user_id}, {"_id": 0, "password": 0})
+    ws_user = await find_user_by_clerk_id(clerk_user_id)
     if not ws_user:
         ws_manager.disconnect(websocket, stream_id)
         await websocket.close(code=4003)
@@ -6936,7 +6979,7 @@ async def delete_emote(emote_id: str, user: dict = Depends(get_current_user)):
 
 # ─────────────────────────────────────────────────────────────────────────────
 
-_default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,http://localhost:3000"
+_default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,https://app.victoryai.co.uk,http://localhost:3000"
 _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_methods=["*"], allow_headers=["*"])
 

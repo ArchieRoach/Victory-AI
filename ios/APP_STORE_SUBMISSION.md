@@ -14,6 +14,39 @@ Code-side readiness is tracked in the App Review Scorecard artifact.
 | ☑ | `REACT_APP_POSTHOG_KEY` on Vercel (analytics stay off without it) | Vercel → Environment Variables |
 | ☐ | **Demo account** (section 2) | Clerk + Railway |
 
+## 1b. Move Clerk from Development to Production (before submitting)
+
+The live app still signs people in through Clerk's **Development** instance. Development is for
+testing: it has user limits, shows a "development" banner, and uses Clerk's shared Google keys.
+Real launch users need **Production**. Clerk's guide:
+https://clerk.com/docs/guides/development/deployment/production
+
+The code is ready for it:
+- The server reads Clerk's signing keys from whichever instance `CLERK_SECRET_KEY` belongs to.
+- Existing people keep their accounts. Production gives everyone a new Clerk ID, so on first
+  sign-in the server links that ID to the old account through a **verified** email (`clerk_id`
+  on the user, see `get_or_create_clerk_user`). Sessions, squads, Pro and ranks all stay.
+
+Steps:
+1. Clerk Dashboard → **Development** dropdown at the top → **Create production instance** →
+   clone development settings.
+2. Production needs a domain you own. Use `victoryai.co.uk` and serve the app from
+   `app.victoryai.co.uk`: Vercel → Settings → Domains → add `app.victoryai.co.uk` and add the
+   DNS record Vercel shows.
+3. Clerk → **Domains**: add the DNS records it lists (usually 5 CNAMEs) at your domain registrar.
+   If your DNS is on Cloudflare, set them to **DNS only**. Wait for them to go green (minutes, up to 48h).
+4. SSO connections don't copy over. In Production, set up **Google** again with your own Google
+   OAuth client (redirect URI from Clerk), and **Apple** once the Apple account is approved.
+5. Swap keys, then redeploy each:
+   - Vercel: `REACT_APP_CLERK_PUBLISHABLE_KEY` = `pk_live_…`
+   - Railway: `CLERK_SECRET_KEY` = `sk_live_…`; add `https://app.victoryai.co.uk` to `CORS_ORIGINS`
+     if that variable is set; set `FRONTEND_URL=https://app.victoryai.co.uk`.
+   - GitHub variables: `CLERK_PUBLISHABLE_KEY` = `pk_live_…`, `WEB_APP_URL` = `https://app.victoryai.co.uk`.
+6. Clerk → **Deploy certificates** once the home page shows nothing left to do.
+7. Sign in on the new address with your own email. You should land in your existing account with
+   your history and Pro.
+8. Create the App Review demo user again **in Production** (section 2). Users don't copy over.
+
 ## 2. Demo account for App Review
 
 1. In Clerk, create a user with email + password (e.g. `appreview@<your domain>`). Users made in
