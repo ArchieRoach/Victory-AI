@@ -35,7 +35,8 @@ load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', '')
-client = AsyncIOMotorClient(mongo_url)
+# Fail fast when the database is unreachable: the default is a 30-second hang per request.
+client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000)
 db = client[os.environ.get('DB_NAME', 'victoryai')]
 
 # JWT Settings
@@ -2652,7 +2653,13 @@ async def get_plans():
 
 @api_router.get("/health")
 async def health():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+    # Checks the database too, so an uptime monitor or Railway sees a real outage, not "healthy".
+    try:
+        await asyncio.wait_for(db.command("ping"), timeout=3)
+    except Exception as e:
+        logger.error(f"Health check: database unreachable: {type(e).__name__}")
+        return JSONResponse({"status": "unhealthy", "database": "unreachable"}, status_code=503)
+    return {"status": "healthy", "database": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 # ============== TTS ENDPOINTS ==============
 
@@ -11877,6 +11884,41 @@ async def _retention_cleanup_loop():
         await _run_retention_cleanup()
         await _aio.sleep(86400)
 
+# Without indexes every lookup reads the whole collection: fine for 100 users, slow at 10,000.
+# create_index is idempotent and none are unique, so a startup can never fail on old data.
+INDEXES = {
+    "users": ["user_id", "clerk_id", "email", "email_hash"],
+    "sessions": [[("user_id", 1), ("date", -1)], "session_id", "date"],
+    "training_sessions": ["session_id", "user_id"],
+    "round_videos": [[("session_id", 1), ("user_id", 1)], "video_url"],
+    "subscriptions": ["user_id", "subscription_id", "session_id"],
+    "season_stats": [[("user_id", 1), ("season_id", 1)], [("season_id", 1), ("points", -1)]],
+    "posts": ["post_id", [("created_at", -1)], "user_id"],
+    "notifications": [[("recipient_id", 1), ("created_at", -1)]],
+    "follows": ["follower_id", "following_id"],
+    "squads": ["squad_id", "members", "invite_code"],
+    "gyms": ["gym_id", "owner_id"],
+    "streams": ["stream_id", "user_id", "livepeer_id"],
+    "bookings": ["user_id"],
+    "treasures": [[("giver_id", 1), ("date", 1)]],
+    "crew_feed": [[("squad_id", 1), ("at", -1)]],
+    "push_subscriptions": ["user_id"],
+    "apns_tokens": ["user_id"],
+}
+
+
+async def ensure_indexes():
+    made = 0
+    for coll, keys in INDEXES.items():
+        for key in keys:
+            try:
+                await db[coll].create_index(key, background=True)
+                made += 1
+            except Exception as e:
+                logger.warning(f"Index on {coll} {key} not created: {type(e).__name__}")
+    logger.info(f"Database indexes checked: {made}")
+
+
 async def run_once_migrations():
     # The first 19 founder spots were all pre-launch test sign-ups, so the public counter
     # starts again from 0. The marker makes it run exactly once, on the first deploy.
@@ -11913,6 +11955,7 @@ async def startup():
     if result.modified_count:
         logger.info(f"Migration: backfilled access_granted=True on {result.modified_count} users")
     await run_once_migrations()
+    _aio.create_task(ensure_indexes())
     _aio.create_task(_scheduled_stream_reminder_loop())
     _aio.create_task(_retention_cleanup_loop())
     _aio.create_task(_reengagement_loop())
