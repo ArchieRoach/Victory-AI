@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Check, Zap, Trophy, Target, Shield, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { analytics } from "@/lib/analytics";
+import { goalPhrase } from "@/lib/onboardingPitch";
 
 const MOCK_DIMENSIONS = [
   { name: "Jab", value: 7.5 },
@@ -103,6 +104,15 @@ export default function PaywallPage() {
   const regularPrice = (id, fallback) => offer?.plans?.[id]?.regular_price ?? fallback;
   const perWeek = (yearly) => `${money(yearly / 52, currency, true)}/week`;
 
+  // Close rate (trial starts ÷ paywall views) is what tells us whether the price is right.
+  useEffect(() => {
+    if (!offer) return;
+    analytics.capture("paywall_viewed", {
+      monthly: offer.plans?.monthly?.price, annual: offer.plans?.annual?.price,
+      currency: offer.currency, founder: !!offer.founder,
+    });
+  }, [offer]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Funnel: which of the 3 steps people actually reach.
   useEffect(() => {
     analytics.capture("paywall_step_viewed", { step, name: ["value", "concerns", "payment"][step - 1] });
@@ -184,8 +194,12 @@ export default function PaywallPage() {
 
         {step === 1 && (
           <div className="flex flex-col animate-fade-in">
+            {/* The pitch already happened in sign-up; this opens on their own plan, so paying
+                reads as the next step towards their goal, not a toll booth. */}
             <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-victory-text mt-2 mb-2">
-              {t("paywall.valueHeadline")}
+              {user?.primary_goal && user?.training_partner?.name
+                ? `${user.training_partner.name} has your plan to ${goalPhrase(user.primary_goal)} ready.`
+                : t("paywall.valueHeadline")}
             </h1>
             <p className="text-victory-muted mb-6">{t("paywall.valueSubheadline")}</p>
 
@@ -243,6 +257,11 @@ export default function PaywallPage() {
 
             <button onClick={() => setStep(2)} className="victory-btn-primary" data-testid="paywall-next-1">
               {t("paywall.next")}
+            </button>
+            {/* Reactance: a visible way out keeps the choice theirs, which makes yes more likely
+                and keeps it honest. */}
+            <button onClick={() => navigate("/home")} className="text-victory-muted text-sm mt-3 min-h-[44px]" data-testid="paywall-not-now">
+              Not now, start free
             </button>
           </div>
         )}

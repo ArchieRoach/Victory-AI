@@ -11,7 +11,7 @@ import { founderTerms } from "@/lib/billing";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
-  const { refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState("checking");
@@ -90,6 +90,10 @@ export default function PaymentSuccess() {
             </h1>
             <p className="text-victory-muted mb-4">
               {t("payment.trialStarted")}
+            </p>
+            {/* R: reinforce the decision straight away, so it feels like a smart call, not a cost. */}
+            <p className="text-victory-text text-sm mb-4" data-testid="reinforce-decision">
+              Great call. {user?.training_partner?.name || "Your partner"} is ready, and your first round is one tap away.
             </p>
             {founderTerms(billing) ? (
               <div className="space-y-4">

@@ -44,6 +44,11 @@ first sessions must build that feeling, not test it.
   time after real sessions (`FEATURE_UNLOCKS` in `backend/gamification.py`, `lib/unlocks.js`),
   each with one plain line explaining it. Newcomers get a short results screen, with the rest
   folded under "See all your numbers".
+- Sign-up is the sales conversation (CLOSER, `lib/onboardingPitch.js`): ask why they're here, say it back
+  as a question, take the blame off them, show *their* plan, then the paywall as the next step, with
+  "Not now, start free" always visible. The AI partner speaks with verbal cues (`lib/verbalCues.js`).
+- Social proof is only ever real, live numbers (`real_social_proof` in `backend/server.py`). Never invent
+  counts, results or testimonials.
 - Guarded by `frontend/src/lib/onboardingCalm.test.js`.
 
 ## Stack
