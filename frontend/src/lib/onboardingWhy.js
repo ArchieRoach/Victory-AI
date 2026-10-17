@@ -4,7 +4,10 @@ const WEAK_SPOT = { no_feedback: "real feedback", bad_habits: "bad habits", defe
 export function whyWeAsk(id, answers = {}) {
   const spot = WEAK_SPOT[answers.biggest_frustration];
   switch (id) {
-    case "biggest_frustration": return "Your first rounds start with whatever you pick here.";
+    case "primary_goal": return "Your plan is built around this. You can change it any time.";
+    case "biggest_frustration": return answers.primary_goal
+      ? `Good. Your first rounds go straight at this, on the way to "${answers.primary_goal.toLowerCase()}".`
+      : "Your first rounds start with whatever you pick here.";
     case "experience_level": return spot ? `Good pick on ${spot}. Your level sets how quickly new drills arrive.` : "Your level sets how quickly new drills arrive.";
     case "boxing_stance": return answers.experience_level === "complete_beginner"
       ? "Not sure is a fine answer. It tells the AI which hand is your lead."

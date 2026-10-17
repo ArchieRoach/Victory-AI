@@ -132,3 +132,34 @@ Must match `ios/VictoryAI/PrivacyInfo.xcprivacy`. Tracking: **No**. No data is u
 4. Airplane mode → the app shows "No Connection" with Retry (not a blank screen).
 5. Tap an outside link (a legend's YouTube tip) → it opens in a Safari sheet.
 6. Delete account → you're signed out and can't sign back in to the old data.
+
+## 8. Pricing: finding the price that earns the most per user
+
+The paywall defaults to the annual plan, and shows the weekly cost and the saving against monthly.
+Prices can change without a code change: set `PRICE_MONTHLY_GBP` / `PRICE_ANNUAL_GBP` in Railway, together
+with new matching Stripe prices (`STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_ANNUAL`) and the same prices in
+App Store Connect / RevenueCat.
+
+Don't guess the "best" price. Measure the **close rate** in PostHog: free-trial starts (`checkout_started`)
+÷ people who saw the paywall (`paywall_viewed`). Wait for at least 100 paywall views, then use this rule
+of thumb (Hormozi):
+
+| Close rate | What it means | Do this |
+|---|---|---|
+| 80%+ | Far too cheap | Raise prices 3–4x |
+| 60–80% | Too cheap | Raise 2–3x |
+| 50–60% | Cheap | Raise 50–100% |
+| 40–50% | A bit cheap | Raise 25–50% |
+| 30–40% | About right | Keep it |
+| Below 30% | The pitch needs work | Improve sign-up and the paywall before touching price |
+
+Revenue per user = close rate × price. Change one thing at a time and give each change two weeks.
+
+## 9. Keeping the app healthy (owner jobs)
+
+1. **Backups:** check your database host takes automatic daily backups (MongoDB Atlas → cluster → Backup).
+2. **Uptime alerts:** free UptimeRobot monitor on `https://<your Railway address>/api/health`. It returns 503
+   when the database is down.
+3. **Railway health check:** Railway → backend → Settings → Healthcheck Path → `/api/health`.
+4. **Crash alerts (optional):** a free Sentry account; ask Claude to wire it in.
+5. **Keep Railway at 1 replica** for now. The background jobs (reminders, weekly tasks) would run twice on 2.

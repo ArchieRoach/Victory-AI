@@ -23,6 +23,7 @@ import { nativeRound } from "@/lib/nativeBridge";
 import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange } from "@/lib/comboCaller";
 import { unlockSpeech } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
+import { withCue } from "@/lib/verbalCues";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
 
 const LIVE_COACH_KEY = "victory_live_coach";
@@ -421,7 +422,8 @@ export default function TrainPage() {
       if (voiceEnabled && res.data?.what_you_did_well) {
         // Recency effect: end on the affirming line, not the critique — that's
         // what's still in the fighter's head when the next round starts.
-        playVoiceFeedback(`${res.data.what_to_tighten} ${res.data.what_you_did_well}`);
+        // A verbal cue first ("Okay.", "Hmm.") so it sounds like your partner watched, then spoke.
+        playVoiceFeedback(withCue(`${res.data.what_to_tighten} ${res.data.what_you_did_well}`, `round:${roundNum}`));
       }
     } catch {
       toast.error(t("train.feedbackFailed", "Couldn't generate feedback for this round."));

@@ -249,10 +249,16 @@ cloudinary.config(
 # Must match the Victory AI Pro prices in the Stripe product catalogue (GBP). When the
 # catalogue's Price IDs are set, checkout charges those Prices directly instead.
 PLAN_CURRENCY = "gbp"
+# Prices can move without a code change (set PRICE_MONTHLY_GBP / PRICE_ANNUAL_GBP alongside the
+# matching STRIPE_PRICE_* IDs) so the price that earns the most per user can be found by
+# testing; read the paywall close rate first (ios/APP_STORE_SUBMISSION.md, "Pricing").
+_PRICE_MONTHLY = float(os.environ.get("PRICE_MONTHLY_GBP", "7.99"))
+_PRICE_ANNUAL = float(os.environ.get("PRICE_ANNUAL_GBP", "59.99"))
 SUBSCRIPTION_PLANS = {
-    "monthly": {"price": 7.99, "name": "Monthly", "interval": "month",
+    "monthly": {"price": _PRICE_MONTHLY, "name": "Monthly", "interval": "month",
                 "stripe_price_id": os.environ.get("STRIPE_PRICE_MONTHLY", "")},
-    "annual": {"price": 59.99, "name": "Annual", "interval": "year", "savings": "Save 37%",
+    "annual": {"price": _PRICE_ANNUAL, "name": "Annual", "interval": "year",
+               "savings": f"Save {round(100 * (1 - _PRICE_ANNUAL / (_PRICE_MONTHLY * 12)))}%",
                "stripe_price_id": os.environ.get("STRIPE_PRICE_ANNUAL", "")},
 }
 FOUNDER_SPOTS_LIMIT = int(os.environ.get("FOUNDER_SPOTS_LIMIT", "1000"))
@@ -286,6 +292,7 @@ class OnboardingAnswers(BaseModel):
     experience_level: str
     favorite_counter: Optional[str] = None  # no longer asked: onboarding keeps to what we use
     boxing_stance: Optional[str] = None
+    primary_goal: Optional[str] = Field(None, max_length=60)
     training_partner_style: Optional[str] = None
     favorite_fighter: Optional[str] = None
 
@@ -405,35 +412,21 @@ TRAINING_PARTNER_STYLES = {
 
 # ============== TESTIMONIALS & SOCIAL PROOF ==============
 
-TESTIMONIALS = [
-    {
-        "name": "Marcus T.",
-        "text": "I no longer get beat up in sparring. I can finally roll with punches thanks to the constant reminders my AI training partner gives me.",
-        "improvement": "Head movement +40%"
-    },
-    {
-        "name": "Sarah K.",
-        "text": "My coach asked what I've been doing differently. It's Victory AI. The accountability is real - my partner won't let me skip technique drills.",
-        "improvement": "Consistency up 3x"
-    },
-    {
-        "name": "James L.",
-        "text": "Finally fixed my habit of dropping my right hand. My training partner caught it every single round until it stuck.",
-        "improvement": "Guard position +55%"
-    },
-    {
-        "name": "Ana M.",
-        "text": "The personalized feedback during rest periods changed everything. It's like having a coach in my pocket.",
-        "improvement": "Overall score +2.3"
-    }
-]
+# Social proof must be true: invented counts and named testimonials were shown here before
+# launch. Now only live numbers, and only once they're big enough to mean something.
+SOCIAL_PROOF_MIN_ROUNDS = 1000
+SOCIAL_PROOF_MIN_FIGHTERS = 100
 
-SOCIAL_PROOF_STATS = {
-    "rounds_recorded": "50,000+",
-    "techniques_improved": "127,000+",
-    "avg_improvement": "34%",
-    "active_fighters": "8,500+"
-}
+
+async def real_social_proof() -> dict:
+    fighters = await db.users.count_documents({"onboarding_completed": True})
+    rounds = 0
+    async for row in db.sessions.aggregate([{"$project": {"n": {"$size": {"$ifNull": ["$rounds", []]}}}},
+                                            {"$group": {"_id": None, "n": {"$sum": "$n"}}}]):
+        rounds = row.get("n", 0)
+    if rounds < SOCIAL_PROOF_MIN_ROUNDS or fighters < SOCIAL_PROOF_MIN_FIGHTERS:
+        return {}
+    return {"rounds_recorded": f"{rounds:,}", "fighters": f"{fighters:,}"}
 
 # ============== DIMENSIONS & DRILLS ==============
 
@@ -737,7 +730,12 @@ async def logout(request: Request, response: Response):
 
 @api_router.get("/onboarding/social-proof")
 async def get_social_proof():
-    return {"stats": SOCIAL_PROOF_STATS, "testimonials": TESTIMONIALS}
+    try:
+        stats = await real_social_proof()
+    except Exception as e:
+        logger.warning(f"Social proof counts unavailable: {type(e).__name__}")
+        stats = {}
+    return {"stats": stats, "testimonials": []}
 
 @api_router.get("/onboarding/partner-styles")
 async def get_partner_styles():
@@ -769,7 +767,7 @@ async def submit_onboarding(answers: OnboardingAnswers, user: dict = Depends(get
             "onboarding_answers": answers.model_dump(),
             "birth_date": answers.birth_date,
             "experience_level": answers.experience_level,
-            "primary_goal": answers.biggest_frustration,
+            "primary_goal": answers.primary_goal or "Get better overall",
             "personalized_affirmations": affirmations
         }}
     )

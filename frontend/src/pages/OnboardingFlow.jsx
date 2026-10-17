@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { whyWeAsk } from "@/lib/onboardingWhy";
+import { GOALS } from "@/lib/goals";
+import { labelLines, planLines } from "@/lib/onboardingPitch";
+import { withCue } from "@/lib/verbalCues";
+
+const GOAL_ICONS = ["🏃", "📈", "🛡️", "⚡", "🥊", "🏆", "😄"];
 import axios from "axios";
 import { API, useAuth } from "@/App";
 import { toast } from "sonner";
-import { ChevronRight, ChevronLeft, Star, Users, Target, Zap, Check, Quote } from "lucide-react";
+import { ChevronRight, ChevronLeft, Star, Users, Target, Zap, Check } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
@@ -55,7 +60,7 @@ const BirthDatePhase = ({ onNext }) => {
 };
 
 // PHASE 1: AFFIRMATION
-const AffirmationPhase = ({ stats, testimonials, onNext }) => {
+const AffirmationPhase = ({ stats, onNext }) => {
   const { t } = useTranslation();
   return (
     <div className="animate-fade-in space-y-6">
@@ -67,24 +72,17 @@ const AffirmationPhase = ({ stats, testimonials, onNext }) => {
         <p className="text-victory-muted">{t("onboarding.affirmation.subtitle")}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="victory-card p-4 text-center">
-          <p className="font-mono text-2xl font-bold text-victory-lime">{stats?.rounds_recorded || "50,000+"}</p>
-          <p className="text-victory-muted text-xs">{t("onboarding.affirmation.roundsRecorded")}</p>
-        </div>
-        <div className="victory-card p-4 text-center">
-          <p className="font-mono text-2xl font-bold text-victory-lime">{stats?.avg_improvement || "34%"}</p>
-          <p className="text-victory-muted text-xs">{t("onboarding.affirmation.avgImprovement")}</p>
-        </div>
-      </div>
-
-      {testimonials && testimonials[0] && (
-        <div className="victory-card p-4">
-          <Quote className="w-6 h-6 text-victory-lime mb-2" />
-          <p className="text-victory-text text-sm italic mb-3">"{testimonials[0].text}"</p>
-          <div className="flex items-center justify-between">
-            <span className="text-victory-muted text-xs">— {testimonials[0].name}</span>
-            <span className="text-victory-lime text-xs font-semibold">{testimonials[0].improvement}</span>
+      {/* Social proof only when it's real: live counts from the server, shown once they're
+          big enough to mean something. No invented numbers or testimonials. */}
+      {stats?.rounds_recorded && stats?.fighters && (
+        <div className="grid grid-cols-2 gap-3" data-testid="real-social-proof">
+          <div className="victory-card p-4 text-center">
+            <p className="font-mono text-2xl font-bold text-victory-lime">{stats.rounds_recorded}</p>
+            <p className="text-victory-muted text-xs">{t("onboarding.affirmation.roundsRecorded")}</p>
+          </div>
+          <div className="victory-card p-4 text-center">
+            <p className="font-mono text-2xl font-bold text-victory-lime">{stats.fighters}</p>
+            <p className="text-victory-muted text-xs">fighters training</p>
           </div>
         </div>
       )}
@@ -101,10 +99,17 @@ const AffirmationPhase = ({ stats, testimonials, onNext }) => {
 const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }) => {
   const { t } = useTranslation();
 
+  // C: clarify why they're here first; O: then what's held them back.
   const questions = [
     {
+      id: "primary_goal",
+      question: "What brings you to Victory AI?",
+      subtitle: "Pick the one that matters most right now.",
+      options: GOALS.map((g, i) => ({ value: g, label: g, icon: GOAL_ICONS[i] })),
+    },
+    {
       id: "biggest_frustration",
-      question: t("onboarding.biggest_frustration.question"),
+      question: "What's held you back so far?",
       subtitle: t("onboarding.biggest_frustration.subtitle"),
       options: [
         { value: "no_feedback", label: t("onboarding.biggest_frustration.no_feedback"), icon: "🤷" },
@@ -123,17 +128,6 @@ const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }
         { value: "6_18_months", label: t("onboarding.experience_level.6_18_months"), icon: "💪" },
         { value: "1_3_years", label: t("onboarding.experience_level.1_3_years"), icon: "🥊" },
         { value: "3_plus_years", label: t("onboarding.experience_level.3_plus_years"), icon: "🏆" },
-      ],
-    },
-    {
-      id: "boxing_stance",
-      question: t("onboarding.boxing_stance.question"),
-      subtitle: t("onboarding.boxing_stance.subtitle"),
-      options: [
-        { value: "orthodox", label: t("onboarding.boxing_stance.orthodox"), icon: "🥊" },
-        { value: "southpaw", label: t("onboarding.boxing_stance.southpaw"), icon: "🔄" },
-        { value: "switch", label: t("onboarding.boxing_stance.switch"), icon: "⚡" },
-        { value: "not_sure", label: t("onboarding.boxing_stance.not_sure"), icon: "🤔" },
       ],
     },
     {
@@ -211,7 +205,7 @@ function WhyLine({ text }) {
 }
 
 // PHASE 3: PERSONALIZED AFFIRMATION
-const PersonalizedAffirmation = ({ answers, onNext }) => {
+const PersonalizedAffirmation = ({ answers, onNext, onEdit }) => {
   const { t } = useTranslation();
 
   // Goal: the fighter finishes onboarding feeling capable, and believes what we say.
@@ -262,35 +256,31 @@ const PersonalizedAffirmation = ({ answers, onNext }) => {
   };
 
   const aff = getAffirmation();
+  const label = labelLines(answers);
 
   return (
-    <div className="animate-fade-in space-y-6">
-      <div className="text-center mb-4">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-victory-lime/20 mb-4">
-          <Target className="w-6 h-6 text-victory-lime" />
-        </div>
-        <h1 className="text-xl font-heading font-extrabold text-victory-text mb-2">
-          {t("onboarding.personalized.title")}
-        </h1>
+    <div className="animate-fade-in space-y-5">
+      {/* L: say it back as a question (NEPQ verbal cue first), O: it's not their fault. */}
+      <div className="victory-card p-4 space-y-2 border-victory-lime/40" data-testid="label-reflect">
+        <p className="section-label">Your partner</p>
+        <p className="text-victory-text text-lg font-heading font-bold leading-snug">
+          {withCue(label.reflect, `label:${answers.primary_goal}`)}
+        </p>
+      </div>
+      <div className="victory-card p-4 border-l-4 border-victory-teal">
+        <p className="text-victory-text text-sm">{label.notYourFault}</p>
+      </div>
+      <div className="victory-card p-4 border-l-4 border-victory-orange space-y-2">
+        <p className="text-victory-text text-sm">{aff.fighter}</p>
+        <p className="text-victory-muted text-sm">{aff.honesty}</p>
       </div>
 
-      <div className="space-y-4">
-        <div className="victory-card p-4 border-l-4 border-victory-lime">
-          <p className="text-victory-text">{aff.main}</p>
-        </div>
-        <div className="victory-card p-4 border-l-4 border-victory-teal">
-          <p className="text-victory-text text-sm">{aff.fighter}</p>
-        </div>
-        <div className="victory-card p-4 border-l-4 border-victory-orange">
-          <p className="text-victory-muted text-sm mb-1">{t("onboarding.personalized.honestExpectation")}</p>
-          <p className="text-victory-text text-sm">{aff.honesty}</p>
-        </div>
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={onEdit} className="victory-btn-ghost min-h-[48px]" data-testid="label-not-quite">Not quite</button>
+        <button onClick={onNext} className="victory-btn-primary min-h-[48px] flex items-center justify-center gap-1" data-testid="affirmation-continue">
+          That's me <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
-
-      <button onClick={onNext} className="victory-btn-primary flex items-center justify-center gap-2" data-testid="affirmation-continue">
-        {t("onboarding.personalized.cta")}
-        <ChevronRight className="w-5 h-5" />
-      </button>
     </div>
   );
 };
@@ -674,6 +664,34 @@ const PlanBuildingScreen = ({ partnerName, answers, onComplete }) => {
   );
 };
 
+// S: sell the destination, not the plane ride. Their plan, in their words, made only of things
+// the app really does. The paywall then reads as "how to unlock this", not a toll booth.
+const YourPlanScreen = ({ partnerName, answers, onNext }) => {
+  const plan = planLines(answers, partnerName || "Your partner");
+  return (
+    <div className="animate-fade-in space-y-5" data-testid="your-plan">
+      <div>
+        <p className="section-label">Ready</p>
+        <h1 className="text-2xl font-heading font-extrabold text-victory-text leading-tight">{plan.headline}</h1>
+      </div>
+      <ol className="space-y-3">
+        {plan.steps.map((step) => (
+          <li key={step.when} className="victory-card p-4">
+            <p className="text-victory-lime text-xs font-heading font-bold uppercase tracking-wide">{step.when}</p>
+            <p className="text-victory-text text-sm mt-1">{step.what}</p>
+          </li>
+        ))}
+      </ol>
+      <p className="text-victory-muted text-sm">
+        {withCue(`So, ${partnerName || "your partner"} is ready when you are. Want to see how to get all of it?`, `plan:${partnerName}`)}
+      </p>
+      <button onClick={onNext} className="victory-btn-primary flex items-center justify-center gap-2" data-testid="see-plan-options">
+        Show me <ChevronRight className="w-5 h-5" />
+      </button>
+    </div>
+  );
+};
+
 // A phone lock, backgrounding, or accidental refresh mid-onboarding used to restart
 // this whole multi-minute, multi-question flow from the birth-date screen with
 // everything lost (Tesler's Law: real people get interrupted, an idealized "never
@@ -752,6 +770,7 @@ export default function OnboardingFlow() {
     if (phase === "partner") return 60 + (currentPartnerStep / totalPartnerSteps) * 25;
     if (phase === "generating") return 90;
     if (phase === "naming") return 95;
+    if (phase === "your_plan") return 100;
     return 100;
   };
 
@@ -825,8 +844,7 @@ export default function OnboardingFlow() {
       const userRes = await axios.get(`${API}/auth/me`, { withCredentials: true });
       setUser(userRes.data);
     } catch (e) {}
-    toast.success(t("onboarding.partnerReady", { name: createdPartnerName }));
-    navigate("/paywall", { replace: true });
+    setPhase("your_plan");
   };
 
   return (
@@ -857,7 +875,6 @@ export default function OnboardingFlow() {
         {phase === "affirmation" && (
           <AffirmationPhase
             stats={socialProof.stats}
-            testimonials={socialProof.testimonials}
             onNext={() => setPhase("why_hook")}
           />
         )}
@@ -873,7 +890,8 @@ export default function OnboardingFlow() {
         )}
 
         {phase === "personalized" && (
-          <PersonalizedAffirmation answers={answers} onNext={() => setPhase("partner")} />
+          <PersonalizedAffirmation answers={answers} onNext={() => setPhase("partner")}
+            onEdit={() => { setCurrentQuestion(0); setPhase("why_hook"); }} />
         )}
 
         {phase === "partner" && (
@@ -901,6 +919,11 @@ export default function OnboardingFlow() {
             styles={partnerStyles}
             onComplete={handlePartnerComplete}
           />
+        )}
+
+        {phase === "your_plan" && (
+          <YourPlanScreen partnerName={createdPartnerName} answers={answers}
+            onNext={() => navigate("/paywall", { replace: true })} />
         )}
 
         {phase === "plan_building" && (
