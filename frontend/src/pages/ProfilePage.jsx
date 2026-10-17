@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { GOALS, normaliseGoal, recordInput, recordNumber } from "@/lib/goals";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API, useAuth } from "@/App";
@@ -28,6 +29,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { WEIGHT_CLASS_DATA } from "@/utils/weightClasses";
+
+const RECORD_FIELDS = ["amateur_wins", "amateur_losses", "amateur_draws", "pro_wins", "pro_losses", "pro_draws"];
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -79,13 +82,12 @@ export default function ProfilePage() {
     "Professional boxer",
   ];
 
-  // Must be declared before goalOptions useMemo (temporal dead zone fix)
   const LEGACY_LEVEL_MAP = { "3+ years": "3–5 years" };
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
     experience_level: LEGACY_LEVEL_MAP[user?.experience_level] ?? user?.experience_level ?? "Training under 6 months",
-    primary_goal: user?.primary_goal || "Get better overall",
+    primary_goal: normaliseGoal(user?.primary_goal),
   });
 
   const [extendedForm, setExtendedForm] = useState({
@@ -112,36 +114,13 @@ export default function ProfilePage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef(null);
 
-  const goalOptions = useMemo(() => {
-    const idx = EXPERIENCE_LEVELS.indexOf(formData.experience_level);
-    const isIntermediate = idx >= 3;
-    const isAdvanced = idx >= 4;
-    const hasRecord = extendedForm.amateur_wins > 0 || extendedForm.amateur_losses > 0 || extendedForm.amateur_draws > 0;
-    return [
-      "Get better overall",
-      "Improve defence",
-      "Sharpen my offence",
-      "Prepare for sparring",
-      "Build my following online",
-      "Grow my fanbase as a streamer",
-      "Just having fun",
-      ...(isIntermediate ? ["Compete in amateurs", "Build my gym reputation"] : []),
-      ...(isAdvanced ? ["Go professional", "Build my fighter brand", "Win a regional / national title"] : []),
-      ...(hasRecord || isAdvanced ? ["Fund my fight camp", "Climb the world rankings", "Earn a title shot", "Win a world title"] : []),
-    ];
-  }, [formData.experience_level, extendedForm.amateur_wins, extendedForm.amateur_losses, extendedForm.amateur_draws]); // eslint-disable-line react-hooks/exhaustive-deps
+  const goalOptions = GOALS;
 
   useEffect(() => {
     fetchStats();
     axios.get(`${API}/belts/catalogue`).then(r => setBeltCatalogue(r.data)).catch(() => {});
   }, []);
 
-  // Reset goal if it's no longer in the current tier's options
-  useEffect(() => {
-    if (!goalOptions.includes(formData.primary_goal)) {
-      setFormData((prev) => ({ ...prev, primary_goal: "Get better overall" }));
-    }
-  }, [goalOptions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchStats = async () => {
     try {
@@ -168,7 +147,8 @@ export default function ProfilePage() {
   const handleSaveExtended = async () => {
     setSavingExtended(true);
     try {
-      await axios.put(`${API}/users/profile`, extendedForm);
+      const record = Object.fromEntries(RECORD_FIELDS.map((f) => [f, recordNumber(extendedForm[f])]));
+      await axios.put(`${API}/users/profile`, { ...extendedForm, ...record });
       await refreshUser();   // keep header/feeds in sync with the saved changes
       toast.success(t("profile.saved"));
     } catch {
@@ -633,9 +613,10 @@ export default function ProfilePage() {
               {["amateur_wins", "amateur_losses", "amateur_draws"].map((field) => (
                 <div key={field} className="text-center">
                   <input
-                    type="number" min={0} max={999}
+                    type="text" inputMode="numeric" pattern="[0-9]*" aria-label={t(`profile.${field}`)}
                     value={extendedForm[field]}
-                    onChange={(e) => setExtendedForm({ ...extendedForm, [field]: Math.max(0, Number(e.target.value)) })}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setExtendedForm({ ...extendedForm, [field]: recordInput(e.target.value) })}
                     className="victory-input text-center font-mono text-lg"
                   />
                   <p className="text-victory-muted text-xs mt-1">{t(`profile.${field}`)}</p>
@@ -656,9 +637,10 @@ export default function ProfilePage() {
                 ].map(({ field, label }) => (
                   <div key={field} className="text-center">
                     <input
-                      type="number" min={0} max={999}
+                      type="text" inputMode="numeric" pattern="[0-9]*" aria-label={`Pro ${label}`}
                       value={extendedForm[field]}
-                      onChange={(e) => setExtendedForm({ ...extendedForm, [field]: Math.max(0, Number(e.target.value)) })}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => setExtendedForm({ ...extendedForm, [field]: recordInput(e.target.value) })}
                       className="victory-input text-center font-mono text-lg"
                     />
                     <p className="text-victory-muted text-xs mt-1">{label}</p>
