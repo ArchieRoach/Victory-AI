@@ -2937,26 +2937,34 @@ BELT_CATALOGUE = {
     "unbreakable":    {"name": "Unbreakable",       "emoji": "🧱", "tier": "gold",   "desc": "30-day training streak"},
 }
 
+# Goal: a streak that keeps boxers coming back without punishing recovery.
+# Psychology: a streak lost to one missed day feels like losing everything, so people quit
+#   (the "what-the-hell" effect); and boxing isn't a daily sport, rest days are training.
+# Design: one rest day between sessions never breaks a streak; two days off in a row does.
+#   The count is the number of training days in the run.
+STREAK_MAX_GAP_DAYS = 2
+
+
 def _compute_streaks(sessions: list) -> tuple:
-    """Current/longest consecutive-day training streaks from real completed sessions."""
+    """Current/longest training streaks from real completed sessions (one rest day allowed)."""
     dates = sorted({s["date"] for s in sessions if s.get("date")}, reverse=True)
     if not dates:
         return 0, 0
     parsed = [datetime.strptime(d, "%Y-%m-%d").date() for d in dates]
-    day = timedelta(days=1)
+    max_gap = timedelta(days=STREAK_MAX_GAP_DAYS)
 
     longest = run = 1
     for i in range(1, len(parsed)):
-        run = run + 1 if parsed[i - 1] - parsed[i] == day else 1
+        run = run + 1 if parsed[i - 1] - parsed[i] <= max_gap else 1
         longest = max(longest, run)
 
     today = datetime.now(timezone.utc).date()
-    if parsed[0] not in (today, today - day):
+    if today - parsed[0] > max_gap:
         current = 0
     else:
         current = 1
         for i in range(1, len(parsed)):
-            if parsed[i - 1] - parsed[i] != day:
+            if parsed[i - 1] - parsed[i] > max_gap:
                 break
             current += 1
     return current, longest
@@ -4571,6 +4579,44 @@ async def get_comments(post_id: str, user: dict = Depends(get_current_user)):
     return comments
 
 # ============== HOME FOR-YOU FEED ==============
+
+# ---- Welcome back (Value Replay) ----
+# Goal: lapsed fighters come back instead of quietly churning.
+# Psychology: endowment and the "fresh start" effect. Seeing what you already built makes it
+#   worth protecting, and a warm, guilt-free welcome lowers the cost of returning; a list of
+#   what changed gives a reason to look.
+# Design: after 7+ days away, Home opens with their real totals and what their squad did
+#   while they were gone, then one easy action: a single round. Never shown to newcomers.
+WELCOME_BACK_AFTER_DAYS = 7
+
+
+@api_router.get("/home/welcome-back")
+async def welcome_back(user: dict = Depends(get_current_user)):
+    uid = user["user_id"]
+    last = await db.sessions.find({"user_id": uid}, {"_id": 0, "date": 1}).sort("date", -1).limit(1).to_list(1)
+    if not last or not last[0].get("date"):
+        return {"show": False}
+    try:
+        last_day = datetime.strptime(last[0]["date"], "%Y-%m-%d").date()
+    except ValueError:
+        return {"show": False}
+    away = (datetime.now(timezone.utc).date() - last_day).days
+    if away < WELCOME_BACK_AFTER_DAYS:
+        return {"show": False}
+    total = await db.sessions.count_documents({"user_id": uid})
+    fresh = await db.users.find_one({"user_id": uid}, {"personal_bests": 1, "verified_seconds": 1}) or {}
+    best = (fresh.get("personal_bests") or {}).get("Overall")
+    mates = await _crewmates(uid)
+    squad_sessions = await db.sessions.count_documents({"user_id": {"$in": mates}, "date": {"$gt": last[0]["date"]}}) if mates else 0
+    return {
+        "show": True,
+        "days_away": away,
+        "sessions": total,
+        "best_overall": best,
+        "badge": gx.mastery(fresh.get("verified_seconds", 0)).get("tier"),
+        "squad_sessions": squad_sessions,
+    }
+
 
 @api_router.get("/home/feed")
 async def home_for_you_feed(user: dict = Depends(get_current_user)):

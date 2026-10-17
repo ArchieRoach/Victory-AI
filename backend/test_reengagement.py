@@ -49,5 +49,15 @@ def run():
     print("all re-engagement logic assertions passed")
 
 
+def streak_allows_one_rest_day():
+    today = datetime.now(timezone.utc).date()
+    day = lambda n: {"date": (today - timedelta(days=n)).strftime("%Y-%m-%d")}
+    assert _compute_streaks([day(0), day(2), day(4)]) == (3, 3), "training every other day keeps the streak"
+    assert _compute_streaks([day(1), day(3)])[0] == 2, "yesterday's session: today is a free rest day"
+    assert _compute_streaks([day(3), day(4)])[0] == 0, "two rest days in a row end it"
+    assert _compute_streaks([day(0), day(3), day(4)]) == (1, 2)
+
+
 if __name__ == "__main__":
     run()
+    streak_allows_one_rest_day()

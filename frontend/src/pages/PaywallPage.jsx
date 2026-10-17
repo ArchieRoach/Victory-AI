@@ -81,6 +81,14 @@ export default function PaywallPage() {
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  // Personalisation: an offer built on what they've already done reads as advice, not a pitch,
+  // and reminds them what they'd keep growing. Only real numbers; hidden for brand-new users.
+  const [mine, setMine] = useState(null);
+  useEffect(() => {
+    Promise.all([axios.get(`${API}/users/stats`), axios.get(`${API}/usage`)])
+      .then(([s, u]) => setMine({ sessions: s.data.total_sessions, best: s.data.best_score, used: u.data.tokens_used, limit: u.data.monthly_limit }))
+      .catch(() => setMine(null));
+  }, []);
   const [offer, setOffer] = useState(null);
 
   // Founders see the price checkout will actually charge them, and that it's theirs for life
@@ -203,6 +211,18 @@ export default function PaywallPage() {
                     {t("paywall.partnerAwaits", { style: user.training_partner.style_name?.toLowerCase() || "training partner" })}
                   </p>
                 </div>
+              </div>
+            )}
+
+            {mine?.sessions > 0 && (
+              <div className="victory-card p-4 mb-5 space-y-1" data-testid="paywall-your-progress">
+                <p className="section-label">Your training so far</p>
+                <p className="text-victory-text text-sm">
+                  {mine.sessions} session{mine.sessions === 1 ? "" : "s"}
+                  {typeof mine.best === "number" ? ` · best score ${mine.best}` : ""}
+                  {mine.limit ? ` · ${Math.round((100 * (mine.used || 0)) / mine.limit)}% of this month's free AI used` : ""}
+                </p>
+                <p className="text-victory-muted text-xs">Pro scores every round from here on, with no monthly cap.</p>
               </div>
             )}
 
