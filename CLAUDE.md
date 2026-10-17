@@ -25,6 +25,14 @@ Put the three lines in the PR description, and in a short code comment where the
 non-obvious (e.g. `IDENTITY_TRAITS` in `backend/server.py`). Psychology never overrides honesty:
 praise and labels must be earned from real evidence, and high-privacy defaults for under-18s stay.
 
+## Pricing rule: set Pro price from the close rate (standing task after launch)
+Once the app is live, check the paywall close rate whenever pricing or the paywall comes up, and at
+least monthly: trial starts (`checkout_started`) ÷ paywall views (`paywall_viewed`) in PostHog, needing
+100+ views. Apply Hormozi's table (`ios/APP_STORE_SUBMISSION.md` §8): 80%+ → raise 3–4x · 60–80% → 2–3x ·
+50–60% → +50–100% · 40–50% → +25–50% · 30–40% → keep · below 30% → improve the pitch, not the price.
+Change price via `PRICE_*_GBP` + matching Stripe/App Store prices, one change at a time, two weeks apart,
+and tell Archie the numbers before changing anything.
+
 ## Invite rule: sell the value before asking for friends
 People only want to invite friends once they're sold on the experience themselves, and that
 usually happens at the first major win state.
