@@ -151,6 +151,31 @@ struct WebAppContainer: UIViewRepresentable {
             decisionHandler(.allow)
         }
 
+        // window.confirm()/alert() show nothing in a WKWebView unless the app draws them, and
+        // confirm() then answers "no": delete, leave squad and delete account silently did nothing.
+        func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String,
+                     initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+            guard let top = topController(for: webView) else { return completionHandler(false) }
+            let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in completionHandler(false) })
+            alert.addAction(UIAlertAction(title: "OK", style: .destructive) { _ in completionHandler(true) })
+            top.present(alert, animated: true)
+        }
+
+        func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
+                     initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+            guard let top = topController(for: webView) else { return completionHandler() }
+            let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler() })
+            top.present(alert, animated: true)
+        }
+
+        private func topController(for webView: WKWebView) -> UIViewController? {
+            guard var top = webView.window?.rootViewController else { return nil }
+            while let presented = top.presentedViewController { top = presented }
+            return top
+        }
+
         // target="_blank" links and window.open().
         func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
                      for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {

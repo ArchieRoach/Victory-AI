@@ -6,8 +6,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { Heart, MessageCircle, Plus, Globe, Users, Building2, ChevronDown, ChevronUp, Send, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { withMinDuration } from "@/utils/async";
 import { formatDistanceToNow } from "date-fns";
+
+const UNDO_MS = 5000;
 
 function PostCard({ post, onLike, onDelete, currentUserId, isDeleting }) {
   const { t } = useTranslation();
@@ -218,7 +219,6 @@ export default function FeedPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const likingRef = useRef(new Set());
-  const [deletingPostId, setDeletingPostId] = useState(null);
 
   const fetchFeed = useCallback(async (type, pageNum = 1, append = false) => {
     if (pageNum === 1) setLoading(true);
@@ -270,19 +270,43 @@ export default function FeedPage() {
     }
   };
 
-  const handleDelete = async (postId) => {
-    if (!window.confirm(t("feed.deleteConfirm", "Delete this post? This can't be undone."))) return;
-    if (deletingPostId) return; // ignore double-taps mid-request
-    setDeletingPostId(postId);
-    try {
-      await withMinDuration(axios.delete(`${API}/posts/${postId}`));
-      setPosts((prev) => prev.filter((p) => p.post_id !== postId));
-      toast.success(t("feed.postDeleted"));
-    } catch (err) {
+  // Fail-safe delete: the post disappears now but is only removed for good after the undo
+  // window, so a slip of the thumb costs nothing (and there's no confirm box to tap through).
+  const pendingDeletes = useRef(new Map());
+  const commitDelete = (postId) => {
+    const pending = pendingDeletes.current.get(postId);
+    if (!pending) return;
+    pendingDeletes.current.delete(postId);
+    clearTimeout(pending.timer);
+    axios.delete(`${API}/posts/${postId}`).catch((err) => {
+      setPosts((prev) => (prev.some((p) => p.post_id === postId) ? prev : [pending.post, ...prev]));
       toast.error(err?.response?.data?.detail || t("common.error"));
-    } finally {
-      setDeletingPostId(null);
-    }
+    });
+  };
+  useEffect(() => () => { [...pendingDeletes.current.keys()].forEach(commitDelete); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDelete = (postId) => {
+    const post = posts.find((p) => p.post_id === postId);
+    if (!post || pendingDeletes.current.has(postId)) return;
+    setPosts((prev) => prev.filter((p) => p.post_id !== postId));
+    const timer = setTimeout(() => commitDelete(postId), UNDO_MS);
+    pendingDeletes.current.set(postId, { post, timer });
+    toast(t("feed.postDeleted"), {
+      duration: UNDO_MS,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          const pending = pendingDeletes.current.get(postId);
+          if (!pending) return;
+          clearTimeout(pending.timer);
+          pendingDeletes.current.delete(postId);
+          setPosts((prev) => {
+            const restored = [...prev, pending.post];
+            return restored.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+          });
+        },
+      },
+    });
   };
 
   return (
@@ -346,7 +370,6 @@ export default function FeedPage() {
                 onLike={handleLike}
                 onDelete={handleDelete}
                 currentUserId={user?.user_id}
-                isDeleting={deletingPostId === post.post_id}
               />
             ))}
             {hasMore && (

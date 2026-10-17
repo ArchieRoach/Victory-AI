@@ -1,3 +1,4 @@
+import { WelcomeBack } from "@/components/home/WelcomeBack";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -448,8 +449,11 @@ export default function HomePage() {
   const fetchStreakStatus = useCallback(async () => {
     try {
       const res = await axios.get(`${API}/users/stats`);
-      const today = res.data.week_activity?.[res.data.week_activity.length - 1];
-      setStreakAtRisk(res.data.current_streak > 0 && today && !today.active ? res.data.current_streak : 0);
+      // One rest day never breaks a streak (backend _compute_streaks), so it's only at risk
+      // when neither today nor yesterday has a session.
+      const days = res.data.week_activity || [];
+      const [yesterday, today] = days.slice(-2);
+      setStreakAtRisk(res.data.current_streak > 0 && today && yesterday && !today.active && !yesterday.active ? res.data.current_streak : 0);
     } catch {}
   }, []);
 
@@ -616,6 +620,7 @@ export default function HomePage() {
 
       {tab === "foryou" && (
         <div className="px-4 pt-3 space-y-3">
+          {unlocks && !unlocks.newcomer && <WelcomeBack />}
           <WrappedCard />
           <CoachMark id="home_one_round" position="bottom" block hold={!unlocks?.newcomer}>
             <OneRoundButton />
@@ -649,7 +654,7 @@ export default function HomePage() {
               <p className="text-victory-text text-sm font-semibold">
                 Don't lose your {streakAtRisk}-day streak
               </p>
-              <p className="text-victory-muted text-xs">You haven't trained today yet — one session keeps it alive.</p>
+              <p className="text-victory-muted text-xs">One rest day is fine. Two in a row ends it, so one round today keeps it alive.</p>
             </div>
             <span className="text-orange-400 text-xs font-bold flex-shrink-0">Train now</span>
           </button>
