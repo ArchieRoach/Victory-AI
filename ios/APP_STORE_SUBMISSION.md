@@ -85,6 +85,10 @@ Steps:
 >
 > Corner Surprises are free rewards earned by training. They can't be bought and the odds are
 > shown in the app.
+>
+> Fighter Market sells physical merch from verified boxers, paid by card through Stripe (Guideline
+> 3.1.5: physical goods). Paid promotions for sellers (Bump, Spotlight) are only sold on our website
+> and are hidden in the iOS app.
 
 ## 4. Age rating questionnaire
 
@@ -166,17 +170,18 @@ Revenue per user = close rate × price. Change one thing at a time and give each
 
 ## 10. Pro fighters and the Fighter Market (owner jobs)
 
+Do now (before any fighter signs up):
 1. **Turn on Stripe Connect:** Stripe Dashboard → Connect → Get started → choose **Express** accounts,
    platform country **UK**. Without it, "Set up payouts" fails and no one can sell.
-2. **Verify pros:** each application emails hello@victoryai.co.uk. Check it's really them (BoxRec,
+2. **Write a simple revenue-share agreement** for fighters who switch on "Train with" their alias:
+   what share of the money they get, how it's counted (the dashboard shows how many fans picked them),
+   and that they can switch it off at any time. Get it signed before any alias goes live.
+3. **Add the Fighter Market line to the App Review notes** (section 3 already includes it).
+
+Later, once pros start applying (the inbox emails tell you when):
+4. **Verify pros:** each application emails hello@victoryai.co.uk. Check it's really them (BoxRec,
    verified Instagram DM, promoter), then approve: `POST /api/admin/pro/<user_id>/verify` with
    `{"approve": true, "fantasy_fighter_id": "<Boxing Data fighter id, optional>"}`.
-3. **Approve talking clips** when the email arrives: `POST /api/admin/pro/<user_id>/clips/<moment>/approve`.
-4. **Order problems** email the same inbox: `POST /api/admin/orders/<order_id>/resolve` with
+5. **Approve talking clips** when the email arrives: `POST /api/admin/pro/<user_id>/clips/<moment>/approve`.
+6. **Order problems** email the same inbox: `POST /api/admin/orders/<order_id>/resolve` with
    `{"action": "refund"}` or `{"action": "release"}`.
-5. **Alias partners:** a fighter switches it on themselves and ticks the consent box. Agree any
-   revenue share with them in writing; the dashboard shows how many fans picked them.
-
-**App Review note to add:** "Fighter Market sells physical merch from verified boxers, paid by card
-through Stripe (Guideline 3.1.5: physical goods). Paid promotions for sellers (Bump, Spotlight) are only
-sold on our website and are hidden in the iOS app."
