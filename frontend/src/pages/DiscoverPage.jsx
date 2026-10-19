@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { optimistic } from "@/lib/optimistic";
 import {
-  Search, X, Radio, Users, Dumbbell, ChevronDown, ChevronUp,
+  Search, X, Radio, Users, Dumbbell, ChevronDown, ChevronUp, Store, ChevronRight,
 } from "lucide-react";
 import { WEIGHT_CLASS_DATA, formatWeightClass, weightBadge, getWeightUnit } from "@/utils/weightClasses";
 import { contactsSupported, pickContactEmailHashes } from "@/utils/contacts";
@@ -321,6 +321,18 @@ export default function DiscoverPage() {
             )}
           </div>
         )}
+      </div>
+
+      {/* Pro fighters and their merch: the way in for fans who came for a fighter. */}
+      <div className="px-4 pt-3">
+        <button onClick={() => navigate("/shop")} className="victory-card p-3 w-full flex items-center gap-3 text-left" data-testid="fighter-market-link">
+          <Store className="w-5 h-5 text-victory-lime flex-shrink-0" />
+          <span className="flex-1 min-w-0">
+            <span className="block text-victory-text text-sm font-semibold">Fighter Market</span>
+            <span className="block text-victory-muted text-xs">Verified pros, their Fighter Cards and merch</span>
+          </span>
+          <ChevronRight className="w-4 h-4 text-victory-muted" />
+        </button>
       </div>
 
       {/* ── Results ── */}

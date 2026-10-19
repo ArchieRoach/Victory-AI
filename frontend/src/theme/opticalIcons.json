@@ -8,7 +8,9 @@
   "ArrowRight",
   "ArrowUp",
   "Award",
+  "BadgeCheck",
   "Ban",
+  "Banknote",
   "Bell",
   "BellOff",
   "BellRing",
@@ -64,6 +66,7 @@
   "Hourglass",
   "IdCard",
   "Info",
+  "Instagram",
   "Lightbulb",
   "Link",
   "Loader2",
@@ -83,6 +86,7 @@
   "MoreVertical",
   "Mountain",
   "Music",
+  "Package",
   "Palette",
   "PartyPopper",
   "Pause",
@@ -91,9 +95,9 @@
   "Plus",
   "Printer",
   "QrCode",
-  "Quote",
   "Radio",
   "RefreshCw",
+  "Rocket",
   "RotateCcw",
   "ScanEye",
   "ScanSearch",
@@ -116,6 +120,7 @@
   "Square",
   "SquarePlus",
   "Star",
+  "Store",
   "Swords",
   "Target",
   "Telescope",
@@ -125,6 +130,7 @@
   "TrendingDown",
   "TrendingUp",
   "Trophy",
+  "Truck",
   "Tv",
   "Upload",
   "User",
@@ -343,6 +349,10 @@
   "lucide-trending-up": [
    -6,
    0
+  ],
+  "lucide-truck": [
+   0,
+   -3.7
   ],
   "lucide-tv": [
    0,

@@ -714,6 +714,12 @@ export default function ProfilePage() {
             Your Fight Story: everything you've built, yours to keep
           </button>
         )}
+        {user?.user_id && (
+          <div className="grid grid-cols-2 gap-2">
+            <button className="victory-btn-ghost text-sm min-h-[48px]" onClick={() => navigate("/pro/dashboard")} data-testid="pro-dashboard-link">Pro boxer? Fighter Card</button>
+            <button className="victory-btn-ghost text-sm min-h-[48px]" onClick={() => navigate("/orders")}>Your orders</button>
+          </div>
+        )}
         {user?.user_id && <TrophyShelf userId={user.user_id} isMe />}
         {user?.user_id && <HoursLadder />}
 

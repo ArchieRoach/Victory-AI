@@ -91,6 +91,11 @@ const BillingPage = lazyPage(() => import("@/pages/BillingPage"));
 import { takePendingInvite } from "@/lib/pendingInvite";
 const TokensPage = lazyPage(() => import("@/pages/TokensPage"));
 const DiscoverPage = lazyPage(() => import("@/pages/DiscoverPage"));
+const FighterMarketPage = lazyPage(() => import("@/pages/FighterMarketPage"));
+const OrdersPage = lazyPage(() => import("@/pages/OrdersPage"));
+const ProCardPage = lazyPage(() => import("@/pages/ProCardPage"));
+const ProApplyPage = lazyPage(() => import("@/pages/ProApplyPage"));
+const ProDashboardPage = lazyPage(() => import("@/pages/ProDashboardPage"));
 const TokenSuccessPage = lazyPage(() => import("@/pages/TokenSuccessPage"));
 const TrendingClipsPage = lazyPage(() => import("@/pages/TrendingClipsPage"));
 const FantasyPage = lazyPage(() => import("@/pages/FantasyPage"));
@@ -423,6 +428,11 @@ const AppRouter = () => {
         {/* Social / Network features — free tier */}
         <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
         <Route path="/discover" element={<ProtectedRoute><DiscoverPage /></ProtectedRoute>} />
+        <Route path="/shop" element={<ProtectedRoute><FighterMarketPage /></ProtectedRoute>} />
+        <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+        <Route path="/pro/apply" element={<ProtectedRoute><ProApplyPage /></ProtectedRoute>} />
+        <Route path="/pro/dashboard" element={<ProtectedRoute><ProDashboardPage /></ProtectedRoute>} />
+        <Route path="/pro/:userId" element={<ProtectedRoute><ProCardPage /></ProtectedRoute>} />
         <Route path="/post/create" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
         <Route path="/gyms" element={<ProtectedRoute><GymsPage /></ProtectedRoute>} />
         <Route path="/gyms/:gymId" element={<ProtectedRoute><GymDetailPage /></ProtectedRoute>} />

@@ -78,6 +78,14 @@ export default function TermsOfServicePage() {
           </p>
         </Section>
 
+        <Section title="5a. Pro Fighter Cards and the Fighter Market">
+          <p>Fighter Cards are for professional boxers aged 18 or over. We check identity before a card goes public, and we can remove a card or listing at any time.</p>
+          <p>Merch in the Fighter Market is sold by the fighter, not by Victory AI. The seller is responsible for the item, its description, posting it and any returns they offer. Sellers are paid through Stripe and must complete Stripe's identity checks.</p>
+          <p><strong>Fees.</strong> Listing is free and sellers keep the full item price and their delivery charge. Buyers pay a Buyer Protection fee (currently £0.70 + 5% of the item price), shown before checkout. Sellers can pay to Bump an item (£1.49 for 3 days) or Spotlight their shop (£5.99 for 7 days). These promotions are non-refundable once they start.</p>
+          <p><strong>Buyer Protection.</strong> We hold the payment until the buyer confirms the item arrived, or until 14 days after the seller marks it shipped if no problem is reported. If an item doesn't arrive or isn't as described, report it from Your orders before then and we'll review it. We may refund the buyer in full. If an item sells out after payment, you're refunded automatically. This doesn't affect your legal rights as a consumer.</p>
+          <p>Under-18s can ask a parent or guardian to pay using a shared checkout link.</p>
+        </Section>
+
         <Section title="6. Your content and acceptable use">
           <p>
             You keep ownership of the videos, posts, comments, messages and other content you
