@@ -33,6 +33,13 @@ least monthly: trial starts (`checkout_started`) ÷ paywall views (`paywall_view
 Change price via `PRICE_*_GBP` + matching Stripe/App Store prices, one change at a time, two weeks apart,
 and tell Archie the numbers before changing anything.
 
+## Pro fighters rule (`backend/pro.py`)
+Verified pros (18+, checked by a person) get a Fighter Card under their alias, a merch shop and an
+optional alias training partner. Money is Vinted-style: sellers list free and keep 100% of item + delivery;
+buyers pay a shown Buyer Protection fee (£0.70 + 5%) and money is held until they confirm (auto after 14
+days); pros can buy Bumps/Spotlight (digital, so web-only in the iOS app). A fighter's alias or likeness
+is only used with their recorded consent.
+
 ## Invite rule: sell the value before asking for friends
 People only want to invite friends once they're sold on the experience themselves, and that
 usually happens at the first major win state.

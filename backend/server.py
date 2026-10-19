@@ -1948,6 +1948,12 @@ async def stripe_webhook(request: Request):
             elif purchase_type == "gloves_gift":
                 if _sget(event_data, "payment_status") == "paid":
                     await _grant_gloves_gift(_sget(event_data, "id"), meta)
+            elif purchase_type == "merch_order":
+                if _sget(event_data, "payment_status") == "paid":
+                    await _merch_paid(event_data)
+            elif purchase_type in ("merch_bump", "pro_spotlight"):
+                if _sget(event_data, "payment_status") == "paid":
+                    await _apply_promo(meta)
             elif purchase_type == "fantasy_cosmetic":
                 if _sget(event_data, "payment_status") == "paid" and meta.get("user_id"):
                     await _grant_cosmetic(meta["user_id"], meta.get("cosmetic_id"))
@@ -4584,6 +4590,655 @@ async def get_comments(post_id: str, user: dict = Depends(get_current_user)):
     return comments
 
 # ============== HOME FOR-YOU FEED ==============
+
+# ============== PRO FIGHTERS: Fighter Card, merch shop, alias partners (rules in pro.py) ==============
+import pro as px
+
+
+class PromoIn(BaseModel):
+    origin_url: str = ""
+
+
+def _pro_public(u: dict) -> dict:
+    p = u.get("pro") or {}
+    ap = p.get("alias_partner") or {}
+    return {
+        "user_id": u["user_id"], "alias": p.get("alias"), "ring_name": p.get("ring_name") or u.get("display_name") or u.get("name"),
+        "division": p.get("division"), "record": p.get("record"), "titles": p.get("titles") or [],
+        "bio": p.get("bio") or "", "picture": u.get("avatar_url") or u.get("picture"),
+        "instagram": p.get("instagram"), "boxrec_url": p.get("boxrec_url"), "verified": p.get("status") == "verified",
+        "spotlight": (p.get("spotlight_until") or "") > datetime.now(timezone.utc).isoformat(),
+        "alias_partner": {"avatar_url": ap.get("avatar_url"), "style": ap.get("style")} if ap.get("enabled") else None,
+        "fantasy_fighter_id": p.get("fantasy_fighter_id"),
+    }
+
+
+async def _verified_pro(user: dict) -> dict:
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0}) or {}
+    if (fresh.get("pro") or {}).get("status") != "verified":
+        raise HTTPException(403, "This is for verified pro fighters")
+    return fresh
+
+
+class ProApplication(BaseModel):
+    alias: str = Field(..., max_length=30)
+    ring_name: str = Field(..., min_length=2, max_length=60)
+    division: str = Field(..., max_length=40)
+    record: str = Field(..., max_length=11)
+    titles: List[str] = Field(default_factory=list, max_length=8)
+    boxrec_url: str = Field("", max_length=200)
+    instagram: str = Field("", max_length=60)
+    proof: str = Field("", max_length=500)
+
+
+@api_router.post("/pro/apply")
+async def pro_apply(data: ProApplication, user: dict = Depends(get_current_user)):
+    problem = px.application_problem(data.alias.strip(), data.division, data.record.strip(), data.boxrec_url.strip())
+    if problem:
+        raise HTTPException(400, problem)
+    if _rate_limited(f"pro_apply:{user['user_id']}", 3, 3600):
+        raise HTTPException(429, "Slow down a little")
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"pro": 1, "birth_date": 1}) or {}
+    if _is_minor(fresh):
+        raise HTTPException(403, "Pro Fighter Cards are for adults (18+)")
+    if (fresh.get("pro") or {}).get("status") == "verified":
+        raise HTTPException(400, "You're already verified")
+    titles = [t.strip()[:60] for t in data.titles if t.strip()]
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"pro": {
+        **(fresh.get("pro") or {}), "status": "pending", "alias": data.alias.strip(), "ring_name": data.ring_name.strip(),
+        "division": data.division, "record": data.record.strip(), "titles": titles,
+        "boxrec_url": data.boxrec_url.strip(), "instagram": data.instagram.strip().lstrip("@"), "proof": data.proof.strip(),
+        "applied_at": datetime.now(timezone.utc).isoformat()}}})
+    await _email_fantasy_admin(f"Pro Fighter Card request: {data.alias} ({data.ring_name})", {
+        "Fighter": data.ring_name, "Alias": data.alias, "Division": data.division, "Record": data.record,
+        "BoxRec": data.boxrec_url or "-", "Instagram": data.instagram or "-", "Proof": data.proof or "-",
+        "Next": f"Check it, then POST /api/admin/pro/{user['user_id']}/verify"}, reply_to=user.get("email"))
+    return {"status": "pending"}
+
+
+@api_router.get("/pro/me")
+async def pro_me(user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "pro": 1, "user_id": 1, "avatar_url": 1,
+                                                                   "picture": 1, "name": 1, "display_name": 1}) or {}
+    p = fresh.get("pro") or {}
+    if not p:
+        return {"status": None}
+    out = {"status": p.get("status"), "card": _pro_public(fresh), "payouts_ready": bool(p.get("payouts_ready")),
+           "alias_partner": p.get("alias_partner") or {}, "clips": p.get("clips") or {},
+           "spotlight_until": p.get("spotlight_until"), "note": p.get("review_note")}
+    return out
+
+
+class ProVerify(BaseModel):
+    approve: bool
+    fantasy_fighter_id: str = Field("", max_length=60)
+    note: str = Field("", max_length=300)
+
+
+@api_router.post("/admin/pro/{user_id}/verify")
+async def admin_verify_pro(user_id: str, data: ProVerify, user: dict = Depends(get_current_user)):
+    if not await is_admin(user):
+        raise HTTPException(403, "Admins only")
+    target = await db.users.find_one({"user_id": user_id}, {"pro": 1})
+    if not target or not target.get("pro"):
+        raise HTTPException(404, "No application")
+    update = {"pro.status": "verified" if data.approve else "rejected", "pro.review_note": data.note,
+              "pro.reviewed_at": datetime.now(timezone.utc).isoformat()}
+    if data.fantasy_fighter_id:
+        update["pro.fantasy_fighter_id"] = data.fantasy_fighter_id
+    if data.approve:
+        update["pro.verified_at"] = datetime.now(timezone.utc).isoformat()
+    await db.users.update_one({"user_id": user_id}, {"$set": update})
+    alias = target["pro"].get("alias") or "Your Fighter Card"
+    await _send_push(user_id, title=f"{alias} is verified" if data.approve else "Fighter Card update",
+                     body="Your Fighter Card is live. Add your merch." if data.approve else (data.note or "We couldn't verify it yet."),
+                     url="/pro/dashboard", tag="pro-verify")
+    return {"ok": True, "status": update["pro.status"]}
+
+
+@api_router.get("/admin/pro/applications")
+async def admin_pro_applications(user: dict = Depends(get_current_user)):
+    if not await is_admin(user):
+        raise HTTPException(403, "Admins only")
+    rows = await db.users.find({"pro.status": "pending"}, {"_id": 0, "user_id": 1, "email": 1, "pro": 1}).to_list(200)
+    return {"applications": rows}
+
+
+@api_router.get("/pros")
+async def list_pros():
+    rows = await db.users.find({"pro.status": "verified"}, {"_id": 0, "password": 0}).to_list(500)
+    now = datetime.now(timezone.utc).isoformat()
+    rows.sort(key=lambda u: ((u.get("pro") or {}).get("spotlight_until") or "") <= now)
+    return {"pros": [_pro_public(u) for u in rows]}
+
+
+@api_router.get("/pros/{user_id}")
+async def get_pro(user_id: str):
+    u = await db.users.find_one({"user_id": user_id, "pro.status": "verified"}, {"_id": 0, "password": 0})
+    if not u:
+        raise HTTPException(404, "Fighter not found")
+    items = await db.merch_items.find({"seller_id": user_id, "active": True}, {"_id": 0}).to_list(px.MAX_LISTINGS)
+    now = datetime.now(timezone.utc).isoformat()
+    items.sort(key=lambda i: px.market_sort_key(i, now))
+    clips = {k: v.get("url") for k, v in ((u.get("pro") or {}).get("clips") or {}).items() if v.get("approved")}
+    return {"fighter": _pro_public(u), "merch": [_merch_out(i) for i in items], "clips": clips}
+
+
+class ProProfileEdit(BaseModel):
+    bio: str = Field("", max_length=400)
+    titles: List[str] = Field(default_factory=list, max_length=8)
+    record: str = Field("", max_length=11)
+    instagram: str = Field("", max_length=60)
+
+
+@api_router.put("/pro/profile")
+async def edit_pro_profile(data: ProProfileEdit, user: dict = Depends(get_current_user)):
+    await _verified_pro(user)
+    update = {"pro.bio": data.bio.strip(), "pro.titles": [t.strip()[:60] for t in data.titles if t.strip()],
+              "pro.instagram": data.instagram.strip().lstrip("@")}
+    if data.record:
+        if not px.RECORD_RE.match(data.record.strip()):
+            raise HTTPException(400, "Write your pro record as wins-losses-draws, like 18-1-0")
+        update["pro.record"] = data.record.strip()
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    return {"ok": True}
+
+
+# ---- Payouts (Stripe Connect Express: Stripe holds the seller's ID checks and bank details) ----
+
+@api_router.post("/pro/payouts/onboard")
+async def pro_payouts_onboard(data: PromoIn, user: dict = Depends(get_current_user)):
+    import asyncio as _asyncio
+    fresh = await _verified_pro(user)
+    if _is_minor(fresh):
+        raise HTTPException(403, "Sellers must be 18 or over")
+    host = _safe_checkout_origin(data.origin_url)
+    acct_id = (fresh.get("pro") or {}).get("stripe_account_id")
+    try:
+        if not acct_id:
+            acct = await _asyncio.to_thread(stripe_lib.Account.create, type="express", country="GB",
+                                            email=fresh.get("email") or None, business_type="individual",
+                                            capabilities={"transfers": {"requested": True}},
+                                            metadata={"user_id": user["user_id"]})
+            acct_id = acct.id
+            await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"pro.stripe_account_id": acct_id}})
+        link = await _asyncio.to_thread(stripe_lib.AccountLink.create, account=acct_id, type="account_onboarding",
+                                        refresh_url=f"{host}/pro/dashboard?payouts=retry",
+                                        return_url=f"{host}/pro/dashboard?payouts=done")
+    except Exception as e:
+        logger.error(f"Stripe Connect onboarding error: {_redact(e)}")
+        raise HTTPException(502, "Couldn't open payout setup. Try again in a minute.")
+    return {"url": link.url}
+
+
+@api_router.post("/pro/payouts/refresh")
+async def pro_payouts_refresh(user: dict = Depends(get_current_user)):
+    import asyncio as _asyncio
+    fresh = await _verified_pro(user)
+    acct_id = (fresh.get("pro") or {}).get("stripe_account_id")
+    if not acct_id:
+        return {"payouts_ready": False}
+    try:
+        acct = await _asyncio.to_thread(stripe_lib.Account.retrieve, acct_id)
+        caps = _sget(acct, "capabilities") or {}
+        ready = bool(_sget(acct, "details_submitted")) and (caps.get("transfers") if isinstance(caps, dict) else _sget(caps, "transfers")) == "active"
+    except Exception as e:
+        logger.error(f"Stripe Connect status error: {_redact(e)}")
+        raise HTTPException(502, "Couldn't check payout status. Try again.")
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"pro.payouts_ready": ready}})
+    return {"payouts_ready": ready}
+
+
+# ---- Merch listings ----
+
+def _merch_out(i: dict) -> dict:
+    now = datetime.now(timezone.utc).isoformat()
+    return {**{k: i.get(k) for k in ("item_id", "seller_id", "alias", "title", "description", "price_gbp", "shipping_gbp",
+                                      "image_url", "sizes", "stock", "created_at")},
+            "bumped": (i.get("bumped_until") or "") > now,
+            "buyer_protection_gbp": px.buyer_protection_fee(i.get("price_gbp") or 0)}
+
+
+class MerchIn(BaseModel):
+    title: str = Field(..., max_length=60)
+    description: str = Field("", max_length=600)
+    price_gbp: float
+    shipping_gbp: float = 0
+    image_url: str = Field(..., max_length=400)
+    sizes: List[str] = Field(default_factory=list, max_length=8)
+    stock: int = 1
+
+
+@api_router.post("/pro/merch")
+async def create_merch(data: MerchIn, user: dict = Depends(get_current_user)):
+    fresh = await _verified_pro(user)
+    problem = px.listing_problem(data.title, data.price_gbp, data.shipping_gbp, data.image_url, data.sizes, data.stock)
+    if problem:
+        raise HTTPException(400, problem)
+    if await db.merch_items.count_documents({"seller_id": user["user_id"], "active": True}) >= px.MAX_LISTINGS:
+        raise HTTPException(400, f"You can list up to {px.MAX_LISTINGS} items")
+    if await is_content_flagged(f"{data.title} {data.description}"):
+        raise HTTPException(400, "That listing breaks the community guidelines")
+    p = fresh.get("pro") or {}
+    doc = {"item_id": f"merch_{uuid.uuid4().hex[:12]}", "seller_id": user["user_id"], "alias": p.get("alias"),
+           "title": data.title.strip(), "description": data.description.strip(), "price_gbp": round(data.price_gbp, 2),
+           "shipping_gbp": round(data.shipping_gbp, 2), "image_url": data.image_url, "sizes": [s.strip() for s in data.sizes],
+           "stock": data.stock, "active": True, "spotlight_until": p.get("spotlight_until"),
+           "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.merch_items.insert_one(dict(doc))
+    return _merch_out(doc)
+
+
+@api_router.put("/pro/merch/{item_id}")
+async def update_merch(item_id: str, data: MerchIn, user: dict = Depends(get_current_user)):
+    await _verified_pro(user)
+    problem = px.listing_problem(data.title, data.price_gbp, data.shipping_gbp, data.image_url, data.sizes, data.stock)
+    if problem:
+        raise HTTPException(400, problem)
+    res = await db.merch_items.update_one({"item_id": item_id, "seller_id": user["user_id"]}, {"$set": {
+        "title": data.title.strip(), "description": data.description.strip(), "price_gbp": round(data.price_gbp, 2),
+        "shipping_gbp": round(data.shipping_gbp, 2), "image_url": data.image_url,
+        "sizes": [s.strip() for s in data.sizes], "stock": data.stock}})
+    if not res.matched_count:
+        raise HTTPException(404, "Item not found")
+    return {"ok": True}
+
+
+@api_router.delete("/pro/merch/{item_id}")
+async def delete_merch(item_id: str, user: dict = Depends(get_current_user)):
+    res = await db.merch_items.update_one({"item_id": item_id, "seller_id": user["user_id"]}, {"$set": {"active": False}})
+    if not res.matched_count:
+        raise HTTPException(404, "Item not found")
+    return {"ok": True}
+
+
+@api_router.get("/merch")
+async def merch_market(seller_id: str = Query("", max_length=40)):
+    q = {"active": True, "stock": {"$gt": 0}}
+    if seller_id:
+        q["seller_id"] = seller_id
+    items = await db.merch_items.find(q, {"_id": 0}).to_list(300)
+    now = datetime.now(timezone.utc).isoformat()
+    items.sort(key=lambda i: px.market_sort_key(i, now))
+    return {"items": [_merch_out(i) for i in items],
+            "fees": {"buyer_protection_fixed": px.BUYER_FEE_FIXED_GBP, "buyer_protection_percent": px.BUYER_FEE_PERCENT,
+                     "bump_price": px.BUMP_PRICE_GBP, "bump_days": px.BUMP_DAYS,
+                     "spotlight_price": px.SPOTLIGHT_PRICE_GBP, "spotlight_days": px.SPOTLIGHT_DAYS}}
+
+
+class MerchBuy(BaseModel):
+    size: str = Field("", max_length=10)
+    quantity: int = Field(1, ge=1, le=5)
+    origin_url: str = ""
+
+
+@api_router.post("/merch/{item_id}/checkout")
+async def merch_checkout(item_id: str, data: MerchBuy, user: dict = Depends(get_current_user)):
+    import asyncio as _asyncio
+    item = await db.merch_items.find_one({"item_id": item_id, "active": True}, {"_id": 0})
+    if not item:
+        raise HTTPException(404, "Item not found")
+    if item["seller_id"] == user["user_id"]:
+        raise HTTPException(400, "That's your own item")
+    if (item.get("stock") or 0) < data.quantity:
+        raise HTTPException(400, "Sold out")
+    if item.get("sizes") and data.size not in item["sizes"]:
+        raise HTTPException(400, "Pick a size")
+    seller = await db.users.find_one({"user_id": item["seller_id"]}, {"pro": 1}) or {}
+    if not (seller.get("pro") or {}).get("payouts_ready"):
+        raise HTTPException(400, "This fighter's shop isn't taking orders yet")
+    if _rate_limited(f"merch_checkout:{user['user_id']}", 15, 3600):
+        raise HTTPException(429, "Slow down a little")
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0}) or user
+    minor = _is_minor(fresh)
+    totals = px.order_totals(item["price_gbp"], item.get("shipping_gbp") or 0, data.quantity)
+    order_id = f"order_{uuid.uuid4().hex[:12]}"
+    host = _safe_checkout_origin(data.origin_url)
+    label = f"{item['title']}{f' ({data.size})' if data.size else ''}"
+    lines = [{"price_data": {"currency": "gbp", "unit_amount": px.pence(item["price_gbp"]),
+                             "product_data": {"name": f"{item.get('alias') or 'Fighter'}: {label}"}}, "quantity": data.quantity},
+             {"price_data": {"currency": "gbp", "unit_amount": px.pence(totals["buyer_protection"]),
+                             "product_data": {"name": "Buyer Protection",
+                                              "description": "Your money is held until you confirm the item arrived."}}, "quantity": 1}]
+    if totals["shipping"] > 0:
+        lines.append({"price_data": {"currency": "gbp", "unit_amount": px.pence(totals["shipping"]),
+                                     "product_data": {"name": "Shipping"}}, "quantity": 1})
+    try:
+        session = await _asyncio.to_thread(
+            stripe_lib.checkout.Session.create, mode="payment", payment_method_types=["card"], line_items=lines,
+            shipping_address_collection={"allowed_countries": px.SHIP_COUNTRIES},
+            success_url=f"{host}/orders?paid={{CHECKOUT_SESSION_ID}}", cancel_url=f"{host}/pro/{item['seller_id']}",
+            customer_email=None if minor else (fresh.get("email") or None),
+            payment_intent_data={"transfer_group": order_id},
+            metadata={"purchase_type": "merch_order", "order_id": order_id, "user_id": user["user_id"]})
+    except Exception as e:
+        logger.error(f"Stripe merch checkout error: {_redact(e)}")
+        raise HTTPException(500, "Could not start checkout. Please try again.")
+    await db.merch_orders.insert_one({
+        "order_id": order_id, "item_id": item_id, "seller_id": item["seller_id"], "buyer_id": user["user_id"],
+        "title": item["title"], "alias": item.get("alias"), "image_url": item.get("image_url"), "size": data.size,
+        "quantity": data.quantity, **{f"{k}_gbp": v for k, v in totals.items()}, "status": "pending_payment",
+        "checkout_session_id": session.id, "created_at": datetime.now(timezone.utc).isoformat()})
+    return {"checkout_url": session.url, "for_parent": minor, "totals": totals}
+
+
+async def _merch_paid(session_obj) -> None:
+    import asyncio as _asyncio
+    meta = _sget(session_obj, "metadata") or {}
+    order = await db.merch_orders.find_one({"order_id": meta.get("order_id")})
+    if not order or order.get("status") != "pending_payment":
+        return
+    pi = _sget(session_obj, "payment_intent")
+    ship = _sget(session_obj, "shipping_details") or (_sget(_sget(session_obj, "collected_information"), "shipping_details")) or {}
+    address = _sget(ship, "address") or {}
+    shipping = {"name": _sget(ship, "name"), **{k: _sget(address, k) for k in ("line1", "line2", "city", "postal_code", "state", "country")}}
+    took = await db.merch_items.update_one({"item_id": order["item_id"], "stock": {"$gte": order["quantity"]}},
+                                           {"$inc": {"stock": -order["quantity"]}})
+    now = datetime.now(timezone.utc).isoformat()
+    if not took.modified_count:
+        # Sold out between checkout and payment: give the buyer their money back straight away.
+        try:
+            await _asyncio.to_thread(stripe_lib.Refund.create, payment_intent=pi)
+        except Exception as e:
+            logger.error(f"Merch sold-out refund failed for {order['order_id']}: {_redact(e)}")
+        await db.merch_orders.update_one({"order_id": order["order_id"]}, {"$set": {"status": "refunded", "payment_intent": pi,
+                                                                                   "refunded_at": now, "refund_reason": "sold_out"}})
+        await _send_push(order["buyer_id"], title="Sold out, refunded", body=f"{order['title']} sold out. Your money is on its way back.",
+                         url="/orders", tag=f"order-{order['order_id']}")
+        return
+    await db.merch_orders.update_one({"order_id": order["order_id"]}, {"$set": {
+        "status": "paid", "payment_intent": pi, "shipping": shipping, "paid_at": now,
+        "buyer_email": _sget(_sget(session_obj, "customer_details"), "email")}})
+    await db.notifications.insert_one({"notification_id": f"notif_{uuid.uuid4().hex[:12]}", "recipient_id": order["seller_id"],
+                                       "actor_id": order["buyer_id"], "type": "merch_sale", "read": False,
+                                       "message": f"New order: {order['title']}" + (f" ({order['size']})" if order.get("size") else ""),
+                                       "created_at": now})
+    await _send_push(order["seller_id"], title="New merch order", body=f"{order['title']}. Ship it, then mark it shipped.",
+                     url="/pro/dashboard", tag=f"order-{order['order_id']}")
+
+
+def _order_out(o: dict, viewer: str) -> dict:
+    keys = ["order_id", "item_id", "title", "alias", "image_url", "size", "quantity", "status", "item_gbp", "shipping_gbp",
+            "buyer_protection_gbp", "total_gbp", "seller_gets_gbp", "tracking", "created_at", "paid_at", "shipped_at", "issue"]
+    out = {k: o.get(k) for k in keys}
+    if viewer == o.get("seller_id"):
+        out["shipping"] = o.get("shipping")
+    return out
+
+
+@api_router.get("/orders/mine")
+async def my_orders(user: dict = Depends(get_current_user)):
+    rows = await db.merch_orders.find({"buyer_id": user["user_id"], "status": {"$ne": "pending_payment"}},
+                                      {"_id": 0}).sort("created_at", -1).to_list(100)
+    return {"orders": [_order_out(o, user["user_id"]) for o in rows]}
+
+
+@api_router.get("/pro/orders")
+async def seller_orders(user: dict = Depends(get_current_user)):
+    await _verified_pro(user)
+    rows = await db.merch_orders.find({"seller_id": user["user_id"], "status": {"$ne": "pending_payment"}},
+                                      {"_id": 0}).sort("created_at", -1).to_list(200)
+    return {"orders": [_order_out(o, user["user_id"]) for o in rows]}
+
+
+async def _move_order(order_id: str, new: str, extra: Optional[dict] = None, **match) -> dict:
+    o = await db.merch_orders.find_one({"order_id": order_id, **match})
+    if not o:
+        raise HTTPException(404, "Order not found")
+    if not px.can_move(o["status"], new):
+        raise HTTPException(400, f"This order is {o['status']}, so it can't be marked {new}")
+    res = await db.merch_orders.update_one({"order_id": order_id, "status": o["status"]},
+                                           {"$set": {"status": new, f"{new}_at": datetime.now(timezone.utc).isoformat(), **(extra or {})}})
+    if not res.modified_count:
+        raise HTTPException(409, "The order just changed. Refresh and try again.")
+    return o
+
+
+async def _release_order(order_id: str, reason: str) -> bool:
+    """Pays the seller their item price + shipping. Our Buyer Protection fee stays on the platform."""
+    import asyncio as _asyncio
+    o = await db.merch_orders.find_one({"order_id": order_id})
+    if not o or o.get("transfer_id"):
+        return False
+    seller = await db.users.find_one({"user_id": o["seller_id"]}, {"pro": 1}) or {}
+    acct = (seller.get("pro") or {}).get("stripe_account_id")
+    try:
+        pi = await _asyncio.to_thread(stripe_lib.PaymentIntent.retrieve, o["payment_intent"])
+        transfer = await _asyncio.to_thread(stripe_lib.Transfer.create, amount=px.pence(o["seller_gets_gbp"]), currency="gbp",
+                                            destination=acct, transfer_group=order_id, source_transaction=_sget(pi, "latest_charge"),
+                                            metadata={"order_id": order_id})
+    except Exception as e:
+        logger.error(f"Merch payout failed for {order_id}: {_redact(e)}")
+        return False
+    await db.merch_orders.update_one({"order_id": order_id}, {"$set": {"transfer_id": transfer.id, "released_reason": reason,
+                                                                       "released_at": datetime.now(timezone.utc).isoformat()}})
+    await _send_push(o["seller_id"], title="You've been paid", body=f"£{o['seller_gets_gbp']:.2f} for {o['title']} is on its way to your bank.",
+                     url="/pro/dashboard", tag=f"order-{order_id}")
+    return True
+
+
+class ShipIn(BaseModel):
+    tracking: str = Field("", max_length=80)
+
+
+@api_router.post("/pro/orders/{order_id}/shipped")
+async def mark_shipped(order_id: str, data: ShipIn, user: dict = Depends(get_current_user)):
+    o = await _move_order(order_id, "shipped", {"tracking": data.tracking.strip()}, seller_id=user["user_id"])
+    await _send_push(o["buyer_id"], title="Your order is on its way",
+                     body=f"{o['title']}{' · tracking ' + data.tracking.strip() if data.tracking.strip() else ''}",
+                     url="/orders", tag=f"order-{order_id}")
+    return {"ok": True}
+
+
+@api_router.post("/orders/{order_id}/received")
+async def mark_received(order_id: str, user: dict = Depends(get_current_user)):
+    await _move_order(order_id, "received", buyer_id=user["user_id"])
+    await _release_order(order_id, "buyer_confirmed")
+    return {"ok": True}
+
+
+class IssueIn(BaseModel):
+    reason: str = Field(..., min_length=5, max_length=500)
+
+
+@api_router.post("/orders/{order_id}/issue")
+async def report_issue(order_id: str, data: IssueIn, user: dict = Depends(get_current_user)):
+    o = await _move_order(order_id, "issue", {"issue": data.reason.strip()}, buyer_id=user["user_id"])
+    await _email_fantasy_admin(f"Merch order problem: {o['title']}", {
+        "Order": order_id, "Buyer": user.get("email") or user["user_id"], "Seller": o["seller_id"],
+        "Problem": data.reason.strip(), "Next": f"POST /api/admin/orders/{order_id}/resolve with refund or release"})
+    return {"ok": True}
+
+
+class ResolveIn(BaseModel):
+    action: str = Field(..., pattern="^(refund|release)$")
+
+
+@api_router.post("/admin/orders/{order_id}/resolve")
+async def admin_resolve_order(order_id: str, data: ResolveIn, user: dict = Depends(get_current_user)):
+    import asyncio as _asyncio
+    if not await is_admin(user):
+        raise HTTPException(403, "Admins only")
+    if data.action == "release":
+        await _move_order(order_id, "released")
+        return {"ok": await _release_order(order_id, "admin")}
+    o = await _move_order(order_id, "refunded")
+    try:
+        await _asyncio.to_thread(stripe_lib.Refund.create, payment_intent=o["payment_intent"])
+    except Exception as e:
+        logger.error(f"Merch refund failed for {order_id}: {_redact(e)}")
+        raise HTTPException(502, "Refund failed in Stripe. Try again.")
+    await _send_push(o["buyer_id"], title="Refunded", body=f"Your money for {o['title']} is on its way back.", url="/orders",
+                     tag=f"order-{order_id}")
+    return {"ok": True}
+
+
+async def release_due_orders(now: Optional[datetime] = None) -> int:
+    cutoff = ((now or datetime.now(timezone.utc)) - timedelta(days=px.AUTO_RELEASE_DAYS)).isoformat()
+    released = 0
+    async for o in db.merch_orders.find({"status": "shipped", "shipped_at": {"$lte": cutoff}}, {"order_id": 1}):
+        res = await db.merch_orders.update_one({"order_id": o["order_id"], "status": "shipped"},
+                                               {"$set": {"status": "released", "released_at": datetime.now(timezone.utc).isoformat()}})
+        if res.modified_count and await _release_order(o["order_id"], "auto"):
+            released += 1
+    return released
+
+
+async def _merch_release_loop():
+    import asyncio as _aio
+    while True:
+        try:
+            n = await release_due_orders()
+            if n:
+                logger.info(f"Merch: released {n} order payouts")
+        except Exception as e:
+            logger.error(f"Merch release loop error: {e}")
+        await _aio.sleep(3600)
+
+
+# ---- Bumps and Spotlight (Vinted-style paid visibility; digital, so web only in the iOS app) ----
+
+async def _promo_checkout(user: dict, name: str, price: float, meta: dict, origin_url: str) -> dict:
+    import asyncio as _asyncio
+    host = _safe_checkout_origin(origin_url)
+    try:
+        session = await _asyncio.to_thread(
+            stripe_lib.checkout.Session.create, mode="payment", payment_method_types=["card"],
+            line_items=[{"price_data": {"currency": "gbp", "unit_amount": px.pence(price), "product_data": {"name": name}}, "quantity": 1}],
+            success_url=f"{host}/pro/dashboard?promo=done", cancel_url=f"{host}/pro/dashboard",
+            customer_email=user.get("email") or None, metadata={**meta, "user_id": user["user_id"]})
+    except Exception as e:
+        logger.error(f"Stripe promo checkout error: {_redact(e)}")
+        raise HTTPException(500, "Could not start checkout. Please try again.")
+    return {"checkout_url": session.url}
+
+
+@api_router.post("/pro/merch/{item_id}/bump")
+async def bump_checkout(item_id: str, data: PromoIn, user: dict = Depends(get_current_user)):
+    await _verified_pro(user)
+    if not await db.merch_items.find_one({"item_id": item_id, "seller_id": user["user_id"], "active": True}, {"_id": 1}):
+        raise HTTPException(404, "Item not found")
+    return await _promo_checkout(user, f"Bump: top of the Fighter Market for {px.BUMP_DAYS} days", px.BUMP_PRICE_GBP,
+                                 {"purchase_type": "merch_bump", "item_id": item_id}, data.origin_url)
+
+
+@api_router.post("/pro/spotlight")
+async def spotlight_checkout(data: PromoIn, user: dict = Depends(get_current_user)):
+    await _verified_pro(user)
+    return await _promo_checkout(user, f"Spotlight: your shop featured for {px.SPOTLIGHT_DAYS} days", px.SPOTLIGHT_PRICE_GBP,
+                                 {"purchase_type": "pro_spotlight"}, data.origin_url)
+
+
+async def _apply_promo(meta: dict) -> None:
+    now = datetime.now(timezone.utc)
+    if meta.get("purchase_type") == "merch_bump" and meta.get("item_id"):
+        until = (now + timedelta(days=px.BUMP_DAYS)).isoformat()
+        await db.merch_items.update_one({"item_id": meta["item_id"], "seller_id": meta.get("user_id")}, {"$set": {"bumped_until": until}})
+    elif meta.get("purchase_type") == "pro_spotlight" and meta.get("user_id"):
+        until = (now + timedelta(days=px.SPOTLIGHT_DAYS)).isoformat()
+        await db.users.update_one({"user_id": meta["user_id"]}, {"$set": {"pro.spotlight_until": until}})
+        await db.merch_items.update_many({"seller_id": meta["user_id"]}, {"$set": {"spotlight_until": until}})
+
+
+# ---- Alias partners: train with "The Reaper" (fighter's written consent required) ----
+
+class AliasPartnerIn(BaseModel):
+    enabled: bool
+    consent: bool = False
+    style: str = Field("tough_love", max_length=40)
+    look: str = Field("", max_length=200)
+    catchphrases: List[str] = Field(default_factory=list, max_length=6)
+
+
+@api_router.put("/pro/alias-partner")
+async def set_alias_partner(data: AliasPartnerIn, user: dict = Depends(get_current_user)):
+    fresh = await _verified_pro(user)
+    p = fresh.get("pro") or {}
+    if not data.enabled:
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"pro.alias_partner.enabled": False}})
+        return {"enabled": False}
+    if not data.consent:
+        raise HTTPException(400, "Tick the box to agree to fans training with your alias")
+    if data.style not in TRAINING_PARTNER_STYLES:
+        raise HTTPException(400, "Pick a coaching style")
+    phrases = [c.strip()[:80] for c in data.catchphrases if c.strip()]
+    if await is_content_flagged(" ".join(phrases + [data.look])):
+        raise HTTPException(400, "That breaks the community guidelines")
+    prompt = (f"{p.get('alias')} boxing character, {data.look or 'fierce professional boxer'}, stylized digital art portrait, "
+              "dramatic lighting, dark background with electric lime accents, high quality")
+    avatar = pollinations_portrait(prompt, abs(hash(f"{user['user_id']}{data.look}")) % 99999)
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"pro.alias_partner": {
+        **(p.get("alias_partner") or {}), "enabled": True, "style": data.style, "look": data.look.strip(),
+        "catchphrases": phrases, "avatar_url": avatar,
+        "consent_at": (p.get("alias_partner") or {}).get("consent_at") or datetime.now(timezone.utc).isoformat()}}})
+    return {"enabled": True, "avatar_url": avatar}
+
+
+@api_router.post("/pro/{pro_id}/train-with")
+async def train_with_alias(pro_id: str, user: dict = Depends(get_current_user)):
+    u = await db.users.find_one({"user_id": pro_id, "pro.status": "verified", "pro.alias_partner.enabled": True}, {"_id": 0, "pro": 1})
+    if not u:
+        raise HTTPException(404, "That fighter isn't offering their alias right now")
+    if not await has_active_subscription(user):
+        raise HTTPException(402, "Training with a pro fighter's alias is a Pro feature")
+    p, ap = u["pro"], u["pro"]["alias_partner"]
+    style = TRAINING_PARTNER_STYLES.get(ap.get("style"), TRAINING_PARTNER_STYLES["supportive_mentor"])
+    current = (await db.users.find_one({"user_id": user["user_id"]}, {"training_partner": 1}) or {}).get("training_partner") or {}
+    partner = {**current, "partner_id": current.get("partner_id") or f"partner_{uuid.uuid4().hex[:12]}", "name": p.get("alias"),
+               "style": ap.get("style"), "style_name": style["name"], "personality": style["personality"],
+               "feedback_tone": style["feedback_tone"], "phrases": ap.get("catchphrases") or style["phrases"],
+               "avatar_url": ap.get("avatar_url"), "alias_pro_id": pro_id}
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"training_partner": partner}})
+    if current.get("alias_pro_id") != pro_id:
+        await db.users.update_one({"user_id": pro_id}, {"$inc": {"pro.alias_partner.fans": 1}})
+    return {"training_partner": partner}
+
+
+# ---- Animated clips (made in Higgsfield or similar, uploaded here, approved before fans see them) ----
+
+class ClipIn(BaseModel):
+    moment: str = Field(..., max_length=20)
+    url: str = Field(..., max_length=400)
+
+
+@api_router.put("/pro/clips")
+async def set_clip(data: ClipIn, user: dict = Depends(get_current_user)):
+    await _verified_pro(user)
+    if data.moment not in px.CLIP_MOMENTS:
+        raise HTTPException(400, "Unknown moment")
+    if not data.url.startswith("https://res.cloudinary.com/"):
+        raise HTTPException(400, "Upload the clip first")
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {f"pro.clips.{data.moment}": {
+        "url": data.url, "approved": False, "uploaded_at": datetime.now(timezone.utc).isoformat()}}})
+    await _email_fantasy_admin("Pro clip to review", {"Fighter": user["user_id"], "Moment": data.moment, "Clip": data.url,
+                                                      "Next": f"POST /api/admin/pro/{user['user_id']}/clips/{data.moment}/approve"})
+    return {"ok": True, "approved": False}
+
+
+@api_router.post("/admin/pro/{user_id}/clips/{moment}/approve")
+async def approve_clip(user_id: str, moment: str, user: dict = Depends(get_current_user)):
+    if not await is_admin(user):
+        raise HTTPException(403, "Admins only")
+    res = await db.users.update_one({"user_id": user_id, f"pro.clips.{moment}": {"$exists": True}},
+                                    {"$set": {f"pro.clips.{moment}.approved": True}})
+    if not res.matched_count:
+        raise HTTPException(404, "Clip not found")
+    return {"ok": True}
+
+
+# ---- Fantasy: show which fighters on a card train on Victory AI ----
+
+async def tag_victory_pros(card: dict) -> dict:
+    pros = await db.users.find({"pro.status": "verified"}, {"_id": 0, "user_id": 1, "pro": 1}).to_list(1000)
+    by_id = {(u["pro"] or {}).get("fantasy_fighter_id"): u for u in pros if (u.get("pro") or {}).get("fantasy_fighter_id")}
+    by_name = {px.name_key((u["pro"] or {}).get("ring_name")): u for u in pros if (u.get("pro") or {}).get("ring_name")}
+    for bout in card.get("bouts") or []:
+        for f in bout.get("fighters") or []:
+            u = by_id.get(f.get("fighter_id")) or by_name.get(px.name_key(f.get("name")))
+            if u:
+                f["victory_pro"] = {"user_id": u["user_id"], "alias": u["pro"].get("alias")}
+    return card
+
 
 # ---- Welcome back (Value Replay) ----
 # Goal: lapsed fighters come back instead of quietly churning.
@@ -8541,6 +9196,7 @@ async def list_fantasy_cards(user: dict = Depends(get_current_user)):
 async def get_fantasy_card(card_id: str, user: dict = Depends(get_current_user)):
     card = await _get_card(card_id, user)
     entry = await db.fantasy_entries.find_one({"card_id": card_id, "user_id": user["user_id"]}, {"_id": 0})
+    card = await tag_victory_pros(card)
     return {"card": _public_card(card), "me": {"user_id": user["user_id"], "picks": (entry or {}).get("picks", []),
                                                 "saved": bool(entry)}}
 
@@ -11902,6 +12558,8 @@ INDEXES = {
     "crew_feed": [[("squad_id", 1), ("at", -1)]],
     "push_subscriptions": ["user_id"],
     "apns_tokens": ["user_id"],
+    "merch_items": [[("seller_id", 1), ("active", 1)], "item_id"],
+    "merch_orders": ["order_id", "buyer_id", "seller_id", [("status", 1), ("shipped_at", 1)]],
 }
 
 
@@ -11954,6 +12612,7 @@ async def startup():
         logger.info(f"Migration: backfilled access_granted=True on {result.modified_count} users")
     await run_once_migrations()
     _aio.create_task(ensure_indexes())
+    _aio.create_task(_merch_release_loop())
     _aio.create_task(_scheduled_stream_reminder_loop())
     _aio.create_task(_retention_cleanup_loop())
     _aio.create_task(_reengagement_loop())

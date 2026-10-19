@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Check, Lock, AlertTriangle, Coins } from "lucide-react";
+import { Check, Lock, AlertTriangle, Coins, BadgeCheck } from "lucide-react";
 import { checkStable, formatCoins, isCardLocked, teamSize, coinCap } from "@/lib/fantasyScoring";
 import { HowToPlay } from "@/components/fantasy/HowToPlay";
 
@@ -105,6 +105,12 @@ export function DraftPanel({ card, me, service }) {
                       {picked && <Check className="w-3.5 h-3.5 text-victory-lime flex-shrink-0" />}
                     </div>
                     <p className="text-victory-muted text-[10px] truncate">{plainRecord(f.record)}{f.nickname ? ` · "${f.nickname}"` : ""}</p>
+                    {f.victory_pro && (
+                      <a href={`/pro/${f.victory_pro.user_id}`} onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-victory-lime mt-0.5" data-testid="victory-pro-badge">
+                        <BadgeCheck className="w-3 h-3" /> Trains on Victory AI
+                      </a>
+                    )}
                     <p className={`font-mono font-bold text-xs mt-1 flex items-center gap-1 ${tooDear ? "text-victory-orange" : "text-victory-teal"}`}>
                       <Coins className="w-3 h-3" /> {f.salary}
                     </p>

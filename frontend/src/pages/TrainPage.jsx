@@ -111,6 +111,15 @@ export default function TrainPage() {
   const [currentCall, setCurrentCall] = useState(null);
   const callerRef = useRef(null);
   const roundWorkRef = useRef(null);
+  // Training with a pro's alias ("The Reaper"): their approved talking clips play at key moments.
+  const aliasProId = user?.training_partner?.alias_pro_id;
+  const [proClips, setProClips] = useState({});
+  const [clip, setClip] = useState(null);
+  useEffect(() => {
+    if (!aliasProId) return;
+    axios.get(`${API}/pros/${aliasProId}`).then((r) => setProClips(r.data.clips || {})).catch(() => setProClips({}));
+  }, [aliasProId]);
+  const playClip = (moment) => { if (proClips[moment]) setClip(proClips[moment]); };
   // The combo you chose in the combo builder this week: shown here and called during rounds.
   const [weeklyCombo, setWeeklyCombo] = useState(null);
   useEffect(() => {
@@ -513,6 +522,7 @@ export default function TrainPage() {
     playBell();
     flashScreen("round");
     startHypeCycle();
+    playClip("round_start");
   };
 
   // ── Timer ────────────────────────────────────────────────────────────────────
@@ -561,9 +571,16 @@ export default function TrainPage() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isPaused, isComplete, isConfiguring, isResting, currentRound, totalRounds, roundDuration, restDuration]);
 
+  useEffect(() => {
+    if (isConfiguring || isPaused || isResting || !aliasProId) return;
+    if (timeLeft === 10) playClip("last_10");
+    else if (timeLeft === Math.floor(roundDuration / 2) && roundDuration > 40) playClip("halfway");
+  }, [timeLeft]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleRoundEnd = () => {
     saveLiveRound(currentRound);
     roundWorkRef.current = generateFeedback(currentRound);
+    playClip("round_end");
   };
 
   const handleComplete = async () => {
@@ -651,6 +668,11 @@ export default function TrainPage() {
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className={`min-h-screen bg-victory-bg pb-nav flex flex-col ${flashClass}`} data-testid="train-page">
+      {clip && (
+        <video key={clip} src={clip} autoPlay playsInline onEnded={() => setClip(null)} onError={() => setClip(null)}
+          className="fixed right-4 bottom-28 w-32 aspect-[9/16] object-cover rounded-2xl shadow-2xl z-40 border border-victory-lime/40"
+          data-testid="pro-clip" />
+      )}
       {finishing && (
         <div className="fixed inset-0 z-50 bg-victory-bg/95 flex flex-col items-center justify-center gap-4 p-6 text-center" data-testid="finishing-session" aria-live="polite">
           <div className="w-10 h-10 rounded-full border-2 border-victory-border border-t-victory-lime animate-spin" />
