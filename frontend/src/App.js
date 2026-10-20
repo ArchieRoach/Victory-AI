@@ -120,6 +120,7 @@ export const useAuth = () => {
 // has no Clerk web session, so it pushes a fresh Clerk token in periodically
 // via window.__setMobileAuthToken. When present, it wins over the web Clerk
 // SDK. See ios/VictoryAI/App/MainAppView.swift.
+export const SIGNIN_ERROR_KEY = "victory_signin_error";
 let setMobileToken = null;
 window.__setMobileAuthToken = (token) => setMobileToken?.(token);
 window.__clearMobileAuthToken = () => setMobileToken?.(null);
@@ -170,10 +171,17 @@ const AuthProvider = ({ children }) => {
       setUser(res.data);
     } catch (e) {
       setUser(null);
+      // Clerk says "signed in" but our server refused: without signing out, /login would send
+      // them straight back to /home and round again, forever.
+      const status = e?.response?.status;
+      if (!mobileToken && (status === 401 || status === 503)) {
+        try { sessionStorage.setItem(SIGNIN_ERROR_KEY, String(status)); } catch (err) {}
+        try { await signOut(); } catch (err) {}
+      }
     } finally {
       setMongoLoading(false);
     }
-  }, [isSignedIn, isLoaded, getToken, mobileToken]);
+  }, [isSignedIn, isLoaded, getToken, mobileToken, signOut]);
 
   useEffect(() => {
     checkAuth();
