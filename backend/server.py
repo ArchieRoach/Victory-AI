@@ -7704,7 +7704,7 @@ async def delete_emote(emote_id: str, user: dict = Depends(get_current_user)):
 # ─────────────────────────────────────────────────────────────────────────────
 
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,https://app.victoryai.co.uk,http://localhost:3000"
-_cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]
+_cors_origins = [o.strip().rstrip('/') for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_methods=["*"], allow_headers=["*"])
 
 
