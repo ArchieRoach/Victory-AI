@@ -584,6 +584,7 @@ async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
         return user
     email, name, picture = "", "", ""
     verified: set = set()
+    looked_up = False
     try:
         async with httpx.AsyncClient() as client:
             resp = await CLERK_API_BREAKER.call(lambda: client.get(
@@ -592,6 +593,7 @@ async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
                 timeout=5
             ))
             if resp.status_code == 200:
+                looked_up = True
                 data = resp.json()
                 emails = data.get("email_addresses", [])
                 email = emails[0]["email_address"] if emails else ""
@@ -601,6 +603,10 @@ async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
                             if (e.get("verification") or {}).get("status") == "verified"}
     except Exception as e:
         logger.error(f"Failed to fetch Clerk user details: {e}")
+    if not looked_up:
+        # Without Clerk's answer we can't find the person's existing account by email, and an
+        # empty account made now would hide their real one from every later sign-in.
+        raise HTTPException(status_code=503, detail="Sign-in is busy. Please try again in a minute.")
     linked = await _link_by_verified_email(clerk_user_id, verified - {""})
     if linked:
         return linked

@@ -1,10 +1,23 @@
 import { SignIn } from "@clerk/clerk-react";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
 import { usePalette } from "@/hooks/useColorScheme";
+import { SIGNIN_ERROR_KEY } from "@/App";
+
+function takeSignInError() {
+  try {
+    const code = sessionStorage.getItem(SIGNIN_ERROR_KEY);
+    sessionStorage.removeItem(SIGNIN_ERROR_KEY);
+    return code;
+  } catch (e) {
+    return null;
+  }
+}
 
 export default function LoginPage() {
   const { t } = useTranslation();
   const p = usePalette();
+  const [errorCode] = useState(takeSignInError);
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md">
@@ -12,6 +25,11 @@ export default function LoginPage() {
           <img src="/victory-logo.png" alt="Victory AI" className="w-40 h-40 mx-auto mb-4 object-contain" />
           <h1 className="text-3xl font-heading font-extrabold text-victory-text">Victory AI</h1>
           <p className="text-victory-muted mt-2">{t("login.subtitle")}</p>
+          {errorCode && (
+            <p role="alert" data-testid="signin-error" className="text-victory-text mt-4">
+              {errorCode === "503" ? t("login.errorBusy") : t("login.errorRefused")}
+            </p>
+          )}
         </div>
 
         <SignIn

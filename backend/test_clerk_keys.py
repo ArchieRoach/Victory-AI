@@ -101,6 +101,24 @@ def test_an_unverified_email_never_takes_over_an_account():
     assert "clerk_id" not in run(server.db.users.find_one({"user_id": "user_dev777"}))
 
 
+class ClerkDown(ClerkUser):
+    async def get(self, url, **k):
+        return server.httpx.Response(401, json={}, request=server.httpx.Request("GET", url))
+
+
+def test_no_empty_account_when_clerk_cannot_be_asked():
+    real, server.httpx.AsyncClient = server.httpx.AsyncClient, ClerkDown([])
+    try:
+        run(server.get_or_create_clerk_user("user_prod555"))
+        raise AssertionError("should refuse")
+    except server.HTTPException as e:
+        assert e.status_code == 503
+    finally:
+        server.httpx.AsyncClient = real
+    assert not run(server.db.users.find_one({"user_id": "user_prod555"})), \
+        "an empty account would hide the person's real one from every later sign-in"
+
+
 def test_revenuecat_is_asked_about_todays_clerk_id():
     asked = []
 

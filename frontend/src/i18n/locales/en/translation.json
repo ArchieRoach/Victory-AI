@@ -34,7 +34,9 @@
     "alreadyAccount": "Already have an account?"
   },
   "login": {
-    "subtitle": "Sign in to continue your training"
+    "subtitle": "Sign in to continue your training",
+    "errorRefused": "We couldn't finish signing you in. Please try again.",
+    "errorBusy": "Sign-in is busy right now. Please try again in a minute."
   },
   "paywall": {
     "headline": "Free to train. Upgrade only if you want unlimited AI.",
