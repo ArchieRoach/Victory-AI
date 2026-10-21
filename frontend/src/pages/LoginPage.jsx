@@ -45,6 +45,9 @@ export default function LoginPage() {
               colorTextSecondary: p.muted,
               colorInputBackground: p.bg,
               colorInputText: p.text,
+              // Clerk draws the Google button's text and outline from colorNeutral (black by
+              // default), which vanishes on the dark card.
+              colorNeutral: p.text,
               borderRadius: "0.5rem",
             },
             elements: {
