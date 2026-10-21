@@ -119,6 +119,24 @@ def test_no_empty_account_when_clerk_cannot_be_asked():
         "an empty account would hide the person's real one from every later sign-in"
 
 
+def test_a_blank_account_hands_over_to_the_real_one():
+    run(server.db.users.insert_one({"user_id": "user_dev888", "email": "appreview@example.com", "name": "Demo"}))
+    run(server.db.users.insert_one({"user_id": "user_prod888", "email": "", "name": ""}))
+    me = sign_in("user_prod888", [("appreview@example.com", "verified")])
+    assert me["user_id"] == "user_dev888"
+    again = sign_in("user_prod888", [])
+    assert again["user_id"] == "user_dev888", "the blank one no longer answers to the Clerk ID"
+    server.APP_REVIEW_EMAILS = {"appreview@example.com"}
+    assert run(server.grant_review_access(again)) is True
+
+
+def test_a_blank_account_with_no_older_twin_gets_its_email():
+    run(server.db.users.insert_one({"user_id": "user_prod444", "email": "", "name": ""}))
+    me = sign_in("user_prod444", [("new@example.com", "verified")])
+    assert me["user_id"] == "user_prod444" and me["email"] == "new@example.com"
+    assert run(server.db.users.find_one({"user_id": "user_prod444"}))["email"] == "new@example.com"
+
+
 def test_revenuecat_is_asked_about_todays_clerk_id():
     asked = []
 

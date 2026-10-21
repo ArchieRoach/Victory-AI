@@ -571,20 +571,7 @@ async def _link_by_verified_email(clerk_user_id: str, verified: set) -> Optional
     return {**old, "clerk_id": clerk_user_id}
 
 
-async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
-    """Look up MongoDB user by Clerk ID, creating one on first login."""
-    user = await find_user_by_clerk_id(clerk_user_id)
-    if user:
-        # Self-healing backfill: contact-sync matching needs email_hash, but it didn't
-        # exist before that feature shipped — set it the first time an existing user is
-        # ever looked up again, instead of a one-off migration script.
-        if user.get("email") and not user.get("email_hash"):
-            user["email_hash"] = _email_hash(user["email"])
-            await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"email_hash": user["email_hash"]}})
-        return user
-    email, name, picture = "", "", ""
-    verified: set = set()
-    looked_up = False
+async def _clerk_profile(clerk_user_id: str) -> Optional[dict]:
     try:
         async with httpx.AsyncClient() as client:
             resp = await CLERK_API_BREAKER.call(lambda: client.get(
@@ -592,26 +579,69 @@ async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
                 headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"},
                 timeout=5
             ))
-            if resp.status_code == 200:
-                looked_up = True
-                data = resp.json()
-                emails = data.get("email_addresses", [])
-                email = emails[0]["email_address"] if emails else ""
-                name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip() or email
-                picture = data.get("image_url", "")
-                verified = {(e.get("email_address") or "").strip().lower() for e in emails
-                            if (e.get("verification") or {}).get("status") == "verified"}
     except Exception as e:
         logger.error(f"Failed to fetch Clerk user details: {e}")
-    if not looked_up:
+        return None
+    if resp.status_code != 200:
+        logger.error(f"Clerk user lookup returned {resp.status_code}")
+        return None
+    data = resp.json()
+    emails = data.get("email_addresses", [])
+    email = emails[0]["email_address"] if emails else ""
+    return {
+        "email": email,
+        "name": f"{data.get('first_name', '')} {data.get('last_name', '')}".strip() or email,
+        "picture": data.get("image_url", ""),
+        "verified": {(e.get("email_address") or "").strip().lower() for e in emails
+                     if (e.get("verification") or {}).get("status") == "verified"} - {""},
+    }
+
+
+async def _heal_blank_account(user: dict, clerk_user_id: str) -> dict:
+    # Before sign-in refused to go on without Clerk's answer, a failed lookup left an account
+    # with no email. It hides the person's real account and blocks email-based perks (review
+    # Pro), so once Clerk answers: hand the Clerk ID to the real account, or fill the email in.
+    profile = await _clerk_profile(clerk_user_id)
+    if not profile:
+        return user
+    if user["user_id"] == clerk_user_id:
+        old = await _link_by_verified_email(clerk_user_id, profile["verified"])
+        if old:
+            await db.users.update_one({"user_id": clerk_user_id},
+                                      {"$set": {"user_id": f"orphan_{clerk_user_id}", "orphaned_for": old["user_id"]}})
+            logger.info(f"Moved blank account {clerk_user_id} aside for {old['user_id']}")
+            return old
+    fill = {"email": profile["email"], "email_hash": _email_hash(profile["email"]) if profile["email"] else None}
+    if not user.get("name"):
+        fill["name"] = profile["name"]
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": fill})
+    return {**user, **fill}
+
+
+async def get_or_create_clerk_user(clerk_user_id: str) -> dict:
+    """Look up MongoDB user by Clerk ID, creating one on first login."""
+    user = await find_user_by_clerk_id(clerk_user_id)
+    if user:
+        if not user.get("email"):
+            return await _heal_blank_account(user, clerk_user_id)
+        # Self-healing backfill: contact-sync matching needs email_hash, but it didn't
+        # exist before that feature shipped — set it the first time an existing user is
+        # ever looked up again, instead of a one-off migration script.
+        if not user.get("email_hash"):
+            user["email_hash"] = _email_hash(user["email"])
+            await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"email_hash": user["email_hash"]}})
+        return user
+    profile = await _clerk_profile(clerk_user_id)
+    if not profile:
         # Without Clerk's answer we can't find the person's existing account by email, and an
         # empty account made now would hide their real one from every later sign-in.
         raise HTTPException(status_code=503, detail="Sign-in is busy. Please try again in a minute.")
-    linked = await _link_by_verified_email(clerk_user_id, verified - {""})
+    linked = await _link_by_verified_email(clerk_user_id, profile["verified"])
     if linked:
         return linked
+    email = profile["email"]
     user_doc = {
-        "user_id": clerk_user_id, "email": email, "name": name, "picture": picture,
+        "user_id": clerk_user_id, "email": email, "name": profile["name"], "picture": profile["picture"],
         "email_hash": _email_hash(email) if email else None,
         "experience_level": "beginner", "primary_goal": "",
         "created_at": datetime.now(timezone.utc).isoformat(),
