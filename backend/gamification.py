@@ -8,7 +8,7 @@
 import hashlib
 from datetime import date, datetime, timedelta, timezone
 from statistics import median
-from typing import Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 # ---- Status points and levels ----
 # Goal: visible progress that never goes backwards.
@@ -878,6 +878,60 @@ def week_plan_view(plan: Optional[dict], sessions_this_week: int, wk: str) -> di
     return {"week_id": wk, "chosen": current, "target": target, "focus": (plan or {}).get("focus"),
             "done": sessions_this_week, "left": max(0, target - sessions_this_week),
             "complete": current and sessions_this_week >= target}
+
+
+# ---- Weekly streak (boxing weeks, not days) ----
+# Goal: a reason to come back every week, and something worth posting (visible progress,
+#   permission to show off).
+# Psychology: an unbroken chain is worth protecting (loss aversion, endowed progress). But a
+#   daily chain punishes the rest days boxers need, and one missed day makes people give up
+#   altogether (the what-the-hell effect). Boxers think in weeks: sessions per week is how
+#   every coach plans training.
+# Design: a week counts when you train on WEEK_STREAK_DAYS different days, Monday to Sunday.
+#   Two is the least any boxing coach would call training, and it stays the same whatever
+#   weekly target you pick, so aiming higher never puts the streak at risk. This week never
+#   breaks the streak before it ends; it only says how many more days keep it going.
+WEEK_STREAK_DAYS = 2
+
+
+def weekly_streak(days: Iterable[date], today: Optional[date] = None) -> dict:
+    today = today or datetime.now(timezone.utc).date()
+    per_week: Dict[str, int] = {}
+    for d in set(days):
+        if d <= today:
+            per_week[week_id(d)] = per_week.get(week_id(d), 0) + 1
+    this_week = per_week.get(week_id(today), 0)
+
+    run, back = 0, today - timedelta(days=7)
+    while per_week.get(week_id(back), 0) >= WEEK_STREAK_DAYS:
+        run += 1
+        back -= timedelta(days=7)
+    safe = this_week >= WEEK_STREAK_DAYS
+    current = run + (1 if safe else 0)
+
+    longest = streak = 0
+    if per_week:
+        d = min(date.fromisocalendar(*[int(x) for x in w.replace("W", "").split("-")], 1) for w in per_week)
+        while d <= today:
+            streak = streak + 1 if per_week.get(week_id(d), 0) >= WEEK_STREAK_DAYS else 0
+            longest = max(longest, streak)
+            d += timedelta(days=7)
+    return {"current": current, "longest": max(longest, current), "this_week_days": this_week,
+            "needed": max(0, WEEK_STREAK_DAYS - this_week), "safe": safe, "at_risk": run > 0 and not safe,
+            "days_left": 6 - today.weekday(), "per_week": WEEK_STREAK_DAYS}
+
+
+def streak_nudge(streak: dict, local_weekday: int) -> Optional[Tuple[str, str]]:
+    # One nudge a week, only when the streak is really at stake and there are still enough days
+    # left: Friday when two sessions are needed, Saturday when one is.
+    if not streak["at_risk"] or streak["needed"] not in (1, 2):
+        return None
+    if local_weekday != (4 if streak["needed"] == 2 else 5):
+        return None
+    weeks = streak["current"]
+    more = "one more session" if streak["needed"] == 1 else "two sessions"
+    return (f"Your {weeks}-week streak is on the line",
+            f"{more.capitalize()} by Sunday keeps it going.")
 
 
 # ---- Boss Round (Lazzaro's Hard Fun: fiero) ----
