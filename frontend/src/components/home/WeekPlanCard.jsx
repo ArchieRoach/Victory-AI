@@ -1,12 +1,27 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { CalendarCheck, Bell, CheckCircle2 } from "lucide-react";
+import { CalendarCheck, Bell, CheckCircle2, Flame } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
+import { StreakShareButton } from "@/components/StreakShareButton";
+import { streakLine, canShareStreak } from "@/lib/streakCard";
 
 // Pick your week (autonomy) and a reminder you choose (Fogg's prompt). The reasoning for both
 // lives in backend/gamification.py next to the rules.
 const SKILLS = ["Jab", "Cross", "Footwork", "Guard Position", "Head Movement", "Combination Flow"];
+
+function StreakRow({ streak, squadName }) {
+  const line = streakLine(streak);
+  if (!line) return null;
+  const colour = line.tone === "safe" ? "text-victory-lime" : line.tone === "risk" ? "text-victory-orange" : "text-victory-muted";
+  return (
+    <div className="flex items-center gap-2 pt-1 border-t border-victory-border" data-testid="week-streak">
+      <Flame className={`w-4 h-4 flex-shrink-0 ${colour}`} />
+      <p className="flex-1 text-[12px] text-victory-text">{line.text}</p>
+      {canShareStreak(streak) && <StreakShareButton streak={streak} squadName={squadName} />}
+    </div>
+  );
+}
 
 export function WeekPlanCard() {
   const [w, setW] = useState(null);
@@ -63,6 +78,7 @@ export function WeekPlanCard() {
           ))}
         </div>
         <button className="victory-btn-primary" onClick={save}>Lock in my week</button>
+        <StreakRow streak={w.streak} squadName={w.squad_name} />
       </section>
     );
   }
@@ -83,6 +99,7 @@ export function WeekPlanCard() {
           ? <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-victory-lime" /> Week done. Extra sessions are a bonus, not a must.</span>
           : <><span className="font-mono">{w.done}/{w.target}</span> sessions{w.focus ? <> · working on <span className="font-semibold">{w.focus}</span></> : null}</>}
       </p>
+      <StreakRow streak={w.streak} squadName={w.squad_name} />
       {rem && (
         <label className="flex items-center gap-2 text-[12px] text-victory-muted pt-1 border-t border-victory-border">
           <Bell className="w-3.5 h-3.5 flex-shrink-0" />

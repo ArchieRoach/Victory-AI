@@ -2667,6 +2667,7 @@ async def get_user_stats(user: dict = Depends(get_current_user)):
         "current_streak": current_streak,
         "longest_streak": longest_streak,
         "week_activity": _week_activity(sessions),
+        "weekly_streak": await weekly_streak_for(user["user_id"]),
     }
 
 @api_router.get("/dimensions")
@@ -8884,6 +8885,7 @@ async def _investment_loop():
                 last_hourly = hour_key
                 await _send_weekly_reminders(now)
                 await _send_habit_reminders(now)
+                await _send_streak_nudges(now)
                 await _send_film_digests(now)
         except Exception as exc:
             logger.warning(f"Investment loop error: {exc}")
@@ -11653,6 +11655,16 @@ def _week_start(today: Optional[date] = None) -> str:
     return (today - timedelta(days=today.weekday())).isoformat()
 
 
+async def weekly_streak_for(uid: str) -> dict:
+    days = []
+    for d in await db.sessions.distinct("date", {"user_id": uid}):
+        try:
+            days.append(date.fromisoformat(d))
+        except (TypeError, ValueError):
+            pass
+    return gx.weekly_streak(days)
+
+
 async def week_plan_for(uid: str) -> dict:
     u = await db.users.find_one({"user_id": uid}, {"week_plan": 1}) or {}
     done = len(set(await db.sessions.distinct("date", {"user_id": uid, "date": {"$gte": _week_start()}})))
@@ -11666,7 +11678,9 @@ class WeekPlanIn(BaseModel):
 
 @api_router.get("/week-plan")
 async def get_week_plan(user: dict = Depends(get_current_user)):
-    return {**await week_plan_for(user["user_id"]), "targets": list(gx.WEEK_TARGETS), "skills": DIMENSIONS}
+    squad = await db.squads.find_one({"members": user["user_id"]}, {"name": 1}) or {}
+    return {**await week_plan_for(user["user_id"]), "targets": list(gx.WEEK_TARGETS), "skills": DIMENSIONS,
+            "streak": await weekly_streak_for(user["user_id"]), "squad_name": squad.get("name")}
 
 
 @api_router.put("/week-plan")
@@ -11787,6 +11801,27 @@ async def set_habit_reminder(data: HabitReminderIn, user: dict = Depends(get_cur
             "habit_reminder": {"on": True, "anchor": data.anchor, "hour": hour},
             "tz_offset_minutes": data.tz_offset_minutes}})
     return _reminder_view(await db.users.find_one({"user_id": user["user_id"]}) or user)
+
+
+async def _send_streak_nudges(now: datetime):
+    recent = (now.date() - timedelta(days=14)).isoformat()
+    uids = await db.sessions.distinct("user_id", {"date": {"$gte": recent}})
+    users = await db.users.find({"user_id": {"$in": uids}, "notification_prefs.weekly_reminder": {"$ne": False}},
+                                {"_id": 0, "user_id": 1, "tz_offset_minutes": 1, "streak_nudge_week": 1}).to_list(20000)
+    for u in users:
+        offset = u.get("tz_offset_minutes") or 0
+        if local_hour(now, offset) != LOCAL_SEND_HOUR_REMINDER:
+            continue
+        wk = gx.week_id(now.date())
+        if u.get("streak_nudge_week") == wk:
+            continue
+        msg = gx.streak_nudge(await weekly_streak_for(u["user_id"]), (now - timedelta(minutes=offset)).weekday())
+        if not msg:
+            continue
+        claimed = await db.users.update_one({"user_id": u["user_id"], "streak_nudge_week": {"$ne": wk}},
+                                            {"$set": {"streak_nudge_week": wk}})
+        if claimed.modified_count:
+            await _send_push(u["user_id"], title=msg[0], body=msg[1], url="/train", tag="streak-nudge")
 
 
 async def _send_habit_reminders(now: datetime):
