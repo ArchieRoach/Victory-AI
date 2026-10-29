@@ -6,7 +6,7 @@ import { say } from "@/lib/speech";
 const MEDIAPIPE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1";
 const POSE_MODEL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 
-const CUES = { guard_drop: "Hands up", combo: "That's it" };
+export const CUES = { guard_drop: "Hands up", combo: "That's it" };
 
 let landmarkerPromise = null;
 
