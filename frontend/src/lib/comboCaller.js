@@ -4,8 +4,8 @@ import { say } from "@/lib/speech";
 // Goal: rounds feel "just right", so fighters do more of them.
 // Psychology: flow needs the challenge just above your skill: too easy is boring, too hard
 //   is scary. Landing roughly 60–80% of calls keeps you in that channel.
-// Design: the coach calls boxing numbers (1 jab, 2 cross, 3 lead hook, 4 rear hook, 5 lead
-//   uppercut, 6 rear uppercut). With the Live Coach camera on, a call counts as landed when
+// Design: combos are written as boxing numbers (1 jab, 2 cross, 3 lead hook, 4 rear hook, 5 lead
+//   uppercut, 6 rear uppercut) and called out as punch names (see comboWords). With the Live Coach camera on, a call counts as landed when
 //   that many punches arrive in time. Over 80% steps the level up; under 60% steps it down.
 //   Without the camera nothing can be checked, so the level stays where it is.
 
@@ -111,8 +111,49 @@ export function createComboCaller({ level = 0, floor = 0, gapScale = 1, pick = M
 }
 
 // A call replaces any call still being spoken, so the voice never lags behind the screen.
-export function sayCombo(combo) {
-  say(combo.split("-").join(", "), { rate: 1.25, interrupt: true });
+// Calls are spoken and shown as punch names, because a number means nothing to most people.
+// With a known stance the hooks and uppercuts say left or right, the way coaches call them;
+// switch-hitters and unknown stances hear lead and rear. Numbers stay as an opt-in for
+// fighters who were taught them.
+const MOVE_WORDS = { slip: "Slip", roll: "Roll", pivot: "Pivot" };
+const SIDES = {
+  orthodox: { lead: "Left", rear: "Right" },
+  southpaw: { lead: "Right", rear: "Left" },
+};
+
+export function punchName(n, stance) {
+  const side = SIDES[String(stance || "").toLowerCase()];
+  const lead = side ? side.lead : "Lead";
+  const rear = side ? side.rear : "Rear";
+  return { 1: "Jab", 2: "Cross", 3: `${lead} hook`, 4: `${rear} hook`, 5: `${lead} uppercut`, 6: `${rear} uppercut` }[n];
+}
+
+export function comboWords(combo, stance) {
+  const words = [];
+  for (const m of String(combo).split("-")) {
+    const w = MOVE_WORDS[m] || punchName(Number(m), stance) || m;
+    if (w === "Jab" && words[words.length - 1] === "Jab") words[words.length - 1] = "Double jab";
+    else words.push(w);
+  }
+  return words;
+}
+
+export const NUMBERS_KEY = "victory_call_numbers";
+
+export function callsNumbers() {
+  try { return localStorage.getItem(NUMBERS_KEY) === "1"; } catch { return false; }
+}
+
+export function setCallsNumbers(on) {
+  try { localStorage.setItem(NUMBERS_KEY, on ? "1" : "0"); } catch {}
+}
+
+export function comboSpeech(combo, stance, numbers = callsNumbers()) {
+  return numbers ? combo.split("-").join(", ") : comboWords(combo, stance).join(", ");
+}
+
+export function sayCombo(combo, stance) {
+  say(comboSpeech(combo, stance), { rate: 1.15, interrupt: true });
 }
 
 export function savedLevel() {

@@ -235,7 +235,6 @@ async def is_content_flagged(text: str) -> bool:
 
 # ElevenLabs TTS Settings
 ELEVENLABS_API_KEY = os.environ.get('ELEVENLABS_API_KEY', '')
-ELEVENLABS_VOICE_ID = os.environ.get('ELEVENLABS_VOICE_ID', 'EXAVITQu4vr4xnSDxMaL')
 
 # Cloudinary Settings
 cloudinary.config(
@@ -2717,7 +2716,7 @@ async def generate_tts(tts_req: TTSRequest, user: dict = Depends(get_current_use
     if not quota["allowed"]:
         raise HTTPException(status_code=402, detail="ai_quota_exceeded")
 
-    voice_id = tts_req.voice_id or ELEVENLABS_VOICE_ID
+    voice_id = tts_req.voice_id or COACH_VOICES[coach_voice_key(user)]
     if not re.fullmatch(r"[A-Za-z0-9]{1,64}", voice_id or ""):
         raise HTTPException(status_code=400, detail="Invalid voice_id")
 
@@ -2727,8 +2726,8 @@ async def generate_tts(tts_req: TTSRequest, user: dict = Depends(get_current_use
             headers={"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"},
             json={
                 "text": tts_req.text,
-                "model_id": "eleven_monolingual_v1",
-                "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}
+                "model_id": COACH_VOICE_MODEL,
+                "voice_settings": {"stability": 0.4, "similarity_boost": 0.8, "style": 0.15, "use_speaker_boost": True}
             },
             timeout=30.0
         )
@@ -2737,6 +2736,92 @@ async def generate_tts(tts_req: TTSRequest, user: dict = Depends(get_current_use
 
     audio_data = base64.b64encode(response.content).decode('utf-8')
     return {"audio_data": audio_data, "mime_type": "audio/mpeg"}
+
+# ---- Coach voice ----
+# Goal: the partner sounds like a real coach in the room, so rounds feel coached, not read out.
+# Psychology: people trust and follow a natural human voice far more than a synthetic one
+#   (voices are social cues); a robotic voice breaks the "someone is in my corner" feeling.
+# Design: every spoken line is made once with ElevenLabs in a natural voice that matches the
+#   partner (deep male or female), saved to Cloudinary and shared by everyone, so a call plays
+#   instantly the next time and costs nothing. The phone falls back to its own voice only until
+#   a line's clip exists.
+COACH_VOICES = {
+    "male": os.environ.get("COACH_VOICE_MALE", "").strip() or "onwK4e9ZLuTAKqWW03F9",      # Daniel: deep, British
+    "female": os.environ.get("COACH_VOICE_FEMALE", "").strip() or "Xb7hH8MSUJpSbSDYk0k2",  # Alice: clear, British
+}
+COACH_VOICE_MODEL = os.environ.get("COACH_VOICE_MODEL", "").strip() or "eleven_multilingual_v2"
+VOICE_CLIP_MAX_CHARS = 160
+VOICE_CLIPS_PER_REQUEST = 60
+VOICE_NEW_CLIPS_PER_DAY = 200
+
+
+def coach_voice_key(user: dict) -> str:
+    return "female" if ((user.get("training_partner") or {}).get("appearance_gender")) == "female" else "male"
+
+
+def voice_clip_key(voice_id: str, text: str) -> str:
+    return hashlib.sha256(f"{COACH_VOICE_MODEL}|{voice_id}|{text}".encode()).hexdigest()[:40]
+
+
+def clean_voice_lines(texts: List[str]) -> List[str]:
+    out = []
+    for t in texts:
+        t = re.sub(r"\s+", " ", str(t or "")).strip()
+        if t and len(t) <= VOICE_CLIP_MAX_CHARS and t not in out:
+            out.append(t)
+    return out[:VOICE_CLIPS_PER_REQUEST]
+
+
+async def _make_voice_clip(voice_id: str, text: str, key: str) -> Optional[str]:
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(
+            f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128",
+            headers={"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"},
+            json={"text": text, "model_id": COACH_VOICE_MODEL,
+                  "voice_settings": {"stability": 0.4, "similarity_boost": 0.8, "style": 0.15, "use_speaker_boost": True}},
+        )
+    if r.status_code != 200:
+        logger.warning(f"Coach voice clip failed: {r.status_code}")
+        return None
+    data_uri = "data:audio/mpeg;base64," + base64.b64encode(r.content).decode()
+    up = await asyncio.to_thread(cloudinary.uploader.upload, data_uri, resource_type="video",
+                                 public_id=f"coach_voice/{key}", overwrite=False)
+    return up.get("secure_url")
+
+
+class VoiceClipsIn(BaseModel):
+    texts: List[str] = Field(default_factory=list, max_length=200)
+
+
+@api_router.post("/voice/clips")
+async def voice_clips(data: VoiceClipsIn, user: dict = Depends(get_current_user)):
+    voice = coach_voice_key(user)
+    voice_id = COACH_VOICES[voice]
+    texts = clean_voice_lines(data.texts)
+    keys = {t: voice_clip_key(voice_id, t) for t in texts}
+    found = {d["key"]: d["url"] for d in await db.voice_clips.find({"key": {"$in": list(keys.values())}}, {"_id": 0}).to_list(len(keys) or 1)}
+    clips = {t: found[k] for t, k in keys.items() if k in found}
+    missing = [t for t in texts if t not in clips]
+    if missing and ELEVENLABS_API_KEY:
+        sem = asyncio.Semaphore(4)
+
+        async def make(t):
+            if _rate_limited(f"voiceclip:{user['user_id']}", VOICE_NEW_CLIPS_PER_DAY, 86400):
+                return
+            async with sem:
+                try:
+                    url = await _make_voice_clip(voice_id, t, keys[t])
+                except Exception as e:
+                    logger.warning(f"Coach voice clip error: {type(e).__name__}")
+                    return
+            if url:
+                clips[t] = url
+                await db.voice_clips.update_one({"key": keys[t]}, {"$setOnInsert": {
+                    "key": keys[t], "url": url, "voice": voice, "text": t,
+                    "created_at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
+        await asyncio.gather(*[make(t) for t in missing])
+    return {"voice": voice, "clips": clips}
+
 
 # ============== LEADERBOARD ENDPOINTS ==============
 
@@ -12613,6 +12698,7 @@ async def _retention_cleanup_loop():
 # create_index is idempotent and none are unique, so a startup can never fail on old data.
 INDEXES = {
     "users": ["user_id", "clerk_id", "email", "email_hash"],
+    "voice_clips": ["key"],
     "sessions": [[("user_id", 1), ("date", -1)], "session_id", "date"],
     "training_sessions": ["session_id", "user_id"],
     "round_videos": [[("session_id", 1), ("user_id", 1)], "video_url"],

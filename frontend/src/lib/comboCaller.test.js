@@ -83,3 +83,32 @@ test("calls start at your experience level and an advanced fighter never drops t
   expect(caller.level()).toBe(3);
   expect(CALL_LEVELS[CALL_LEVELS.length - 1].combos.every((c) => c.split("-").length >= 5)).toBe(true);
 });
+
+describe("calls in words", () => {
+  const { comboWords, comboSpeech } = require("./comboCaller");
+
+  test("orthodox fighters hear left and right", () => {
+    expect(comboWords("1-2-3-2", "orthodox")).toEqual(["Jab", "Cross", "Left hook", "Cross"]);
+    expect(comboWords("1-6-3", "orthodox")).toEqual(["Jab", "Right uppercut", "Left hook"]);
+  });
+
+  test("southpaws hear it the other way round", () => {
+    expect(comboWords("1-2-3", "southpaw")).toEqual(["Jab", "Cross", "Right hook"]);
+    expect(comboWords("5", "Southpaw")).toEqual(["Right uppercut"]);
+  });
+
+  test("no stance or switch says lead and rear", () => {
+    expect(comboWords("1-2-5-2", "")).toEqual(["Jab", "Cross", "Lead uppercut", "Cross"]);
+    expect(comboWords("3-4", "switch")).toEqual(["Lead hook", "Rear hook"]);
+  });
+
+  test("double jab and defensive moves", () => {
+    expect(comboWords("1-1-2-slip-2-3", "orthodox")).toEqual(["Double jab", "Cross", "Slip", "Cross", "Left hook"]);
+    expect(comboWords("1-2-roll-2", null)).toEqual(["Jab", "Cross", "Roll", "Cross"]);
+  });
+
+  test("numbers only when the fighter asks for them", () => {
+    expect(comboSpeech("1-2-3", "orthodox", false)).toBe("Jab, Cross, Left hook");
+    expect(comboSpeech("1-2-3", "orthodox", true)).toBe("1, 2, 3");
+  });
+});

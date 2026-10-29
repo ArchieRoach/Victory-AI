@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
-  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye, Skull, Music, Megaphone, Swords,
+  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye, Skull, Music, Megaphone, Swords, Hash,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
@@ -16,12 +16,12 @@ import { getVideoPref, setVideoPref } from "@/lib/videoPref";
 import { analytics } from "@/lib/analytics";
 import { FirstUseTip } from "@/components/FirstUseTip";
 import { CoachMark } from "@/components/CoachMark";
-import { useLiveCoach } from "@/hooks/useLiveCoach";
+import { useLiveCoach, CUES as COACH_CUES } from "@/hooks/useLiveCoach";
 import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
-import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange } from "@/lib/comboCaller";
-import { unlockSpeech } from "@/lib/speech";
+import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, callsNumbers, setCallsNumbers, CALL_LEVELS } from "@/lib/comboCaller";
+import { unlockSpeech, setVoiceSource, primeVoice, sayNatural } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
 import { withCue } from "@/lib/verbalCues";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
@@ -122,6 +122,21 @@ export default function TrainPage() {
   const playClip = (moment) => { if (proClips[moment]) setClip(proClips[moment]); };
   // The combo you chose in the combo builder this week: shown here and called during rounds.
   const [weeklyCombo, setWeeklyCombo] = useState(null);
+  const [numbersOn, setNumbersOn] = useState(callsNumbers);
+  const stance = user?.stance;
+
+  // Natural voice clips for every line the coach can say this session, fetched before the
+  // bell so calls play instantly (lib/speech.js).
+  useEffect(() => {
+    setVoiceSource((texts) => axios.post(`${API}/voice/clips`, { texts }).then((r) => r.data));
+    const combos = CALL_LEVELS.flatMap((l) => l.combos);
+    if (weeklyCombo?.label) combos.push(weeklyCombo.label);
+    primeVoice([
+      ...combos.map((c) => comboSpeech(c, stance, numbersOn)),
+      ...Object.values(COACH_CUES),
+      ...Object.values(FREESTYLE_CUES),
+    ]);
+  }, [stance, numbersOn, weeklyCombo]);
   useEffect(() => {
     axios.get(`${API}/combos`).then((r) => setWeeklyCombo(r.data.active || null)).catch(() => {});
   }, []);
@@ -207,11 +222,11 @@ export default function TrainPage() {
       const c = caller.tick(performance.now(), { adaptive: adaptiveCalls });
       if (c) {
         setCurrentCall(c);
-        if (voiceEnabled) sayCombo(c.combo);
+        if (voiceEnabled) sayCombo(c.combo, stance);
       }
     }, 250);
     return () => clearInterval(id);
-  }, [isPaused, isResting, isComplete, isConfiguring, adaptiveCalls, voiceEnabled]);
+  }, [isPaused, isResting, isComplete, isConfiguring, adaptiveCalls, voiceEnabled, stance]);
 
   // Simulated progress while waiting on AI round feedback — caps at 90% so
   // it never looks "done" before the response actually lands.
@@ -301,14 +316,7 @@ export default function TrainPage() {
   }, []);
 
   // ── TTS voice ────────────────────────────────────────────────────────────────
-  const playVoiceFeedback = async (text) => {
-    try {
-      const res = await axios.post(`${API}/tts/generate`, { text }, { withCredentials: true });
-      const { audio_data, mime_type } = res.data;
-      const audio = new Audio(`data:${mime_type};base64,${audio_data}`);
-      audio.play().catch(() => {});
-    } catch {}
-  };
+  const playVoiceFeedback = (text) => sayNatural(text);
 
   // ── Camera / round video capture ────────────────────────────────────────────
   const requestCamera = async () => {
@@ -765,6 +773,11 @@ export default function TrainPage() {
                 <ToggleRow on={callsOn} iconOn={Megaphone} title="Combo calls"
                   onToggle={(next) => { setCallsOn(next); try { localStorage.setItem(CALLS_KEY, next ? "1" : "0"); } catch {} }}
                   description={kind === "freestyle" ? "Loose calls to riff on." : "Your coach calls combos at your level. With Live Coach on, they get harder or easier to keep you in the zone."} />
+                {callsOn && (
+                  <ToggleRow on={numbersOn} iconOn={Hash} title="Call numbers"
+                    onToggle={(next) => { setNumbersOn(next); setCallsNumbers(next); }}
+                    description={numbersOn ? "Calls like \"1, 2, 3\"." : `Calls like "${comboSpeech("1-2-3", stance, false)}". Switch on if your coach taught you numbers.`} />
+                )}
               </div>
               </CoachMark>
             )}
@@ -1096,7 +1109,14 @@ export default function TrainPage() {
             {/* ── Combo call: one cue at a time keeps the fighter in flow ─────── */}
             {!isResting && !isPaused && currentCall && (
               <div className="w-full max-w-sm mb-4 text-center" data-testid="combo-call" aria-live="polite">
-                <p className="font-mono text-5xl font-extrabold text-victory-lime leading-none">{currentCall.combo}</p>
+                {numbersOn ? (
+                  <p className="font-mono text-5xl font-extrabold text-victory-lime leading-none">{currentCall.combo}</p>
+                ) : (
+                  <>
+                    <p className="font-heading text-3xl font-extrabold text-victory-lime leading-tight">{comboWords(currentCall.combo, stance).join(" · ")}</p>
+                    <p className="font-mono text-victory-muted text-xs mt-1">{currentCall.combo}</p>
+                  </>
+                )}
                 <p className="text-victory-muted text-[11px] mt-2">
                   {kind === "freestyle" ? "Riff on it" : `${currentCall.levelName}${adaptiveCalls ? " · adapts to you" : ""}`}
                 </p>
