@@ -23,6 +23,7 @@ import { nativeRound } from "@/lib/nativeBridge";
 import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, callsNumbers, setCallsNumbers, CALL_LEVELS } from "@/lib/comboCaller";
 import { unlockSpeech, setVoiceSource, primeVoice, sayNatural } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
+import { TimerCard } from "@/components/home/TimerCard";
 import { withCue } from "@/lib/verbalCues";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
 
@@ -708,6 +709,8 @@ export default function TrainPage() {
                 <p className="text-victory-muted text-xs mt-1">Small days still count for your week and your partner.</p>
               </div>
             )}
+
+            <TimerCard />
 
             {canPickKind && (
             <CoachMark id="train_round_types" position="bottom" block>

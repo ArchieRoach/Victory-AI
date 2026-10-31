@@ -15,6 +15,7 @@ import { ReportModal } from "@/components/ReportModal";
 import { PartnerCondition } from "@/components/PartnerCondition";
 import { JourneyCard } from "@/components/JourneyCard";
 import { OneRoundButton } from "@/components/home/OneRoundButton";
+import { TimerCard } from "@/components/home/TimerCard";
 import { WeekPlanCard } from "@/components/home/WeekPlanCard";
 import { EpicWinCard } from "@/components/home/EpicWinCard";
 import { DriveCards } from "@/components/home/DriveCards";
@@ -625,6 +626,7 @@ export default function HomePage() {
           <CoachMark id="home_one_round" position="bottom" block hold={!unlocks?.newcomer}>
             <OneRoundButton />
           </CoachMark>
+          {unlocks && !unlocks.newcomer && <TimerCard />}
           <CoachMark id="home_partner" position="bottom" block hold={!unlocks?.newcomer}>
             <PartnerCondition />
           </CoachMark>

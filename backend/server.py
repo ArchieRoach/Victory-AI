@@ -57,6 +57,7 @@ stripe_lib.default_http_client = stripe_lib.RequestsClient(timeout=20)
 
 from resilience import CircuitBreaker, CircuitOpen
 import gamification as gx
+import workouts as wk
 from concurrent.futures import ThreadPoolExecutor
 # One breaker per third-party service (see resilience.py for why).
 MODERATION_BREAKER = CircuitBreaker("openai_moderation", timeout_seconds=5, max_concurrency=20)
@@ -11782,6 +11783,82 @@ async def set_week_plan(data: WeekPlanIn, user: dict = Depends(get_current_user)
         update["training_partner.focus_areas"] = [data.focus, *rest][:3]
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
     return await week_plan_for(user["user_id"])
+
+
+# ---- Workout timer (rules and reasoning in workouts.py) ----
+
+class WorkoutStation(BaseModel):
+    name: str = Field(..., max_length=40)
+    seconds: int
+
+
+class WorkoutPresetIn(BaseModel):
+    id: Optional[str] = Field(None, max_length=40)
+    name: str = Field(..., max_length=40)
+    type: str = Field(..., max_length=20)
+    warmup_s: int = 0
+    rounds: int = 3
+    round_s: int = 180
+    rest_s: int = 60
+    round_warning_s: int = 10
+    rest_warning_s: int = 10
+    inner_alert_s: int = 0
+    stations: List[WorkoutStation] = Field(default_factory=list)
+    station_rest_s: int = 0
+
+
+class WorkoutPresetsIn(BaseModel):
+    presets: List[WorkoutPresetIn] = Field(default_factory=list)
+
+
+@api_router.get("/workouts/presets")
+async def get_workout_presets(user: dict = Depends(get_current_user)):
+    u = await db.users.find_one({"user_id": user["user_id"]}, {"workout_presets": 1}) or {}
+    return {"presets": wk.merged_presets(u.get("workout_presets")), "types": wk.WORKOUT_TYPES}
+
+
+@api_router.put("/workouts/presets")
+async def save_workout_presets(data: WorkoutPresetsIn, user: dict = Depends(get_current_user)):
+    if len(data.presets) > wk.MAX_PRESETS:
+        raise HTTPException(400, f"Up to {wk.MAX_PRESETS} saved workouts")
+    saved = []
+    for p in data.presets:
+        raw = p.model_dump()
+        problem = wk.preset_problem(raw)
+        if problem:
+            raise HTTPException(400, f"{raw.get('name') or 'Workout'}: {problem}")
+        pid = p.id if p.id and re.fullmatch(r"w_[a-f0-9]{8,12}", p.id) else f"w_{uuid.uuid4().hex[:10]}"
+        saved.append(wk.clean_preset(raw, pid))
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"workout_presets": saved}})
+    return {"presets": wk.merged_presets(saved), "types": wk.WORKOUT_TYPES}
+
+
+class WorkoutDoneIn(BaseModel):
+    name: str = Field(..., max_length=40)
+    type: str = Field(..., max_length=20)
+    seconds_trained: int = Field(..., ge=0, le=6 * 3600)
+    rounds_done: int = Field(0, ge=0, le=200)
+    entry_source: Optional[str] = Field(None, max_length=20)
+    entry_age_minutes: Optional[int] = Field(None, ge=0)
+
+
+@api_router.post("/workouts/complete")
+async def complete_workout(data: WorkoutDoneIn, user: dict = Depends(get_current_user)):
+    if data.type not in wk.WORKOUT_TYPES:
+        raise HTTPException(400, "Unknown workout type")
+    logged = data.seconds_trained >= wk.MIN_LOGGED_SECONDS
+    if logged:
+        now = datetime.now(timezone.utc).isoformat()
+        await db.sessions.insert_one({
+            "session_id": f"session_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"], "date": now[:10],
+            "overall_score": None, "dimension_scores": [], "source": "timer",
+            "workout_type": data.type, "workout_name": data.name.strip()[:40],
+            "seconds_trained": data.seconds_trained, "rounds_done": data.rounds_done,
+            "trigger": session_trigger(data.entry_source, data.entry_age_minutes),
+            "created_at": now, "completed_at": now,
+        })
+        await _complete_bookings_for(user["user_id"])
+    return {"logged": logged, "streak": await weekly_streak_for(user["user_id"])}
 
 
 # ---- Boss Round (rules and reasoning in gamification.py) ----
