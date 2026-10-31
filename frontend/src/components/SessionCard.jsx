@@ -60,7 +60,9 @@ export const SessionCard = ({ session, onClick }) => {
       <div className="flex-1 text-left">
         <p className="text-victory-text font-medium">{formattedDate}</p>
         <p className="text-victory-muted text-xs">
-          {scores.length} dimension{scores.length !== 1 ? "s" : ""} scored
+          {session.source === "timer"
+            ? `${session.workout_name || "Timer workout"} · ${Math.round((session.seconds_trained || 0) / 60)} min`
+            : `${scores.length} dimension${scores.length !== 1 ? "s" : ""} scored`}
         </p>
       </div>
 
