@@ -56,7 +56,7 @@ GitHub's macOS 26 / Xcode 26 runners. No local Mac or Xcode is needed to ship.
 | Variable | `IOS_PROFILE_NAME` | Exact profile name from step 3 |
 | Variable | `CLERK_PUBLISHABLE_KEY` | `pk_live_…` — same Clerk instance as the web app |
 | Variable | `BACKEND_URL` | Railway URL, no trailing slash |
-| Variable | `WEB_APP_URL` | Optional; defaults to `https://victory-ai-alpha.vercel.app` |
+| Variable | `WEB_APP_URL` | Optional; defaults to `https://app.victoryai.co.uk` |
 | Secret | `DIST_CERT_P12_BASE64` | From step 1 |
 | Secret | `DIST_CERT_PASSWORD` | The password chosen in step 1 |
 | Secret | `PROFILE_BASE64` | From step 3 |
@@ -72,7 +72,7 @@ The profile and certificate expire yearly — regenerate and update the two secr
 brew install xcodegen
 cd ios
 IOS_BUNDLE_ID=com.yourname.victoryai APPLE_TEAM_ID=XXXXXXXXXX BUILD_NUMBER=1 \
-  CLERK_PUBLISHABLE_KEY=pk_live_... BACKEND_URL=https://... WEB_APP_URL=https://victory-ai-alpha.vercel.app \
+  CLERK_PUBLISHABLE_KEY=pk_live_... BACKEND_URL=https://... WEB_APP_URL=https://app.victoryai.co.uk \
   IOS_PROFILE_NAME="VictoryAI App Store" xcodegen generate
 open VictoryAI.xcodeproj
 ```

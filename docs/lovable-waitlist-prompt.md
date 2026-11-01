@@ -12,7 +12,7 @@ Please make these changes to the Victory AI waitlist site. The backend base URL 
 ## 1. Fix the broken Terms of Service link
 The footer link `/terms-of-service` shows the 404 page. Add a `/terms-of-service` route with a
 Terms of Service page styled like the existing Privacy Policy and Data Deletion pages. Until we
-supply the full text, make that route redirect to `https://victory-ai-alpha.vercel.app/terms`.
+supply the full text, make that route redirect to `https://app.victoryai.co.uk/terms`.
 
 ## 2. Show real founder spots, not hard-coded numbers
 "437 / 1,000 spots claimed" (hero badge and waitlist section) and "Only 563 spots left" are typed into

@@ -68,7 +68,7 @@ first sessions must build that feeling, not test it.
 
 ## Stack
 - **Frontend:** React (CRA + CRACO), JavaScript `.jsx` (no TypeScript, no Next.js). Tailwind only.
-  Deployed to **Vercel** (`victory-ai-alpha.vercel.app`).
+  Deployed to **Vercel** at `app.victoryai.co.uk` (the old `victory-ai-alpha.vercel.app` redirects there).
 - **Backend:** FastAPI + Motor (async MongoDB). Deployed to **Railway**. Entry: `backend/server.py`.
 - **Auth:** Clerk JWT. All pages import `{ API, useAuth } from "@/App"`; a global axios interceptor
   injects the Bearer token (no `withCredentials`).

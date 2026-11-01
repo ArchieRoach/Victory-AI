@@ -9791,7 +9791,7 @@ async def _start_card(card: dict) -> dict:
     return {"ok": True, "card_status": card["status"]}
 
 
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://victory-ai-alpha.vercel.app")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://app.victoryai.co.uk")
 
 
 async def _trusted_promoter(key: Optional[str]) -> Optional[dict]:
