@@ -36,6 +36,7 @@ TRAIN WITH A PARTNER WHO KNOWS YOU
 • Pick your partner's style and name. They coach you through every round, out loud.
 • Combo calls start at your level and get harder as you land them.
 • Live Coach counts your punches, combos, guard drops and head movement as you go. It runs on your phone, and nothing is uploaded.
+• Bag work, pads, circuits and HIIT: save your own round timer, then film yourself with the timer, bells and coach on the same screen.
 
 SEE HOW GOOD YOU REALLY ARE
 • Turn on video and the AI scores your round on 16 parts of your boxing, from jab to footwork.
