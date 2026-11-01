@@ -55,8 +55,8 @@ BUILT FOR YOUR IPHONE
 VICTORY AI PRO
 Free accounts get a monthly allowance of AI feedback. Pro unlocks unlimited AI feedback and season tables. Pro is an auto-renewing subscription charged to your Apple ID. It renews unless you cancel at least 24 hours before the end of the period. Manage or cancel it in your App Store account settings.
 
-Terms: https://victory-ai-alpha.vercel.app/terms
-Privacy: https://victory-ai-alpha.vercel.app/privacy
+Terms: https://app.victoryai.co.uk/terms
+Privacy: https://app.victoryai.co.uk/privacy
 ```
 
 ## What's New (1.0)
@@ -71,7 +71,7 @@ The first release of Victory AI. Thanks for training with us.
 |---|---|
 | Primary category | Health & Fitness |
 | Secondary category | Sports |
-| Support URL | https://victory-ai-alpha.vercel.app |
-| Marketing URL | https://victory-ai-alpha.vercel.app |
-| Privacy Policy URL | https://victory-ai-alpha.vercel.app/privacy |
+| Support URL | https://app.victoryai.co.uk |
+| Marketing URL | https://app.victoryai.co.uk |
+| Privacy Policy URL | https://app.victoryai.co.uk/privacy |
 | Copyright | 2026 Archie Roach |

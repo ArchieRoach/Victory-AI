@@ -121,8 +121,8 @@ Must match `ios/VictoryAI/PrivacyInfo.xcprivacy`. Tracking: **No**. No data is u
 
 - Name, subtitle, keywords, promotional text, description and What's New are ready to paste in
   [`APP_STORE_LISTING.md`](APP_STORE_LISTING.md).
-- Description must include links to **Terms** (`https://victory-ai-alpha.vercel.app/terms`) and
-  **Privacy** (`https://victory-ai-alpha.vercel.app/privacy`), required for auto-renewing subscriptions.
+- Description must include links to **Terms** (`https://app.victoryai.co.uk/terms`) and
+  **Privacy** (`https://app.victoryai.co.uk/privacy`), required for auto-renewing subscriptions.
 - Screenshots: 6.9" and 6.5" iPhone (portrait). Suggested set: Home, a round with a combo call,
   results with scouting report, Hours ladder / ranks, partner card, Season Wrapped.
 - Optional preview video: 15–30 seconds of one round.

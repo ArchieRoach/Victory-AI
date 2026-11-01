@@ -20,7 +20,7 @@ env:
   # Public RevenueCat iOS key (appl_…). Empty = in-app purchase off, restore-only paywall.
   REVENUECAT_API_KEY: ${{ vars.REVENUECAT_IOS_API_KEY }}
   BACKEND_URL: ${{ vars.BACKEND_URL }}
-  WEB_APP_URL: ${{ vars.WEB_APP_URL || 'https://victory-ai-alpha.vercel.app' }}
+  WEB_APP_URL: ${{ vars.WEB_APP_URL || 'https://app.victoryai.co.uk' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # Live Activities ship only once their extension's profile is set up (ios/SETUP.md).
   WIDGET_PROFILE_NAME: ${{ vars.WIDGET_PROFILE_NAME }}
