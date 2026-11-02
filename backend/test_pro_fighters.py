@@ -64,6 +64,44 @@ class FakeStripe:
             stripe_calls.append(("transfer", k))
             return SimpleNamespace(id="tr_1")
 
+    class Account:
+        @staticmethod
+        def retrieve(acct_id):
+            return {"details_submitted": True, "capabilities": {"transfers": "active"}}
+
+    class AccountLink:
+        @staticmethod
+        def create(**k):
+            stripe_calls.append(("legacy_link", k))
+            return SimpleNamespace(url="https://connect.stripe.test/legacy")
+
+    class StripeClient:
+        def __init__(self, key):
+            self.v2 = SimpleNamespace(core=SimpleNamespace(accounts=FakeV2Accounts, account_links=FakeV2Links))
+
+
+v2_status = {"value": "active"}
+
+
+class FakeV2Accounts:
+    @staticmethod
+    def create(params):
+        stripe_calls.append(("v2_account", params))
+        return SimpleNamespace(id="acct_v2")
+
+    @staticmethod
+    def retrieve(acct_id, params=None):
+        return {"id": acct_id, "configuration": {"recipient": {"capabilities": {"stripe_balance": {
+            "stripe_transfers": {"status": v2_status["value"]}}}}}}
+
+
+class FakeV2Links:
+    @staticmethod
+    def create(params):
+        stripe_calls.append(("v2_link", params))
+        return SimpleNamespace(url="https://connect.stripe.test/onboard")
+
+
 server.stripe_lib = FakeStripe
 
 REAPER = {"user_id": "u_reaper", "email": "reaper@x.com", "birth_date": "1995-01-01"}
@@ -166,6 +204,40 @@ def test_unconfirmed_orders_pay_out_after_14_days_and_issues_go_to_admin():
     as_user({"user_id": "u_admin"})
     assert client.post("/api/admin/orders/o_bad/resolve", json={"action": "refund"}).json()["ok"]
     assert run(server.db.merch_orders.find_one({"order_id": "o_bad"}))["status"] == "refunded"
+
+
+def test_payout_setup_uses_accounts_v2_as_a_marketplace_recipient():
+    run(server.db.users.insert_one({"user_id": "u_new", "email": "new@x.com", "birth_date": "1990-01-01",
+                                    "pro": {"status": "verified", "alias": "The Hammer"}}))
+    as_user({"user_id": "u_new", "email": "new@x.com", "birth_date": "1990-01-01"})
+    r = client.post("/api/pro/payouts/onboard", json={"origin_url": "https://app.victoryai.co.uk"})
+    assert r.status_code == 200 and r.json()["url"].endswith("/onboard"), r.text
+    params = [k for kind, k in stripe_calls if kind == "v2_account"][-1]
+    assert params["dashboard"] == "express"
+    assert params["defaults"]["responsibilities"] == {"fees_collector": "application", "losses_collector": "application"}
+    assert params["configuration"]["recipient"]["capabilities"]["stripe_balance"]["stripe_transfers"]["requested"] is True
+    assert "merchant" not in params["configuration"], "recipients only receive transfers"
+    link = [k for kind, k in stripe_calls if kind == "v2_link"][-1]
+    assert link["use_case"]["account_onboarding"]["configurations"] == ["recipient"]
+    saved = run(server.db.users.find_one({"user_id": "u_new"}))["pro"]
+    assert saved["stripe_account_id"] == "acct_v2" and saved["stripe_account_v2"] is True
+    v2_status["value"] = "pending"
+    assert client.post("/api/pro/payouts/refresh").json()["payouts_ready"] is False
+    v2_status["value"] = "active"
+    assert client.post("/api/pro/payouts/refresh").json()["payouts_ready"] is True
+
+
+def test_a_paused_seller_is_paid_once_stripe_says_they_can_be():
+    run(server.db.users.update_one({"user_id": "u_reaper"}, {"$set": {"pro.stripe_account_id": "acct_v2r", "pro.stripe_account_v2": True}}))
+    run(server.db.merch_orders.insert_one({"order_id": "o_held", "seller_id": "u_reaper", "buyer_id": "u_fan", "title": "Wraps",
+                                           "status": "received", "payment_intent": "pi_h", "seller_gets_gbp": 12.0}))
+    before = len([1 for kind, _ in stripe_calls if kind == "transfer"])
+    v2_status["value"] = "restricted"
+    assert run(server._release_order("o_held", "buyer_confirmed")) is False
+    assert len([1 for kind, _ in stripe_calls if kind == "transfer"]) == before, "no money moves while payouts are paused"
+    v2_status["value"] = "active"
+    run(server.release_due_orders())
+    assert run(server.db.merch_orders.find_one({"order_id": "o_held"})).get("transfer_id") == "tr_1"
 
 
 def test_bumps_and_spotlight_put_a_shop_first():

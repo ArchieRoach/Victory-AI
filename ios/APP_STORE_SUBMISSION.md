@@ -171,8 +171,11 @@ Revenue per user = close rate × price. Change one thing at a time and give each
 ## 10. Pro fighters and the Fighter Market (owner jobs)
 
 Do now (before any fighter signs up):
-1. **Turn on Stripe Connect:** Stripe Dashboard → Connect → Get started → choose **Express** accounts,
-   platform country **UK**. Without it, "Set up payouts" fails and no one can sell.
+1. **Turn on Stripe Connect:** Stripe Dashboard → Connect → Get started → **Marketplace**, **Express**
+   dashboard, platform country **UK**, and accept that the **platform pays Stripe fees and covers negative
+   balances** (Connect settings asks you to acknowledge this). Seller accounts are created with Accounts v2 as
+   transfer-only recipients (`payout_account_params` in `backend/pro.py`). Without it, "Set up payouts" fails
+   and no one can sell.
 2. **Write a simple revenue-share agreement** for fighters who switch on "Train with" their alias:
    what share of the money they get, how it's counted (the dashboard shows how many fans picked them),
    and that they can switch it off at any time. Get it signed before any alias goes live.
