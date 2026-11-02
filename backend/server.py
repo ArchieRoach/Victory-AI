@@ -4867,7 +4867,30 @@ async def edit_pro_profile(data: ProProfileEdit, user: dict = Depends(get_curren
     return {"ok": True}
 
 
-# ---- Payouts (Stripe Connect Express: Stripe holds the seller's ID checks and bank details) ----
+# ---- Payouts (Stripe Connect, Accounts v2: Stripe holds the seller's ID checks and bank details) ----
+
+def _stripe_client():
+    return stripe_lib.StripeClient(STRIPE_API_KEY)
+
+
+def _as_dict(obj) -> dict:
+    return obj.to_dict() if hasattr(obj, "to_dict") else (obj or {})
+
+
+async def _payouts_active(pro: dict) -> bool:
+    import asyncio as _asyncio
+    acct_id = pro.get("stripe_account_id")
+    if not acct_id:
+        return False
+    if pro.get("stripe_account_v2"):
+        acct = await _asyncio.to_thread(_stripe_client().v2.core.accounts.retrieve, acct_id,
+                                        {"include": ["configuration.recipient"]})
+        return px.transfers_status(_as_dict(acct)) == "active"
+    # Accounts made before the move to v2 are still checked the old way.
+    acct = await _asyncio.to_thread(stripe_lib.Account.retrieve, acct_id)
+    caps = _sget(acct, "capabilities") or {}
+    return bool(_sget(acct, "details_submitted")) and (caps.get("transfers") if isinstance(caps, dict) else _sget(caps, "transfers")) == "active"
+
 
 @api_router.post("/pro/payouts/onboard")
 async def pro_payouts_onboard(data: PromoIn, user: dict = Depends(get_current_user)):
@@ -4876,18 +4899,23 @@ async def pro_payouts_onboard(data: PromoIn, user: dict = Depends(get_current_us
     if _is_minor(fresh):
         raise HTTPException(403, "Sellers must be 18 or over")
     host = _safe_checkout_origin(data.origin_url)
-    acct_id = (fresh.get("pro") or {}).get("stripe_account_id")
+    pro = fresh.get("pro") or {}
+    acct_id = pro.get("stripe_account_id")
+    client = _stripe_client()
     try:
         if not acct_id:
-            acct = await _asyncio.to_thread(stripe_lib.Account.create, type="express", country="GB",
-                                            email=fresh.get("email") or None, business_type="individual",
-                                            capabilities={"transfers": {"requested": True}},
-                                            metadata={"user_id": user["user_id"]})
+            acct = await _asyncio.to_thread(client.v2.core.accounts.create,
+                                            px.payout_account_params(fresh.get("email") or "", pro.get("alias") or "", user["user_id"]))
             acct_id = acct.id
-            await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"pro.stripe_account_id": acct_id}})
-        link = await _asyncio.to_thread(stripe_lib.AccountLink.create, account=acct_id, type="account_onboarding",
-                                        refresh_url=f"{host}/pro/dashboard?payouts=retry",
-                                        return_url=f"{host}/pro/dashboard?payouts=done")
+            await db.users.update_one({"user_id": user["user_id"]},
+                                      {"$set": {"pro.stripe_account_id": acct_id, "pro.stripe_account_v2": True}})
+            pro["stripe_account_v2"] = True
+        if pro.get("stripe_account_v2"):
+            link = await _asyncio.to_thread(client.v2.core.account_links.create, px.onboarding_link_params(acct_id, host))
+        else:
+            link = await _asyncio.to_thread(stripe_lib.AccountLink.create, account=acct_id, type="account_onboarding",
+                                            refresh_url=f"{host}/pro/dashboard?payouts=retry",
+                                            return_url=f"{host}/pro/dashboard?payouts=done")
     except Exception as e:
         logger.error(f"Stripe Connect onboarding error: {_redact(e)}")
         raise HTTPException(502, "Couldn't open payout setup. Try again in a minute.")
@@ -4896,15 +4924,12 @@ async def pro_payouts_onboard(data: PromoIn, user: dict = Depends(get_current_us
 
 @api_router.post("/pro/payouts/refresh")
 async def pro_payouts_refresh(user: dict = Depends(get_current_user)):
-    import asyncio as _asyncio
     fresh = await _verified_pro(user)
-    acct_id = (fresh.get("pro") or {}).get("stripe_account_id")
-    if not acct_id:
+    pro = fresh.get("pro") or {}
+    if not pro.get("stripe_account_id"):
         return {"payouts_ready": False}
     try:
-        acct = await _asyncio.to_thread(stripe_lib.Account.retrieve, acct_id)
-        caps = _sget(acct, "capabilities") or {}
-        ready = bool(_sget(acct, "details_submitted")) and (caps.get("transfers") if isinstance(caps, dict) else _sget(caps, "transfers")) == "active"
+        ready = await _payouts_active(pro)
     except Exception as e:
         logger.error(f"Stripe Connect status error: {_redact(e)}")
         raise HTTPException(502, "Couldn't check payout status. Try again.")
@@ -5126,6 +5151,12 @@ async def _release_order(order_id: str, reason: str) -> bool:
     seller = await db.users.find_one({"user_id": o["seller_id"]}, {"pro": 1}) or {}
     acct = (seller.get("pro") or {}).get("stripe_account_id")
     try:
+        # Stripe can pause a seller's payouts at any time (for example, a document expired), so
+        # check right before paying; the money stays held and the next release run tries again.
+        if not await _payouts_active(seller.get("pro") or {}):
+            logger.warning(f"Merch payout held for {order_id}: seller payouts not active")
+            await db.users.update_one({"user_id": o["seller_id"]}, {"$set": {"pro.payouts_ready": False}})
+            return False
         pi = await _asyncio.to_thread(stripe_lib.PaymentIntent.retrieve, o["payment_intent"])
         transfer = await _asyncio.to_thread(stripe_lib.Transfer.create, amount=px.pence(o["seller_gets_gbp"]), currency="gbp",
                                             destination=acct, transfer_group=order_id, source_transaction=_sget(pi, "latest_charge"),
@@ -5203,6 +5234,11 @@ async def release_due_orders(now: Optional[datetime] = None) -> int:
         res = await db.merch_orders.update_one({"order_id": o["order_id"], "status": "shipped"},
                                                {"$set": {"status": "released", "released_at": datetime.now(timezone.utc).isoformat()}})
         if res.modified_count and await _release_order(o["order_id"], "auto"):
+            released += 1
+    # A payout that didn't go through (seller's payouts paused, Stripe busy) stays owed until it does.
+    async for o in db.merch_orders.find({"status": {"$in": ["received", "released"]}, "transfer_id": {"$exists": False}},
+                                        {"order_id": 1}):
+        if await _release_order(o["order_id"], "retry"):
             released += 1
     return released
 

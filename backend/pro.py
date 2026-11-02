@@ -114,3 +114,38 @@ def market_sort_key(item: dict, now_iso: str) -> Tuple[int, int, str]:
     bumped = 0 if (item.get("bumped_until") or "") > now_iso else 1
     spot = 0 if (item.get("spotlight_until") or "") > now_iso else 1
     return (bumped, spot, "".join(chr(255 - ord(c)) for c in (item.get("created_at") or "")))
+
+
+# ---- Payout accounts (Stripe Connect, Accounts v2) ----
+# We hold buyers' money and release it later (separate charges and transfers), so each seller is a
+# "recipient" that can only receive transfers from us, with the Express dashboard. With that
+# setup Stripe requires the platform to pay Stripe's fees and cover negative balances.
+
+def payout_account_params(email: str, display_name: str, user_id: str) -> dict:
+    params = {
+        "display_name": display_name[:100] or "Victory AI fighter",
+        "dashboard": "express",
+        "identity": {"country": "gb", "entity_type": "individual"},
+        "defaults": {"responsibilities": {"fees_collector": "application", "losses_collector": "application"}},
+        "configuration": {"recipient": {"capabilities": {"stripe_balance": {"stripe_transfers": {"requested": True}}}}},
+        "metadata": {"user_id": user_id},
+        "include": ["configuration.recipient", "requirements"],
+    }
+    if email:
+        params["contact_email"] = email
+    return params
+
+
+def onboarding_link_params(account_id: str, host: str) -> dict:
+    return {"account": account_id, "use_case": {"type": "account_onboarding", "account_onboarding": {
+        "configurations": ["recipient"],
+        "refresh_url": f"{host}/pro/dashboard?payouts=retry",
+        "return_url": f"{host}/pro/dashboard?payouts=done",
+    }}}
+
+
+def transfers_status(account: dict) -> Optional[str]:
+    node = account or {}
+    for key in ("configuration", "recipient", "capabilities", "stripe_balance", "stripe_transfers", "status"):
+        node = node.get(key) if isinstance(node, dict) else None
+    return node
