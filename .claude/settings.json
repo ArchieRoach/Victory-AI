@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm i -g @stripe/cli)",
+      "Bash(npm install -g @stripe/cli)",
+      "Bash(stripe version)",
+      "Bash(stripe login:*)",
+      "Bash(stripe whoami:*)",
+      "Bash(stripe feedback:*)"
+    ]
+  }
+}
