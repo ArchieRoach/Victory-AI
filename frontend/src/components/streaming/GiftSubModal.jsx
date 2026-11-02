@@ -111,7 +111,7 @@ function GiftSubCheckout({ streamId, onClose }) {
             )}
           </button>
 
-          <p className="text-victory-muted text-xs text-center">Subs are gifted to random community members. Recipients get 30 days of Pro access.</p>
+          <p className="text-victory-muted text-xs text-center">Each gift gives 30 days of Pro to someone watching who doesn't have it yet. If nobody can take it right now, it waits for the next viewer. The streamer gets 80% of what you pay, after VAT and fees.</p>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
+import { EarningsCard } from "@/components/streaming/EarningsCard";
 import { ArrowLeft, Zap, Radio, Users, Smile, TrendingUp, Clock, ChevronRight, Scissors } from "lucide-react";
 
 const PERIODS = [
@@ -256,9 +257,11 @@ export default function StreamerDashboardPage() {
       ) : (
         <div className="max-w-lg mx-auto px-4 py-5 space-y-6">
 
+          <EarningsCard />
+
           {/* ── All-time earnings hero ── */}
           <div className="bg-gradient-to-br from-victory-lime/15 to-victory-lime/5 border border-victory-lime/30 rounded-2xl p-5 text-center">
-            <p className="text-victory-muted text-xs mb-1">All-time earnings</p>
+            <p className="text-victory-muted text-xs mb-1">All-time tokens from fans</p>
             <p className="text-4xl font-black text-victory-lime tracking-tight">
               {fmt(ov.total_earned_alltime)}
             </p>

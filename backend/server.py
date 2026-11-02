@@ -58,6 +58,7 @@ stripe_lib.default_http_client = stripe_lib.RequestsClient(timeout=20)
 from resilience import CircuitBreaker, CircuitOpen
 import gamification as gx
 import workouts as wk
+import earnings as ern
 from concurrent.futures import ThreadPoolExecutor
 # One breaker per third-party service (see resilience.py for why).
 MODERATION_BREAKER = CircuitBreaker("openai_moderation", timeout_seconds=5, max_concurrency=20)
@@ -1969,7 +1970,10 @@ async def stripe_webhook(request: Request):
                 uid = meta.get("user_id")
                 count = int(meta.get("gift_count", 0))
                 stream_id = meta.get("stream_id", "")
-                if uid and count:
+                if (_sget(event_data, "payment_status") == "paid" and uid and count
+                        and await _gift_subs_paid(_sget(event_data, "id"), uid, stream_id, count,
+                                                  meta.get("recipient_user_id") or "community",
+                                                  _sget(event_data, "amount_total") or 0)):
                     await db.users.update_one({"user_id": uid}, {"$inc": {"lifetime_gifts": count}})
                     if stream_id:
                         gifter = await db.users.find_one({"user_id": uid}, {"name": 1, "display_name": 1, "avatar_url": 1})
@@ -2106,11 +2110,12 @@ async def send_tip(stream_id: str, req: TipRequest, user: dict = Depends(get_cur
     )
     if debit.matched_count == 0:
         raise HTTPException(402, detail="insufficient_tokens")
-    await db.users.update_one({"user_id": stream["user_id"]}, {"$inc": {"token_balance": int(req.amount * 0.7)}})
 
     now = datetime.now(timezone.utc).isoformat()
+    tip_id = f"tip_{uuid.uuid4().hex[:12]}"
+    await _credit_streamer(stream["user_id"], "tip", tip_id, stream_id, tokens=req.amount)
     tip_doc = {
-        "tip_id": f"tip_{uuid.uuid4().hex[:12]}",
+        "tip_id": tip_id,
         "stream_id": stream_id,
         "streamer_id": stream["user_id"],
         "sender_id": user["user_id"],
@@ -2201,6 +2206,99 @@ async def gift_subscription(stream_id: str, req: GiftSubRequest, user: dict = De
         logger.error(f"Stripe gift-sub checkout error: {e}")
         raise HTTPException(500, "Could not start checkout — please try again")
     return {"checkout_url": session.url}
+
+# ---- Streamer earnings and gift subs (rules and reasoning in earnings.py) ----
+
+TOKEN_VALUE_PENCE = ern.token_value_pence(TOKEN_PACKAGES)
+
+
+async def _credit_streamer(streamer_id: str, source: str, ref: str, stream_id: Optional[str],
+                           tokens: int = 0, value_pence: Optional[float] = None):
+    u = await db.users.find_one({"user_id": streamer_id}, {"birth_date": 1})
+    if u is None:
+        return
+    if _is_minor(u):
+        if tokens:
+            await db.users.update_one({"user_id": streamer_id}, {"$inc": {"token_balance": ern.minor_token_share(tokens)}})
+        return
+    value = value_pence if value_pence is not None else tokens * TOKEN_VALUE_PENCE
+    now = datetime.now(timezone.utc)
+    await db.stream_earnings.update_one({"ref": ref}, {"$setOnInsert": {
+        "earning_id": f"earn_{uuid.uuid4().hex[:12]}", "user_id": streamer_id, "source": source, "ref": ref,
+        "stream_id": stream_id, "tokens": tokens, "value_pence": round(value, 2), "share_pence": ern.share_pence(value),
+        "status": "on_hold", "created_at": now.isoformat(),
+        "available_at": (now + timedelta(days=ern.HOLD_DAYS)).isoformat(),
+    }}, upsert=True)
+
+
+async def _has_paid_access(user_id: str) -> bool:
+    return bool(await db.subscriptions.find_one({"user_id": user_id, "status": {"$in": ["active", "trialing"]}}, {"_id": 1}))
+
+
+async def _grant_gift_pro(user_id: str, gifter_id: str, stream_id: Optional[str], ref: str) -> bool:
+    if await _has_paid_access(user_id):
+        return False
+    now = datetime.now(timezone.utc)
+    await db.subscriptions.insert_one({
+        "subscription_id": f"gift_{uuid.uuid4().hex[:12]}", "user_id": user_id, "source": "gift", "status": "active",
+        "plan_id": "pro_gift", "gifted_by": gifter_id, "gift_ref": ref, "stream_id": stream_id,
+        "created_at": now.isoformat(), "expires_at": (now + timedelta(days=ern.GIFT_PRO_DAYS)).isoformat(),
+    })
+    await _send_push(user_id, title="You've been gifted Pro",
+                     body=f"{ern.GIFT_PRO_DAYS} days of Victory AI Pro, from someone in the stream.",
+                     url="/train", tag=f"gift-{ref}")
+    return True
+
+
+async def _gift_subs_paid(session_id: str, gifter_id: str, stream_id: str, count: int, recipient: str,
+                          amount_total: int) -> bool:
+    """Each gift is a month of Pro for someone watching. Returns False for a repeat webhook."""
+    claimed = await db.gift_purchases.update_one({"session_id": session_id}, {"$setOnInsert": {
+        "session_id": session_id, "gifter_id": gifter_id, "stream_id": stream_id, "count": count,
+        "amount_pence": amount_total, "created_at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
+    if not session_id or not claimed.upserted_id:
+        return False
+    stream = await db.streams.find_one({"stream_id": stream_id}, {"user_id": 1}) if stream_id else None
+    owner = (stream or {}).get("user_id")
+    candidates = [recipient] if recipient and recipient != "community" else (ws_manager.viewer_ids(stream_id) if stream_id else [])
+    eligible = [c for c in candidates if c not in (gifter_id, owner) and not await _has_paid_access(c)]
+    given = 0
+    for uid in ern.pick_gift_recipients(eligible, count, random.shuffle):
+        if await _grant_gift_pro(uid, gifter_id, stream_id, session_id):
+            given += 1
+    pooled = count - given
+    if pooled and owner:
+        await db.gift_pools.update_one({"owner_id": owner}, {"$inc": {"remaining": pooled}}, upsert=True)
+    if owner:
+        await _credit_streamer(owner, "gift_sub", session_id, stream_id, value_pence=ern.net_pence(int(amount_total)))
+    await db.gift_purchases.update_one({"session_id": session_id}, {"$set": {"given": given, "pooled": pooled}})
+    if given and stream_id:
+        await ws_manager.broadcast(stream_id, {"type": "gift_sub_given", "count": given, "pooled": pooled})
+    return True
+
+
+async def _claim_pooled_gift(stream: dict, viewer: dict):
+    # Gifts nobody could take yet wait for the next viewer without Pro on that streamer's streams.
+    if await _has_paid_access(viewer["user_id"]):
+        return
+    took = await db.gift_pools.update_one({"owner_id": stream["user_id"], "remaining": {"$gte": 1}}, {"$inc": {"remaining": -1}})
+    if took.modified_count and not await _grant_gift_pro(viewer["user_id"], "pool", stream["stream_id"], f"pool_{stream['stream_id']}"):
+        await db.gift_pools.update_one({"owner_id": stream["user_id"]}, {"$inc": {"remaining": 1}})
+
+
+async def _expire_gift_pro(now: datetime):
+    await db.subscriptions.update_many({"source": "gift", "status": "active", "expires_at": {"$lte": now.isoformat()}},
+                                       {"$set": {"status": "expired"}})
+
+
+@api_router.get("/earnings/me")
+async def my_earnings(user: dict = Depends(get_current_user)):
+    rows = await db.stream_earnings.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(5000)
+    return {**ern.summarise(rows, datetime.now(timezone.utc)),
+            "share_pct": round(ern.STREAMER_SHARE * 100), "hold_days": ern.HOLD_DAYS,
+            "payout_min_pence": ern.PAYOUT_MIN_PENCE, "cash_out": not _is_minor(user), "payouts_open": False,
+            "recent": [{k: r.get(k) for k in ("source", "share_pence", "created_at", "available_at", "status")} for r in rows[:20]]}
+
 
 # ============== ADVERTISER ENDPOINTS ==============
 
@@ -2649,6 +2747,7 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "crew_moments": await db.crew_feed.find({"user_id": user_id}, proj).to_list(10000),
         "crew_cheers": await db.crew_cheers.find({"$or": [{"actor_id": user_id}, {"recipient_id": user_id}]}, proj).to_list(10000),
         "tips_left": await db.tips.find({"user_id": user_id}, proj).to_list(1000),
+        "stream_earnings": await db.stream_earnings.find({"user_id": user_id}, proj).to_list(10000),
         "callouts_sent": await db.callouts.find({"challenger_id": user_id}, proj).to_list(1000),
         "feedback_submitted": await db.feedback.find({"user_id": user_id}, proj).to_list(10000),
         "push_subscriptions": await db.push_subscriptions.find({"user_id": user_id}, proj).to_list(1000),
@@ -6404,6 +6503,14 @@ async def _livepeer(method: str, path: str, payload: dict = None) -> dict:
 class ConnectionManager:
     def __init__(self):
         self._conns: Dict[str, List[WebSocket]] = {}
+        self._users: Dict[str, Dict[int, str]] = {}
+
+    def mark_user(self, ws: WebSocket, stream_id: str, user_id: str):
+        self._users.setdefault(stream_id, {})[id(ws)] = user_id
+
+    def viewer_ids(self, stream_id: str) -> List[str]:
+        live = {id(w) for w in self._conns.get(stream_id, [])}
+        return [u for k, u in self._users.get(stream_id, {}).items() if k in live]
 
     async def connect(self, ws: WebSocket, stream_id: str):
         await ws.accept()
@@ -6413,6 +6520,7 @@ class ConnectionManager:
         conns = self._conns.get(stream_id, [])
         if ws in conns:
             conns.remove(ws)
+        self._users.get(stream_id, {}).pop(id(ws), None)
 
     async def broadcast(self, stream_id: str, data: dict):
         msg = json.dumps(data)
@@ -7597,6 +7705,12 @@ async def ws_chat(websocket: WebSocket, stream_id: str):
         await websocket.close(code=4003)
         return
 
+    ws_manager.mark_user(websocket, stream_id, server_user_id)
+    if server_user_id != stream["user_id"]:
+        try:
+            await _claim_pooled_gift(stream, ws_user)
+        except Exception as e:
+            logger.warning(f"Gift pool claim failed: {type(e).__name__}")
     count = ws_manager.viewer_count(stream_id)
     await db.streams.update_one({"stream_id": stream_id}, {"$set": {"viewer_count": count}})
     # Most recent 50 messages, returned in chronological order for display.
@@ -7821,7 +7935,7 @@ async def purchase_emote(emote_id: str, user: dict = Depends(get_current_user)):
         )
         if debit.matched_count == 0:
             raise HTTPException(402, detail="insufficient_tokens")
-        await db.users.update_one({"user_id": emote["owner_id"]},          {"$inc": {"token_balance": int(price * 0.7)}})
+        await _credit_streamer(emote["owner_id"], "emote", f"emote_{emote_id}_{user['user_id']}", None, tokens=price)
 
     await db.emote_unlocks.insert_one({
         "unlock_id":   f"unlock_{uuid.uuid4().hex[:12]}",
@@ -7837,7 +7951,7 @@ async def purchase_emote(emote_id: str, user: dict = Depends(get_current_user)):
     await _send_push(
         emote["owner_id"],
         title=f"{buyer_name} bought your {emote['name']} emote!",
-        body=f"+{int(price * 0.7):,} tokens earned" if price > 0 else "Your free emote is spreading 🔥",
+        body="Your share is on your dashboard" if price > 0 else "Your free emote is spreading 🔥",
         url="/dashboard",
         tag=f"emote-sale-{emote_id}",
     )
@@ -9008,6 +9122,7 @@ async def _investment_loop():
                 await _send_weekly_reminders(now)
                 await _send_habit_reminders(now)
                 await _send_streak_nudges(now)
+                await _expire_gift_pro(now)
                 await _send_film_digests(now)
         except Exception as exc:
             logger.warning(f"Investment loop error: {exc}")
@@ -12812,6 +12927,9 @@ async def _retention_cleanup_loop():
 INDEXES = {
     "users": ["user_id", "clerk_id", "email", "email_hash"],
     "voice_clips": ["key"],
+    "stream_earnings": ["ref", [("user_id", 1), ("created_at", -1)]],
+    "gift_purchases": ["session_id"],
+    "gift_pools": ["owner_id"],
     "sessions": [[("user_id", 1), ("date", -1)], "session_id", "date"],
     "training_sessions": ["session_id", "user_id"],
     "round_videos": [[("session_id", 1), ("user_id", 1)], "video_url"],
