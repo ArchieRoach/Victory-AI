@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 import { Banknote, Clock, CheckCircle2 } from "lucide-react";
 import { API } from "@/App";
 
@@ -12,8 +13,20 @@ export function EarningsCard() {
   const [e, setE] = useState(null);
 
   useEffect(() => {
-    axios.get(`${API}/earnings/me`).then((r) => setE(r.data)).catch(() => setE(false));
+    const load = () => axios.get(`${API}/earnings/me`).then((r) => setE(r.data)).catch(() => setE(false));
+    const back = new URLSearchParams(window.location.search).get("payouts") === "done";
+    if (back) axios.post(`${API}/earnings/payouts/refresh`).catch(() => {}).finally(load);
+    else load();
   }, []);
+
+  const setUpPayouts = async () => {
+    try {
+      const { data } = await axios.post(`${API}/earnings/payouts/onboard`, { origin_url: window.location.origin });
+      window.location.href = data.url;
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Couldn't open payout setup. Try again.");
+    }
+  };
 
   if (e === false) return null;
   if (!e) return <div className="skeleton-shimmer h-40 rounded-lg" />;
@@ -55,9 +68,14 @@ export function EarningsCard() {
         </p>
       )}
       <p className="text-victory-muted text-xs">
-        Money is held {e.hold_days} days in case a fan asks for a refund, then paid monthly once it reaches {gbp(e.payout_min_pence)}.
-        {e.payouts_open ? "" : " Bank payouts open soon. Everything you earn until then is kept safe here."}
+        Money is held {e.hold_days} days in case a fan asks for a refund, then paid to your bank monthly once it reaches {gbp(e.payout_min_pence)}.
       </p>
+      {e.payouts_open && !e.payouts_ready && (
+        <div className="space-y-2" data-testid="earnings-setup">
+          <p className="text-victory-text text-sm">Set up payouts with Stripe to get this in your bank. It takes about 5 minutes and needs your ID and bank details.</p>
+          <button className="victory-btn-primary w-full" onClick={setUpPayouts}>Set up payouts</button>
+        </div>
+      )}
     </section>
   );
 }
