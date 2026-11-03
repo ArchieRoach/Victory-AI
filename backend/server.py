@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Response, Request, Query, File, UploadFile, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -60,6 +60,7 @@ import gamification as gx
 import workouts as wk
 import earnings as ern
 import jobs
+import launch_email as launch_mail
 from cache import cache
 from concurrent.futures import ThreadPoolExecutor
 # One breaker per third-party service (see resilience.py for why).
@@ -2728,6 +2729,84 @@ async def waitlist_signup(request: Request, data: WaitlistSignup):
 
     return {"message": "Signed up successfully", "promo_code": promo_code_str,
             "founder": promo_code_str is not None, "founder_spots": await founder_spots()}
+
+# ---- Early-access email to the waitlist (copy and reasoning in launch_email.py) ----
+# Sends itself in the hourly loop once LAUNCH_EMAIL_AT has passed. Off until it's set in Railway
+# (e.g. 2026-11-30T08:00:00+00:00), so it can't double up with an n8n or Lovable email nobody checked.
+LAUNCH_EMAIL_AT = os.environ.get("LAUNCH_EMAIL_AT", "off")
+PUBLIC_API_URL = os.environ.get("PUBLIC_API_URL", "https://victory-ai-backend-production.up.railway.app").rstrip("/")
+APP_STORE_URL = os.environ.get("APP_STORE_URL", "")
+LAUNCH_EMAIL_BATCH = 100  # Resend's batch limit
+
+
+def _launch_payload(entry: dict) -> dict:
+    email = entry["email"]
+    unsub = launch_mail.unsubscribe_url(PUBLIC_API_URL, email, JWT_SECRET)
+    msg = launch_mail.render(entry.get("name"), email, bool(entry.get("promo_code")), FRONTEND_URL, unsub,
+                             STANDARD_TRIAL_DAYS, FOUNDER_TRIAL_DAYS, APP_STORE_URL or None)
+    return {"from": RESEND_FROM, "to": [email], "subject": msg["subject"], "html": msg["html"], "text": msg["text"],
+            "headers": {"List-Unsubscribe": f"<{unsub}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}}
+
+
+@jobs.handler("email_batch")
+async def _deliver_email_batch(payload: dict) -> dict:
+    async with httpx.AsyncClient(timeout=20) as http_client:
+        r = await _breaker_post(RESEND_BREAKER, http_client, "https://api.resend.com/emails/batch", json=payload["emails"],
+                                headers={"Authorization": f"Bearer {RESEND_API_KEY}"})
+    if r.status_code >= 500 or r.status_code == 429:
+        raise RuntimeError(f"Resend {r.status_code}")
+    if r.status_code >= 400:
+        logger.error(f"Resend refused a launch batch ({r.status_code}): {r.text[:200]}")
+    return {"status": r.status_code, "count": len(payload["emails"])}
+
+
+def _launch_due(now: datetime) -> bool:
+    if not RESEND_API_KEY or LAUNCH_EMAIL_AT.strip().lower() in ("", "off"):
+        return False
+    try:
+        return now >= datetime.fromisoformat(LAUNCH_EMAIL_AT)
+    except ValueError:
+        return False
+
+
+async def send_launch_emails(now: datetime) -> int:
+    """Queues the early-access email for everyone on the waitlist who hasn't had it. Each person is
+    claimed before their email is queued, so a restart or a second run never sends twice."""
+    if not _launch_due(now):
+        return 0
+    queued = 0
+    while True:
+        batch = []
+        async for entry in db.waitlist.find({"launch_email_at": {"$exists": False}, "unsubscribed": {"$ne": True}},
+                                            {"_id": 0, "email": 1, "name": 1, "promo_code": 1}).limit(LAUNCH_EMAIL_BATCH):
+            claimed = await db.waitlist.update_one({"email": entry["email"], "launch_email_at": {"$exists": False}},
+                                                   {"$set": {"launch_email_at": now.isoformat()}})
+            if claimed.modified_count:
+                batch.append(_launch_payload(entry))
+        if not batch:
+            return queued
+        await jobs.enqueue(db, "email_batch", {"emails": batch})
+        queued += len(batch)
+
+
+@api_router.post("/admin/waitlist/launch-email/test")
+async def test_launch_email(user: dict = Depends(get_current_user)):
+    if not await is_admin(user):
+        raise HTTPException(403, "Admins only")
+    entry = await db.waitlist.find_one({"email": user.get("email")}) or {}
+    await _queue_email(_launch_payload({"email": user.get("email"), "name": user.get("name"), "promo_code": entry.get("promo_code")}))
+    return {"sent_to": user.get("email"), "sends_to_everyone_at": LAUNCH_EMAIL_AT,
+            "waiting": await db.waitlist.count_documents({"launch_email_at": {"$exists": False}, "unsubscribed": {"$ne": True}})}
+
+
+@api_router.api_route("/waitlist/unsubscribe", methods=["GET", "POST"])
+async def waitlist_unsubscribe(e: str = "", t: str = ""):
+    if not e or not launch_mail.token_ok(e, t, JWT_SECRET):
+        return HTMLResponse("<p style='font-family:sans-serif'>That link didn't work.</p>", status_code=400)
+    await db.waitlist.update_one({"email": e}, {"$set": {"unsubscribed": True}})
+    return HTMLResponse("<body style='background:#0A0A0F;color:#F0F0F5;font-family:sans-serif;padding:40px'>"
+                        "<h2>You're unsubscribed.</h2><p>We won't email you about the waitlist again.</p></body>")
+
 
 # ============== SESSION & STATIC ENDPOINTS ==============
 
@@ -9289,6 +9368,7 @@ async def _investment_loop():
                 await _expire_gift_pro(now)
                 await _send_film_digests(now)
                 await pay_streamers(now)
+                await send_launch_emails(now)
                 await jobs.prune(db, now)
         except Exception as exc:
             logger.warning(f"Investment loop error: {exc}")
