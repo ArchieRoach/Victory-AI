@@ -8106,6 +8106,10 @@ async def delete_emote(emote_id: str, user: dict = Depends(get_current_user)):
 
 _default_origins = "https://victory-ai-one.vercel.app,https://victory-ai-alpha.vercel.app,https://app.victoryai.co.uk,http://localhost:3000"
 _cors_origins = [o.strip().rstrip('/') for o in os.environ.get('CORS_ORIGINS', _default_origins).split(',') if o.strip()]
+# Our own sites are always allowed, so editing CORS_ORIGINS in Railway can't silently break the
+# waitlist sign-up form (it did on 3 Nov 2026: victoryai.co.uk had dropped off the list).
+OWN_ORIGINS = ["https://app.victoryai.co.uk", "https://victoryai.co.uk", "https://www.victoryai.co.uk"]
+_cors_origins += [o for o in OWN_ORIGINS if o not in _cors_origins]
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=_cors_origins, allow_methods=["*"], allow_headers=["*"])
 
 
