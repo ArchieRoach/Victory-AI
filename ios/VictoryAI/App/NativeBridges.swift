@@ -2,6 +2,7 @@ import WebKit
 import SwiftUI
 import RevenueCat
 import RevenueCatUI
+import StoreKit
 
 /// Message handlers the web app calls during training (frontend/src/lib/nativeBridge.js
 /// and frontend/src/hooks/useLiveCoach.js). Like PushBridge, they only answer the main
@@ -81,12 +82,19 @@ final class RoundBridge: OriginCheckedBridge {
 
 /// `victoryStore`: opens RevenueCat's Customer Center (manage or cancel an App Store
 /// subscription, request a refund, restore) from the web app's Billing page, or the App Store
-/// paywall ("paywall") from any "Upgrade to Pro" button inside the app (Guideline 3.1.1).
+/// paywall ("paywall") from any "Upgrade to Pro" button inside the app (Guideline 3.1.1), and
+/// Apple's rating sheet ("review") straight after a real win (frontend/src/lib/ratingPrompt.js).
 final class StoreBridge: OriginCheckedBridge {
     static let name = "victoryStore"
 
     override func handle(action: String, body: [String: Any], webView: WKWebView?, reply: @escaping (Any?, String?) -> Void) {
         Task { @MainActor in
+            if action == "review" {
+                // Apple decides whether the rating sheet actually shows (3 times a year at most).
+                if let scene = webView?.window?.windowScene { AppStore.requestReview(in: scene) }
+                reply(nil, nil)
+                return
+            }
             guard ["customerCenter", "paywall"].contains(action), StoreManager.shared.isConfigured,
                   var top = webView?.window?.rootViewController else {
                 reply(["shown": false], nil)
