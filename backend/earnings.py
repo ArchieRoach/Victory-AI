@@ -54,7 +54,7 @@ def summarise(rows: Iterable[dict], now: datetime) -> dict:
         if (r.get("created_at") or "").startswith(month):
             out["this_month_pence"] += amount
             out["by_source"][r.get("source")] = out["by_source"].get(r.get("source"), 0) + amount
-        if r.get("status") == "paid":
+        if r.get("status") in ("paid", "paying"):
             out["paid_pence"] += amount
         elif (r.get("available_at") or "") > now_iso:
             out["on_hold_pence"] += amount
@@ -62,6 +62,11 @@ def summarise(rows: Iterable[dict], now: datetime) -> dict:
             out["ready_pence"] += amount
     out["payout_due"] = out["ready_pence"] >= PAYOUT_MIN_PENCE
     return out
+
+
+def payout_id(user_id: str, now: datetime) -> str:
+    """One payout per streamer per month; also Stripe's idempotency key, so a retry never pays twice."""
+    return f"spo_{user_id}_{now.strftime('%Y%m')}"
 
 
 def pick_gift_recipients(candidates: List[str], count: int, shuffle) -> List[str]:

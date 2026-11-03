@@ -128,6 +128,76 @@ def test_the_earnings_endpoint_tells_teens_they_cant_cash_out():
     assert adult["cash_out"] is True and adult["on_hold_pence"] > 0
 
 
+class FakeTransfers:
+    def __init__(self):
+        self.calls, self.fail = [], False
+
+    def create(self, **k):
+        if self.fail:
+            raise RuntimeError("insufficient funds")
+        self.calls.append(k)
+        return type("T", (), {"id": f"tr_{len(self.calls)}"})()
+
+
+def test_streamers_with_20_pounds_ready_get_paid_once_a_month():
+    transfers = FakeTransfers()
+    server.stripe_lib.Transfer = transfers
+
+    async def active(acct):
+        return acct.get("stripe_account_id") == "acct_ok"
+    server._payouts_active = active
+    run(server.db.users.insert_many([
+        {"user_id": "payee", "birth_date": "1990-01-01", "payout": {"stripe_account_id": "acct_ok", "ready": True}},
+        {"user_id": "small", "birth_date": "1990-01-01", "payout": {"stripe_account_id": "acct_ok", "ready": True}},
+        {"user_id": "no_bank", "birth_date": "1990-01-01"},
+    ]))
+    old = "2026-10-01T00:00:00+00:00"
+    run(server.db.stream_earnings.insert_many([
+        {"earning_id": "e1", "user_id": "payee", "share_pence": 1500, "status": "on_hold", "available_at": old},
+        {"earning_id": "e2", "user_id": "payee", "share_pence": 900, "status": "on_hold", "available_at": old},
+        {"earning_id": "e3", "user_id": "payee", "share_pence": 5000, "status": "on_hold", "available_at": "2026-12-30T00:00:00+00:00"},
+        {"earning_id": "e4", "user_id": "small", "share_pence": 1999, "status": "on_hold", "available_at": old},
+        {"earning_id": "e5", "user_id": "no_bank", "share_pence": 9000, "status": "on_hold", "available_at": old},
+    ]))
+    now = datetime(2026, 11, 5, tzinfo=timezone.utc)
+    assert run(server.pay_streamers(now)) == 1
+    assert [(c["amount"], c["destination"]) for c in transfers.calls] == [(2400, "acct_ok")], "only money past the hold"
+    assert transfers.calls[0]["idempotency_key"] == "spo_payee_202611"
+    assert run(server.db.stream_earnings.find_one({"earning_id": "e3"}))["status"] == "on_hold"
+    assert run(server.db.stream_earnings.find_one({"earning_id": "e4"}))["status"] == "on_hold", "under £20 waits"
+    assert run(server.db.stream_earnings.find_one({"earning_id": "e5"}))["status"] == "on_hold", "no bank set up yet"
+    assert ("payee", "You've been paid") in pushes
+    run(server.db.stream_earnings.update_one({"earning_id": "e3"}, {"$set": {"available_at": old}}))
+    assert run(server.pay_streamers(now)) == 0, "one payout a month"
+    assert run(server.pay_streamers(datetime(2026, 12, 1, tzinfo=timezone.utc))) == 1
+    assert transfers.calls[-1]["amount"] == 5000
+
+
+def test_a_failed_payout_is_retried_with_the_same_amount_and_key():
+    transfers = FakeTransfers()
+    transfers.fail = True
+    server.stripe_lib.Transfer = transfers
+    run(server.db.users.insert_one({"user_id": "retry", "birth_date": "1990-01-01", "payout": {"stripe_account_id": "acct_ok"}}))
+    run(server.db.stream_earnings.insert_one({"earning_id": "r1", "user_id": "retry", "share_pence": 3000, "status": "on_hold",
+                                             "available_at": "2026-10-01T00:00:00+00:00"}))
+    now = datetime(2026, 11, 5, tzinfo=timezone.utc)
+    assert run(server.pay_streamers(now)) == 0
+    assert run(server.db.stream_payouts.find_one({"payout_id": "spo_retry_202611"}))["status"] == "pending"
+    run(server.db.stream_earnings.insert_one({"earning_id": "r2", "user_id": "retry", "share_pence": 700, "status": "on_hold",
+                                             "available_at": "2026-10-02T00:00:00+00:00"}))
+    transfers.fail = False
+    assert run(server.pay_streamers(now)) == 1
+    assert transfers.calls == [{**transfers.calls[0], "amount": 3000, "idempotency_key": "spo_retry_202611"}]
+    assert run(server.db.stream_earnings.find_one({"earning_id": "r1"}))["status"] == "paid"
+    assert run(server.db.stream_earnings.find_one({"earning_id": "r2"}))["status"] == "on_hold", "waits for next month"
+
+
+def test_a_pro_who_streams_is_paid_into_their_fighter_account():
+    acct = server._payout_account({"pro": {"stripe_account_id": "acct_pro", "stripe_account_v2": True, "payouts_ready": True},
+                                   "payout": {"stripe_account_id": "acct_other"}})
+    assert acct["stripe_account_id"] == "acct_pro" and acct["ready"] and acct["field"] == "pro.payouts_ready"
+
+
 if __name__ == "__main__":
     setup()
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]

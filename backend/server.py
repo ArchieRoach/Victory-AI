@@ -2294,10 +2294,143 @@ async def _expire_gift_pro(now: datetime):
 @api_router.get("/earnings/me")
 async def my_earnings(user: dict = Depends(get_current_user)):
     rows = await db.stream_earnings.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(5000)
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"pro": 1, "payout": 1}) or {}
     return {**ern.summarise(rows, datetime.now(timezone.utc)),
             "share_pct": round(ern.STREAMER_SHARE * 100), "hold_days": ern.HOLD_DAYS,
-            "payout_min_pence": ern.PAYOUT_MIN_PENCE, "cash_out": not _is_minor(user), "payouts_open": False,
+            "payout_min_pence": ern.PAYOUT_MIN_PENCE, "cash_out": not _is_minor(user), "payouts_open": True,
+            "payouts_ready": _payout_account(fresh)["ready"],
             "recent": [{k: r.get(k) for k in ("source", "share_pence", "created_at", "available_at", "status")} for r in rows[:20]]}
+
+
+# ---- Streamer bank payouts (Stripe Connect). A verified pro who also streams reuses their
+# Fighter Market payout account, so they only hand Stripe their ID and bank details once. ----
+
+def _payout_account(u: dict) -> dict:
+    pro = u.get("pro") or {}
+    if pro.get("stripe_account_id"):
+        return {"stripe_account_id": pro["stripe_account_id"], "stripe_account_v2": bool(pro.get("stripe_account_v2")),
+                "ready": bool(pro.get("payouts_ready")), "field": "pro.payouts_ready"}
+    p = u.get("payout") or {}
+    return {"stripe_account_id": p.get("stripe_account_id"), "stripe_account_v2": True,
+            "ready": bool(p.get("ready")), "field": "payout.ready"}
+
+
+class PayoutSetupIn(BaseModel):
+    origin_url: str = ""
+
+
+@api_router.post("/earnings/payouts/onboard")
+async def streamer_payouts_onboard(data: PayoutSetupIn, user: dict = Depends(get_current_user)):
+    import asyncio as _asyncio
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0}) or {}
+    if _is_minor(fresh):
+        raise HTTPException(403, "Cashing out to a bank opens when you're 18")
+    host = _safe_checkout_origin(data.origin_url)
+    acct = _payout_account(fresh)
+    acct_id = acct["stripe_account_id"]
+    client = _stripe_client()
+    try:
+        if not acct_id:
+            name = fresh.get("username") or fresh.get("name") or "Victory AI streamer"
+            created = await _asyncio.to_thread(client.v2.core.accounts.create,
+                                               px.payout_account_params(fresh.get("email") or "", name, user["user_id"]))
+            acct_id = created.id
+            await db.users.update_one({"user_id": user["user_id"]},
+                                      {"$set": {"payout.stripe_account_id": acct_id, "payout.ready": False}})
+        if acct["stripe_account_v2"]:
+            link = await _asyncio.to_thread(client.v2.core.account_links.create,
+                                            px.onboarding_link_params(acct_id, host, "/dashboard"))
+        else:
+            link = await _asyncio.to_thread(stripe_lib.AccountLink.create, account=acct_id, type="account_onboarding",
+                                            refresh_url=f"{host}/dashboard?payouts=retry",
+                                            return_url=f"{host}/dashboard?payouts=done")
+    except Exception as e:
+        logger.error(f"Streamer payout onboarding error: {_redact(e)}")
+        raise HTTPException(502, "Couldn't open payout setup. Try again in a minute.")
+    return {"url": link.url}
+
+
+@api_router.post("/earnings/payouts/refresh")
+async def streamer_payouts_refresh(user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"pro": 1, "payout": 1}) or {}
+    acct = _payout_account(fresh)
+    if not acct["stripe_account_id"]:
+        return {"payouts_ready": False}
+    try:
+        ready = await _payouts_active(acct)
+    except Exception as e:
+        logger.error(f"Streamer payout status error: {_redact(e)}")
+        raise HTTPException(502, "Couldn't check payout status. Try again.")
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {acct["field"]: ready}})
+    return {"payouts_ready": ready}
+
+
+async def _send_streamer_payout(p: dict) -> bool:
+    import asyncio as _asyncio
+    try:
+        transfer = await _asyncio.to_thread(
+            stripe_lib.Transfer.create, amount=p["amount_pence"], currency="gbp", destination=p["stripe_account_id"],
+            description="Victory AI stream earnings", metadata={"payout_id": p["payout_id"], "user_id": p["user_id"]},
+            idempotency_key=p["payout_id"])
+    except Exception as e:
+        # Usually the platform's Stripe balance is short; the payout stays pending and is retried hourly.
+        logger.error(f"Streamer payout {p['payout_id']} failed: {_redact(e)}")
+        return False
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.stream_payouts.update_one({"payout_id": p["payout_id"]},
+                                       {"$set": {"status": "paid", "transfer_id": transfer.id, "paid_at": now_iso}})
+    await db.stream_earnings.update_many({"payout_id": p["payout_id"]}, {"$set": {"status": "paid", "paid_at": now_iso}})
+    await _send_push(p["user_id"], title="You've been paid", body=f"£{p['amount_pence'] / 100:.2f} from your streams is on its way to your bank.",
+                     url="/dashboard", tag=f"payout-{p['payout_id']}")
+    return True
+
+
+async def pay_streamers(now: datetime) -> int:
+    """Monthly: anyone 18+ with £20+ past the refund hold and payouts set up gets it sent to their bank."""
+    paid = 0
+    async for p in db.stream_payouts.find({"status": {"$in": ["pending", "claiming"]}}):
+        if p["status"] == "claiming":  # a restart landed mid-claim: finish the claim with the rows it marked
+            rows = await db.stream_earnings.find({"payout_id": p["payout_id"]}, {"share_pence": 1}).to_list(10000)
+            p["amount_pence"] = sum(r.get("share_pence", 0) for r in rows)
+            if not p["amount_pence"]:
+                await db.stream_payouts.delete_one({"payout_id": p["payout_id"]})
+                continue
+            await db.stream_payouts.update_one({"payout_id": p["payout_id"]}, {"$set": {"status": "pending", "amount_pence": p["amount_pence"]}})
+        paid += await _send_streamer_payout(p)
+    due = await db.stream_earnings.aggregate([
+        {"$match": {"status": "on_hold", "available_at": {"$lte": now.isoformat()}}},
+        {"$group": {"_id": "$user_id", "total": {"$sum": "$share_pence"}}},
+        {"$match": {"total": {"$gte": ern.PAYOUT_MIN_PENCE}}},
+    ]).to_list(10000)
+    for d in due:
+        uid, pid = d["_id"], ern.payout_id(d["_id"], now)
+        if await db.stream_payouts.find_one({"payout_id": pid}, {"_id": 1}):
+            continue
+        u = await db.users.find_one({"user_id": uid}, {"pro": 1, "payout": 1, "birth_date": 1}) or {}
+        acct = _payout_account(u)
+        if _is_minor(u) or not acct["stripe_account_id"]:
+            continue
+        try:
+            active = await _payouts_active(acct)
+        except Exception as e:
+            logger.error(f"Streamer payout status check failed for {uid}: {_redact(e)}")
+            continue
+        if not active:
+            await db.users.update_one({"user_id": uid}, {"$set": {acct["field"]: False}})
+            continue
+        claimed = await db.stream_payouts.update_one({"payout_id": pid}, {"$setOnInsert": {
+            "payout_id": pid, "user_id": uid, "stripe_account_id": acct["stripe_account_id"], "status": "claiming",
+            "created_at": now.isoformat()}}, upsert=True)
+        if not claimed.upserted_id:
+            continue
+        await db.stream_earnings.update_many({"user_id": uid, "status": "on_hold", "available_at": {"$lte": now.isoformat()}},
+                                             {"$set": {"status": "paying", "payout_id": pid}})
+        rows = await db.stream_earnings.find({"payout_id": pid}, {"share_pence": 1}).to_list(10000)
+        p = {"payout_id": pid, "user_id": uid, "stripe_account_id": acct["stripe_account_id"],
+             "amount_pence": sum(r.get("share_pence", 0) for r in rows)}
+        await db.stream_payouts.update_one({"payout_id": pid}, {"$set": {"status": "pending", "amount_pence": p["amount_pence"]}})
+        paid += await _send_streamer_payout(p)
+    return paid
 
 
 # ============== ADVERTISER ENDPOINTS ==============
@@ -2748,6 +2881,7 @@ async def export_my_data(user: dict = Depends(get_current_user)):
         "crew_cheers": await db.crew_cheers.find({"$or": [{"actor_id": user_id}, {"recipient_id": user_id}]}, proj).to_list(10000),
         "tips_left": await db.tips.find({"user_id": user_id}, proj).to_list(1000),
         "stream_earnings": await db.stream_earnings.find({"user_id": user_id}, proj).to_list(10000),
+        "stream_payouts": await db.stream_payouts.find({"user_id": user_id}, proj).to_list(1000),
         "callouts_sent": await db.callouts.find({"challenger_id": user_id}, proj).to_list(1000),
         "feedback_submitted": await db.feedback.find({"user_id": user_id}, proj).to_list(10000),
         "push_subscriptions": await db.push_subscriptions.find({"user_id": user_id}, proj).to_list(1000),
@@ -9124,6 +9258,7 @@ async def _investment_loop():
                 await _send_streak_nudges(now)
                 await _expire_gift_pro(now)
                 await _send_film_digests(now)
+                await pay_streamers(now)
         except Exception as exc:
             logger.warning(f"Investment loop error: {exc}")
 
@@ -12930,6 +13065,7 @@ INDEXES = {
     "stream_earnings": ["ref", [("user_id", 1), ("created_at", -1)]],
     "gift_purchases": ["session_id"],
     "gift_pools": ["owner_id"],
+    "stream_payouts": ["payout_id", "status"],
     "sessions": [[("user_id", 1), ("date", -1)], "session_id", "date"],
     "training_sessions": ["session_id", "user_id"],
     "round_videos": [[("session_id", 1), ("user_id", 1)], "video_url"],

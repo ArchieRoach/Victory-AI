@@ -175,7 +175,12 @@ Do now (before any fighter signs up):
    dashboard, platform country **UK**, and accept that the **platform pays Stripe fees and covers negative
    balances** (Connect settings asks you to acknowledge this). Seller accounts are created with Accounts v2 as
    transfer-only recipients (`payout_account_params` in `backend/pro.py`). Without it, "Set up payouts" fails
-   and no one can sell.
+   and no one can sell. Done on 3 Nov 2026 on the direct account **Victory Real Estate Consultants Ltd**
+   (`acct_1UXLZ6...`): the old account was opened through Monzo Pay, which can't run Connect, so the app's
+   `STRIPE_API_KEY` and `STRIPE_WEBHOOK_SECRET` now point at the new account and the old webhook is disabled.
+   **Stripe payout schedule:** Settings → Payouts → **monthly, on the 2nd**. Streamers are paid from the
+   platform balance on the 1st (`pay_streamers` in `backend/server.py`), so daily payouts to our bank would
+   leave nothing to pay them with (merch payouts are tied to each sale, so they're unaffected).
 2. **Write a simple revenue-share agreement** for fighters who switch on "Train with" their alias:
    what share of the money they get, how it's counted (the dashboard shows how many fans picked them),
    and that they can switch it off at any time. Get it signed before any alias goes live.

@@ -136,11 +136,11 @@ def payout_account_params(email: str, display_name: str, user_id: str) -> dict:
     return params
 
 
-def onboarding_link_params(account_id: str, host: str) -> dict:
+def onboarding_link_params(account_id: str, host: str, path: str = "/pro/dashboard") -> dict:
     return {"account": account_id, "use_case": {"type": "account_onboarding", "account_onboarding": {
         "configurations": ["recipient"],
-        "refresh_url": f"{host}/pro/dashboard?payouts=retry",
-        "return_url": f"{host}/pro/dashboard?payouts=done",
+        "refresh_url": f"{host}{path}?payouts=retry",
+        "return_url": f"{host}{path}?payouts=done",
     }}}
 
 
