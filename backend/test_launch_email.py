@@ -16,6 +16,7 @@ import server
 server.db = AsyncMongoMockClient()["test"]
 db = server.db
 server.RESEND_API_KEY = "re_test"
+server.LAUNCH_EMAIL_AT = "2026-11-30T08:00:00+00:00"
 client = TestClient(server.app)
 sent = []
 
@@ -51,6 +52,11 @@ def setup():
         [{"email": f"fan{i}@example.com", "name": f"Fan {i}", "promo_code": None} for i in range(150)]
         + [{"email": "founder@example.com", "name": "Amir Khan", "promo_code": "FOUNDERAB12"},
            {"email": "gone@example.com", "name": "Gone", "unsubscribed": True}]))
+
+
+def test_it_is_off_until_switched_on_in_railway():
+    import importlib, os
+    assert os.environ.get("LAUNCH_EMAIL_AT") is None and "off" in open(server.__file__).read().split("LAUNCH_EMAIL_AT = ")[1][:60]
 
 
 def test_nothing_goes_out_before_launch_morning():

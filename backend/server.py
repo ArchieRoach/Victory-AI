@@ -2731,8 +2731,9 @@ async def waitlist_signup(request: Request, data: WaitlistSignup):
             "founder": promo_code_str is not None, "founder_spots": await founder_spots()}
 
 # ---- Early-access email to the waitlist (copy and reasoning in launch_email.py) ----
-# Sends itself in the hourly loop once LAUNCH_EMAIL_AT has passed (set it to "off" to hold it).
-LAUNCH_EMAIL_AT = os.environ.get("LAUNCH_EMAIL_AT", "2026-11-30T08:00:00+00:00")
+# Sends itself in the hourly loop once LAUNCH_EMAIL_AT has passed. Off until it's set in Railway
+# (e.g. 2026-11-30T08:00:00+00:00), so it can't double up with an n8n or Lovable email nobody checked.
+LAUNCH_EMAIL_AT = os.environ.get("LAUNCH_EMAIL_AT", "off")
 PUBLIC_API_URL = os.environ.get("PUBLIC_API_URL", "https://victory-ai-backend-production.up.railway.app").rstrip("/")
 APP_STORE_URL = os.environ.get("APP_STORE_URL", "")
 LAUNCH_EMAIL_BATCH = 100  # Resend's batch limit
