@@ -1,0 +1,56 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0A0A0F; --card:#12121A; --hi:#1A1A26; --border:#2A2A3A; --lime:#E8FF47; --teal:#47E8C8; --text:#F0F0F5; --muted:#8888A0; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 440px; height: 956px; background: var(--bg); overflow: hidden; }
+  body { font-family: Inter, sans-serif; color: var(--text); position: relative; }
+  .glow { position: absolute; inset: -20% -40% auto; height: 520px; background: radial-gradient(closest-side, rgba(232,255,71,.16), transparent); }
+  .head { position: relative; padding: 52px 30px 0; text-align: center; }
+  .tag { font-family: 'Space Grotesk'; font-weight: 700; font-size: 12px; letter-spacing: .22em; color: var(--lime); text-transform: uppercase; }
+  h1 { font-family: 'Space Grotesk'; font-weight: 800; font-size: 40px; line-height: 1.02; letter-spacing: -.02em; margin-top: 12px; }
+  h1 em { font-style: normal; color: var(--lime); }
+  .sub { color: var(--muted); font-size: 16px; line-height: 1.4; margin-top: 12px; }
+  .phone { position: absolute; left: 50%; transform: translateX(-50%); top: 268px; width: 340px; height: 740px;
+    border-radius: 54px; background: #000; padding: 11px; border: 2px solid #2f2f3d; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px #3a3a4a inset; }
+  .screen { width: 100%; height: 100%; border-radius: 44px; overflow: hidden; background: var(--bg) center 46px / 100% auto no-repeat; position: relative; }
+  .island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 96px; height: 28px; border-radius: 20px; background: #000; z-index: 2; }
+  .steps { position: relative; margin: 26px 26px 0; display: grid; gap: 12px; }
+  .step { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 16px; display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; }
+  .n { width: 44px; height: 44px; border-radius: 50%; background: rgba(232,255,71,.15); color: var(--lime); font-family: 'JetBrains Mono'; font-weight: 700; font-size: 18px; display: grid; place-items: center; }
+  .st { font-family: 'Space Grotesk'; font-weight: 700; font-size: 21px; }
+  .sd { color: var(--muted); font-size: 14px; margin-top: 3px; line-height: 1.35; }
+  .viz { grid-column: 1 / -1; border-radius: 18px; overflow: hidden; background: var(--hi); border: 1px solid var(--border); }
+  .call { padding: 12px; text-align: center; font-family: 'Space Grotesk'; font-weight: 800; font-size: 30px; letter-spacing: -.01em; color: var(--lime); }
+  .call span { color: var(--text); opacity: .35; margin: 0 6px; }
+  .crop { height: 132px; background-repeat: no-repeat; }
+</style></head>
+<body>
+<div class="glow"></div>
+<div id="f1" hidden>
+  <div class="head"><p class="tag">Victory AI</p>
+    <h1>Get better at boxing,<br><em>every round.</em></h1>
+    <p class="sub">Film a round. Your AI coach scores it and shows you what's improving.</p></div>
+  <div class="phone"><div class="screen" style="background-image:url(r1.png)"><div class="island"></div></div></div>
+</div>
+<div id="f2" hidden>
+  <div class="head"><p class="tag">How it works</p>
+    <h1>Prop up your phone.<br><em>Your coach does the rest.</em></h1></div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div><p class="st">Film a round</p><p class="sd">Bag, pads, shadowboxing or a circuit. The timer runs with your camera on.</p></div>
+      <div class="viz crop" style="background-image:url(t1.png); background-size: 392px auto; background-position: -22px -138px; height: 80px; border: 0;"></div></div>
+    <div class="step"><div class="n">2</div><div><p class="st">Hear your combos</p><p class="sd">Your coach calls them out loud, in words, at your level.</p></div>
+      <div class="viz call">Jab<span>·</span>Cross<span>·</span>Hook</div></div>
+    <div class="step"><div class="n">3</div><div><p class="st">See your score</p><p class="sd">What you did well, and the one thing to fix next.</p></div>
+      <div class="viz crop" style="background-image:url(r1.png); background-size: 392px auto; background-size: 330px auto; background-position: center -6px; height: 150px;"></div></div>
+  </div>
+</div>
+<div id="f3" hidden>
+  <div class="head"><p class="tag">Honest coaching</p>
+    <h1>Every score shows<br><em>what the AI saw.</em></h1>
+    <p class="sub">A timestamp for every score. If it didn't see it, it doesn't score it. Your videos stay private.</p></div>
+  <div class="phone"><div class="screen" style="background-image:url(d1.png)"><div class="island"></div></div></div>
+</div>
+<script>document.getElementById(location.hash.slice(1) || 'f1').hidden = false;</script>
+</body></html>
