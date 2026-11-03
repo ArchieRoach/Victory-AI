@@ -27,6 +27,8 @@ def test_no_invented_numbers_or_testimonials_before_launch():
 def test_real_counts_show_once_they_mean_something():
     run(server.db.users.insert_many([{"user_id": f"u{i}", "onboarding_completed": True} for i in range(120)]))
     run(server.db.sessions.insert_many([{"session_id": f"s{i}", "user_id": "u1", "rounds": [{}] * 3} for i in range(400)]))
+    assert client.get("/api/onboarding/social-proof").json()["stats"] == {}, "counts are shared for 5 minutes"
+    run(server.cache.delete("social_proof"))
     stats = client.get("/api/onboarding/social-proof").json()["stats"]
     assert stats == {"rounds_recorded": "1,200", "fighters": "120"}
 

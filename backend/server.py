@@ -59,6 +59,8 @@ from resilience import CircuitBreaker, CircuitOpen
 import gamification as gx
 import workouts as wk
 import earnings as ern
+import jobs
+from cache import cache
 from concurrent.futures import ThreadPoolExecutor
 # One breaker per third-party service (see resilience.py for why).
 MODERATION_BREAKER = CircuitBreaker("openai_moderation", timeout_seconds=5, max_concurrency=20)
@@ -72,6 +74,26 @@ _PUSH_POOL = ThreadPoolExecutor(max_workers=8, thread_name_prefix="webpush")
 
 async def _breaker_post(breaker: CircuitBreaker, client, url: str, **kwargs):
     return await breaker.call(lambda: client.post(url, **kwargs))
+
+
+async def _queue_email(payload: dict):
+    """Emails are sent by a background job, so the person who tapped never waits on Resend,
+    and a Resend hiccup is retried instead of the email being lost."""
+    if not RESEND_API_KEY or not payload.get("to") or not all(payload["to"]):
+        return
+    await jobs.enqueue(db, "email", payload)
+
+
+@jobs.handler("email")
+async def _deliver_email(payload: dict) -> dict:
+    async with httpx.AsyncClient(timeout=10) as http_client:
+        r = await _breaker_post(RESEND_BREAKER, http_client, "https://api.resend.com/emails", json=payload,
+                                headers={"Authorization": f"Bearer {RESEND_API_KEY}"})
+    if r.status_code >= 500 or r.status_code == 429:
+        raise RuntimeError(f"Resend {r.status_code}")
+    if r.status_code >= 400:
+        logger.warning(f"Resend refused an email ({r.status_code}): {payload.get('subject', '')[:80]}")
+    return {"status": r.status_code}
 
 # Livepeer webhook signing secret (optional; when set, incoming webhooks are HMAC-verified)
 LIVEPEER_WEBHOOK_SECRET = os.environ.get('LIVEPEER_WEBHOOK_SECRET', '')
@@ -768,7 +790,7 @@ async def logout(request: Request, response: Response):
 @api_router.get("/onboarding/social-proof")
 async def get_social_proof():
     try:
-        stats = await real_social_proof()
+        stats = await cache.remember("social_proof", 300, real_social_proof)
     except Exception as e:
         logger.warning(f"Social proof counts unavailable: {type(e).__name__}")
         stats = {}
@@ -1220,24 +1242,47 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
     if not quota["allowed"]:
         raise HTTPException(status_code=402, detail="ai_quota_exceeded")
 
+    job = {"user_id": user["user_id"], "video_url": video_url, "public_id": public_id, "round_number": round_number,
+           "partner_name": partner_name, "tone": feedback_tone, "focus_areas": focus_areas,
+           "combo": (user.get("active_combo") or {}).get("label")}
+    if body.get("background"):
+        # Scoring takes up to a minute: answer now and let the app check back, so a phone that
+        # drops signal mid-wait doesn't lose the round's score.
+        return {"job_id": await jobs.enqueue(db, "analyze_video", job, owner_id=user["user_id"]), "status": "queued"}
+    return await _score_round_video(job)
+
+
+@jobs.handler("analyze_video")
+async def _score_round_video(job: dict) -> dict:
+    user = {"user_id": job["user_id"]}
     try:
-        analysis = await analyze_round_video(public_id, round_number, partner_name, feedback_tone, focus_areas,
-                                             combo=(user.get("active_combo") or {}).get("label"))
+        analysis = await analyze_round_video(job["public_id"], job["round_number"], job["partner_name"], job["tone"],
+                                             job["focus_areas"], combo=job.get("combo"))
     except Exception as e:
         logger.error(f"Video analysis error: {e}")
         analysis = None
     if not analysis:
         # An unscored round shouldn't cost the fighter anything.
         await refund_ai_tokens(user, "analyze_video")
-        return generate_simulated_analysis(round_number, partner_name, focus_areas)
+        return generate_simulated_analysis(job["round_number"], job["partner_name"], job["focus_areas"])
 
     await db.round_videos.update_one(
-        {"video_url": video_url, "user_id": user["user_id"]},
+        {"video_url": job["video_url"], "user_id": job["user_id"]},
         {"$set": {"analyzed": True, "analysis_results": analysis, "analyzed_at": datetime.now(timezone.utc).isoformat(),
                   # The real length from the video host, not the phone, so verified hours can't be inflated.
-                  "video_seconds": await _video_seconds(public_id)}}
+                  "video_seconds": await _video_seconds(job["public_id"])}}
     )
-    return {"analysis": analysis, "partner_name": partner_name}
+    return {"analysis": analysis, "partner_name": job["partner_name"]}
+
+
+@api_router.get("/ai/jobs/{job_id}")
+async def get_ai_job(job_id: str, user: dict = Depends(get_current_user)):
+    job = await db.jobs.find_one({"job_id": job_id, "owner_id": user["user_id"]}, {"_id": 0, "status": 1, "result": 1})
+    if not job:
+        raise HTTPException(404, "Not found")
+    if job["status"] == "failed":
+        return {"status": "done", "result": generate_simulated_analysis(1, "Coach", [])}
+    return {"status": job["status"], "result": job.get("result")}
 
 def generate_simulated_analysis(round_number: int, partner_name: str, focus_areas: List[str]) -> dict:
     # Analysis failed or isn't configured. Returning no analysis (rather than invented
@@ -2567,6 +2612,9 @@ async def gbp_rates() -> Optional[dict]:
     always charges the GBP amount."""
     if _fx_cache["data"] and time.time() - _fx_cache["at"] < FX_TTL_SECONDS:
         return _fx_cache["data"]
+    # If the rates site is down, don't make every price request wait on it again: try every 10 minutes.
+    if time.time() - _fx_cache.get("failed_at", 0) < 600:
+        return _fx_cache["data"]
     try:
         async with httpx.AsyncClient(timeout=8) as http_client:
             r = await http_client.get("https://open.er-api.com/v6/latest/GBP")
@@ -2577,6 +2625,7 @@ async def gbp_rates() -> Optional[dict]:
                 "source": "https://www.exchangerate-api.com"}
         _fx_cache.update(at=time.time(), data=data)
     except Exception as e:
+        _fx_cache["failed_at"] = time.time()
         logger.warning(f"FX rates fetch failed: {e}")
     return _fx_cache["data"]
 
@@ -3073,7 +3122,12 @@ async def get_leaderboard(user: dict = Depends(get_current_user)):
         {"$lookup": {"from": "users", "localField": "_id", "foreignField": "user_id", "as": "user_info"}},
         {"$unwind": {"path": "$user_info", "preserveNullAndEmptyArrays": True}}
     ]
-    leaders = await db.sessions.aggregate(pipeline).to_list(50)
+    pipeline.append({"$project": {"avg_score": 1, "total_sessions": 1, "best_score": 1, "user_info": {"name": "$user_info.name"}}})
+
+    async def top_50():
+        return await db.sessions.aggregate(pipeline).to_list(50)
+    # Every fighter asks for the same top 50; one shared copy a minute instead of a full scan per open.
+    leaders = await cache.remember("leaderboard:top50", 60, top_50)
     result = []
     def _display_name(raw: str) -> str:
         # Show first name + last initial only for privacy; tolerate empty/blank names.
@@ -4277,27 +4331,22 @@ async def get_school_leaderboard(user: dict = Depends(get_current_user)):
     self-reported profile field (like weight_class or stance), set once in Profile
     settings, and this endpoint only ever aggregates over it.
     """
-    week_ago = (datetime.now(timezone.utc).date() - timedelta(days=6)).strftime("%Y-%m-%d")
-    pipeline = [
-        {"$match": {"school_name": {"$nin": [None, ""]}}},
-        {"$group": {"_id": "$school_name", "member_count": {"$sum": 1}, "user_ids": {"$push": "$user_id"}}},
-    ]
-    grouped = await db.users.aggregate(pipeline).to_list(500)
-
-    results = []
-    for g in grouped:
-        sessions_this_week = await db.sessions.count_documents({"user_id": {"$in": g["user_ids"]}, "date": {"$gte": week_ago}})
-        results.append({
-            "school_name": g["_id"],
-            "member_count": g["member_count"],
-            "sessions_this_week": sessions_this_week,
-            "is_my_school": g["_id"] == user.get("school_name"),
-        })
-    # ponytail: recomputes every school's weekly session count on every request — fine
-    # at current scale (a handful of count_documents calls per request), revisit with a
-    # cached/precomputed tally if this list gets long enough to matter.
-    results.sort(key=lambda r: r["sessions_this_week"], reverse=True)
-    return results[:100]
+    async def tally():
+        week_ago = (datetime.now(timezone.utc).date() - timedelta(days=6)).strftime("%Y-%m-%d")
+        pipeline = [
+            {"$match": {"school_name": {"$nin": [None, ""]}}},
+            {"$group": {"_id": "$school_name", "member_count": {"$sum": 1}, "user_ids": {"$push": "$user_id"}}},
+        ]
+        rows = []
+        for g in await db.users.aggregate(pipeline).to_list(500):
+            rows.append({"school_name": g["_id"], "member_count": g["member_count"],
+                         "sessions_this_week": await db.sessions.count_documents(
+                             {"user_id": {"$in": g["user_ids"]}, "date": {"$gte": week_ago}})})
+        rows.sort(key=lambda r: r["sessions_this_week"], reverse=True)
+        return rows[:100]
+    # One count per school is costly, and the table is the same for everyone: share it for 5 minutes.
+    rows = await cache.remember("leaderboard:schools", 300, tally)
+    return [{**r, "is_my_school": r["school_name"] == user.get("school_name")} for r in rows]
 
 @api_router.get("/gyms/leaderboard")
 async def get_gym_leaderboard(user: dict = Depends(get_current_user)):
@@ -6255,15 +6304,8 @@ async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current
             <p style="margin:0;line-height:1.6;">{html.escape(data.message)}</p>
           </div>
         </div>"""
-        try:
-            async with httpx.AsyncClient() as client:
-                await _breaker_post(RESEND_BREAKER, client, "https://api.resend.com/emails",
-                    headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
-                    json={"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL], "subject": f"[Victory AI] {type_label} from {doc['user_name']}", "html": email_html},
-                    timeout=5,
-                )
-        except Exception:
-            pass
+        await _queue_email({"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL],
+                            "subject": f"[Victory AI] {type_label} from {doc['user_name']}", "html": email_html})
 
     return {"feedback_id": doc["feedback_id"]}
 
@@ -6342,15 +6384,8 @@ async def report_crash(data: CrashReportCreate, request: Request):
           <p><strong>Source:</strong> {html.escape(data.source)}</p>
           {stack_html}
         </div>"""
-        try:
-            async with httpx.AsyncClient() as client:
-                await _breaker_post(RESEND_BREAKER, client, "https://api.resend.com/emails",
-                    headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
-                    json={"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL], "subject": f"[Victory AI] Crash: {data.message[:100]}", "html": email_html},
-                    timeout=5,
-                )
-        except Exception:
-            pass
+        await _queue_email({"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL],
+                            "subject": f"[Victory AI] Crash: {data.message[:100]}", "html": email_html})
 
     return {"crash_id": doc["crash_id"]}
 
@@ -6413,20 +6448,11 @@ async def create_report(data: ReportCreate, user: dict = Depends(get_current_use
         )
         hidden = result.modified_count > 0
         if hidden and RESEND_API_KEY:
-            try:
-                async with httpx.AsyncClient() as client:
-                    await _breaker_post(RESEND_BREAKER, client, "https://api.resend.com/emails",
-                        headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
-                        json={
-                            "from": RESEND_FROM,
-                            "to": [ADMIN_INBOX_EMAIL],
-                            "subject": f"[Victory AI] {data.content_type} auto-hidden after {report_count} reports",
-                            "html": f"<p>{html.escape(data.content_type)} <code>{html.escape(data.content_id)}</code> was auto-hidden after reaching {report_count} reports. Review in the <code>reports</code> and <code>{collection}</code> collections.</p>",
-                        },
-                        timeout=5,
-                    )
-            except Exception:
-                pass
+            await _queue_email({
+                "from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL],
+                "subject": f"[Victory AI] {data.content_type} auto-hidden after {report_count} reports",
+                "html": f"<p>{html.escape(data.content_type)} <code>{html.escape(data.content_id)}</code> was auto-hidden after reaching {report_count} reports. Review in the <code>reports</code> and <code>{collection}</code> collections.</p>",
+            })
 
     return {"message": "Report submitted", "content_hidden": hidden}
 
@@ -9263,6 +9289,7 @@ async def _investment_loop():
                 await _expire_gift_pro(now)
                 await _send_film_digests(now)
                 await pay_streamers(now)
+                await jobs.prune(db, now)
         except Exception as exc:
             logger.warning(f"Investment loop error: {exc}")
 
@@ -9334,12 +9361,7 @@ async def _email_fantasy_admin(subject: str, rows: dict, reply_to: Optional[str]
                "html": f"<h3>{html.escape(subject)}</h3><table>{body}</table>"}
     if reply_to:
         payload["reply_to"] = reply_to
-    try:
-        async with httpx.AsyncClient(timeout=10) as http_client:
-            await _breaker_post(RESEND_BREAKER, http_client, "https://api.resend.com/emails", json=payload,
-                                   headers={"Authorization": f"Bearer {RESEND_API_KEY}"})
-    except Exception as e:
-        logger.warning(f"[fantasy] admin email failed: {e}")
+    await _queue_email(payload)
 
 
 # ── Boxing Data API client ──────────────────────────────────────────────────
@@ -10097,11 +10119,7 @@ async def _send_email(to: str, subject: str, html_body: str, reply_to: Optional[
     payload = {"from": RESEND_FROM, "to": [to], "subject": subject, "html": html_body}
     if reply_to:
         payload["reply_to"] = reply_to
-    try:
-        async with httpx.AsyncClient(timeout=10) as http_client:
-            await _breaker_post(RESEND_BREAKER, http_client, "https://api.resend.com/emails", json=payload, headers={"Authorization": f"Bearer {RESEND_API_KEY}"})
-    except Exception as e:
-        logger.warning(f"[fantasy] email to promoter failed: {e}")
+    await _queue_email(payload)
 
 
 async def _publish_promoter_card(card_id: str, promoter_email: Optional[str]) -> dict:
@@ -13070,6 +13088,7 @@ INDEXES = {
     "gift_purchases": ["session_id"],
     "gift_pools": ["owner_id"],
     "stream_payouts": ["payout_id", "status"],
+    "jobs": ["job_id", [("status", 1), ("run_after", 1)], "owner_id"],
     "sessions": [[("user_id", 1), ("date", -1)], "session_id", "date"],
     "training_sessions": ["session_id", "user_id"],
     "round_videos": [[("session_id", 1), ("user_id", 1)], "video_url"],
@@ -13141,6 +13160,7 @@ async def startup():
     await run_once_migrations()
     _aio.create_task(ensure_indexes())
     _aio.create_task(_merch_release_loop())
+    jobs.start_workers(db, int(os.environ.get("JOB_WORKERS", "2")))
     _aio.create_task(_scheduled_stream_reminder_loop())
     _aio.create_task(_retention_cleanup_loop())
     _aio.create_task(_reengagement_loop())

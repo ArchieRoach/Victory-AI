@@ -37,6 +37,17 @@ const DEFAULT_ROUND_SECONDS = 120;
 const FIXED_ROUND_SECONDS = 180;
 // Long enough for a typical upload and score; a slow network still reaches the results.
 const FINISH_WAIT_MS = 75_000;
+// Video scoring runs as a background job; check back every 2s for up to 90s, then carry on
+// without it (the score still lands on the round when the job finishes).
+const waitForJob = async (jobId, { everyMs = 2000, maxMs = 90_000 } = {}) => {
+  const until = Date.now() + maxMs;
+  while (Date.now() < until) {
+    await new Promise((r) => setTimeout(r, everyMs));
+    const { data } = await axios.get(`${API}/ai/jobs/${jobId}`);
+    if (data.status === "done") return data.result;
+  }
+  return null;
+};
 const CALLS_KEY = "victory_combo_calls";
 const readCalls = () => { try { return localStorage.getItem(CALLS_KEY) !== "0"; } catch { return true; } };
 
@@ -420,9 +431,11 @@ export default function TrainPage() {
             session_id: sessionId, round_number: roundNum, video_url, public_id,
           }, { withCredentials: true });
           const analysisRes = await axios.post(`${API}/ai/analyze-video`, {
-            video_url, round_number: roundNum,
+            video_url, round_number: roundNum, background: true,
           }, { withCredentials: true });
-          videoAnalysis = analysisRes.data.analysis;
+          videoAnalysis = analysisRes.data.job_id
+            ? (await waitForJob(analysisRes.data.job_id))?.analysis
+            : analysisRes.data.analysis;
         }
       } catch {
         // AI quota exceeded, upload failure, etc. — silently continue without video.

@@ -123,6 +123,21 @@ def test_failed_analysis_is_unscored_and_refunded():
     assert run(server.db.users.find_one({"user_id": "u1"}))["ai_tokens_used"] == before
 
 
+def test_scoring_can_run_in_the_background_and_the_app_checks_back():
+    current["user"] = {"user_id": "u1", "training_partner": {"name": "Coach K"}}
+    use_gemini(GOOD)
+    r = client.post("/api/ai/analyze-video", json={"video_url": "https://res.cloudinary.com/victorycloud/video/upload/rounds/r1.mp4",
+                                                   "round_number": 3, "background": True})
+    job_id = r.json()["job_id"]
+    assert r.json()["status"] == "queued"
+    assert client.get(f"/api/ai/jobs/{job_id}").json()["status"] == "queued"
+    assert run(server.jobs.drain(server.db)) == 1
+    done = client.get(f"/api/ai/jobs/{job_id}").json()
+    assert done["status"] == "done" and done["result"]["analysis"]["dimension_scores"][0]["score"] == 7
+    current["user"] = {"user_id": "someone_else"}
+    assert client.get(f"/api/ai/jobs/{job_id}").status_code == 404, "only the owner can read their result"
+
+
 def test_competition_judge_reads_our_cloudinary_videos_only():
     assert cloudinary_video_public_id("https://res.cloudinary.com/victorycloud/video/upload/v1712/victory/comp/abc.mp4") == "victory/comp/abc"
     assert cloudinary_video_public_id("https://res.cloudinary.com/someoneelse/video/upload/v1/x.mp4") is None
