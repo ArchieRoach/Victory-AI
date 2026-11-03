@@ -8,7 +8,7 @@ streaks).
 ---
 
 Please rebuild the Victory AI waitlist home page so it is **much shorter and simpler**. Today it is
-about 17,000px tall on a phone with 20 sections. The new page should be **6 short sections**. Use plain
+about 17,000px tall on a phone with 20 sections. The new page should be **8 short sections**. Use plain
 words a child would understand. Keep the existing waitlist form logic, legal pages, routes and backend
 calls. Only change the layout and copy as described here.
 
@@ -42,10 +42,34 @@ Logo on the left, one lime button on the right: **"Join free"**. It scrolls to t
   when `claimed` is **100 or more**. Below that, show the badge as **"Early access"** with no number.
   Never show "0 / 1,000".
 
+### 2b. See the app (3 picture cards)
+Right under the hero, show the three app pictures as cards in a row that swipes sideways on phones
+(snap scrolling, one and a bit cards visible so people see there's more; side by side on desktop).
+Use these images and save them into the project's `public/app/` folder (don't hotlink):
+1. `https://raw.githubusercontent.com/ArchieRoach/Victory-AI/main/ios/store-screenshots/01-benefit.png`
+   (alt: "Results screen: your score and what improved")
+2. `https://raw.githubusercontent.com/ArchieRoach/Victory-AI/main/ios/store-screenshots/02-how-it-works.png`
+   (alt: "How it works: film a round, hear your combos, see your score")
+3. `https://raw.githubusercontent.com/ArchieRoach/Victory-AI/main/ios/store-screenshots/03-trust.png`
+   (alt: "Every score shows the moment the AI saw it")
+Cards: `#12121A` background, 1px `#2A2A3A` border, rounded corners, the image fills the card, no extra
+text (the pictures already have their headlines). Lazy-load them.
+
 ### 3. How it works (3 steps, one short line each)
 1. **Film a round.** Prop your phone up and box.
 2. **Hear your coach.** It shouts combos like "Jab, cross, hook" and counts every punch.
 3. **Get better every week.** Keep your streak, rank up with your squad, and see your progress.
+
+### 3b. Watch a live sparring stream (one video)
+- Heading: **"Go live from the gym."** Line under it: **"Stream your sparring. Your squad and fans
+  watch, cheer and send tips."**
+- One video, 9:16 (portrait), rounded corners, max 360px wide, centred. It plays **muted, looping,
+  automatically and inline** (`autoplay muted loop playsinline`), with a poster image, and has a
+  small "Sound on" button.
+- The video file is `public/app/sparring-live.mp4` and the poster is `public/app/sparring-live.jpg`.
+  I'll upload both. **Until the file exists, hide this whole section** (don't show a broken player
+  or a stock video).
+- Keep the file under 8 MB and load it only when the section scrolls into view.
 
 ### 4. What's inside (4 cards, max 12 words each)
 - **AI coach.** Sees your punches, guard and combos as you go.
@@ -105,5 +129,7 @@ sentence.
   scrolling.
 - The word "crew" appears nowhere on the site.
 - No hard-coded prices or spot counts.
+- The three app pictures show under the hero and swipe sideways on a phone.
+- The sparring section is hidden until `sparring-live.mp4` is uploaded.
 - The form posts to `https://victory-ai-backend-production.up.railway.app/api/waitlist/signup`
   exactly as today, with `{ name, email }`.
