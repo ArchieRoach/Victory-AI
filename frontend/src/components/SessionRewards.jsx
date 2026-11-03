@@ -12,6 +12,7 @@ import { BragButton } from "@/components/progress/BragButton";
 import { CornerSurprise } from "@/components/progress/CornerSurprise";
 import { sessionWin, glovesLine } from "@/lib/progression";
 import { haptic } from "@/lib/haptics";
+import { maybeAskForRating } from "@/lib/ratingPrompt";
 import { CoachMark } from "@/components/CoachMark";
 
 const RARITY = {
@@ -505,6 +506,12 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
   const won = Boolean(rewards?.boss?.beaten || rewards?.oracle || rewards?.unlocked_features?.length
     || rewards?.personal_bests?.new?.length || rewards?.status?.leveled_up || rewards?.easter_eggs?.new?.length);
   useEffect(() => { if (won) haptic("success"); }, [won]);
+  useEffect(() => {
+    if (!won) return undefined;
+    // Let the win land first, then ask (see lib/ratingPrompt.js).
+    const t = setTimeout(() => maybeAskForRating({ won, newcomer: Boolean(rewards?.newcomer) }), 2500);
+    return () => clearTimeout(t);
+  }, [won, rewards?.newcomer]);
   if (rewards?.freestyle) {
     return (
       <div className="space-y-3" data-testid="session-rewards">

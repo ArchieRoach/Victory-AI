@@ -55,3 +55,21 @@ scaling (or ask Claude to re-render).
 3. 12–20s: the results screen: score ring fills, "+0.8 since last session".
 4. 20–25s: the replay with a timestamp, then the app name.
 Export at 886 × 1920, H.264.
+
+## Ratings (stars show in search, next to the first picture)
+- Ratings move downloads: one study of 49 companies found 4.5-star apps convert at 96% of 5-star
+  apps, 4-star at 83% and 3-star at 57%. Below 4 stars is where it really hurts. ([NP Digital](https://neilpatel.com/marketing-stats/app-downloads-vs-ratings/),
+  [Alchemer](https://www.alchemer.com/resources/blog/mobile-ratings-good-bad-ugly/))
+- The app now asks for a rating with Apple's own sheet straight after a real win (PB, boss beaten,
+  level-up), never in someone's first sessions, never from a button, at most every 120 days
+  (`frontend/src/lib/ratingPrompt.js`). Apple shows it 3 times a year at most.
+- Launch week: ask the waitlist's first users (by email, not in the app) to leave an honest rating
+  once they've trained twice. Never offer anything in return; Apple forbids paid or swapped reviews.
+
+## Launch tools in App Store Connect
+- **In-app event "Season 1: The Golden Gloves"**: text ready in `ios/APP_STORE_LISTING.md`. Shows as a
+  card in search before launch day. ([Apple](https://developer.apple.com/app-store/in-app-events/))
+- **Product page optimisation**: once live with ~1,000 page views a week, A/B test picture 1 (benefit
+  headline vs. a real gym photo) in App Store Connect.
+- **Promotional text** can change any time without review: use it for "Season 1 starts 7 December", then
+  "Season 1 is live".
