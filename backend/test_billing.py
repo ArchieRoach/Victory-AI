@@ -141,14 +141,14 @@ def test_waitlist_keeps_the_whatsapp_number():
     server.STRIPE_FOUNDERS_COUPON_ID = ""
     import httpx
 
-    class NoN8n:
+    class NoEmail:
         def __init__(self, *a, **k): pass
         async def __aenter__(self): return self
         async def __aexit__(self, *a): return False
         async def post(self, *a, **k): return None
 
     real = server.httpx.AsyncClient
-    server.httpx.AsyncClient = NoN8n
+    server.httpx.AsyncClient = NoEmail
     try:
         r = client.post("/api/waitlist/signup", json={"name": "Alex", "email": "alex@example.com", "phone": "+447700900000"})
     finally:

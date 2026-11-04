@@ -109,8 +109,8 @@ Compiled from `backend/server.py` as of 2026-07-22 — review after any schema o
 - **Lawful basis**: Consent (Art. 6(1)(a))
 - **Data subjects**: Prospective users
 - **Data categories**: Email, name (payload minimized 2026-07-22 — no longer forwards arbitrary extra fields)
-- **Recipients**: n8n workflow (confirm operator/hosting — see `dpa-register.md` row 11), MongoDB Atlas
-- **Third-country transfer**: [Confirm n8n hosting]
+- **Recipients**: MongoDB Atlas, Resend (confirmation and early-access emails); the n8n workflow was removed on 4 Nov 2026
+- **Third-country transfer**: as for Resend
 - **Retention**: 12 months if unconverted, enforced by an automated daily cleanup job; deleted immediately on account deletion if the same email later signs up
 - **Security measures**: Rate-limited signup endpoint, minimized payload
 
