@@ -188,8 +188,8 @@ Do now (before any fighter signs up):
 
 Later, once pros start applying (the inbox emails tell you when):
 4. **Verify pros:** each application emails hello@victoryai.co.uk. Check it's really them (BoxRec,
-   verified Instagram DM, promoter), then approve: `POST /api/admin/pro/<user_id>/verify` with
-   `{"approve": true, "fantasy_fighter_id": "<Boxing Data fighter id, optional>"}`.
+   verified Instagram DM, promoter), then tap **Approve or reject** in the email and choose. (To link
+   their Fantasy fighter as well, `POST /api/admin/pro/<user_id>/verify` with `fantasy_fighter_id`.)
 5. **Approve talking clips** when the email arrives: `POST /api/admin/pro/<user_id>/clips/<moment>/approve`.
 6. **Order problems** email the same inbox: `POST /api/admin/orders/<order_id>/resolve` with
    `{"action": "refund"}` or `{"action": "release"}`.
