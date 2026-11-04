@@ -2600,7 +2600,9 @@ async def _new_founder_code() -> Optional[str]:
     if not (STRIPE_API_KEY and STRIPE_FOUNDERS_COUPON_ID) or not await _claim_founder_spot():
         return None
     try:
-        promo = await asyncio.to_thread(stripe_lib.PromotionCode.create, coupon=STRIPE_FOUNDERS_COUPON_ID,
+        # Stripe's 2025-09 API moved the coupon into `promotion`; the old `coupon=` is refused.
+        promo = await asyncio.to_thread(stripe_lib.PromotionCode.create,
+                                        promotion={"type": "coupon", "coupon": STRIPE_FOUNDERS_COUPON_ID},
                                         code=f"FOUNDER{uuid.uuid4().hex[:8].upper()}", max_redemptions=1)
         return promo.code
     except Exception as e:

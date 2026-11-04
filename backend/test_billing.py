@@ -177,7 +177,9 @@ class FakePromoCreate:
     n = 0
 
     @staticmethod
-    def create(coupon, code, max_redemptions):
+    def create(promotion, code, max_redemptions):
+        # Stripe's current API: the coupon goes inside `promotion` (a bare `coupon=` is refused).
+        assert promotion["type"] == "coupon" and promotion["coupon"]
         FakePromoCreate.n += 1
         return SimpleNamespace(code=code)
 

@@ -135,7 +135,8 @@ def test_people_who_joined_while_the_discount_was_missing_get_their_founder_code
                                      {"email": "had@x.com", "promo_code": "FOUNDEROLD1", "created_at": "2026-10-01"}]))
         assert run(server.backfill_founder_codes()) == 2
         assert run(server.backfill_founder_codes()) == 0, "only once"
-        assert all(k["coupon"] == "FOUNDERS40" and k["max_redemptions"] == 1 for k in made)
+        assert all(k["promotion"] == {"type": "coupon", "coupon": "FOUNDERS40"} and "coupon" not in k
+                   and k["max_redemptions"] == 1 for k in made), "the shape Stripe's current API accepts"
         assert run(fresh.waitlist.find_one({"email": "first@x.com"}))["promo_code"].startswith("FOUNDER")
         assert run(fresh.waitlist.find_one({"email": "had@x.com"}))["promo_code"] == "FOUNDEROLD1"
     finally:
