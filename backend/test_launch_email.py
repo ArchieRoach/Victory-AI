@@ -145,6 +145,24 @@ def test_people_who_joined_while_the_discount_was_missing_get_their_founder_code
         server.STRIPE_FOUNDERS_COUPON_ID = ""
 
 
+def test_one_hourly_job_failing_doesnt_stop_the_founder_codes():
+    ran = []
+
+    async def boom(now):
+        raise RuntimeError("push service down")
+
+    async def codes():
+        ran.append("codes")
+        return 3
+    real = (server._send_weekly_reminders, server.backfill_founder_codes)
+    server._send_weekly_reminders, server.backfill_founder_codes = boom, codes
+    try:
+        out = run(server.run_hourly_jobs(BEFORE))
+    finally:
+        server._send_weekly_reminders, server.backfill_founder_codes = real
+    assert out["weekly_reminders"] == "failed" and out["founder_codes"] == 3 and ran == ["codes"]
+
+
 def test_the_unsubscribe_link_works_and_cant_be_forged():
     url = launch_email.unsubscribe_url("", "fan2@example.com", server.JWT_SECRET)
     assert client.get("/api/waitlist/unsubscribe?e=fan2@example.com&t=wrong").status_code == 400

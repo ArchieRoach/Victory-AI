@@ -9402,20 +9402,35 @@ async def _investment_loop():
             await _expire_callouts(now)
             await _start_booking_countdowns(now)
             await _start_callout_countdowns(now)
-            hour_key = now.strftime("%Y%m%d%H")
-            if hour_key != last_hourly:
-                last_hourly = hour_key
-                await _send_weekly_reminders(now)
-                await _send_habit_reminders(now)
-                await _send_streak_nudges(now)
-                await _expire_gift_pro(now)
-                await _send_film_digests(now)
-                await pay_streamers(now)
-                await backfill_founder_codes()
-                await send_launch_emails(now)
-                await jobs.prune(db, now)
         except Exception as exc:
             logger.warning(f"Investment loop error: {exc}")
+        hour_key = now.strftime("%Y%m%d%H")
+        if hour_key != last_hourly:
+            last_hourly = hour_key
+            await run_hourly_jobs(now)
+
+
+async def run_hourly_jobs(now: datetime) -> dict:
+    """Each job runs on its own, so one failing (a push service down, a bad record) can't stop the
+    others: founder codes, streamer payouts and the launch email must never wait on a reminder."""
+    results = {}
+    for name, job in (("weekly_reminders", lambda: _send_weekly_reminders(now)),
+                      ("habit_reminders", lambda: _send_habit_reminders(now)),
+                      ("streak_nudges", lambda: _send_streak_nudges(now)),
+                      ("expire_gift_pro", lambda: _expire_gift_pro(now)),
+                      ("film_digests", lambda: _send_film_digests(now)),
+                      ("pay_streamers", lambda: pay_streamers(now)),
+                      ("founder_codes", backfill_founder_codes),
+                      ("launch_emails", lambda: send_launch_emails(now)),
+                      ("prune_jobs", lambda: jobs.prune(db, now))):
+        try:
+            results[name] = await job()
+        except Exception as exc:
+            results[name] = "failed"
+            logger.error(f"Hourly job {name} failed: {type(exc).__name__}: {exc}")
+    if results.get("founder_codes"):
+        logger.info(f"Founder codes given: {results['founder_codes']}")
+    return results
 
 
 # ============== FANTASY BOXING ==============
