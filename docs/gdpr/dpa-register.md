@@ -16,7 +16,7 @@ Each row should cite back to a processing activity in `ropa.md`.
 | 8 | Vercel | Frontend hosting | Request/IP logs | All (transit) | [confirm] | ☐ Not started | | | |
 | 9 | Railway | Backend hosting (`backend/server.py`) | Request/IP logs, DB access | All (transit) | [confirm] | ☐ Not started | | | Confirmed production host per project config — no longer an open question |
 | ~~10~~ | ~~Emergent (`demobackend.emergentagent.com`)~~ | ~~Auth/identity/OAuth~~ | — | — | — | ✅ N/A — removed | 2026-07-22 | | Was dead code (no frontend route reached it) and a live auth-bypass surface. Endpoint and its only caller (`AuthCallback.jsx`) deleted outright rather than DPA'd — see RoPA Activity #1, now Clerk |
-| 11 | n8n webhook operator | Waitlist signup forwarding | Email, name | #10 | [confirm] | ☐ Not started | | | Confirm who hosts/operates the n8n instance receiving this webhook. Payload minimized 2026-07-22 (was forwarding arbitrary extra fields — no longer does) |
+| 11 | ~~n8n webhook operator~~ (removed 4 Nov 2026) | No longer used: waitlist emails are sent by our backend through Resend | — | #10 | n/a | ✅ Removed | | | Confirm who hosts/operates the n8n instance receiving this webhook. Payload minimized 2026-07-22 (was forwarding arbitrary extra fields — no longer does) |
 
 **Status legend**: ☐ Not started · ◐ Requested/pending · ✅ Confirmed · ⚠️ Needs legal review
 

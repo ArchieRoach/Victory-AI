@@ -2595,6 +2595,37 @@ def launch_info(today: Optional[date] = None) -> dict:
             "launched": today >= SEASON_EPOCH}
 
 
+async def _new_founder_code() -> Optional[str]:
+    """A single-use Stripe code for the founders' discount, if a founder spot is left."""
+    if not (STRIPE_API_KEY and STRIPE_FOUNDERS_COUPON_ID) or not await _claim_founder_spot():
+        return None
+    try:
+        promo = await asyncio.to_thread(stripe_lib.PromotionCode.create, coupon=STRIPE_FOUNDERS_COUPON_ID,
+                                        code=f"FOUNDER{uuid.uuid4().hex[:8].upper()}", max_redemptions=1)
+        return promo.code
+    except Exception as e:
+        logger.error(f"Stripe promo code creation failed: {e}")
+        await _release_founder_spot()
+        return None
+
+
+async def backfill_founder_codes() -> int:
+    """People who joined while the founders' discount wasn't set up (e.g. during the move to the new
+    Stripe account) were promised founding pricing too: give them their code, oldest first, while
+    spots last."""
+    if not (STRIPE_API_KEY and STRIPE_FOUNDERS_COUPON_ID):
+        return 0
+    given = 0
+    async for entry in db.waitlist.find({"promo_code": {"$in": [None, ""]}, "founder_checked": {"$ne": True}},
+                                        {"_id": 0, "email": 1}).sort("created_at", 1):
+        code = await _new_founder_code()
+        if not code:
+            break  # spots are gone, or Stripe said no: try again next hour
+        await db.waitlist.update_one({"email": entry["email"]}, {"$set": {"promo_code": code, "founder_checked": True}})
+        given += 1
+    return given
+
+
 @api_router.get("/waitlist/stats")
 async def waitlist_stats(request: Request):
     client_ip = request.client.host if request.client else "unknown"
@@ -2689,21 +2720,7 @@ async def waitlist_signup(request: Request, data: WaitlistSignup):
 
     # Founding pricing is for the first FOUNDER_SPOTS_LIMIT only; after that people still
     # join the waitlist (the free tier is open to everyone) but get no founder code.
-    promo_code_str = None
-    if await _claim_founder_spot():
-        promo_code_str = f"FOUNDER{uuid.uuid4().hex[:8].upper()}"
-        try:
-            promo = await asyncio.to_thread(
-                stripe_lib.PromotionCode.create,
-                coupon=STRIPE_FOUNDERS_COUPON_ID,
-                code=promo_code_str,
-                max_redemptions=1,
-            )
-            promo_code_str = promo.code
-        except Exception as e:
-            logger.error(f"Stripe promo code creation failed: {e}")
-            await _release_founder_spot()
-            promo_code_str = None
+    promo_code_str = await _new_founder_code()
 
     # Store in waitlist collection
     await db.waitlist.insert_one({
@@ -2714,38 +2731,58 @@ async def waitlist_signup(request: Request, data: WaitlistSignup):
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
 
-    # Forward full payload to n8n
-    try:
-        payload = data.model_dump()
-        payload["promo_code"] = promo_code_str
-        async with httpx.AsyncClient() as client:
-            await client.post(
-                "https://n8n.srv964449.hstgr.cloud/webhook/boxing-waitlist",
-                json=payload,
-                timeout=5,
-            )
-    except Exception as e:
-        logger.error(f"n8n forward failed: {e}")
+    # The confirmation email (this used to be an n8n workflow). After early access opens, people
+    # who join get the "you're in" email straight away instead.
+    entry = {"email": data.email, "name": data.name or "", "promo_code": promo_code_str}
+    percent = await _founder_percent() if promo_code_str else None
+    now = datetime.now(timezone.utc)
+    if _launch_due(now):
+        await db.waitlist.update_one({"email": data.email}, {"$set": {"launch_email_at": now.isoformat()}})
+        await _queue_email(_launch_payload(entry, percent))
+    else:
+        await _queue_email(_welcome_payload(entry, percent))
 
     return {"message": "Signed up successfully", "promo_code": promo_code_str,
             "founder": promo_code_str is not None, "founder_spots": await founder_spots()}
 
 # ---- Early-access email to the waitlist (copy and reasoning in launch_email.py) ----
 # Sends itself in the hourly loop once LAUNCH_EMAIL_AT has passed. Off until it's set in Railway
-# (e.g. 2026-11-30T08:00:00+00:00), so it can't double up with an n8n or Lovable email nobody checked.
+# (e.g. 2026-11-30T08:00:00+00:00), so it only goes out once the old n8n workflow is switched off.
 LAUNCH_EMAIL_AT = os.environ.get("LAUNCH_EMAIL_AT", "off")
 PUBLIC_API_URL = os.environ.get("PUBLIC_API_URL", "https://victory-ai-backend-production.up.railway.app").rstrip("/")
 APP_STORE_URL = os.environ.get("APP_STORE_URL", "")
 LAUNCH_EMAIL_BATCH = 100  # Resend's batch limit
 
 
-def _launch_payload(entry: dict) -> dict:
+async def _founder_percent() -> Optional[float]:
+    try:
+        return (await _founder_coupon() or {}).get("percent_off")
+    except Exception as e:
+        logger.warning(f"Founder coupon lookup failed: {e}")
+        return None
+
+
+def _mail(email: str, msg: dict, unsub: str) -> dict:
+    return {"from": RESEND_FROM, "to": [email], "subject": msg["subject"], "html": msg["html"], "text": msg["text"],
+            "headers": {"List-Unsubscribe": f"<{unsub}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}}
+
+
+def _launch_payload(entry: dict, percent_off: Optional[float] = None) -> dict:
     email = entry["email"]
     unsub = launch_mail.unsubscribe_url(PUBLIC_API_URL, email, JWT_SECRET)
     msg = launch_mail.render(entry.get("name"), email, bool(entry.get("promo_code")), FRONTEND_URL, unsub,
-                             STANDARD_TRIAL_DAYS, FOUNDER_TRIAL_DAYS, APP_STORE_URL or None)
-    return {"from": RESEND_FROM, "to": [email], "subject": msg["subject"], "html": msg["html"], "text": msg["text"],
-            "headers": {"List-Unsubscribe": f"<{unsub}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}}
+                             STANDARD_TRIAL_DAYS, FOUNDER_TRIAL_DAYS, APP_STORE_URL or None,
+                             promo_code=entry.get("promo_code"), percent_off=percent_off)
+    return _mail(email, msg, unsub)
+
+
+def _welcome_payload(entry: dict, percent_off: Optional[float] = None) -> dict:
+    email = entry["email"]
+    unsub = launch_mail.unsubscribe_url(PUBLIC_API_URL, email, JWT_SECRET)
+    msg = launch_mail.render_welcome(entry.get("name"), email, bool(entry.get("promo_code")), unsub,
+                                     STANDARD_TRIAL_DAYS, FOUNDER_TRIAL_DAYS, promo_code=entry.get("promo_code"),
+                                     percent_off=percent_off)
+    return _mail(email, msg, unsub)
 
 
 @jobs.handler("email_batch")
@@ -2775,6 +2812,7 @@ async def send_launch_emails(now: datetime) -> int:
     if not _launch_due(now):
         return 0
     queued = 0
+    percent = await _founder_percent()
     while True:
         batch = []
         async for entry in db.waitlist.find({"launch_email_at": {"$exists": False}, "unsubscribed": {"$ne": True}},
@@ -2782,7 +2820,7 @@ async def send_launch_emails(now: datetime) -> int:
             claimed = await db.waitlist.update_one({"email": entry["email"], "launch_email_at": {"$exists": False}},
                                                    {"$set": {"launch_email_at": now.isoformat()}})
             if claimed.modified_count:
-                batch.append(_launch_payload(entry))
+                batch.append(_launch_payload(entry, percent))
         if not batch:
             return queued
         await jobs.enqueue(db, "email_batch", {"emails": batch})
@@ -2794,7 +2832,10 @@ async def test_launch_email(user: dict = Depends(get_current_user)):
     if not await is_admin(user):
         raise HTTPException(403, "Admins only")
     entry = await db.waitlist.find_one({"email": user.get("email")}) or {}
-    await _queue_email(_launch_payload({"email": user.get("email"), "name": user.get("name"), "promo_code": entry.get("promo_code")}))
+    me = {"email": user.get("email"), "name": user.get("name"), "promo_code": entry.get("promo_code")}
+    percent = await _founder_percent()
+    await _queue_email(_welcome_payload(me, percent))
+    await _queue_email(_launch_payload(me, percent))
     return {"sent_to": user.get("email"), "sends_to_everyone_at": LAUNCH_EMAIL_AT,
             "waiting": await db.waitlist.count_documents({"launch_email_at": {"$exists": False}, "unsubscribed": {"$ne": True}})}
 
@@ -9368,6 +9409,7 @@ async def _investment_loop():
                 await _expire_gift_pro(now)
                 await _send_film_digests(now)
                 await pay_streamers(now)
+                await backfill_founder_codes()
                 await send_launch_emails(now)
                 await jobs.prune(db, now)
         except Exception as exc:
