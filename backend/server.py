@@ -14,6 +14,7 @@ import html
 import secrets
 import uuid
 import hashlib
+import hmac
 from datetime import datetime, timezone, timedelta, date
 import httpx
 import bcrypt
@@ -5179,7 +5180,8 @@ async def pro_apply(data: ProApplication, user: dict = Depends(get_current_user)
     await _email_fantasy_admin(f"Pro Fighter Card request: {data.alias} ({data.ring_name})", {
         "Fighter": data.ring_name, "Alias": data.alias, "Division": data.division, "Record": data.record,
         "BoxRec": data.boxrec_url or "-", "Instagram": data.instagram or "-", "Proof": data.proof or "-",
-        "Next": f"Check it, then POST /api/admin/pro/{user['user_id']}/verify"}, reply_to=user.get("email"))
+        "Next": "Check it's really them (BoxRec, a verified Instagram DM or their promoter), then tap the button."},
+        reply_to=user.get("email"), button=("Approve or reject", _pro_review_url(user["user_id"])))
     return {"status": "pending"}
 
 
@@ -5213,14 +5215,70 @@ async def admin_verify_pro(user_id: str, data: ProVerify, user: dict = Depends(g
               "pro.reviewed_at": datetime.now(timezone.utc).isoformat()}
     if data.fantasy_fighter_id:
         update["pro.fantasy_fighter_id"] = data.fantasy_fighter_id
-    if data.approve:
+    return {"ok": True, "status": await _set_pro_status(user_id, target, data.approve, data.note, update)}
+
+
+async def _set_pro_status(user_id: str, target: dict, approve: bool, note: Optional[str] = None,
+                          update: Optional[dict] = None) -> str:
+    update = update or {"pro.status": "verified" if approve else "rejected", "pro.review_note": note,
+                        "pro.reviewed_at": datetime.now(timezone.utc).isoformat()}
+    if approve:
         update["pro.verified_at"] = datetime.now(timezone.utc).isoformat()
     await db.users.update_one({"user_id": user_id}, {"$set": update})
     alias = target["pro"].get("alias") or "Your Fighter Card"
-    await _send_push(user_id, title=f"{alias} is verified" if data.approve else "Fighter Card update",
-                     body="Your Fighter Card is live. Add your merch." if data.approve else (data.note or "We couldn't verify it yet."),
+    await _send_push(user_id, title=f"{alias} is verified" if approve else "Fighter Card update",
+                     body="Your Fighter Card is live. Add your merch." if approve else (note or "We couldn't verify it yet."),
                      url="/pro/dashboard", tag="pro-verify")
-    return {"ok": True, "status": update["pro.status"]}
+    return update["pro.status"]
+
+
+# One-tap review from the application email: the link carries a signed token (only our server can
+# make one), and the page asks before acting, so an email scanner opening the link changes nothing.
+def _pro_review_token(user_id: str) -> str:
+    return hmac.new(JWT_SECRET.encode(), f"pro-review:{user_id}".encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def _pro_review_url(user_id: str) -> str:
+    return f"{PUBLIC_API_URL}/api/admin/pro/{user_id}/review?t={_pro_review_token(user_id)}"
+
+
+def _review_page(title: str, inner: str) -> HTMLResponse:
+    return HTMLResponse("<!doctype html><meta name=viewport content='width=device-width,initial-scale=1'>"
+                        "<body style='background:#0A0A0F;color:#F0F0F5;font-family:sans-serif;padding:28px;max-width:520px;margin:auto'>"
+                        f"<h2>{html.escape(title)}</h2>{inner}</body>")
+
+
+@api_router.get("/admin/pro/{user_id}/review")
+async def pro_review_page(user_id: str, t: str = ""):
+    if not hmac.compare_digest(_pro_review_token(user_id), t or ""):
+        return _review_page("That link didn't work", "")
+    target = await db.users.find_one({"user_id": user_id}, {"pro": 1}) or {}
+    pro = target.get("pro")
+    if not pro:
+        return _review_page("No application found", "")
+    rows = "".join(f"<p style='margin:4px 0'><span style='color:#8888A0'>{k}:</span> {html.escape(str(pro.get(f) or '-'))}</p>"
+                   for k, f in (("Alias", "alias"), ("Ring name", "ring_name"), ("Division", "division"),
+                                ("Record", "record"), ("BoxRec", "boxrec_url"), ("Instagram", "instagram"),
+                                ("Status", "status")))
+    btn = "padding:14px 22px;border-radius:999px;border:0;font-weight:700;font-size:16px;margin:16px 8px 0 0"
+    form = (f"<form method=post><input type=hidden name=t value='{html.escape(t)}'>"
+            f"<button name=action value=approve style='{btn};background:#E8FF47;color:#0A0A0F'>Approve</button>"
+            f"<button name=action value=reject style='{btn};background:#2A2A3A;color:#F0F0F5'>Reject</button></form>")
+    return _review_page(f"Fighter Card: {pro.get('alias') or ''}", rows + form)
+
+
+@api_router.post("/admin/pro/{user_id}/review")
+async def pro_review_submit(user_id: str, request: Request):
+    form = await request.form()
+    if not hmac.compare_digest(_pro_review_token(user_id), str(form.get("t") or "")):
+        return _review_page("That link didn't work", "")
+    target = await db.users.find_one({"user_id": user_id}, {"pro": 1}) or {}
+    if not target.get("pro"):
+        return _review_page("No application found", "")
+    approve = form.get("action") == "approve"
+    status = await _set_pro_status(user_id, target, approve)
+    return _review_page("Approved. Their Fighter Card is live." if status == "verified" else "Rejected.",
+                        "<p style='color:#8888A0'>They've been sent a notification. You can close this page.</p>")
 
 
 @api_router.get("/admin/pro/applications")
@@ -9489,15 +9547,20 @@ async def is_fantasy_admin(user: dict) -> bool:
     return await is_admin(user)
 
 
-async def _email_fantasy_admin(subject: str, rows: dict, reply_to: Optional[str] = None):
-    """Monetisation and data-review notices go to the admin inbox (hello@victoryai.co.uk)."""
+async def _email_fantasy_admin(subject: str, rows: dict, reply_to: Optional[str] = None,
+                               button: Optional[tuple] = None):
+    """Monetisation and data-review notices go to the admin inbox (hello@victoryai.co.uk).
+    `button` is (label, url) for a one-tap action such as approving a fighter."""
     if not RESEND_API_KEY:
         logger.info(f"[fantasy] email skipped (no RESEND_API_KEY): {subject}")
         return
     body = "".join(f"<tr><td style='padding:4px 12px 4px 0;color:#888'>{html.escape(str(k))}</td>"
                    f"<td style='padding:4px 0'>{html.escape(str(v))}</td></tr>" for k, v in rows.items())
+    cta = (f"<p style='margin-top:18px'><a href='{html.escape(button[1])}' style='background:#E8FF47;color:#0A0A0F;"
+           f"padding:12px 22px;border-radius:999px;font-weight:700;text-decoration:none'>{html.escape(button[0])}</a></p>"
+           if button else "")
     payload = {"from": RESEND_FROM, "to": [FANTASY_ADMIN_EMAIL], "subject": f"[Victory Fantasy] {subject}",
-               "html": f"<h3>{html.escape(subject)}</h3><table>{body}</table>"}
+               "html": f"<h3>{html.escape(subject)}</h3><table>{body}</table>{cta}"}
     if reply_to:
         payload["reply_to"] = reply_to
     await _queue_email(payload)

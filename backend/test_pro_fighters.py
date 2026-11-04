@@ -145,6 +145,22 @@ def test_apply_then_admin_verifies_and_the_card_goes_public():
     assert [p["alias"] for p in client.get("/api/pros").json()["pros"]] == ["The Reaper"]
 
 
+def test_the_application_email_has_a_one_tap_review_link_that_asks_first():
+    url = server._pro_review_url("u_reaper")
+    path = url.split(".app", 1)[1]
+    assert "Approve" in client.get(path).text, "the page asks before doing anything"
+    assert "That link didn" in client.get("/api/admin/pro/u_reaper/review?t=forged").text
+    forged = client.post("/api/admin/pro/u_reaper/review", data={"t": "forged", "action": "reject"})
+    assert "That link didn" in forged.text
+    assert run(server.db.users.find_one({"user_id": "u_reaper"}))["pro"]["status"] == "verified", "forged link changed nothing"
+    token = path.split("t=")[1]
+    client.post("/api/admin/pro/u_reaper/review", data={"t": token, "action": "reject"})
+    assert run(server.db.users.find_one({"user_id": "u_reaper"}))["pro"]["status"] == "rejected"
+    r = client.post("/api/admin/pro/u_reaper/review", data={"t": token, "action": "approve"})
+    assert "Approved" in r.text
+    assert run(server.db.users.find_one({"user_id": "u_reaper"}))["pro"]["status"] == "verified"
+
+
 def test_under_18s_cant_apply():
     as_user({"user_id": "u_kid"})
     run(server.db.users.insert_one({"user_id": "u_kid", "birth_date": "2014-01-01"}))
