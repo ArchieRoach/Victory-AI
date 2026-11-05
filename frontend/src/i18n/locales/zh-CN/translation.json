@@ -186,8 +186,9 @@
       "body_shot": "腹部击打"
     },
     "favorite_fighter": {
-      "question": "你最喜欢的历史拳王是谁？",
-      "subtitle": "你的训练伙伴形象将从他身上获得灵感"
+      "question": "你希望哪位拳手当你的教练？",
+      "subtitle": "你的训练伙伴形象将从他身上获得灵感",
+      "other": "其他人"
     },
     "personalized": {
       "title": "这是我们听到的",

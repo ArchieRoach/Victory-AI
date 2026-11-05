@@ -43,6 +43,26 @@ def test_the_goal_they_pick_becomes_their_profile_goal():
     assert run(server.db.users.find_one({"user_id": "u_goal"}))["primary_goal"] == "Get fitter"
 
 
+def test_an_account_with_no_birth_date_can_add_it_once():
+    current["user"] = {"user_id": "u_old"}
+    run(server.db.users.insert_one({"user_id": "u_old"}))
+    r = client.post("/api/pro/apply", json={"alias": "Test Fighter", "ring_name": "Archie", "division": "Lightweight", "record": "0-0-0"})
+    assert r.status_code == 403 and "date of birth" in r.json()["detail"], "says what's missing, not 'you're under 18'"
+    assert client.post("/api/users/me/birth-date", json={"birth_date": "2099-01-01"}).status_code == 400
+    assert client.post("/api/users/me/birth-date", json={"birth_date": "2015-01-01"}).status_code == 403, "under 13"
+    ok = client.post("/api/users/me/birth-date", json={"birth_date": "2000-05-01"})
+    assert ok.status_code == 200 and ok.json()["adult"] is True
+    assert client.post("/api/users/me/birth-date", json={"birth_date": "1990-01-01"}).status_code == 409, "only once"
+    assert run(server.db.users.find_one({"user_id": "u_old"}))["birth_date"] == "2000-05-01"
+
+
+def test_a_typed_in_coach_name_is_kept_short():
+    current["user"] = {"user_id": "u_goal"}
+    long = client.post("/api/onboarding/submit", json={"birth_date": "2000-01-01", "biggest_frustration": "footwork",
+                                                       "experience_level": "1_3_years", "favorite_fighter": "x" * 41})
+    assert long.status_code == 422
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:

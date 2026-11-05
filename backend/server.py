@@ -319,7 +319,7 @@ class OnboardingAnswers(BaseModel):
     boxing_stance: Optional[str] = None
     primary_goal: Optional[str] = Field(None, max_length=60)
     training_partner_style: Optional[str] = None
-    favorite_fighter: Optional[str] = None
+    favorite_fighter: Optional[str] = Field(None, max_length=40)
 
 class TrainingPartnerCreate(BaseModel):
     name: str
@@ -805,6 +805,30 @@ async def get_partner_styles():
 def _age_years(birth_date: date) -> int:
     today = date.today()
     return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+
+class BirthDateIn(BaseModel):
+    birth_date: str
+
+
+# Accounts made before onboarding asked for a birth date (or moved over from the old sign-in) have
+# none, and an unknown age gets the under-18 defaults, so adults were told 18+ features weren't for
+# them. They can add it once; it can't be changed afterwards, so it can't be retried to get past a gate.
+@api_router.post("/users/me/birth-date")
+async def set_missing_birth_date(data: BirthDateIn, user: dict = Depends(get_current_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"birth_date": 1}) or {}
+    if fresh.get("birth_date"):
+        raise HTTPException(409, "Your date of birth is already saved. Email hello@victoryai.co.uk if it's wrong.")
+    try:
+        born = date.fromisoformat(data.birth_date[:10])
+    except ValueError:
+        raise HTTPException(400, "Enter your date of birth")
+    if born > date.today() or _age_years(born) > 110:
+        raise HTTPException(400, "Enter your real date of birth")
+    if _age_years(born) < 13:
+        raise HTTPException(403, "You must be at least 13 years old to use Victory AI")
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"birth_date": born.isoformat()}})
+    return {"birth_date": born.isoformat(), "adult": _age_years(born) >= 18}
+
 
 @api_router.post("/onboarding/submit")
 async def submit_onboarding(answers: OnboardingAnswers, user: dict = Depends(get_current_user)):
@@ -2345,6 +2369,7 @@ async def my_earnings(user: dict = Depends(get_current_user)):
     return {**ern.summarise(rows, datetime.now(timezone.utc)),
             "share_pct": round(ern.STREAMER_SHARE * 100), "hold_days": ern.HOLD_DAYS,
             "payout_min_pence": ern.PAYOUT_MIN_PENCE, "cash_out": not _is_minor(user), "payouts_open": True,
+            "age_unknown": not user.get("birth_date"),
             "payouts_ready": _payout_account(fresh)["ready"],
             "recent": [{k: r.get(k) for k in ("source", "share_pence", "created_at", "available_at", "status")} for r in rows[:20]]}
 
@@ -5167,6 +5192,8 @@ async def pro_apply(data: ProApplication, user: dict = Depends(get_current_user)
     if _rate_limited(f"pro_apply:{user['user_id']}", 3, 3600):
         raise HTTPException(429, "Slow down a little")
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"pro": 1, "birth_date": 1}) or {}
+    if not fresh.get("birth_date"):
+        raise HTTPException(403, "Add your date of birth first (Pro Fighter Cards are for adults).")
     if _is_minor(fresh):
         raise HTTPException(403, "Pro Fighter Cards are for adults (18+)")
     if (fresh.get("pro") or {}).get("status") == "verified":

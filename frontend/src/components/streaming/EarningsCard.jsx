@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Banknote, Clock, CheckCircle2 } from "lucide-react";
 import { API } from "@/App";
+import { BirthDateCard } from "@/components/BirthDateCard";
 
 // What a streamer keeps from their streams (rules and reasoning in backend/earnings.py).
 // Shown in pounds, the way they'll be paid, so the money feels real as it adds up.
@@ -30,6 +31,11 @@ export function EarningsCard() {
 
   if (e === false) return null;
   if (!e) return <div className="skeleton-shimmer h-40 rounded-lg" />;
+
+  if (e.age_unknown) {
+    return <BirthDateCard why="Cashing out is for streamers aged 18 and over, and we don't have your date of birth yet."
+      onSaved={() => window.location.reload()} />;
+  }
 
   if (!e.cash_out) {
     return (

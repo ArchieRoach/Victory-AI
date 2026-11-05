@@ -186,8 +186,9 @@
       "body_shot": "Cios w korpus"
     },
     "favorite_fighter": {
-      "question": "Kto jest Twoim ulubionym bokserem wszech czasów?",
-      "subtitle": "Wygląd Twojego partnera będzie zainspirowany nim"
+      "question": "Którego z tych bokserów chciałbyś mieć jako trenera?",
+      "subtitle": "Wygląd Twojego partnera będzie zainspirowany nim",
+      "other": "Ktoś inny"
     },
     "personalized": {
       "title": "Oto co usłyszeliśmy",
