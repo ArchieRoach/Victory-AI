@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { whyWeAsk } from "@/lib/onboardingWhy";
+import { previousStep, cleanFighterName } from "@/lib/onboardingBack";
 import { GOALS } from "@/lib/goals";
 import { labelLines, planLines } from "@/lib/onboardingPitch";
 import { withCue } from "@/lib/verbalCues";
@@ -96,8 +97,12 @@ const AffirmationPhase = ({ stats, onNext }) => {
 };
 
 // PHASE 2: WHY HOOK
-const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }) => {
+const OTHER_FIGHTER = "__other";
+
+const WhyHookPhase = ({ onAnswer, currentQuestion, answers, submitting }) => {
   const { t } = useTranslation();
+  const [typing, setTyping] = useState(false);
+  const [otherName, setOtherName] = useState("");
 
   // C: clarify why they're here first; O: then what's held them back.
   const questions = [
@@ -143,26 +148,32 @@ const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }
         { value: "Canelo Alvarez", label: "Canelo Alvarez", icon: "🌹" },
         { value: "Manny Pacquiao", label: "Manny Pacquiao", icon: "🇵🇭" },
         { value: "Artur Beterbiev", label: "Artur Beterbiev", icon: "💪" },
+        { value: "Dmitry Bivol", label: "Dmitry Bivol", icon: "🎯" },
         { value: "Roberto Duran", label: "Roberto Duran", icon: "✊" },
+        { value: OTHER_FIGHTER, label: t("onboarding.favorite_fighter.other", "Someone else"), icon: "✍️" },
       ],
     },
   ];
 
   const q = questions[currentQuestion];
   if (!q) return null;
+  const showTyping = typing && q.id === "favorite_fighter";
 
   const questionsLeft = questions.length - currentQuestion;
 
+  const pick = (option) => {
+    if (option.value === OTHER_FIGHTER) { setTyping(true); return; }
+    onAnswer(q.id, option.value);
+  };
+  const submitOther = (e) => {
+    e.preventDefault();
+    const name = cleanFighterName(otherName);
+    if (!name) return toast.error(t("onboarding.favorite_fighter.otherInvalid", "Type a boxer's name, like Naseem Hamed."));
+    onAnswer(q.id, name);
+  };
+
   return (
     <div className="animate-fade-in">
-      {currentQuestion > 0 && (
-        <button
-          onClick={onBack}
-          className="text-victory-muted text-sm flex items-center gap-1 touch-target -ml-2 mb-1 hover:text-victory-text"
-        >
-          <ChevronLeft className="w-4 h-4" /> {t("common.back", "Back")}
-        </button>
-      )}
       <div className="mb-6">
         <p className="text-victory-lime text-xs font-bold uppercase tracking-wider mb-2">
           {questionsLeft === 1
@@ -174,11 +185,29 @@ const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }
         <WhyLine text={whyWeAsk(q.id, answers)} />
       </div>
 
+      {showTyping ? (
+        <form onSubmit={submitOther} className="space-y-3" data-testid="other-fighter">
+          <input
+            autoFocus
+            value={otherName}
+            onChange={(e) => setOtherName(e.target.value)}
+            maxLength={40}
+            placeholder={t("onboarding.favorite_fighter.otherPlaceholder", "Boxer's name")}
+            className="w-full p-4 rounded-lg border bg-victory-card-highlight border-victory-border text-victory-text placeholder:text-victory-muted focus:outline-none focus:border-victory-lime"
+          />
+          <button type="submit" disabled={submitting} className="victory-btn-primary w-full disabled:opacity-50">
+            {t("common.continue", "Continue")}
+          </button>
+          <button type="button" onClick={() => setTyping(false)} className="text-victory-muted text-sm w-full touch-target">
+            {t("onboarding.favorite_fighter.backToList", "Pick from the list instead")}
+          </button>
+        </form>
+      ) : (
       <div className="space-y-3">
         {q.options.map((option) => (
           <button
             key={option.value}
-            onClick={() => onAnswer(q.id, option.value)}
+            onClick={() => pick(option)}
             disabled={submitting}
             className="w-full p-4 rounded-lg border bg-victory-card border-victory-border text-left flex items-center gap-4 touch-target transition-all hover:border-victory-lime active:scale-[0.98] disabled:opacity-50"
             data-testid={`option-${option.value}`}
@@ -188,6 +217,7 @@ const WhyHookPhase = ({ onAnswer, onBack, currentQuestion, answers, submitting }
           </button>
         ))}
       </div>
+      )}
 
       {submitting && (
         <div className="flex items-center justify-center gap-2 mt-4 text-victory-muted text-sm animate-fade-in">
@@ -235,6 +265,7 @@ const PersonalizedAffirmation = ({ answers, onNext, onEdit }) => {
       "Canelo Alvarez": "counter-punching and body work",
       "Manny Pacquiao": "hand speed and angles",
       "Artur Beterbiev": "pressure and heavy shots",
+      "Dmitry Bivol": "his jab and ring IQ",
       "Roberto Duran": "fighting on the inside",
     };
 
@@ -286,7 +317,7 @@ const PersonalizedAffirmation = ({ answers, onNext, onEdit }) => {
 };
 
 // PHASE 4: PARTNER CREATION
-const PartnerCreationPhase = ({ styles, onAnswer, onBack, currentStep, partnerData, answers = {} }) => {
+const PartnerCreationPhase = ({ styles, onAnswer, currentStep, partnerData, answers = {} }) => {
   const { t } = useTranslation();
 
   const steps = [
@@ -338,14 +369,6 @@ const PartnerCreationPhase = ({ styles, onAnswer, onBack, currentStep, partnerDa
 
   return (
     <div className="animate-fade-in">
-      {currentStep > 0 && (
-        <button
-          onClick={onBack}
-          className="text-victory-muted text-sm flex items-center gap-1 touch-target -ml-2 mb-1 hover:text-victory-text"
-        >
-          <ChevronLeft className="w-4 h-4" /> {t("common.back", "Back")}
-        </button>
-      )}
       <div className="mb-6">
         <h1 className="text-xl font-heading font-extrabold text-victory-text mb-1">{step.question}</h1>
         {step.subtitle && <p className="text-victory-muted text-sm">{step.subtitle}</p>}
@@ -783,7 +806,6 @@ export default function OnboardingFlow() {
     }
   };
 
-  const handleWhyBack = () => setCurrentQuestion((q) => Math.max(0, q - 1));
 
   const submitAnswers = async (allAnswers) => {
     if (submittingAnswers) return; // ignore double-taps on the last question
@@ -810,7 +832,15 @@ export default function OnboardingFlow() {
     }
   };
 
-  const handlePartnerBack = () => setCurrentPartnerStep((s) => Math.max(0, s - 1));
+
+  const back = submittingAnswers ? null
+    : previousStep({ phase, currentQuestion, currentPartnerStep }, { totalQuestions, totalPartnerSteps });
+  const goBack = () => {
+    if (!back) return;
+    if (back.currentQuestion !== undefined) setCurrentQuestion(back.currentQuestion);
+    if (back.currentPartnerStep !== undefined) setCurrentPartnerStep(back.currentPartnerStep);
+    setPhase(back.phase);
+  };
 
   const handleGeneratingComplete = () => {
     setPhase("naming");
@@ -851,7 +881,15 @@ export default function OnboardingFlow() {
     <div className="min-h-screen bg-victory-bg flex flex-col" data-testid="onboarding-flow">
       {phase !== "generating" && phase !== "plan_building" && (
         <header className="p-4 border-b border-victory-border">
-          <Progress value={getProgress()} className="h-2" />
+          <div className="flex items-center gap-2">
+            {back ? (
+              <button onClick={goBack} aria-label={t("common.back", "Back")} data-testid="onboarding-back"
+                className="touch-target -ml-2 flex items-center text-victory-muted hover:text-victory-text">
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+            ) : <span className="w-7" aria-hidden="true" />}
+            <Progress value={getProgress()} className="h-2 flex-1" />
+          </div>
           {/* Goal gradient effect: only nudge in the final stretch — motivation
               from proximity matters most right before the finish, not throughout. */}
           {getProgress() >= 85 && (
@@ -884,7 +922,6 @@ export default function OnboardingFlow() {
             currentQuestion={currentQuestion}
             answers={answers}
             onAnswer={handleWhyAnswer}
-            onBack={handleWhyBack}
             submitting={submittingAnswers}
           />
         )}
@@ -900,7 +937,6 @@ export default function OnboardingFlow() {
             currentStep={currentPartnerStep}
             partnerData={partnerData}
             onAnswer={handlePartnerAnswer}
-            onBack={handlePartnerBack}
             answers={answers}
           />
         )}

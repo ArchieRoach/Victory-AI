@@ -186,8 +186,9 @@
       "body_shot": "Körpertreffer"
     },
     "favorite_fighter": {
-      "question": "Wer ist dein Lieblingsboxer aller Zeiten?",
-      "subtitle": "Das Bild deines Trainingspartners wird von ihm inspiriert"
+      "question": "Welchen dieser Boxer hättest du gern als Coach?",
+      "subtitle": "Das Bild deines Trainingspartners wird von ihm inspiriert",
+      "other": "Jemand anderes"
     },
     "personalized": {
       "title": "Das haben wir gehört",

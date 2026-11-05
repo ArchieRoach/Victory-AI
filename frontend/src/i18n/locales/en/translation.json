@@ -189,8 +189,12 @@
       "body_shot": "Body shot"
     },
     "favorite_fighter": {
-      "question": "Who is your favourite boxer of all time?",
-      "subtitle": "Your training partner's image will be inspired by them"
+      "question": "Which of these boxers would you like as your coach?",
+      "subtitle": "Your training partner's image will be inspired by them",
+      "other": "Someone else",
+      "otherPlaceholder": "Boxer's name",
+      "otherInvalid": "Type a boxer's name, like Naseem Hamed.",
+      "backToList": "Pick from the list instead"
     },
     "personalized": {
       "title": "Here's what we heard",

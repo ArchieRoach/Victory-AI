@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, BadgeCheck } from "lucide-react";
 import { API } from "@/App";
 import { DIVISIONS } from "@/lib/proShop";
+import { BirthDateCard } from "@/components/BirthDateCard";
 
 // Verification first: anyone could type "The Reaper", so a person checks every pro before
 // their Fighter Card goes public. That protects the fighter's name and fans' money.
@@ -41,6 +42,7 @@ export default function ProApplyPage() {
         <h1 className="font-heading font-extrabold text-victory-text text-lg flex items-center gap-2"><BadgeCheck className="w-5 h-5 text-victory-teal" /> Get your Fighter Card</h1>
       </header>
       <form onSubmit={submit} className="px-4 pb-10 space-y-4 max-w-lg">
+        <BirthDateCard why="Fighter Cards are for adults, and we don't have your date of birth yet." />
         <p className="text-victory-muted text-sm">For professional boxers. Once we've checked it's really you, you get a verified Fighter Card with your alias, record and belts, your own merch shop, and fans can train with your alias.</p>
         {field("alias", "Your alias", { placeholder: "The Reaper", maxLength: 30, required: true })}
         {field("ring_name", "Your name as it appears on BoxRec", { placeholder: "Lamont Roche Jr", maxLength: 60, required: true })}

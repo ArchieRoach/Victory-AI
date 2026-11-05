@@ -186,8 +186,9 @@
       "body_shot": "Golpe no corpo"
     },
     "favorite_fighter": {
-      "question": "Quem é seu boxeador favorito de todos os tempos?",
-      "subtitle": "A imagem do seu parceiro será inspirada nele"
+      "question": "Qual destes boxeadores você gostaria de ter como treinador?",
+      "subtitle": "A imagem do seu parceiro será inspirada nele",
+      "other": "Outro"
     },
     "personalized": {
       "title": "Aqui está o que ouvimos",
