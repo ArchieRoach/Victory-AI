@@ -62,6 +62,7 @@ import workouts as wk
 import earnings as ern
 import jobs
 import launch_email as launch_mail
+import help_assistant as helpbot
 from cache import cache
 from concurrent.futures import ThreadPoolExecutor
 # One breaker per third-party service (see resilience.py for why).
@@ -6479,6 +6480,66 @@ async def is_admin(user: dict) -> bool:
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"email": match, "email_hash": _email_hash(match)}})
         return True
     return False
+
+# ---- Ask Victory: in-app help assistant (guide, rules and reasoning in help_assistant.py) ----
+GEMINI_HELP_MODEL = os.environ.get("GEMINI_HELP_MODEL", "gemini-2.5-flash")
+HELP_FALLBACK = "I can't answer right now. Tap \"Send to the team\" and someone will email you back."
+
+
+class HelpMessage(BaseModel):
+    role: str = Field("user", max_length=10)
+    text: str = Field("", max_length=2000)
+
+
+class HelpAsk(BaseModel):
+    messages: List[HelpMessage] = Field(default_factory=list, max_length=30)
+    page: Optional[str] = Field(None, max_length=200)
+
+
+async def _help_reply(history: List[dict]) -> str:
+    from google.genai import types
+    contents = [types.Content(role="model" if m["role"] == "assistant" else "user", parts=[types.Part(text=m["text"])])
+                for m in history]
+    config = types.GenerateContentConfig(system_instruction=helpbot.SYSTEM, temperature=0.3, max_output_tokens=400)
+    response = await _gemini().aio.models.generate_content(model=GEMINI_HELP_MODEL, contents=contents, config=config)
+    return (response.text or "").strip()
+
+
+@api_router.post("/help/ask")
+async def help_ask(data: HelpAsk, user: dict = Depends(get_current_user)):
+    history = helpbot.clean_history([m.model_dump() for m in data.messages])
+    if not history:
+        raise HTTPException(400, "Type a question")
+    if _rate_limited(f"help:{user['user_id']}", 30, 3600):
+        return {"reply": "That's a lot of questions! Tap \"Send to the team\" and someone will help.", "handoff": True}
+    if await is_content_flagged(history[-1]["text"]):
+        return {"reply": "I can't help with that. If something's wrong, tap \"Send to the team\".", "handoff": True}
+    if not GEMINI_API_KEY:
+        return {"reply": HELP_FALLBACK, "handoff": True}
+    try:
+        reply, handoff = helpbot.split_handoff(await _help_reply(history))
+    except Exception as e:
+        logger.warning(f"Help assistant failed: {type(e).__name__}: {e}")
+        return {"reply": HELP_FALLBACK, "handoff": True}
+    return {"reply": reply or HELP_FALLBACK, "handoff": handoff or not reply}
+
+
+@api_router.post("/help/handoff")
+async def help_handoff(data: HelpAsk, user: dict = Depends(get_current_user)):
+    history = helpbot.clean_history([m.model_dump() for m in data.messages]) or \
+        [{"role": "user", "text": (data.messages[-1].text if data.messages else "")[:500]}]
+    if _rate_limited(f"help_handoff:{user['user_id']}", 5, 86400):
+        raise HTTPException(429, "You've already sent a few today. We'll reply by email.")
+    who = user.get("display_name") or user.get("name") or "A user"
+    body = (f"<p><b>{html.escape(who)}</b> ({html.escape(user.get('email') or user['user_id'])}) asked for help"
+            f"{' on ' + html.escape(data.page) if data.page else ''}. Reply to this email to answer them.</p>"
+            f"<pre style='white-space:pre-wrap;font-family:inherit'>{html.escape(helpbot.transcript(history))}</pre>")
+    payload = {"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL], "subject": f"[Victory AI] Help request from {who}", "html": body}
+    if user.get("email"):
+        payload["reply_to"] = user["email"]
+    await _queue_email(payload)
+    return {"ok": True, "reply_to": user.get("email")}
+
 
 @api_router.post("/feedback")
 async def submit_feedback(data: FeedbackCreate, user: dict = Depends(get_current_user)):

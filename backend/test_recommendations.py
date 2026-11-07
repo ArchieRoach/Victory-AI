@@ -13,7 +13,7 @@ def test_features_unlock_one_at_a_time_after_real_sessions():
     assert gx.next_unlock(99) is None
     assert [u["key"] for u in gx.newly_unlocked_features(1, 2)] == ["combo_calls", "crew"]
     assert gx.newly_unlocked_features(5, 5) == []
-    assert "1 is a jab" in dict((k, line) for k, _, _, line in gx.FEATURE_UNLOCKS)["combo_calls"]
+    assert "jab, cross, hook" in dict((k, line) for k, _, _, line in gx.FEATURE_UNLOCKS)["combo_calls"]
 
 
 def test_easter_eggs_come_only_from_real_evidence():
