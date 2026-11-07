@@ -2418,8 +2418,7 @@ async def streamer_payouts_onboard(data: PayoutSetupIn, user: dict = Depends(get
                                             refresh_url=f"{host}/dashboard?payouts=retry",
                                             return_url=f"{host}/dashboard?payouts=done")
     except Exception as e:
-        logger.error(f"Streamer payout onboarding error: {_redact(e)}")
-        raise HTTPException(502, "Couldn't open payout setup. Try again in a minute.")
+        await _payout_setup_failed(user, e)
     return {"url": link.url}
 
 
@@ -2633,7 +2632,7 @@ async def _new_founder_code() -> Optional[str]:
                                         code=f"FOUNDER{uuid.uuid4().hex[:8].upper()}", max_redemptions=1)
         return promo.code
     except Exception as e:
-        logger.error(f"Stripe promo code creation failed: {e}")
+        logger.error(f"Stripe promo code creation failed: {await _ops_alert('Founder code', e)}")
         await _release_founder_spot()
         return None
 
@@ -5407,8 +5406,7 @@ async def pro_payouts_onboard(data: PromoIn, user: dict = Depends(get_current_us
                                             refresh_url=f"{host}/pro/dashboard?payouts=retry",
                                             return_url=f"{host}/pro/dashboard?payouts=done")
     except Exception as e:
-        logger.error(f"Stripe Connect onboarding error: {_redact(e)}")
-        raise HTTPException(502, "Couldn't open payout setup. Try again in a minute.")
+        await _payout_setup_failed(user, e)
     return {"url": link.url}
 
 
@@ -9600,10 +9598,35 @@ def _redact(text) -> str:
     """Error text can echo request headers, so the key is masked before it's shown or logged."""
     text = str(text)
     raw = os.environ.get("BOXING_DATA_API_KEY", "")
-    for secret in {BOXING_DATA_API_KEY, raw, raw.strip()}:
+    for secret in {BOXING_DATA_API_KEY, raw, raw.strip(), STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY}:
         if secret and len(secret) >= 8:
             text = text.replace(secret, "***").replace(repr(secret.encode())[2:-1], "***")
     return text
+async def _ops_alert(kind: str, error) -> str:
+    """Emails the team the real reason something broke (e.g. Stripe's own message), at most once
+    every 6 hours per kind, so a fix doesn't wait on someone reading server logs. Returns the
+    cleaned message so admins can also be shown it in the app."""
+    message = _redact(getattr(error, "user_message", None) or error)[:600]
+    key = f"ops_alert:{kind}"
+    if not await cache.get(key):
+        await cache.set(key, 1, 6 * 3600)
+        await _queue_email({"from": RESEND_FROM, "to": [ADMIN_INBOX_EMAIL],
+                            "subject": f"[Victory AI] Needs a look: {kind}",
+                            "html": f"<p>{html.escape(kind)} failed. The reason Stripe (or the service) gave:</p>"
+                                    f"<pre style='white-space:pre-wrap'>{html.escape(message)}</pre>"
+                                    "<p>Paste this to Claude to get it fixed.</p>"})
+    return message
+
+
+async def _payout_setup_failed(user: dict, error):
+    message = await _ops_alert("Payout setup", error)
+    logger.error(f"Payout setup error: {message}")
+    detail = "Couldn't open payout setup. We've been told and will fix it."
+    if await is_admin(user):
+        detail += f" (Admin only, Stripe said: {message})"
+    raise HTTPException(502, detail)
+
+
 FANTASY_ADMIN_EMAIL = ADMIN_INBOX_EMAIL
 FANTASY_LOOKAHEAD_DAYS = 14
 # Low-cost defaults: the feed is used for world-title cards only, the schedule is checked

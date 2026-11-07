@@ -243,6 +243,39 @@ def test_payout_setup_uses_accounts_v2_as_a_marketplace_recipient():
     assert client.post("/api/pro/payouts/refresh").json()["payouts_ready"] is True
 
 
+def test_when_stripe_refuses_payout_setup_the_team_is_told_why():
+    real = FakeV2Accounts.create
+    queued = []
+
+    async def fake_queue(payload):
+        queued.append(payload)
+
+    def refuse(params):
+        raise RuntimeError("You must complete your platform profile to create connected accounts.")
+    FakeV2Accounts.create = staticmethod(refuse)
+    real_queue, server._queue_email = server._queue_email, fake_queue
+    run(server.cache.delete("ops_alert:Payout setup"))
+    run(server.db.users.insert_one({"user_id": "u_refused", "email": "r@x.com", "birth_date": "1990-01-01",
+                                    "pro": {"status": "verified", "alias": "Refused"}}))
+    try:
+        as_user({"user_id": "u_refused", "email": "r@x.com", "birth_date": "1990-01-01"})
+        r = client.post("/api/pro/payouts/onboard", json={"origin_url": "https://app.victoryai.co.uk"})
+        assert r.status_code == 502 and "platform profile" not in r.json()["detail"], "fans don't see Stripe's wording"
+        r2 = client.post("/api/pro/payouts/onboard", json={"origin_url": "https://app.victoryai.co.uk"})
+        assert r2.status_code == 502
+        assert len(queued) == 1, "one email, not one per tap"
+        assert "platform profile" in queued[0]["html"] and "Payout setup" in queued[0]["subject"]
+        async def yes(user):
+            return True
+        server.is_admin = yes
+        r3 = client.post("/api/pro/payouts/onboard", json={"origin_url": "https://app.victoryai.co.uk"})
+        assert "platform profile" in r3.json()["detail"], "admins see the real reason"
+    finally:
+        FakeV2Accounts.create = real
+        server._queue_email = real_queue
+        server.is_admin = admin_check
+
+
 def test_a_paused_seller_is_paid_once_stripe_says_they_can_be():
     run(server.db.users.update_one({"user_id": "u_reaper"}, {"$set": {"pro.stripe_account_id": "acct_v2r", "pro.stripe_account_v2": True}}))
     run(server.db.merch_orders.insert_one({"order_id": "o_held", "seller_id": "u_reaper", "buyer_id": "u_fan", "title": "Wraps",
