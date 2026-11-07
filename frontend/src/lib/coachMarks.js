@@ -32,7 +32,7 @@ export const TIPS = {
   train_video: ({ focus }) =>
     `Turn video on and the AI scores your ${focus ? focus.toLowerCase() : "technique"} from what it actually sees.`,
   train_combo_calls: ({ partner }) =>
-    `${partner} will call combos by number: 1 is a jab, 2 a cross, 3 a lead hook. Land them and they get harder.`,
+    `${partner} will call combos out loud: "Jab, cross, hook". Land them and they get harder. Prefer numbers? Switch on Call numbers.`,
   train_round_types: () => "New: Freestyle has no score. Just move. It still counts for your week.",
   train_voice_toggle: () => "Tap to mute or unmute your coach's spoken feedback.",
   train_skip_btn: () => "Skips ahead to the next round or rest period.",

@@ -1067,7 +1067,7 @@ GYM_CHECKIN_MULTIPLIER = 2
 #   after a real session, with one line saying what it is. Nothing is locked behind money.
 FEATURE_UNLOCKS = [
     ("week_plan", 1, "Pick your week", "Choose how many sessions you'll do each week. Your partner keeps pace."),
-    ("combo_calls", 2, "Combo calls", "Your coach calls combos by number: 1 is a jab, 2 a cross, 3 a lead hook."),
+    ("combo_calls", 2, "Combo calls", "Your coach calls combos out loud: jab, cross, hook. Prefer numbers? Switch them on in Train."),
     ("crew", 2, "Squads and ranks", "See where you stand this week and train with friends."),
     ("round_types", 3, "Freestyle rounds", "A no-score round for days you just want to move."),
     ("go_live", 3, "Go live", "Stream a session for your friends to watch."),

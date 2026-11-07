@@ -3,7 +3,8 @@ import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
-import { MessageSquarePlus, X, Bug, Lightbulb, MessageCircle, Star, MessagesSquare, ChevronRight } from "lucide-react";
+import { MessageSquarePlus, X, Bug, Lightbulb, MessageCircle, Star, MessagesSquare, ChevronRight, Sparkles } from "lucide-react";
+import { HelpChat } from "@/components/HelpChat";
 import { useFeaturebase } from "featurebase-js/react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/App";
@@ -23,6 +24,7 @@ export default function FeedbackWidget() {
   const location = useLocation();
   const { show: showMessenger, unreadCount } = useFeaturebase();
   const [open, setOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [type, setType] = useState("general");
   const [message, setMessage] = useState("");
   const [rating, setRating] = useState(0);
@@ -72,6 +74,7 @@ export default function FeedbackWidget() {
 
   return (
     <>
+      {helpOpen && <HelpChat onClose={() => setHelpOpen(false)} />}
       {/* Floating trigger button */}
       <button
         onClick={() => setOpen(true)}
@@ -117,18 +120,29 @@ export default function FeedbackWidget() {
             </div>
 
             <button
-              onClick={() => { handleClose(); showMessenger(); }}
+              onClick={() => { handleClose(); setHelpOpen(true); }}
               className="w-full touch-target flex items-center gap-3 rounded-xl bg-victory-bg border border-victory-border px-3 text-left hover:border-victory-lime/40 transition-colors"
+              data-testid="open-help"
             >
-              <MessagesSquare className="w-4 h-4 text-victory-lime flex-shrink-0" />
-              <span className="flex-1 text-victory-text text-sm">{t("feedback.chat", "Chat with the team")}</span>
-              {unreadCount > 0 && (
+              <Sparkles className="w-4 h-4 text-victory-lime flex-shrink-0" />
+              <span className="flex-1 text-victory-text text-sm">{t("feedback.ask", "Ask Victory: quick answers")}</span>
+              <ChevronRight className="w-4 h-4 text-victory-muted" />
+            </button>
+
+            {/* Replies from the team in the old chat stay reachable until they're read. */}
+            {unreadCount > 0 && (
+              <button
+                onClick={() => { handleClose(); showMessenger(); }}
+                className="w-full touch-target flex items-center gap-3 rounded-xl bg-victory-bg border border-victory-border px-3 text-left hover:border-victory-lime/40 transition-colors"
+              >
+                <MessagesSquare className="w-4 h-4 text-victory-lime flex-shrink-0" />
+                <span className="flex-1 text-victory-text text-sm">{t("feedback.chat", "Chat with the team")}</span>
                 <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-victory-danger text-victory-text text-[10px] font-mono font-bold flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
-              )}
-              <ChevronRight className="w-4 h-4 text-victory-muted" />
-            </button>
+                <ChevronRight className="w-4 h-4 text-victory-muted" />
+              </button>
+            )}
 
             {/* Type selector */}
             <div className="flex gap-2">
