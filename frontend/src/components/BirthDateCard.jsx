@@ -30,7 +30,7 @@ export function BirthDateCard({ why, onSaved }) {
     <form onSubmit={save} className="victory-card p-4 space-y-3" data-testid="birth-date-card">
       <p className="section-label flex items-center gap-1.5"><CalendarDays className="w-3 h-3" /> Your date of birth</p>
       <p className="text-victory-text text-sm">{why}</p>
-      <input type="date" className="victory-input" value={value} onChange={(e) => setValue(e.target.value)}
+      <input type="date" className="victory-input w-full min-w-0 max-w-full appearance-none block" value={value} onChange={(e) => setValue(e.target.value)}
         max={new Date().toISOString().slice(0, 10)} aria-label="Date of birth" required />
       <p className="text-victory-muted text-xs">You can only set this once.</p>
       <button type="submit" disabled={busy} className="victory-btn-primary w-full disabled:opacity-50">Save</button>
