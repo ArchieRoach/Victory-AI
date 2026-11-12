@@ -116,7 +116,8 @@ def test_epic_win_waits_a_week_is_moderated_and_shows_after_a_real_win():
     run(server.db.users.update_one({"user_id": "u_archie"}, {"$set": {"boss_wins": []}}))
     run(server.db.users.update_one({"user_id": "u_archie"}, {"$unset": {"boss_attempts": ""}}))
     sid = client.post("/api/training/start", json={"kind": "boss", "round_duration": 120}).json()["session_id"]
-    client.post(f"/api/training/{sid}/live-round", json={"round_number": 1, "punches": 400, "best_combo": 8,
+    # Bosses rotate weekly (The Machine wants 10% over your best), so throw enough to beat any of them.
+    client.post(f"/api/training/{sid}/live-round", json={"round_number": 1, "punches": 2000, "best_combo": 8,
                                                          "guard_pct": 95, "head_moves": 60})
     r = client.post(f"/api/training/{sid}/complete").json()["rewards"]
     assert r["epic_line"] == "That's one step closer to your big win: have my first bout."
