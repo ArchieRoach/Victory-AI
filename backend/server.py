@@ -5390,6 +5390,16 @@ async def pro_payouts_onboard(data: PromoIn, user: dict = Depends(get_current_us
     host = _safe_checkout_origin(data.origin_url)
     pro = fresh.get("pro") or {}
     acct_id = pro.get("stripe_account_id")
+    streamer_acct = (fresh.get("payout") or {}).get("stripe_account_id")
+    if not acct_id and streamer_acct:
+        # Already set up payouts as a streamer: one Stripe account, one ID check, for both.
+        acct_id = streamer_acct
+        ready = bool((fresh.get("payout") or {}).get("ready"))
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": {
+            "pro.stripe_account_id": acct_id, "pro.stripe_account_v2": True, "pro.payouts_ready": ready}})
+        pro.update(stripe_account_id=acct_id, stripe_account_v2=True)
+        if ready:
+            return {"url": f"{host}/pro/dashboard?payouts=done"}
     client = _stripe_client()
     try:
         if not acct_id:
