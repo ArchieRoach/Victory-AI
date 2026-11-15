@@ -243,6 +243,19 @@ def test_payout_setup_uses_accounts_v2_as_a_marketplace_recipient():
     assert client.post("/api/pro/payouts/refresh").json()["payouts_ready"] is True
 
 
+def test_a_streamer_who_becomes_a_pro_reuses_their_payout_account():
+    before = len([c for c in stripe_calls if c[0] == "v2_account"])
+    run(server.db.users.insert_one({"user_id": "u_both", "email": "both@x.com", "birth_date": "1990-01-01",
+                                    "payout": {"stripe_account_id": "acct_streamer", "ready": True},
+                                    "pro": {"status": "verified", "alias": "Both"}}))
+    as_user({"user_id": "u_both", "email": "both@x.com", "birth_date": "1990-01-01"})
+    r = client.post("/api/pro/payouts/onboard", json={"origin_url": "https://app.victoryai.co.uk"})
+    assert r.status_code == 200 and r.json()["url"].endswith("/pro/dashboard?payouts=done"), "no second Stripe form"
+    assert len([c for c in stripe_calls if c[0] == "v2_account"]) == before, "no second Stripe account"
+    pro = run(server.db.users.find_one({"user_id": "u_both"}))["pro"]
+    assert pro["stripe_account_id"] == "acct_streamer" and pro["payouts_ready"] is True
+
+
 def test_when_stripe_refuses_payout_setup_the_team_is_told_why():
     real = FakeV2Accounts.create
     queued = []
