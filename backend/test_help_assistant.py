@@ -120,6 +120,35 @@ def test_send_to_the_team_emails_the_chat_with_a_reply_address():
     assert "User: My video won&#x27;t upload" in mail["html"] and "/train" in mail["html"]
 
 
+def test_when_resend_refuses_an_email_the_team_is_told_why():
+    alerts = []
+
+    async def fake_alert(kind, error):
+        alerts.append((kind, str(error)))
+        return str(error)
+
+    class Refusing:
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, url, **k):
+            return SimpleNamespace(status_code=403, text="You can only send testing emails to your own email address")
+
+    real_client, real_alert = server.httpx.AsyncClient, server._ops_alert
+    server.httpx.AsyncClient, server._ops_alert = Refusing, fake_alert
+    try:
+        run(server._deliver_email({"to": ["fan@example.com"], "subject": "You're on the list"}))
+    finally:
+        server.httpx.AsyncClient, server._ops_alert = real_client, real_alert
+    assert alerts and alerts[0][0] == "Sending email" and "your own email address" in alerts[0][1]
+
+
 def test_the_combo_unlock_line_matches_how_combos_are_called_now():
     import gamification as gx
     line = dict((k, l) for k, _, _, l in gx.FEATURE_UNLOCKS)["combo_calls"]

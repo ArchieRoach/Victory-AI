@@ -95,7 +95,11 @@ async def _deliver_email(payload: dict) -> dict:
     if r.status_code >= 500 or r.status_code == 429:
         raise RuntimeError(f"Resend {r.status_code}")
     if r.status_code >= 400:
-        logger.warning(f"Resend refused an email ({r.status_code}): {payload.get('subject', '')[:80]}")
+        # e.g. a sending domain that isn't verified yet: Resend then only delivers to the account's
+        # own inbox, so everyone else silently gets nothing. Tell the team why (throttled).
+        reason = f"Resend {r.status_code}: {(getattr(r, 'text', '') or '')[:300]}"
+        logger.warning(f"Resend refused an email ({reason}): {payload.get('subject', '')[:80]}")
+        await _ops_alert("Sending email", reason)
     return {"status": r.status_code}
 
 # Livepeer webhook signing secret (optional; when set, incoming webhooks are HMAC-verified)
@@ -2822,6 +2826,7 @@ async def _deliver_email_batch(payload: dict) -> dict:
         raise RuntimeError(f"Resend {r.status_code}")
     if r.status_code >= 400:
         logger.error(f"Resend refused a launch batch ({r.status_code}): {r.text[:200]}")
+        await _ops_alert("Sending the launch email", f"Resend {r.status_code}: {r.text[:300]}")
     return {"status": r.status_code, "count": len(payload["emails"])}
 
 
