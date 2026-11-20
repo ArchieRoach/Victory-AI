@@ -30,6 +30,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { WEIGHT_CLASS_DATA } from "@/utils/weightClasses";
 import { tx } from "@/i18n/tx";
+import { WalletCard } from "@/components/WalletCard";
 
 const RECORD_FIELDS = ["amateur_wins", "amateur_losses", "amateur_draws", "pro_wins", "pro_losses", "pro_draws"];
 
@@ -716,6 +717,7 @@ export default function ProfilePage() {
           </div>
         )}
         {user?.user_id && <TrophyShelf userId={user.user_id} isMe />}
+        <WalletCard />
         {user?.user_id && <HoursLadder />}
 
         {/* Belts & Titles */}

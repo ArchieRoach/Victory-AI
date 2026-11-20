@@ -17,6 +17,16 @@ let queue = [];
 const clips = new Map();
 const pending = new Set();
 
+// Anyone can listen for when the coach starts and stops talking (the session orb glows with it).
+const listeners = new Set();
+function speaking(on) {
+  listeners.forEach((fn) => { try { fn(on); } catch {} });
+}
+export function onSpeaking(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
 // TrainPage hands in the call to the server, so this file stays free of app imports.
 export function setVoiceSource(fn) {
   source = fn;
@@ -56,6 +66,9 @@ export function unlockSpeech() {
     if (!player && typeof Audio !== "undefined") {
       player = new Audio();
       player.addEventListener("ended", playNext);
+      player.addEventListener("playing", () => { if (player.src !== SILENT) speaking(true); });
+      player.addEventListener("ended", () => { if (!queue.length) speaking(false); });
+      player.addEventListener("pause", () => speaking(false));
       player.src = SILENT;
       player.play().catch(() => {});
     }
@@ -107,6 +120,9 @@ function speakFallback(text, rate) {
     u.rate = rate;
     u.pitch = 0.85;
     u.volume = 1;
+    u.onstart = () => speaking(true);
+    u.onend = () => speaking(false);
+    u.onerror = () => speaking(false);
     synth.speak(u);
   } catch {}
 }

@@ -1654,7 +1654,8 @@
       "pointsStatusAndSeason": "ポイント、ステータス、シーズン",
       "scoutingReport": "スカウティングレポート",
       "rareReport": "レアレポート",
-      "epicReport": "エピックレポート"
+      "epicReport": "エピックレポート",
+      "glovesDesc": "シーズンに1つ。実際のトレーニング20時間で獲得。"
     },
     "fighterCard": {
       "couldnTMakeYour": "カードを作れませんでした — もう一度お試しください",
@@ -3033,7 +3034,35 @@
       "tapMe": "タップしてね",
       "starterWork": "何を練習すればいい？",
       "starterDrill": "10分のドリルをちょうだい",
-      "starterHands": "手が下がるのを直すには？"
+      "starterHands": "手が下がるのを直すには？",
+      "checkInToday": "今日はよく頑張ったね。どうだった？",
+      "checkInMissed": "数日見かけなかったね。大丈夫？",
+      "starterFeltGood": "いい感じだった",
+      "starterTired": "腕がもう動かない",
+      "starterNext": "次は何を練習すればいい？",
+      "starterBusy": "忙しかった",
+      "starterShort": "10分でできる短いセッションをちょうだい",
+      "starterMotivation": "やる気が出ない"
+    },
+    "trophyCelebration": {
+      "newTrophy": "新しいトロフィー：{{name}}",
+      "youEarned": "トロフィー獲得",
+      "next": "次へ",
+      "continue": "続ける"
+    },
+    "walletCard": {
+      "fromStreams": "配信から",
+      "fromMerch": "グッズから",
+      "close": "ウォレットを閉じる",
+      "open": "ウォレットを開く",
+      "yourBalance": "残高",
+      "readyLine": "{{ready}} 支払い準備完了",
+      "onItsWay": "あなたのもとへ向かっています",
+      "empty": "最初のチップや売上はここに表示されます。",
+      "sales": "{{count}} 件の売上",
+      "onHold": "保留中",
+      "paidToBank": "銀行に支払い済み",
+      "holdWhy": "保留中のお金は安全です。配信の収益は、ファンが返金を求める場合に備えて{{days}}日間保留されます。グッズの収益は、購入者が受け取りを確認したとき（または発送から{{merchDays}}日後）に支払われます。"
     }
   },
   "feedback": {

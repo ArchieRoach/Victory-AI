@@ -1654,7 +1654,8 @@
       "pointsStatusAndSeason": "Punkte, Status und Saison",
       "scoutingReport": "SCOUTING-BERICHT",
       "rareReport": "SELTENER BERICHT",
-      "epicReport": "EPISCHER BERICHT"
+      "epicReport": "EPISCHER BERICHT",
+      "glovesDesc": "Eine pro Saison, verdient mit 20 Stunden echtem Training."
     },
     "fighterCard": {
       "couldnTMakeYour": "Deine Karte konnte nicht erstellt werden — versuch es noch mal",
@@ -3033,7 +3034,35 @@
       "tapMe": "Tipp mich an",
       "starterWork": "Woran soll ich arbeiten?",
       "starterDrill": "Gib mir eine 10-Minuten-Übung",
-      "starterHands": "Wie höre ich auf, die Hände fallen zu lassen?"
+      "starterHands": "Wie höre ich auf, die Hände fallen zu lassen?",
+      "checkInToday": "Gute Arbeit heute. Wie hat sich das angefühlt?",
+      "checkInMissed": "Hab dich ein paar Tage nicht gesehen. Alles okay?",
+      "starterFeltGood": "Es hat sich gut angefühlt",
+      "starterTired": "Meine Arme sind tot",
+      "starterNext": "Woran soll ich nächstes Mal arbeiten?",
+      "starterBusy": "Ich hatte viel zu tun",
+      "starterShort": "Gib mir eine schnelle 10-Minuten-Einheit",
+      "starterMotivation": "Ich komme nicht in Gang"
+    },
+    "trophyCelebration": {
+      "newTrophy": "Neue Trophäe: {{name}}",
+      "youEarned": "Trophäe verdient",
+      "next": "Weiter",
+      "continue": "Weiter"
+    },
+    "walletCard": {
+      "fromStreams": "Aus deinen Streams",
+      "fromMerch": "Aus deinem Merch",
+      "close": "Geldbörse schließen",
+      "open": "Geldbörse öffnen",
+      "yourBalance": "Dein Guthaben",
+      "readyLine": "{{ready}} bereit zur Auszahlung",
+      "onItsWay": "Auf dem Weg zu dir",
+      "empty": "Dein erstes Trinkgeld oder dein erster Verkauf landet hier.",
+      "sales": "{{count}} Verkäufe",
+      "onHold": "Zurückgehalten",
+      "paidToBank": "Auf dein Konto gezahlt",
+      "holdWhy": "Zurückgehaltenes Geld ist sicher. Stream-Geld wartet {{days}} Tage, falls ein Fan eine Rückerstattung möchte. Merch-Geld wird freigegeben, wenn der Käufer den Erhalt bestätigt (oder {{merchDays}} Tage nach dem Versand)."
     }
   },
   "feedback": {

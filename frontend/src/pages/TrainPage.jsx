@@ -27,6 +27,7 @@ import { TimerCard } from "@/components/home/TimerCard";
 import { withCue } from "@/lib/verbalCues";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
 import { tx } from "@/i18n/tx";
+import { CornerOrb } from "@/components/CornerOrb";
 
 const LIVE_COACH_KEY = "victory_live_coach";
 // On unless the fighter switched it off: it runs on the phone and uploads nothing, so it's
@@ -1104,6 +1105,9 @@ export default function TrainPage() {
                 {currentRound}/{totalRounds}
               </span>
             </div>
+
+            <CornerOrb thinking={loadingFeedback} paused={isPaused} resting={isResting} complete={isComplete}
+              watching={liveCoach && coach.status === "ready"} label={partner?.name || tx("ui.trainPage.coach", "Coach")} />
 
             {/* Phase label */}
             <p className={`text-sm uppercase tracking-[0.2em] mb-3 font-bold ${isResting ? "text-victory-teal" : "text-victory-lime"}`}>

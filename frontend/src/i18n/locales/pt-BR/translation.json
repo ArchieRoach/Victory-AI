@@ -1654,7 +1654,8 @@
       "pointsStatusAndSeason": "Pontos, status e temporada",
       "scoutingReport": "RELATÓRIO DE OLHEIRO",
       "rareReport": "RELATÓRIO RARO",
-      "epicReport": "RELATÓRIO ÉPICO"
+      "epicReport": "RELATÓRIO ÉPICO",
+      "glovesDesc": "Um por temporada, conquistado com 20 horas de treino de verdade."
     },
     "fighterCard": {
       "couldnTMakeYour": "Não deu para criar seu card — tente de novo",
@@ -3033,7 +3034,35 @@
       "tapMe": "Toque em mim",
       "starterWork": "No que devo trabalhar?",
       "starterDrill": "Me dá um treino de 10 minutos",
-      "starterHands": "Como paro de baixar as mãos?"
+      "starterHands": "Como paro de baixar as mãos?",
+      "checkInToday": "Bom trabalho hoje. Como foi?",
+      "checkInMissed": "Não te vejo há alguns dias. Tudo bem?",
+      "starterFeltGood": "Foi bom",
+      "starterTired": "Meus braços estão mortos",
+      "starterNext": "No que devo trabalhar da próxima vez?",
+      "starterBusy": "Andei ocupado",
+      "starterShort": "Me dá uma sessão rápida de 10 minutos",
+      "starterMotivation": "Estou com dificuldade de começar"
+    },
+    "trophyCelebration": {
+      "newTrophy": "Novo troféu: {{name}}",
+      "youEarned": "Troféu conquistado",
+      "next": "Próximo",
+      "continue": "Continuar"
+    },
+    "walletCard": {
+      "fromStreams": "Das suas lives",
+      "fromMerch": "Do seu merch",
+      "close": "Fechar carteira",
+      "open": "Abrir carteira",
+      "yourBalance": "Seu saldo",
+      "readyLine": "{{ready}} pronto para saque",
+      "onItsWay": "A caminho de você",
+      "empty": "Sua primeira gorjeta ou venda aparece aqui.",
+      "sales": "{{count}} vendas",
+      "onHold": "Retido",
+      "paidToBank": "Pago na sua conta",
+      "holdWhy": "O dinheiro retido está seguro. O dinheiro das lives espera {{days}} dias caso um fã peça reembolso. O dinheiro do merch é liberado quando o comprador confirma que chegou (ou {{merchDays}} dias depois do envio)."
     }
   },
   "feedback": {

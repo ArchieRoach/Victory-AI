@@ -1654,7 +1654,8 @@
       "pointsStatusAndSeason": "Punkty, status i sezon",
       "scoutingReport": "RAPORT SKAUTA",
       "rareReport": "RZADKI RAPORT",
-      "epicReport": "EPICKI RAPORT"
+      "epicReport": "EPICKI RAPORT",
+      "glovesDesc": "Jedna na sezon, zdobyta za 20 godzin prawdziwego treningu."
     },
     "fighterCard": {
       "couldnTMakeYour": "Nie udało się zrobić karty — spróbuj ponownie",
@@ -3033,7 +3034,35 @@
       "tapMe": "Stuknij mnie",
       "starterWork": "Nad czym mam pracować?",
       "starterDrill": "Daj mi 10-minutowe ćwiczenie",
-      "starterHands": "Jak przestać opuszczać ręce?"
+      "starterHands": "Jak przestać opuszczać ręce?",
+      "checkInToday": "Dobra robota dzisiaj. Jak się czułeś?",
+      "checkInMissed": "Nie widziałem cię od kilku dni. Wszystko w porządku?",
+      "starterFeltGood": "Czułem się dobrze",
+      "starterTired": "Ręce mi odpadają",
+      "starterNext": "Nad czym popracować następnym razem?",
+      "starterBusy": "Byłem zajęty",
+      "starterShort": "Daj mi szybki 10-minutowy trening",
+      "starterMotivation": "Ciężko mi się zebrać"
+    },
+    "trophyCelebration": {
+      "newTrophy": "Nowe trofeum: {{name}}",
+      "youEarned": "Trofeum zdobyte",
+      "next": "Dalej",
+      "continue": "Kontynuuj"
+    },
+    "walletCard": {
+      "fromStreams": "Z twoich transmisji",
+      "fromMerch": "Z twojego merchu",
+      "close": "Zamknij portfel",
+      "open": "Otwórz portfel",
+      "yourBalance": "Twoje saldo",
+      "readyLine": "{{ready}} gotowe do wypłaty",
+      "onItsWay": "W drodze do ciebie",
+      "empty": "Twój pierwszy napiwek lub sprzedaż pojawi się tutaj.",
+      "sales": "{{count}} sprzedaży",
+      "onHold": "Wstrzymane",
+      "paidToBank": "Wypłacone na konto",
+      "holdWhy": "Wstrzymane pieniądze są bezpieczne. Pieniądze z transmisji czekają {{days}} dni na wypadek, gdyby fan poprosił o zwrot. Pieniądze z merchu są zwalniane, gdy kupujący potwierdzi odbiór (lub {{merchDays}} dni po wysyłce)."
     }
   },
   "feedback": {

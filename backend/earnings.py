@@ -73,3 +73,44 @@ def pick_gift_recipients(candidates: List[str], count: int, shuffle) -> List[str
     pool = list(dict.fromkeys(c for c in candidates if c))
     shuffle(pool)
     return pool[:count]
+
+
+# ---- The wallet: one balance for everything a person earns in the app ----
+# Goal: earners see their money grow in one place, so streaming and selling feel worth it.
+# Psychology: a balance you can watch rise is a visible-progress loop (the goal-gradient effect);
+#   honesty keeps it trusted, so money on hold is shown as on hold, never as spendable.
+# Design: "Your balance" = money coming to you (ready + on hold). Money already paid out is shown apart.
+MERCH_HELD = {"paid", "shipped", "issue"}
+MERCH_DONE = {"received", "released"}
+
+
+def merch_summary(orders: Iterable[dict]) -> dict:
+    out = {"on_hold_pence": 0, "paid_pence": 0, "sales": 0}
+    for o in orders:
+        amount = int(round(float(o.get("seller_gets_gbp") or 0) * 100))
+        status = o.get("status")
+        if status in MERCH_HELD or (status in MERCH_DONE and not o.get("transfer_id")):
+            out["on_hold_pence"] += amount
+            out["sales"] += 1
+        elif status in MERCH_DONE:
+            out["paid_pence"] += amount
+            out["sales"] += 1
+    return out
+
+
+def wallet(streams: dict, merch: dict) -> dict:
+    ready = streams.get("ready_pence", 0)
+    on_hold = streams.get("on_hold_pence", 0) + merch.get("on_hold_pence", 0)
+    paid = streams.get("paid_pence", 0) + merch.get("paid_pence", 0)
+    return {
+        "balance_pence": ready + on_hold,
+        "ready_pence": ready,
+        "on_hold_pence": on_hold,
+        "paid_pence": paid,
+        "sources": [
+            {"key": "streams", "pence": ready + streams.get("on_hold_pence", 0), "paid_pence": streams.get("paid_pence", 0)},
+            {"key": "merch", "pence": merch.get("on_hold_pence", 0), "paid_pence": merch.get("paid_pence", 0),
+             "sales": merch.get("sales", 0)},
+        ],
+        "has_any": bool(ready or on_hold or paid),
+    }

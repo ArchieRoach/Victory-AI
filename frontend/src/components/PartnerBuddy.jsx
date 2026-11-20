@@ -4,17 +4,29 @@ import axios from "axios";
 import { ArrowUp } from "lucide-react";
 import { API, useAuth } from "@/App";
 import { createSpring, prefersReducedMotion } from "@/lib/motion";
-import { BUBBLE_GAP_MS, SLEEP_AFTER_MS, canDigDeeper, firstName, next, toMessages } from "@/lib/partnerBuddy";
+import { BUBBLE_GAP_MS, SLEEP_AFTER_MS, canDigDeeper, checkIn, firstName, next, toMessages } from "@/lib/partnerBuddy";
 import { tx } from "@/i18n/tx";
 
 // The partner you can talk to. Flow and reasoning: lib/partnerBuddy.js.
 const C = (token, a = 1) => `rgb(var(--victory-${token}) / ${a})`;
 const ORB = 56;
-const STARTERS = [
-  ["ui.partnerBuddy.starterWork", "What should I work on?"],
-  ["ui.partnerBuddy.starterDrill", "Give me a 10-minute drill"],
-  ["ui.partnerBuddy.starterHands", "How do I stop dropping my hands?"],
-];
+const STARTERS = {
+  hello: [
+    ["ui.partnerBuddy.starterWork", "What should I work on?"],
+    ["ui.partnerBuddy.starterDrill", "Give me a 10-minute drill"],
+    ["ui.partnerBuddy.starterHands", "How do I stop dropping my hands?"],
+  ],
+  trainedToday: [
+    ["ui.partnerBuddy.starterFeltGood", "It felt good"],
+    ["ui.partnerBuddy.starterTired", "My arms are dead"],
+    ["ui.partnerBuddy.starterNext", "What should I work on next time?"],
+  ],
+  missed: [
+    ["ui.partnerBuddy.starterBusy", "I've been busy"],
+    ["ui.partnerBuddy.starterShort", "Give me a quick 10-minute session"],
+    ["ui.partnerBuddy.starterMotivation", "I'm struggling to get going"],
+  ],
+};
 
 function Orb({ mood, look }) {
   const eyes = mood === "sleep"
@@ -77,6 +89,10 @@ export function PartnerBuddy() {
   const spring = useRef(null);
   const [width, setWidth] = useState(0);
   const [poke, setPoke] = useState(0);
+  const [mood, setMood] = useState("hello");
+  useEffect(() => {
+    axios.get(`${API}/users/stats`).then((r) => setMood(checkIn(r.data))).catch(() => {});
+  }, []);
   const typing = useCallback(() => setPoke((n) => n + 1), []);
 
   const go = useCallback((event) => setState((s) => next(s, event)), []);
@@ -141,8 +157,10 @@ export function PartnerBuddy() {
   };
 
   const travel = Math.max(0, width / 2 - ORB / 2);
-  const greeting = firstName(user)
-    ? tx("ui.partnerBuddy.greetingNamed", "Hey {{first}}. What are we working on?", { first: firstName(user) })
+  const first = firstName(user);
+  const greeting = mood === "trainedToday" ? tx("ui.partnerBuddy.checkInToday", "Good work today. How did that feel?")
+    : mood === "missed" ? tx("ui.partnerBuddy.checkInMissed", "Not seen you for a few days. Everything alright?")
+    : first ? tx("ui.partnerBuddy.greetingNamed", "Hey {{first}}. What are we working on?", { first })
     : tx("ui.partnerBuddy.greeting", "Hey. What are we working on?");
 
   return (
@@ -182,7 +200,7 @@ export function PartnerBuddy() {
                 </button>
               ) : !thread.length && (
                 <div className="flex flex-wrap justify-center gap-2">
-                  {STARTERS.map(([key, english]) => (
+                  {STARTERS[mood].map(([key, english]) => (
                     <button key={key} type="button" onClick={() => ask(tx(key, english))}
                       className="rounded-full px-3 min-h-[36px] text-[12px] text-victory-text bg-victory-card-highlight">
                       {tx(key, english)}
