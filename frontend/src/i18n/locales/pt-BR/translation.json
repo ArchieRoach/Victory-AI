@@ -883,7 +883,8 @@
       "tokens": "tokens",
       "emotes2": "Emotes",
       "goBack": "Voltar",
-      "free": "Grátis"
+      "free": "Grátis",
+      "unlocks": "desbloqueia"
     },
     "streamCard": {
       "live": "AO VIVO"
@@ -1005,7 +1006,8 @@
       "close": "Fechar",
       "combo": "Combo",
       "goBack": "Voltar",
-      "free": "Grátis"
+      "free": "Grátis",
+      "unlocks": "desbloqueia"
     },
     "birthDateCard": {
       "enterYourDateOf": "Informe sua data de nascimento",
@@ -1235,7 +1237,23 @@
       "sending": "Enviando…"
     },
     "mentorPanel": {
-      "send": "Enviar"
+      "send": "Enviar",
+      "thatDidnTWork": "Não funcionou, tente de novo",
+      "yourAiMentorReviews": "Seu mentor de IA. Revisa cada round e define seu próximo foco.",
+      "yourMentors": "Seus mentores",
+      "aCoachFromYour": "Um treinador da sua academia pode acompanhar seu treino e deixar recados.",
+      "asked": "Pedido",
+      "mentor": "Mentor",
+      "endMentorship": "Encerrar mentoria",
+      "askSomeoneFromYour": "Peça a alguém da sua academia",
+      "ask": "Pedir",
+      "findAGym": "Encontrar academia",
+      "fightersYouMentor": "Lutadores que você orienta",
+      "accept": "Aceitar",
+      "lvl": "Nív",
+      "thisWeek": "esta semana ·",
+      "dStreak": "d de sequência",
+      "aShortNoteWhat": "Um recado curto: no que trabalhar agora"
     },
     "tokenSuccessPage": {
       "tryAgain": "Tentar de novo",
@@ -1276,7 +1294,21 @@
       "you": "{{name}} (você)"
     },
     "goldenGloves": {
-      "day": "dia"
+      "day": "dia",
+      "youReInOnly": "Você está dentro. A partir de agora só contam rounds comprovados.",
+      "couldnTEnterRight": "Não foi possível entrar agora",
+      "comingAtLaunch": "Chega no lançamento",
+      "limitedToThisSeason": "Só nesta temporada",
+      "goldenGlovesProgress": "Progresso das Luvas de Ouro",
+      "provenHours": "horas comprovadas",
+      "verifiedMinLeftToday": "min verificados restantes hoje",
+      "showThemOff": "Mostre para todos",
+      "toEnterMakeThese": "Para entrar, faça estas promessas. As inscrições fecham em",
+      "iMInStart": "Estou dentro. Começar a corrida",
+      "entriesOpenOnLaunch": "As inscrições abrem no dia do lançamento. Treine com vídeo ligado até lá e você começa pronto.",
+      "entriesForTheseGloves": "As inscrições para estas luvas fecharam. A próxima corrida abre quando a nova temporada começar.",
+      "whatCountsAsProof": "O que conta como prova",
+      "recordYourRoundsOn": "Grave seus rounds em vídeo para a IA avaliar."
     },
     "proDashboardPage": {
       "left": "restante"
@@ -1312,7 +1344,8 @@
     },
     "calloutsPage": {
       "goBack": "Voltar",
-      "daysLeft": "dias restantes"
+      "daysLeft": "dias restantes",
+      "accept": "Aceitar"
     },
     "competitionDetailPage": {
       "goBack": "Voltar"
@@ -1387,7 +1420,27 @@
     },
     "questCard": {
       "done": "Concluído",
-      "by": "por"
+      "by": "por",
+      "thatDidnTWork": "Não funcionou, tente de novo",
+      "missionsNeedASquad": "Missões precisam de um squad",
+      "eachWeekYourSquad": "Toda semana seu squad escolhe uma missão. Completem juntos e todos escolhem um bônus.",
+      "findYourSquad": "Encontre seu squad",
+      "pickYourBooster": "Escolha seu bônus",
+      "newMissionEveryMonday": "Nova missão toda segunda.",
+      "voteForThisWeek": "Vote na missão da semana. Ela trava quando a primeira sessão contar.",
+      "vote": "voto",
+      "squadCombo": "Combo do squad",
+      "nobodyHasPutA": "Ninguém sugeriu um combo ainda.",
+      "vote2": "Votar",
+      "putOneOfYour": "Sugira um dos seus combos",
+      "putOneOfYour2": "Sugira um dos seus combos…",
+      "buildAComboTo": "Monte um combo para sugerir",
+      "drillTheSquadCombo": "Treine o combo do squad",
+      "reward": "Recompensa:",
+      "showOffTheSquad": "Mostre o squad",
+      "couldnTAddThat": "Não foi possível adicionar esse selo",
+      "squadMoments": "Momentos do squad",
+      "nothingYetTrainAnd": "Nada ainda. Treine e aparece aqui."
     },
     "sessionCard": {
       "logged": "registrado"
@@ -1397,7 +1450,21 @@
     },
     "gymSeasonHours": {
       "preseason": "Pré-temporada",
-      "of": "de"
+      "of": "de",
+      "season": "Temporada {{season}}",
+      "fightForYourGym": ": lute pela sua academia",
+      "gyms": "academias",
+      "provenHoursThisSeason": "horas comprovadas nesta temporada",
+      "everyRoundTheAi": "Cada round que a IA avalia pelo seu vídeo soma neste total.",
+      "onlyAiVerifiedTraining": "Só conta treino verificado pela IA.",
+      "season2": "Temporada",
+      "theStoryOf": ": a história de",
+      "fightersPutIn": "lutadores somaram",
+      "provenHoursThatS": "horas comprovadas. Isso é cerca de",
+      "threeMinuteRounds": "rounds de três minutos",
+      "finishing": ", terminando",
+      "ofThePublicGyms": "das academias públicas",
+      "carriedBy": "Puxado por"
     },
     "squadVerdict": {
       "sending": "Enviando…",
@@ -1418,7 +1485,18 @@
     "levelCard": {
       "status": "Status",
       "level": "Nível",
-      "sessions2": "sessões"
+      "sessions2": "sessões",
+      "statusPoints": "pontos de status",
+      "progressToNextLevel": "Progresso até o próximo nível",
+      "toLevel": "até o nível",
+      "unlocks": "desbloqueia",
+      "pointsToGo": "pontos faltando",
+      "s2xStatusOnYour": ": 2x status nas próximas",
+      "sessions": "{{sessions_left}} sessões",
+      "session": "sessão",
+      "weeklyPoints": "Pontos semanais",
+      "pts": "pts",
+      "points": "pontos,"
     },
     "trophyShelf": {
       "level": "Nível",
@@ -1592,7 +1670,40 @@
     },
     "cornerSurprise": {
       "cornerSurprise": "Surpresa do corner",
-      "seeTheOdds": "Ver as chances"
+      "seeTheOdds": "Ver as chances",
+      "yourCornerLeftYou": "Seu corner deixou algo para você. Toque para abrir.",
+      "watchHowTheyDid": "Veja como eles fizeram",
+      "upTo": "Até",
+      "surprisesADaySurprises": "surpresas por dia. Surpresas se ganham treinando, nunca se compram."
+    },
+    "hoursLadder": {
+      "hoursLadder": "Escada de horas",
+      "noBadgeYet": "Ainda sem selo",
+      "nextBadge": "Próximo selo: {{next_tier}}",
+      "topOfTheLadder": "Topo da escada",
+      "progressToYourNext": "Progresso até seu próximo selo de horas",
+      "onlyRoundsTheAi": "Só contam rounds que a IA assistiu em vídeo. A escada vai até 10.000 horas, a marca de um especialista."
+    },
+    "paywallPage": {
+      "session": "sessão"
+    },
+    "rankBoard": {
+      "couldNotLoadRanks": "Não foi possível carregar o ranking. Verifique sua conexão.",
+      "couldnTChangeThat": "Não foi possível mudar, tente de novo",
+      "learningModeIsOn": "Modo aprendizado ativado",
+      "whileYouLearnThe": "Enquanto aprende o básico, você só compete com seus próprios números. O ranking está lá quando quiser.",
+      "showMeTheRanks": "Mostrar o ranking",
+      "noRivalsYet": "Nenhum rival ainda",
+      "followFightersOrJoin": "Siga lutadores ou entre em um squad e eles aparecem aqui. Vencer quem você conhece é outra coisa.",
+      "fighter": "lutador",
+      "onThisBoard": "neste ranking",
+      "shareYourRank": "Compartilhe sua posição",
+      "switchToLearningMode": "Mudar para modo aprendizado (ocultar ranking)",
+      "everyMemberSPoints": "Os pontos de todos os membros nesta semana, somados.",
+      "noSquadYet": "Nenhum squad ainda",
+      "noGymYet": "Nenhuma academia ainda",
+      "startASquadAnd": "Crie um squad e subam juntos.",
+      "joinAGymTo": "Entre em uma academia para lutar por ela neste ranking."
     }
   },
   "feedback": {

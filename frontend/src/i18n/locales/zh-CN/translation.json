@@ -883,7 +883,8 @@
       "tokens": "代币",
       "emotes2": "表情",
       "goBack": "返回",
-      "free": "免费"
+      "free": "免费",
+      "unlocks": "解锁"
     },
     "streamCard": {
       "live": "直播中"
@@ -1005,7 +1006,8 @@
       "close": "关闭",
       "combo": "组合拳",
       "goBack": "返回",
-      "free": "免费"
+      "free": "免费",
+      "unlocks": "解锁"
     },
     "birthDateCard": {
       "enterYourDateOf": "输入你的出生日期",
@@ -1235,7 +1237,23 @@
       "sending": "发送中…"
     },
     "mentorPanel": {
-      "send": "发送"
+      "send": "发送",
+      "thatDidnTWork": "没有成功，请重试",
+      "yourAiMentorReviews": "你的 AI 导师。复盘每个回合并设定你的下一个重点。",
+      "yourMentors": "你的导师",
+      "aCoachFromYour": "你拳馆的教练可以跟进你的训练并给你留言。",
+      "asked": "已请求",
+      "mentor": "导师",
+      "endMentorship": "结束指导",
+      "askSomeoneFromYour": "请拳馆里的人指导你",
+      "ask": "请求",
+      "findAGym": "寻找拳馆",
+      "fightersYouMentor": "你指导的拳手",
+      "accept": "接受",
+      "lvl": "等级",
+      "thisWeek": "本周 ·",
+      "dStreak": "天连续",
+      "aShortNoteWhat": "一条简短留言：下一步练什么"
     },
     "tokenSuccessPage": {
       "tryAgain": "重试",
@@ -1276,7 +1294,21 @@
       "you": "{{name}}（你）"
     },
     "goldenGloves": {
-      "day": "天"
+      "day": "天",
+      "youReInOnly": "你已加入。从现在起只计入经过验证的回合。",
+      "couldnTEnterRight": "现在无法加入",
+      "comingAtLaunch": "上线时推出",
+      "limitedToThisSeason": "仅限本赛季",
+      "goldenGlovesProgress": "金手套进度",
+      "provenHours": "验证小时",
+      "verifiedMinLeftToday": "今天剩余验证分钟",
+      "showThemOff": "秀出来",
+      "toEnterMakeThese": "参加需要做出以下承诺。报名截止还有",
+      "iMInStart": "我加入。开始追逐",
+      "entriesOpenOnLaunch": "报名在上线当天开放。在那之前开着视频训练，你就能准备好起步。",
+      "entriesForTheseGloves": "这副手套的报名已截止。新赛季开始时会开启下一轮追逐。",
+      "whatCountsAsProof": "什么算作证明",
+      "recordYourRoundsOn": "把你的回合录成视频，让 AI 评分。"
     },
     "proDashboardPage": {
       "left": "剩余"
@@ -1312,7 +1344,8 @@
     },
     "calloutsPage": {
       "goBack": "返回",
-      "daysLeft": "天剩余"
+      "daysLeft": "天剩余",
+      "accept": "接受"
     },
     "competitionDetailPage": {
       "goBack": "返回"
@@ -1387,7 +1420,27 @@
     },
     "questCard": {
       "done": "完成",
-      "by": "来自"
+      "by": "来自",
+      "thatDidnTWork": "没有成功，请重试",
+      "missionsNeedASquad": "任务需要小队",
+      "eachWeekYourSquad": "每周你的小队选一个任务。一起完成，每个人都能选一个加成。",
+      "findYourSquad": "找到你的小队",
+      "pickYourBooster": "选择你的加成",
+      "newMissionEveryMonday": "每周一有新任务。",
+      "voteForThisWeek": "为本周任务投票。第一次训练计入后就会锁定。",
+      "vote": "票",
+      "squadCombo": "小队组合拳",
+      "nobodyHasPutA": "还没有人提出组合拳。",
+      "vote2": "投票",
+      "putOneOfYour": "提出你的一个组合拳",
+      "putOneOfYour2": "提出你的一个组合拳…",
+      "buildAComboTo": "组建一个组合拳来提出",
+      "drillTheSquadCombo": "练习小队组合拳",
+      "reward": "奖励：",
+      "showOffTheSquad": "秀出小队",
+      "couldnTAddThat": "无法添加这个印章",
+      "squadMoments": "小队时刻",
+      "nothingYetTrainAnd": "还没有内容。去训练，就会出现在这里。"
     },
     "sessionCard": {
       "logged": "已记录"
@@ -1397,7 +1450,21 @@
     },
     "gymSeasonHours": {
       "preseason": "季前赛",
-      "of": "/"
+      "of": "/",
+      "season": "第 {{season}} 赛季",
+      "fightForYourGym": "：为你的拳馆而战",
+      "gyms": "家拳馆",
+      "provenHoursThisSeason": "本赛季验证小时",
+      "everyRoundTheAi": "AI 从你视频中评分的每个回合都会计入总数。",
+      "onlyAiVerifiedTraining": "只计入 AI 验证过的训练。",
+      "season2": "赛季",
+      "theStoryOf": "：……的故事",
+      "fightersPutIn": "名拳手投入了",
+      "provenHoursThatS": "验证小时。大约相当于",
+      "threeMinuteRounds": "个三分钟回合",
+      "finishing": "，最终位列",
+      "ofThePublicGyms": "（公开拳馆中）",
+      "carriedBy": "主力"
     },
     "squadVerdict": {
       "sending": "发送中…",
@@ -1418,7 +1485,18 @@
     "levelCard": {
       "status": "身份",
       "level": "等级",
-      "sessions2": "次训练"
+      "sessions2": "次训练",
+      "statusPoints": "身份积分",
+      "progressToNextLevel": "升到下一级的进度",
+      "toLevel": "升到等级",
+      "unlocks": "解锁",
+      "pointsToGo": "积分还差",
+      "s2xStatusOnYour": "：接下来",
+      "sessions": "{{sessions_left}} 次训练",
+      "session": "次训练",
+      "weeklyPoints": "每周积分",
+      "pts": "分",
+      "points": "积分，"
     },
     "trophyShelf": {
       "level": "等级",
@@ -1592,7 +1670,40 @@
     },
     "cornerSurprise": {
       "cornerSurprise": "角落惊喜",
-      "seeTheOdds": "查看概率"
+      "seeTheOdds": "查看概率",
+      "yourCornerLeftYou": "你的角落给你留了东西。点击打开。",
+      "watchHowTheyDid": "看看他们怎么做到的",
+      "upTo": "每天最多",
+      "surprisesADaySurprises": "个惊喜。惊喜靠训练获得，从不出售。"
+    },
+    "hoursLadder": {
+      "hoursLadder": "小时阶梯",
+      "noBadgeYet": "还没有徽章",
+      "nextBadge": "下一个徽章：{{next_tier}}",
+      "topOfTheLadder": "阶梯顶端",
+      "progressToYourNext": "距离下一个小时徽章的进度",
+      "onlyRoundsTheAi": "只计入 AI 在视频中看过的回合。阶梯一直到 10,000 小时，那是专家的标志。"
+    },
+    "paywallPage": {
+      "session": "次训练"
+    },
+    "rankBoard": {
+      "couldNotLoadRanks": "无法加载排名。请检查网络。",
+      "couldnTChangeThat": "无法更改，请重试",
+      "learningModeIsOn": "学习模式已开启",
+      "whileYouLearnThe": "在学习基础期间，你只和自己的数据比拼。想看排名时随时可以打开。",
+      "showMeTheRanks": "显示排名",
+      "noRivalsYet": "还没有对手",
+      "followFightersOrJoin": "关注拳手或加入小队，他们就会出现在这里。赢过认识的人感觉完全不同。",
+      "fighter": "名拳手",
+      "onThisBoard": "在这个榜单上",
+      "shareYourRank": "分享你的排名",
+      "switchToLearningMode": "切换到学习模式（隐藏排名）",
+      "everyMemberSPoints": "本周所有成员的积分总和。",
+      "noSquadYet": "还没有小队",
+      "noGymYet": "还没有拳馆",
+      "startASquadAnd": "创建小队，一起往上爬。",
+      "joinAGymTo": "加入拳馆，在这个榜单上为它而战。"
     }
   },
   "feedback": {

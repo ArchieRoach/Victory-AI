@@ -883,7 +883,8 @@
       "tokens": "トークン",
       "emotes2": "エモート",
       "goBack": "戻る",
-      "free": "無料"
+      "free": "無料",
+      "unlocks": "解除"
     },
     "streamCard": {
       "live": "ライブ"
@@ -1005,7 +1006,8 @@
       "close": "閉じる",
       "combo": "コンボ",
       "goBack": "戻る",
-      "free": "無料"
+      "free": "無料",
+      "unlocks": "解除"
     },
     "birthDateCard": {
       "enterYourDateOf": "生年月日を入力",
@@ -1235,7 +1237,23 @@
       "sending": "送信中…"
     },
     "mentorPanel": {
-      "send": "送信"
+      "send": "送信",
+      "thatDidnTWork": "うまくいきませんでした。もう一度お試しください",
+      "yourAiMentorReviews": "あなたのAIメンター。毎ラウンドを振り返り、次の重点を決めます。",
+      "yourMentors": "あなたのメンター",
+      "aCoachFromYour": "ジムのコーチがあなたのトレーニングを見守り、メモを残せます。",
+      "asked": "依頼済み",
+      "mentor": "メンター",
+      "endMentorship": "メンタリングを終了",
+      "askSomeoneFromYour": "ジムの誰かに頼む",
+      "ask": "頼む",
+      "findAGym": "ジムを探す",
+      "fightersYouMentor": "あなたが指導しているファイター",
+      "accept": "承認",
+      "lvl": "Lv",
+      "thisWeek": "今週 ·",
+      "dStreak": "日連続",
+      "aShortNoteWhat": "短いメモ：次に取り組むこと"
     },
     "tokenSuccessPage": {
       "tryAgain": "もう一度試す",
@@ -1276,7 +1294,21 @@
       "you": "{{name}}（あなた）"
     },
     "goldenGloves": {
-      "day": "日"
+      "day": "日",
+      "youReInOnly": "エントリー完了。ここからは証明されたラウンドだけがカウントされます。",
+      "couldnTEnterRight": "今はエントリーできませんでした",
+      "comingAtLaunch": "リリース時に登場",
+      "limitedToThisSeason": "今シーズン限定",
+      "goldenGlovesProgress": "ゴールデングローブの進捗",
+      "provenHours": "証明時間",
+      "verifiedMinLeftToday": "今日の残り認証分数",
+      "showThemOff": "見せびらかそう",
+      "toEnterMakeThese": "参加するには、これらを約束してください。締め切りまで",
+      "iMInStart": "参加する。追跡スタート",
+      "entriesOpenOnLaunch": "エントリーはリリース日に開始。それまで動画オンでトレーニングすれば、準備万端でスタートできます。",
+      "entriesForTheseGloves": "このグローブのエントリーは締め切りました。次の追跡は新シーズン開始時に始まります。",
+      "whatCountsAsProof": "証明になるもの",
+      "recordYourRoundsOn": "AIが採点できるよう、ラウンドを動画で記録してください。"
     },
     "proDashboardPage": {
       "left": "残り"
@@ -1312,7 +1344,8 @@
     },
     "calloutsPage": {
       "goBack": "戻る",
-      "daysLeft": "日残り"
+      "daysLeft": "日残り",
+      "accept": "承認"
     },
     "competitionDetailPage": {
       "goBack": "戻る"
@@ -1387,7 +1420,27 @@
     },
     "questCard": {
       "done": "完了",
-      "by": "by"
+      "by": "by",
+      "thatDidnTWork": "うまくいきませんでした。もう一度お試しください",
+      "missionsNeedASquad": "ミッションにはスクワッドが必要です",
+      "eachWeekYourSquad": "毎週スクワッドがミッションを選びます。一緒に達成すると全員がブースターを選べます。",
+      "findYourSquad": "スクワッドを探す",
+      "pickYourBooster": "ブースターを選ぶ",
+      "newMissionEveryMonday": "毎週月曜に新しいミッション。",
+      "voteForThisWeek": "今週のミッションに投票しよう。最初のセッションがカウントされると確定します。",
+      "vote": "票",
+      "squadCombo": "スクワッドのコンボ",
+      "nobodyHasPutA": "まだ誰もコンボを提案していません。",
+      "vote2": "投票",
+      "putOneOfYour": "自分のコンボを1つ提案",
+      "putOneOfYour2": "自分のコンボを1つ提案…",
+      "buildAComboTo": "提案するコンボを作る",
+      "drillTheSquadCombo": "スクワッドのコンボを練習",
+      "reward": "報酬：",
+      "showOffTheSquad": "スクワッドを自慢",
+      "couldnTAddThat": "スタンプを追加できませんでした",
+      "squadMoments": "スクワッドの瞬間",
+      "nothingYetTrainAnd": "まだ何もありません。トレーニングするとここに表示されます。"
     },
     "sessionCard": {
       "logged": "記録"
@@ -1397,7 +1450,21 @@
     },
     "gymSeasonHours": {
       "preseason": "プレシーズン",
-      "of": "/"
+      "of": "/",
+      "season": "シーズン{{season}}",
+      "fightForYourGym": "：ジムのために戦おう",
+      "gyms": "ジム",
+      "provenHoursThisSeason": "今シーズンの証明時間",
+      "everyRoundTheAi": "動画からAIが採点したラウンドはすべてこの合計に加算されます。",
+      "onlyAiVerifiedTraining": "AIが認証したトレーニングだけがカウントされます。",
+      "season2": "シーズン",
+      "theStoryOf": "：の物語",
+      "fightersPutIn": "人のファイターが",
+      "provenHoursThatS": "証明時間を積み上げました。これは約",
+      "threeMinuteRounds": "回の3分ラウンド",
+      "finishing": "、最終順位",
+      "ofThePublicGyms": "（公開ジム中）",
+      "carriedBy": "牽引役"
     },
     "squadVerdict": {
       "sending": "送信中…",
@@ -1418,7 +1485,18 @@
     "levelCard": {
       "status": "ステータス",
       "level": "レベル",
-      "sessions2": "セッション"
+      "sessions2": "セッション",
+      "statusPoints": "ステータスポイント",
+      "progressToNextLevel": "次のレベルまでの進捗",
+      "toLevel": "レベルまで",
+      "unlocks": "解除",
+      "pointsToGo": "ポイントあと",
+      "s2xStatusOnYour": "：次の",
+      "sessions": "{{sessions_left}}セッション",
+      "session": "セッション",
+      "weeklyPoints": "週間ポイント",
+      "pts": "pt",
+      "points": "ポイント、"
     },
     "trophyShelf": {
       "level": "レベル",
@@ -1592,7 +1670,40 @@
     },
     "cornerSurprise": {
       "cornerSurprise": "コーナーサプライズ",
-      "seeTheOdds": "オッズを見る"
+      "seeTheOdds": "オッズを見る",
+      "yourCornerLeftYou": "コーナーから何か届いています。タップして開こう。",
+      "watchHowTheyDid": "どうやったか見る",
+      "upTo": "1日最大",
+      "surprisesADaySurprises": "個のサプライズ。サプライズはトレーニングで得るもので、売っていません。"
+    },
+    "hoursLadder": {
+      "hoursLadder": "時間のはしご",
+      "noBadgeYet": "まだバッジはありません",
+      "nextBadge": "次のバッジ：{{next_tier}}",
+      "topOfTheLadder": "はしごの頂上",
+      "progressToYourNext": "次の時間バッジまでの進捗",
+      "onlyRoundsTheAi": "AIが動画で見たラウンドだけがカウントされます。はしごは専門家の証である10,000時間まで続きます。"
+    },
+    "paywallPage": {
+      "session": "セッション"
+    },
+    "rankBoard": {
+      "couldNotLoadRanks": "ランキングを読み込めませんでした。接続を確認してください。",
+      "couldnTChangeThat": "変更できませんでした。もう一度お試しください",
+      "learningModeIsOn": "学習モードがオンです",
+      "whileYouLearnThe": "基本を学んでいる間は、自分の数字とだけ競います。ランキングは見たいときに見られます。",
+      "showMeTheRanks": "ランキングを表示",
+      "noRivalsYet": "まだライバルはいません",
+      "followFightersOrJoin": "ファイターをフォローするかスクワッドに参加すると、ここに表示されます。知っている人に勝つのは格別です。",
+      "fighter": "人のファイター",
+      "onThisBoard": "このボードで",
+      "shareYourRank": "順位をシェア",
+      "switchToLearningMode": "学習モードに切り替え（ランキングを隠す）",
+      "everyMemberSPoints": "今週の全メンバーのポイント合計。",
+      "noSquadYet": "まだスクワッドがありません",
+      "noGymYet": "まだジムがありません",
+      "startASquadAnd": "スクワッドを作って一緒に上を目指そう。",
+      "joinAGymTo": "ジムに参加して、このボードでジムのために戦おう。"
     }
   },
   "feedback": {

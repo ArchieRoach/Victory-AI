@@ -883,7 +883,8 @@
       "tokens": "токенов",
       "emotes2": "Эмодзи",
       "goBack": "Назад",
-      "free": "Бесплатно"
+      "free": "Бесплатно",
+      "unlocks": "открывает"
     },
     "streamCard": {
       "live": "ЭФИР"
@@ -1005,7 +1006,8 @@
       "close": "Закрыть",
       "combo": "Комбо",
       "goBack": "Назад",
-      "free": "Бесплатно"
+      "free": "Бесплатно",
+      "unlocks": "открывает"
     },
     "birthDateCard": {
       "enterYourDateOf": "Укажи дату рождения",
@@ -1235,7 +1237,23 @@
       "sending": "Отправка…"
     },
     "mentorPanel": {
-      "send": "Отправить"
+      "send": "Отправить",
+      "thatDidnTWork": "Не получилось, попробуй ещё раз",
+      "yourAiMentorReviews": "Твой ИИ-наставник. Разбирает каждый раунд и задаёт следующий фокус.",
+      "yourMentors": "Твои наставники",
+      "aCoachFromYour": "Тренер из твоего зала может следить за твоими тренировками и оставлять заметки.",
+      "asked": "Запрошено",
+      "mentor": "Наставник",
+      "endMentorship": "Завершить наставничество",
+      "askSomeoneFromYour": "Попроси кого-то из своего зала",
+      "ask": "Попросить",
+      "findAGym": "Найти зал",
+      "fightersYouMentor": "Бойцы, которых ты ведёшь",
+      "accept": "Принять",
+      "lvl": "Ур.",
+      "thisWeek": "на этой неделе ·",
+      "dStreak": "дн. подряд",
+      "aShortNoteWhat": "Короткая заметка: над чем работать дальше"
     },
     "tokenSuccessPage": {
       "tryAgain": "Попробовать снова",
@@ -1276,7 +1294,21 @@
       "you": "{{name}} (ты)"
     },
     "goldenGloves": {
-      "day": "день"
+      "day": "день",
+      "youReInOnly": "Ты участвуешь. Теперь засчитываются только подтверждённые раунды.",
+      "couldnTEnterRight": "Сейчас не удалось присоединиться",
+      "comingAtLaunch": "Появится к запуску",
+      "limitedToThisSeason": "Только в этом сезоне",
+      "goldenGlovesProgress": "Прогресс Золотых перчаток",
+      "provenHours": "подтверждённых часов",
+      "verifiedMinLeftToday": "подтверждённых мин осталось сегодня",
+      "showThemOff": "Похвастайся",
+      "toEnterMakeThese": "Чтобы участвовать, дай эти обещания. Запись закроется через",
+      "iMInStart": "Я в деле. Начать погоню",
+      "entriesOpenOnLaunch": "Запись откроется в день запуска. Тренируйся с видео до этого — и стартуешь готовым.",
+      "entriesForTheseGloves": "Запись на эти перчатки закрыта. Следующая погоня начнётся с новым сезоном.",
+      "whatCountsAsProof": "Что считается доказательством",
+      "recordYourRoundsOn": "Записывай раунды на видео, чтобы ИИ мог их оценить."
     },
     "proDashboardPage": {
       "left": "остался"
@@ -1312,7 +1344,8 @@
     },
     "calloutsPage": {
       "goBack": "Назад",
-      "daysLeft": "дней осталось"
+      "daysLeft": "дней осталось",
+      "accept": "Принять"
     },
     "competitionDetailPage": {
       "goBack": "Назад"
@@ -1387,7 +1420,27 @@
     },
     "questCard": {
       "done": "Готово",
-      "by": "от"
+      "by": "от",
+      "thatDidnTWork": "Не получилось, попробуй ещё раз",
+      "missionsNeedASquad": "Для миссий нужна команда",
+      "eachWeekYourSquad": "Каждую неделю команда выбирает миссию. Выполните её вместе — и каждый выберет бустер.",
+      "findYourSquad": "Найди свою команду",
+      "pickYourBooster": "Выбери бустер",
+      "newMissionEveryMonday": "Новая миссия каждый понедельник.",
+      "voteForThisWeek": "Голосуй за миссию недели. Она фиксируется, когда засчитана первая тренировка.",
+      "vote": "голос",
+      "squadCombo": "Комбо команды",
+      "nobodyHasPutA": "Пока никто не предложил комбинацию.",
+      "vote2": "Голосовать",
+      "putOneOfYour": "Предложи одну из своих комбинаций",
+      "putOneOfYour2": "Предложи одну из своих комбинаций…",
+      "buildAComboTo": "Собери комбинацию, чтобы предложить",
+      "drillTheSquadCombo": "Отработай комбо команды",
+      "reward": "Награда:",
+      "showOffTheSquad": "Покажи команду",
+      "couldnTAddThat": "Не удалось добавить отметку",
+      "squadMoments": "Моменты команды",
+      "nothingYetTrainAnd": "Пока пусто. Тренируйся — и тут появится."
     },
     "sessionCard": {
       "logged": "записано"
@@ -1397,7 +1450,21 @@
     },
     "gymSeasonHours": {
       "preseason": "Предсезонка",
-      "of": "из"
+      "of": "из",
+      "season": "Сезон {{season}}",
+      "fightForYourGym": ": сражайся за свой зал",
+      "gyms": "залов",
+      "provenHoursThisSeason": "подтверждённых часов в этом сезоне",
+      "everyRoundTheAi": "Каждый раунд, оценённый ИИ по твоему видео, добавляется к сумме.",
+      "onlyAiVerifiedTraining": "Засчитываются только тренировки, подтверждённые ИИ.",
+      "season2": "Сезон",
+      "theStoryOf": ": история",
+      "fightersPutIn": "бойцов набрали",
+      "provenHoursThatS": "подтверждённых часов. Это примерно",
+      "threeMinuteRounds": "трёхминутных раундов",
+      "finishing": ", итог —",
+      "ofThePublicGyms": "среди открытых залов",
+      "carriedBy": "Главный вклад —"
     },
     "squadVerdict": {
       "sending": "Отправка…",
@@ -1418,7 +1485,18 @@
     "levelCard": {
       "status": "Статус",
       "level": "Уровень",
-      "sessions2": "тренировок"
+      "sessions2": "тренировок",
+      "statusPoints": "очков статуса",
+      "progressToNextLevel": "Прогресс до следующего уровня",
+      "toLevel": "до уровня",
+      "unlocks": "открывает",
+      "pointsToGo": "очков осталось",
+      "s2xStatusOnYour": ": 2x статус на следующие",
+      "sessions": "{{sessions_left}} тренировок",
+      "session": "тренировку",
+      "weeklyPoints": "Очки за неделю",
+      "pts": "оч.",
+      "points": "очков,"
     },
     "trophyShelf": {
       "level": "Уровень",
@@ -1592,7 +1670,40 @@
     },
     "cornerSurprise": {
       "cornerSurprise": "Сюрприз из угла",
-      "seeTheOdds": "Смотреть шансы"
+      "seeTheOdds": "Смотреть шансы",
+      "yourCornerLeftYou": "Твой угол кое-что оставил. Нажми, чтобы открыть.",
+      "watchHowTheyDid": "Посмотри, как это сделали",
+      "upTo": "До",
+      "surprisesADaySurprises": "сюрпризов в день. Сюрпризы зарабатываются тренировками, а не покупаются."
+    },
+    "hoursLadder": {
+      "hoursLadder": "Лестница часов",
+      "noBadgeYet": "Значка пока нет",
+      "nextBadge": "Следующий значок: {{next_tier}}",
+      "topOfTheLadder": "Вершина лестницы",
+      "progressToYourNext": "Прогресс до следующего значка часов",
+      "onlyRoundsTheAi": "Засчитываются только раунды, которые ИИ видел на видео. Лестница идёт до 10 000 часов — отметки эксперта."
+    },
+    "paywallPage": {
+      "session": "тренировку"
+    },
+    "rankBoard": {
+      "couldNotLoadRanks": "Не удалось загрузить рейтинги. Проверь соединение.",
+      "couldnTChangeThat": "Не удалось изменить, попробуй ещё раз",
+      "learningModeIsOn": "Режим обучения включён",
+      "whileYouLearnThe": "Пока изучаешь основы, ты соревнуешься только со своими цифрами. Рейтинги доступны, когда захочешь.",
+      "showMeTheRanks": "Показать рейтинги",
+      "noRivalsYet": "Соперников пока нет",
+      "followFightersOrJoin": "Подпишись на бойцов или вступи в команду — они появятся здесь. Побеждать знакомых — совсем другое дело.",
+      "fighter": "боец",
+      "onThisBoard": "в этом рейтинге",
+      "shareYourRank": "Поделиться местом",
+      "switchToLearningMode": "Перейти в режим обучения (скрыть рейтинги)",
+      "everyMemberSPoints": "Очки всех участников за неделю вместе.",
+      "noSquadYet": "Команды пока нет",
+      "noGymYet": "Зала пока нет",
+      "startASquadAnd": "Создай команду и поднимайтесь вместе.",
+      "joinAGymTo": "Вступи в зал, чтобы сражаться за него в этом рейтинге."
     }
   },
   "feedback": {

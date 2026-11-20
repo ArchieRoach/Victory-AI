@@ -883,7 +883,8 @@
       "tokens": "رموز",
       "emotes2": "رموز تعبيرية",
       "goBack": "رجوع",
-      "free": "مجاني"
+      "free": "مجاني",
+      "unlocks": "يفتح"
     },
     "streamCard": {
       "live": "مباشر"
@@ -1005,7 +1006,8 @@
       "close": "إغلاق",
       "combo": "تركيبة",
       "goBack": "رجوع",
-      "free": "مجاني"
+      "free": "مجاني",
+      "unlocks": "يفتح"
     },
     "birthDateCard": {
       "enterYourDateOf": "أدخل تاريخ ميلادك",
@@ -1235,7 +1237,23 @@
       "sending": "جارٍ الإرسال…"
     },
     "mentorPanel": {
-      "send": "إرسال"
+      "send": "إرسال",
+      "thatDidnTWork": "لم ينجح ذلك، حاول مرة أخرى",
+      "yourAiMentorReviews": "مرشدك بالذكاء الاصطناعي. يراجع كل جولة ويحدد تركيزك التالي.",
+      "yourMentors": "مرشدوك",
+      "aCoachFromYour": "يمكن لمدرب من ناديك متابعة تدريبك وترك ملاحظات لك.",
+      "asked": "تم الطلب",
+      "mentor": "مرشد",
+      "endMentorship": "إنهاء الإرشاد",
+      "askSomeoneFromYour": "اطلب من شخص في ناديك",
+      "ask": "اطلب",
+      "findAGym": "ابحث عن نادٍ",
+      "fightersYouMentor": "ملاكمون ترشدهم",
+      "accept": "قبول",
+      "lvl": "مستوى",
+      "thisWeek": "هذا الأسبوع ·",
+      "dStreak": "يوم متتالٍ",
+      "aShortNoteWhat": "ملاحظة قصيرة: على ماذا تعمل بعد ذلك"
     },
     "tokenSuccessPage": {
       "tryAgain": "حاول مرة أخرى",
@@ -1276,7 +1294,21 @@
       "you": "{{name}} (أنت)"
     },
     "goldenGloves": {
-      "day": "يوم"
+      "day": "يوم",
+      "youReInOnly": "أنت مشارك. من الآن تُحتسب الجولات المُثبتة فقط.",
+      "couldnTEnterRight": "تعذّر الدخول الآن",
+      "comingAtLaunch": "قادم عند الإطلاق",
+      "limitedToThisSeason": "لهذا الموسم فقط",
+      "goldenGlovesProgress": "تقدم القفازات الذهبية",
+      "provenHours": "ساعات مُثبتة",
+      "verifiedMinLeftToday": "دقائق موثقة متبقية اليوم",
+      "showThemOff": "تباهَ بها",
+      "toEnterMakeThese": "للمشاركة، قدّم هذه الوعود. يُغلق التسجيل خلال",
+      "iMInStart": "أنا مشارك. ابدأ المطاردة",
+      "entriesOpenOnLaunch": "يُفتح التسجيل يوم الإطلاق. تدرّب مع تشغيل الفيديو قبل ذلك وستبدأ جاهزًا.",
+      "entriesForTheseGloves": "أُغلق التسجيل لهذه القفازات. المطاردة التالية تبدأ مع الموسم الجديد.",
+      "whatCountsAsProof": "ما يُعتبر دليلاً",
+      "recordYourRoundsOn": "سجّل جولاتك بالفيديو ليتمكن الذكاء الاصطناعي من تقييمها."
     },
     "proDashboardPage": {
       "left": "متبقٍ"
@@ -1312,7 +1344,8 @@
     },
     "calloutsPage": {
       "goBack": "رجوع",
-      "daysLeft": "أيام متبقية"
+      "daysLeft": "أيام متبقية",
+      "accept": "قبول"
     },
     "competitionDetailPage": {
       "goBack": "رجوع"
@@ -1387,7 +1420,27 @@
     },
     "questCard": {
       "done": "تم",
-      "by": "بواسطة"
+      "by": "بواسطة",
+      "thatDidnTWork": "لم ينجح ذلك، حاول مرة أخرى",
+      "missionsNeedASquad": "المهام تحتاج فريقًا",
+      "eachWeekYourSquad": "كل أسبوع يختار فريقك مهمة. أكملوها معًا ويختار الجميع معزّزًا.",
+      "findYourSquad": "ابحث عن فريقك",
+      "pickYourBooster": "اختر معزّزك",
+      "newMissionEveryMonday": "مهمة جديدة كل يوم اثنين.",
+      "voteForThisWeek": "صوّت لمهمة هذا الأسبوع. تُثبت عندما تُحتسب الجلسة الأولى.",
+      "vote": "صوت",
+      "squadCombo": "تركيبة الفريق",
+      "nobodyHasPutA": "لم يقترح أحد تركيبة بعد.",
+      "vote2": "صوّت",
+      "putOneOfYour": "اقترح إحدى تركيباتك",
+      "putOneOfYour2": "اقترح إحدى تركيباتك…",
+      "buildAComboTo": "ابنِ تركيبة لاقتراحها",
+      "drillTheSquadCombo": "تمرّن على تركيبة الفريق",
+      "reward": "المكافأة:",
+      "showOffTheSquad": "تباهَ بالفريق",
+      "couldnTAddThat": "تعذّر إضافة هذا الختم",
+      "squadMoments": "لحظات الفريق",
+      "nothingYetTrainAnd": "لا شيء بعد. تدرّب وستظهر هنا."
     },
     "sessionCard": {
       "logged": "مسجّلة"
@@ -1397,7 +1450,21 @@
     },
     "gymSeasonHours": {
       "preseason": "ما قبل الموسم",
-      "of": "من"
+      "of": "من",
+      "season": "الموسم {{season}}",
+      "fightForYourGym": ": قاتل من أجل ناديك",
+      "gyms": "أندية",
+      "provenHoursThisSeason": "ساعات مُثبتة هذا الموسم",
+      "everyRoundTheAi": "كل جولة يقيّمها الذكاء الاصطناعي من فيديوك تُضاف إلى هذا المجموع.",
+      "onlyAiVerifiedTraining": "يُحتسب فقط التدريب الموثق بالذكاء الاصطناعي.",
+      "season2": "الموسم",
+      "theStoryOf": ": قصة",
+      "fightersPutIn": "ملاكمون سجلوا",
+      "provenHoursThatS": "ساعات مُثبتة. أي حوالي",
+      "threeMinuteRounds": "جولات من ثلاث دقائق",
+      "finishing": "، بإنهاء",
+      "ofThePublicGyms": "من الأندية العامة",
+      "carriedBy": "بقيادة"
     },
     "squadVerdict": {
       "sending": "جارٍ الإرسال…",
@@ -1418,7 +1485,18 @@
     "levelCard": {
       "status": "الحالة",
       "level": "المستوى",
-      "sessions2": "جلسات"
+      "sessions2": "جلسات",
+      "statusPoints": "نقاط حالة",
+      "progressToNextLevel": "التقدم إلى المستوى التالي",
+      "toLevel": "للمستوى",
+      "unlocks": "يفتح",
+      "pointsToGo": "نقاط متبقية",
+      "s2xStatusOnYour": ": حالة مضاعفة في",
+      "sessions": "{{sessions_left}} جلسات",
+      "session": "جلسة",
+      "weeklyPoints": "النقاط الأسبوعية",
+      "pts": "نقطة",
+      "points": "نقاط،"
     },
     "trophyShelf": {
       "level": "المستوى",
@@ -1592,7 +1670,40 @@
     },
     "cornerSurprise": {
       "cornerSurprise": "مفاجأة الزاوية",
-      "seeTheOdds": "اعرض الاحتمالات"
+      "seeTheOdds": "اعرض الاحتمالات",
+      "yourCornerLeftYou": "زاويتك تركت لك شيئًا. اضغط للفتح.",
+      "watchHowTheyDid": "شاهد كيف فعلوها",
+      "upTo": "حتى",
+      "surprisesADaySurprises": "مفاجآت يوميًا. المفاجآت تُكسب بالتدريب ولا تُباع أبدًا."
+    },
+    "hoursLadder": {
+      "hoursLadder": "سلّم الساعات",
+      "noBadgeYet": "لا شارة بعد",
+      "nextBadge": "الشارة التالية: {{next_tier}}",
+      "topOfTheLadder": "قمة السلّم",
+      "progressToYourNext": "التقدم نحو شارة الساعات التالية",
+      "onlyRoundsTheAi": "تُحتسب فقط الجولات التي شاهدها الذكاء الاصطناعي بالفيديو. يصل السلّم إلى 10,000 ساعة، علامة الخبير."
+    },
+    "paywallPage": {
+      "session": "جلسة"
+    },
+    "rankBoard": {
+      "couldNotLoadRanks": "تعذّر تحميل التصنيفات. تحقق من اتصالك.",
+      "couldnTChangeThat": "تعذّر التغيير، حاول مرة أخرى",
+      "learningModeIsOn": "وضع التعلم مفعّل",
+      "whileYouLearnThe": "أثناء تعلم الأساسيات، تنافس أرقامك فقط. التصنيفات موجودة متى أردتها.",
+      "showMeTheRanks": "اعرض التصنيفات",
+      "noRivalsYet": "لا منافسين بعد",
+      "followFightersOrJoin": "تابع ملاكمين أو انضم إلى فريق وسيظهرون هنا. التغلب على من تعرفهم له طعم مختلف.",
+      "fighter": "ملاكم",
+      "onThisBoard": "في هذه اللوحة",
+      "shareYourRank": "شارك ترتيبك",
+      "switchToLearningMode": "التبديل إلى وضع التعلم (إخفاء التصنيفات)",
+      "everyMemberSPoints": "نقاط جميع الأعضاء هذا الأسبوع مجتمعة.",
+      "noSquadYet": "لا فريق بعد",
+      "noGymYet": "لا نادٍ بعد",
+      "startASquadAnd": "أنشئ فريقًا واصعدوا معًا.",
+      "joinAGymTo": "انضم إلى نادٍ لتقاتل من أجله في هذه اللوحة."
     }
   },
   "feedback": {
