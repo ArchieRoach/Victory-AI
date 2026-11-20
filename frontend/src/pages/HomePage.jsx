@@ -8,7 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Bell, Heart, MessageCircle, Users,
-  Send, Tv, ChevronDown, ChevronUp, Zap, Gift, Share2, Flame, Flag,
+  Send, Tv, ChevronDown, ChevronUp, Zap, Gift, Share2, Flame, Flag, Footprints,
 } from "lucide-react";
 import { ShareSheet } from "@/components/ShareSheet";
 import { ReportModal } from "@/components/ReportModal";
@@ -54,6 +54,7 @@ const NOTIF_META = {
   tip:     { icon: Zap,     color: "text-victory-lime",     text: (n) => `${n.actor_name} tipped you ${n.amount?.toLocaleString()} tokens${n.message ? ` · "${n.message}"` : ""}` },
   gift_sub:{ icon: Gift,    color: "text-violet-400",       text: (n) => `${n.actor_name} gifted ${n.count || 1} sub${(n.count || 1) > 1 ? "s" : ""}` },
   streak_cheer: { icon: Flame, color: "text-orange-400",    text: (n) => `${n.actor_name} cheered your streak` },
+  run_club_invite: { icon: Footprints, color: "text-victory-lime", text: (n) => tx("ui.homePage.runClubInvite", "{{name}} invited you to a run club. Tap to see it.", { name: n.actor_name || tx("ui.homePage.yourCoach", "Your coach") }) },
 };
 
 // ── Feed card: Live Stream ────────────────────────────────────────────────────
@@ -324,9 +325,13 @@ function TipFeedCard({ tip }) {
 function NotifItem({ notif }) {
   const meta = NOTIF_META[notif.type] || NOTIF_META.like;
   const Icon = meta.icon;
+  const navigate = useNavigate();
+  const open = notif.club_id ? () => navigate(`/run-clubs/${notif.club_id}`) : undefined;
 
   return (
-    <div className={`flex items-start gap-3 px-4 py-3.5 border-b border-victory-border ${!notif.read ? "bg-victory-lime/5" : ""}`}>
+    <div onClick={open} role={open ? "link" : undefined} tabIndex={open ? 0 : undefined}
+      onKeyDown={open ? (e) => { if (e.key === "Enter") open(); } : undefined}
+      className={`flex items-start gap-3 px-4 py-3.5 border-b border-victory-border ${open ? "cursor-pointer" : ""} ${!notif.read ? "bg-victory-lime/5" : ""}`}>
       {/* Actor avatar */}
       {notif.actor_avatar ? (
         <img src={notif.actor_avatar} alt={notif.actor_name}

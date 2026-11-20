@@ -8,6 +8,7 @@ import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2, MessageSquar
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
 import { GymSeasonHours } from "@/components/progress/GymSeasonHours";
+import { RunClubs } from "@/components/RunClubs";
 import { tx } from "@/i18n/tx";
 
 const GYM_DEFAULT_CAP = 50;
@@ -192,6 +193,8 @@ export default function GymDetailPage() {
             <p className="text-victory-muted text-sm">{gym.description}</p>
           </div>
         )}
+
+        <RunClubs gymId={gym.gym_id} gymMembers={gym.members_detail} />
 
         {(isOwner || (gym.coaches || []).includes(user?.user_id)) && (
           <button onClick={() => navigate(`/gyms/${gym.gym_id}/poster`)} className="victory-btn-secondary flex items-center justify-center gap-2" data-testid="poster-link">

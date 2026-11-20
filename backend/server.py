@@ -8,7 +8,9 @@ import asyncio
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
-from typing import List, Optional, Dict, Any, Literal
+from typing import List, Optional, Dict, Any, Literal, Tuple
+from zoneinfo import ZoneInfo
+import run_clubs as rc
 import re
 import html
 import secrets
@@ -4623,6 +4625,9 @@ async def delete_gym(gym_id: str, user: dict = Depends(get_current_user)):
     if members:
         await db.users.update_many({"user_id": {"$in": members}, "gym_id": gym_id}, {"$unset": {"gym_id": ""}})
     await db.gyms.delete_one({"gym_id": gym_id})
+    club_ids = [c["club_id"] async for c in db.run_clubs.find({"gym_id": gym_id}, {"club_id": 1})]
+    for coll in (db.run_clubs, db.run_club_invites, db.run_club_rsvps):
+        await coll.delete_many({"club_id": {"$in": club_ids}})
     return {"message": "Gym deleted"}
 
 @api_router.post("/gyms/join-by-code")
@@ -4655,6 +4660,235 @@ async def join_gym_by_code(request: Request, user: dict = Depends(get_current_us
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"gym_id": gym_id}})
     await _recalculate_gym_stats(gym_id)
     return {"message": "Joined gym", "gym_id": gym_id, "gym_name": gym["name"]}
+
+# ============== RUN CLUBS ==============
+# Rules and the Goal/Psychology/Design reasoning live in run_clubs.py.
+
+class RunClubCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=60)
+    description: str = Field("", max_length=300)
+    weekday: int = Field(..., ge=0, le=6)
+    time: str = Field(..., max_length=5)
+    meeting_point: str = Field(..., min_length=2, max_length=120)
+    distance_km: float
+
+
+class RunClubInvite(BaseModel):
+    user_ids: List[str] = Field(..., min_length=1, max_length=rc.MAX_INVITES_PER_CALL)
+
+
+class RunClubRsvp(BaseModel):
+    going: bool
+
+
+class RunClubCode(BaseModel):
+    code: str = Field(..., max_length=16)
+
+
+def _london_now() -> datetime:
+    return datetime.now(ZoneInfo("Europe/London"))
+
+
+async def _run_club_or_404(club_id: str) -> Tuple[dict, dict]:
+    club = await db.run_clubs.find_one({"club_id": club_id}, {"_id": 0})
+    gym = club and await db.gyms.find_one({"gym_id": club["gym_id"]}, {"_id": 0, "owner_id": 1, "coaches": 1, "name": 1, "members": 1})
+    if not club or not gym:
+        raise HTTPException(404, "Run club not found")
+    return club, gym
+
+
+async def _run_club_view(club: dict, gym: dict, user: dict, with_people: bool = False) -> dict:
+    uid = user["user_id"]
+    invite = await db.run_club_invites.find_one({"club_id": club["club_id"], "user_id": uid, "status": "pending"}, {"_id": 0})
+    run_day = rc.next_run_date(club["weekday"], club["time"], _london_now()).isoformat()
+    going_ids = [r["user_id"] async for r in db.run_club_rsvps.find(
+        {"club_id": club["club_id"], "run_date": run_day, "going": True}, {"user_id": 1})]
+    going_ids = [i for i in going_ids if i in club.get("members", [])]
+    view = {
+        "club_id": club["club_id"], "gym_id": club["gym_id"], "gym_name": gym.get("name"),
+        "name": club["name"], "description": club.get("description", ""),
+        "weekday": club["weekday"], "day": rc.WEEKDAYS[club["weekday"]], "time": club["time"],
+        "distance_km": club["distance_km"], "member_count": len(club.get("members", [])),
+        "next_run": run_day, "going_count": len(going_ids), "i_am_going": uid in going_ids,
+        "is_member": uid in club.get("members", []), "is_staff": rc.is_staff(gym, uid),
+        "invite_id": invite["invite_id"] if invite else None,
+    }
+    if rc.can_see_details(club, gym, uid, bool(invite)):
+        view["meeting_point"] = club["meeting_point"]
+    if view["is_staff"]:
+        view["invite_code"] = club["invite_code"]
+    if with_people and (view["is_member"] or view["is_staff"]):
+        docs = await db.users.find({"user_id": {"$in": club.get("members", [])}},
+                                   {"_id": 0, "user_id": 1, "name": 1, "display_name": 1, "avatar_url": 1, "picture": 1}).to_list(rc.MAX_MEMBERS)
+        view["members"] = [{"user_id": d["user_id"], "name": d.get("display_name") or d.get("name") or "Fighter",
+                            "avatar": d.get("avatar_url") or d.get("picture"), "going": d["user_id"] in going_ids} for d in docs]
+        if view["is_staff"]:
+            pending = await db.run_club_invites.find({"club_id": club["club_id"], "status": "pending"}, {"user_id": 1}).to_list(500)
+            view["invited_ids"] = [p["user_id"] for p in pending]
+    return view
+
+
+@api_router.get("/gyms/{gym_id}/run-clubs")
+async def list_run_clubs(gym_id: str, user: dict = Depends(get_current_user)):
+    gym = await db.gyms.find_one({"gym_id": gym_id}, {"_id": 0, "owner_id": 1, "coaches": 1, "name": 1, "members": 1, "is_public": 1})
+    if not gym:
+        raise HTTPException(404, "Gym not found")
+    if not gym.get("is_public") and user["user_id"] not in gym.get("members", []):
+        raise HTTPException(403, "Private gym")
+    clubs = await db.run_clubs.find({"gym_id": gym_id}, {"_id": 0}).sort("weekday", 1).to_list(rc.MAX_CLUBS_PER_GYM)
+    return {"clubs": [await _run_club_view(c, gym, user) for c in clubs], "can_create": rc.is_staff(gym, user["user_id"])}
+
+
+@api_router.post("/gyms/{gym_id}/run-clubs")
+async def create_run_club(gym_id: str, data: RunClubCreate, user: dict = Depends(get_current_user)):
+    gym = await db.gyms.find_one({"gym_id": gym_id}, {"_id": 0})
+    if not gym:
+        raise HTTPException(404, "Gym not found")
+    if not rc.is_staff(gym, user["user_id"]):
+        raise HTTPException(403, "Only the gym owner or a coach can set up a run club")
+    time_hhmm, km = rc.clean_time(data.time), rc.clean_distance(data.distance_km)
+    if not time_hhmm:
+        raise HTTPException(400, "Pick a start time like 18:30")
+    if km is None:
+        raise HTTPException(400, f"Distance must be between {rc.MIN_KM:g} and {rc.MAX_KM:g} km")
+    for text in (data.name, data.description, data.meeting_point):
+        if text and await is_content_flagged(text):
+            raise HTTPException(400, "That doesn't meet our community guidelines")
+    if await db.run_clubs.count_documents({"gym_id": gym_id}) >= rc.MAX_CLUBS_PER_GYM:
+        raise HTTPException(400, f"A gym can have up to {rc.MAX_CLUBS_PER_GYM} run clubs")
+    club = {
+        "club_id": f"rc_{uuid.uuid4().hex[:12]}", "gym_id": gym_id, "name": data.name.strip(),
+        "description": data.description.strip(), "weekday": data.weekday, "time": time_hhmm,
+        "meeting_point": data.meeting_point.strip(), "distance_km": km, "created_by": user["user_id"],
+        "members": [user["user_id"]], "invite_code": uuid.uuid4().hex[:8].upper(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.run_clubs.insert_one(club)
+    club.pop("_id", None)
+    return await _run_club_view(club, gym, user, with_people=True)
+
+
+@api_router.get("/run-clubs/invites/mine")
+async def my_run_club_invites(user: dict = Depends(get_current_user)):
+    invites = await db.run_club_invites.find({"user_id": user["user_id"], "status": "pending"}, {"_id": 0}).to_list(20)
+    out = []
+    for inv in invites:
+        club = await db.run_clubs.find_one({"club_id": inv["club_id"]}, {"_id": 0})
+        gym = club and await db.gyms.find_one({"gym_id": club["gym_id"]}, {"_id": 0, "owner_id": 1, "coaches": 1, "name": 1})
+        if club and gym:
+            out.append(await _run_club_view(club, gym, user))
+    return {"invites": out}
+
+
+@api_router.get("/run-clubs/{club_id}")
+async def get_run_club(club_id: str, user: dict = Depends(get_current_user)):
+    club, gym = await _run_club_or_404(club_id)
+    return await _run_club_view(club, gym, user, with_people=True)
+
+
+@api_router.post("/run-clubs/{club_id}/invites")
+async def invite_to_run_club(club_id: str, data: RunClubInvite, user: dict = Depends(get_current_user)):
+    club, gym = await _run_club_or_404(club_id)
+    if not rc.is_staff(gym, user["user_id"]):
+        raise HTTPException(403, "Only the gym owner or a coach can invite people")
+    if _rate_limited(f"run_club_invite:{user['user_id']}", 10, 3600):
+        raise HTTPException(429, "That's a lot of invites. Try again in a bit")
+    members, gym_members = set(club.get("members", [])), set(gym.get("members", []))
+    targets = [u for u in dict.fromkeys(data.user_ids) if u in gym_members and u not in members]
+    already = {i["user_id"] async for i in db.run_club_invites.find(
+        {"club_id": club_id, "user_id": {"$in": targets}, "status": "pending"}, {"user_id": 1})}
+    sender = (user.get("display_name") or user.get("name") or "Your coach").split()[0][:30]
+    now = datetime.now(timezone.utc).isoformat()
+    sent = []
+    for uid in targets:
+        if uid in already:
+            continue
+        invite_id = f"rci_{uuid.uuid4().hex[:12]}"
+        await db.run_club_invites.insert_one({"invite_id": invite_id, "club_id": club_id, "user_id": uid,
+                                              "invited_by": user["user_id"], "status": "pending", "created_at": now})
+        message = f"{sender} invited you to {club['name']}: {rc.WEEKDAYS[club['weekday']]}s at {club['time']}"
+        await db.notifications.insert_one({"notification_id": f"notif_{uuid.uuid4().hex[:12]}", "recipient_id": uid,
+                                           "actor_id": user["user_id"], "type": "run_club_invite", "message": message,
+                                           "club_id": club_id, "read": False, "created_at": now})
+        await _send_push(uid, title=f"Run club invite: {club['name']}", body=message,
+                         url=f"/run-clubs/{club_id}", tag=f"run-club-{club_id}")
+        sent.append(uid)
+    return {"invited": len(sent), "skipped": len(data.user_ids) - len(sent)}
+
+
+async def _add_to_run_club(club: dict, user: dict) -> None:
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0}) or user
+    blocker = rc.join_blocker(club, fresh, _is_minor(fresh))
+    if blocker:
+        raise HTTPException(400, blocker)
+    added = await db.run_clubs.update_one(
+        {"club_id": club["club_id"], "members": {"$ne": user["user_id"]},
+         f"members.{rc.MAX_MEMBERS - 1}": {"$exists": False}},
+        {"$addToSet": {"members": user["user_id"]}})
+    if not added.modified_count:
+        raise HTTPException(400, "This run club is full")
+    await db.run_club_invites.update_many({"club_id": club["club_id"], "user_id": user["user_id"], "status": "pending"},
+                                          {"$set": {"status": "accepted"}})
+
+
+@api_router.post("/run-clubs/invites/{invite_id}/{answer}")
+async def answer_run_club_invite(invite_id: str, answer: str, user: dict = Depends(get_current_user)):
+    if answer not in ("accept", "decline"):
+        raise HTTPException(404, "Not found")
+    invite = await db.run_club_invites.find_one({"invite_id": invite_id, "user_id": user["user_id"], "status": "pending"})
+    if not invite:
+        raise HTTPException(404, "Invite not found")
+    if answer == "decline":
+        await db.run_club_invites.update_one({"invite_id": invite_id}, {"$set": {"status": "declined"}})
+        return {"declined": True}
+    club, gym = await _run_club_or_404(invite["club_id"])
+    await _add_to_run_club(club, user)
+    club, gym = await _run_club_or_404(invite["club_id"])
+    return await _run_club_view(club, gym, user, with_people=True)
+
+
+@api_router.post("/run-clubs/join-by-code")
+async def join_run_club_by_code(data: RunClubCode, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"run_club_code:{user['user_id']}", 10, 60):
+        raise HTTPException(429, "Too many attempts. Slow down")
+    club = await db.run_clubs.find_one({"invite_code": data.code.strip().upper()}, {"_id": 0})
+    if not club:
+        raise HTTPException(404, "That invite link isn't valid any more")
+    await _add_to_run_club(club, user)
+    club, gym = await _run_club_or_404(club["club_id"])
+    return await _run_club_view(club, gym, user, with_people=True)
+
+
+@api_router.post("/run-clubs/{club_id}/rsvp")
+async def rsvp_run_club(club_id: str, data: RunClubRsvp, user: dict = Depends(get_current_user)):
+    club, gym = await _run_club_or_404(club_id)
+    if user["user_id"] not in club.get("members", []):
+        raise HTTPException(403, "Join the run club first")
+    run_day = rc.next_run_date(club["weekday"], club["time"], _london_now()).isoformat()
+    await db.run_club_rsvps.update_one({"club_id": club_id, "user_id": user["user_id"], "run_date": run_day},
+                                       {"$set": {"going": data.going, "updated_at": datetime.now(timezone.utc).isoformat()}},
+                                       upsert=True)
+    return await _run_club_view(club, gym, user, with_people=True)
+
+
+@api_router.post("/run-clubs/{club_id}/leave")
+async def leave_run_club(club_id: str, user: dict = Depends(get_current_user)):
+    club, _ = await _run_club_or_404(club_id)
+    if user["user_id"] not in club.get("members", []):
+        raise HTTPException(400, "You're not in this run club")
+    await db.run_clubs.update_one({"club_id": club_id}, {"$pull": {"members": user["user_id"]}})
+    await db.run_club_rsvps.delete_many({"club_id": club_id, "user_id": user["user_id"]})
+    return {"left": True}
+
+
+@api_router.delete("/run-clubs/{club_id}")
+async def delete_run_club(club_id: str, user: dict = Depends(get_current_user)):
+    club, gym = await _run_club_or_404(club_id)
+    if not rc.is_staff(gym, user["user_id"]):
+        raise HTTPException(403, "Only the gym owner or a coach can delete a run club")
+    for coll in (db.run_clubs, db.run_club_invites, db.run_club_rsvps):
+        await coll.delete_many({"club_id": club_id})
+    return {"deleted": True}
 
 # ============== SQUAD CHALLENGES ==============
 # A squad is a lightweight, free friend group (max 8) with a real weekly leaderboard —
