@@ -91,7 +91,7 @@ const HYPE_LINES = [
 const HYPE_COLORS = {
   motivate: "text-victory-lime",
   joke:     "text-amber-400",
-  get tip() { return tx("ui.trainPage.textSky400", "text-sky-400"); },
+  tip: "text-sky-400",
   validate: "text-violet-400",
 };
 

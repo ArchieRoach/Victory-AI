@@ -884,7 +884,9 @@
       "emotes2": "Эмодзи",
       "goBack": "Назад",
       "free": "Бесплатно",
-      "unlocks": "открывает"
+      "unlocks": "открывает",
+      "tips2": "Чаевые",
+      "noEmotesYet": "Эмодзи пока нет"
     },
     "streamCard": {
       "live": "ЭФИР"
@@ -892,7 +894,9 @@
     "discoverPage": {
       "live": "ЭФИР",
       "dismiss": "Скрыть",
-      "sessions": "тренировок"
+      "sessions": "тренировок",
+      "filters": "Фильтры",
+      "clearAllFilters": "Сбросить все фильтры"
     },
     "streamViewPage": {
       "live": "ЭФИР",
@@ -914,7 +918,9 @@
       "goBack": "Назад",
       "share": "Поделиться",
       "clip": "Клип",
-      "saving": "Сохраняем…"
+      "saving": "Сохраняем…",
+      "category": "Категория",
+      "weightClass": "Весовая категория"
     },
     "highlightShareSheet": {
       "copied": "Скопировано!",
@@ -999,7 +1005,13 @@
     "deepTaggingMatrix": {
       "all": "Все",
       "liveNow": "Сейчас в эфире",
-      "recent": "Недавние"
+      "recent": "Недавние",
+      "filters": "Фильтры",
+      "clearAll": "Сбросить всё",
+      "category": "Категория",
+      "role": "Роль",
+      "weightClass": "Весовая категория",
+      "clearAllFilters": "Сбросить все фильтры"
     },
     "emoteStudioPage": {
       "delete": "Удалить",
@@ -1007,7 +1019,8 @@
       "combo": "Комбо",
       "goBack": "Назад",
       "free": "Бесплатно",
-      "unlocks": "открывает"
+      "unlocks": "открывает",
+      "noEmotesYet": "Эмодзи пока нет"
     },
     "birthDateCard": {
       "enterYourDateOf": "Укажи дату рождения",
@@ -1092,15 +1105,46 @@
     "emoteShop": {
       "close": "Закрыть",
       "tokens": "токенов",
-      "free": "Бесплатно"
+      "free": "Бесплатно",
+      "unlocked": "{{name}} открыто!",
+      "notEnoughTokens": "Недостаточно токенов.",
+      "alreadyInYourCollection": "Уже в твоей коллекции.",
+      "purchaseFailed": "Покупка не удалась.",
+      "emoteShop": "Магазин эмодзи",
+      "balance": "Баланс:",
+      "noEmotesYet": "Эмодзи пока нет",
+      "thisStreamerHasnT": "Этот стример ещё не создал эмодзи.",
+      "owned": "Есть"
     },
     "giftSubModal": {
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "couldNotStartCheckout": "Не удалось начать оплату.",
+      "giftASub": "Подарить подписку",
+      "gifterBadges": "Значки дарителя",
+      "badgesAppearNextTo": "Значки навсегда отображаются рядом с твоим ником в чате.",
+      "gift": "Подарить",
+      "eachGiftGives30": "Каждый подарок даёт 30 дней Pro зрителю, у которого его ещё нет. Если сейчас никто не может принять, подарок дождётся следующего зрителя. Стример получает 80% оплаты после НДС и комиссий.",
+      "s1GiftSub": "1 подарочная подписка",
+      "giftASingleSubscription": "Подарить одну подписку",
+      "s5GiftSubs": "5 подарочных подписок",
+      "bestValueSave20": "Выгоднее · скидка 20%",
+      "s10GiftSubs": "10 подарочных подписок",
+      "superValueSave30": "Супервыгодно · скидка 30%",
+      "s50GiftSubs": "50 подарочных подписок",
+      "communityBombSave40": "Бомба для сообщества · скидка 40%",
+      "gifter": "Даритель",
+      "silverGifter": "Серебряный даритель",
+      "goldGifter": "Золотой даритель",
+      "diamondGifter": "Бриллиантовый даритель"
     },
     "tipModal": {
       "close": "Закрыть",
       "send": "Отправить",
-      "punches": "ударов"
+      "punches": "ударов",
+      "notEnoughTokens": "Недостаточно токенов.",
+      "balance": "Баланс:",
+      "notEnoughTokensTop": "Недостаточно токенов — пополни баланс.",
+      "tipFailedPleaseTry": "Чаевые не прошли — попробуй ещё раз."
     },
     "gymsPage": {
       "close": "Закрыть"
@@ -1261,7 +1305,11 @@
       "fighter": "Боец"
     },
     "hypeOverlay": {
-      "reactionsAtOnce": "реакций разом"
+      "reactionsAtOnce": "реакций разом",
+      "highlightClipped": "МОМЕНТ ВЫРЕЗАН",
+      "youWerePartOf": "· ты был частью этого",
+      "hype": "ХАЙП",
+      "sendHype": "Отправить хайп"
     },
     "identityCard": {
       "newTraitUnlocked": "Открыта новая черта",
@@ -1311,7 +1359,8 @@
       "recordYourRoundsOn": "Записывай раунды на видео, чтобы ИИ мог их оценить."
     },
     "proDashboardPage": {
-      "left": "остался"
+      "left": "остался",
+      "setUpPayouts": "Настроить выплаты"
     },
     "legendCard": {
       "watchBreakdown": "Смотреть разбор"
@@ -1319,7 +1368,10 @@
     "punchAlert": {
       "tokens": "токенов",
       "gifted": "подарил",
-      "sub": "подписку"
+      "sub": "подписку",
+      "combo": "КОМБО!",
+      "titleShot": "БОЙ ЗА ТИТУЛ!",
+      "goatStatus": "СТАТУС ЛЕГЕНДЫ"
     },
     "subscriptionGate": {
       "goBack": "Назад",
@@ -1337,7 +1389,10 @@
       "unlockPro": "Открыть Pro"
     },
     "advertisePage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "sponsoredBy": "Спонсор",
+      "learnMore": "Подробнее",
+      "ad": "РЕКЛАМА"
     },
     "blockedAccountsPage": {
       "goBack": "Назад"
@@ -1412,7 +1467,8 @@
       "couldnTShareThat": "Не удалось поделиться"
     },
     "fighterBuddyCreator": {
-      "choose": "Выбери"
+      "choose": "Выбери",
+      "weightClass": "Весовая категория"
     },
     "radarChart": {
       "thisSession": "Эта тренировка",
@@ -1500,7 +1556,25 @@
     },
     "trophyShelf": {
       "level": "Уровень",
-      "of": "из"
+      "of": "из",
+      "youGaveLeftToday": "Ты подарил {{given}}. Сегодня осталось {{left_today}}.",
+      "cornerSurprise": "Сюрприз из угла: {{title}}",
+      "couldnTGiveThat": "Сейчас не удалось подарить",
+      "askAParentOr": "Попроси родителя или опекуна завершить оплату.",
+      "couldnTStartThe": "Сейчас не удалось оформить подарок",
+      "trophyShelf": "Полка трофеев",
+      "beltsCrownsAndTitles": "Пояса, короны и титулы появятся здесь, когда ты их заработаешь.",
+      "nothingOnTheShelf": "На полке пока пусто.",
+      "hEarned": " · заработано {{hours}} ч",
+      "earned": " · заработано",
+      "giftedBy": "· подарили",
+      "fan": "фанат",
+      "provenHoursOnThe": "подтверждённых часов на пути к 10 000",
+      "hiddenEggsFound": "пасхалок найдено",
+      "howToEarnThem": "Как их заработать",
+      "giveThemSomethingOnly": "Подари то, что может подарить только друг",
+      "giftThemGoldenGloves": "Подарить Золотые перчатки · £5",
+      "shareYourShelf": "Поделиться полкой"
     },
     "draftPanel": {
       "of": "из",
@@ -1703,7 +1777,49 @@
       "noSquadYet": "Команды пока нет",
       "noGymYet": "Зала пока нет",
       "startASquadAnd": "Создай команду и поднимайтесь вместе.",
-      "joinAGymTo": "Вступи в зал, чтобы сражаться за него в этом рейтинге."
+      "joinAGymTo": "Вступи в зал, чтобы сражаться за него в этом рейтинге.",
+      "pointsBetweenYour": "очков между твоим",
+      "andTheNextOne": "и следующим выше.",
+      "member": "участник"
+    },
+    "thenVsNow": {
+      "thenVsNow": "Тогда и сейчас",
+      "days": "дн. ·",
+      "scoredSessions": "оценённых тренировок",
+      "noClipSaved": "Клип не сохранён",
+      "playSideBySide": "Смотреть рядом",
+      "upOverallSinceYour": "В целом +{{overall_change}} с первой тренировки.",
+      "levelWithYourFirst": "В целом на уровне первой тренировки.",
+      "workOnThisNext": ": над этим работать дальше",
+      "shareHowFarYou": "Покажи, какой путь ты прошёл"
+    },
+    "earningsCard": {
+      "couldnTOpenPayout": "Не удалось открыть настройку выплат. Попробуй ещё раз.",
+      "yourEarnings": "Твой заработок",
+      "youGet": "Ты получаешь",
+      "ofWhatFansSpend": "% от того, что фанаты тратят на твоих эфирах, в токенах.",
+      "cashingOutToA": "Вывод на банковский счёт станет доступен с 18 лет.",
+      "yourMoney": "Твои деньги",
+      "earnedThisMonthYou": "заработано в этом месяце · тебе остаётся",
+      "ofWhatFansSpend2": "% от трат фанатов на твоих эфирах",
+      "onHold": "Удержано",
+      "readyToPay": "К выплате",
+      "paid": "Выплачено",
+      "thisMonth": "В этом месяце:",
+      "moneyIsHeld": "Деньги удерживаются",
+      "daysInCaseA": "дней на случай, если фанат попросит возврат, затем выплачиваются на счёт раз в месяц, когда сумма достигнет",
+      "setUpPayoutsWith": "Настрой выплаты через Stripe, чтобы получать деньги на счёт. Это займёт около 5 минут, понадобятся документ и банковские реквизиты.",
+      "setUpPayouts": "Настроить выплаты",
+      "tips": "Чаевые"
+    },
+    "beltCelebration": {},
+    "sponsorBanner": {
+      "adBreakIn": "Реклама через",
+      "sponsoredBy": "Спонсор",
+      "learnMore": "Подробнее",
+      "advertiseHere": "Разместить рекламу",
+      "dismissAd": "Закрыть рекламу",
+      "ad": "РЕКЛАМА"
     }
   },
   "feedback": {

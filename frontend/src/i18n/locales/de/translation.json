@@ -884,7 +884,9 @@
       "emotes2": "Emotes",
       "goBack": "Zurück",
       "free": "Kostenlos",
-      "unlocks": "schaltet frei"
+      "unlocks": "schaltet frei",
+      "tips2": "Trinkgeld",
+      "noEmotesYet": "Noch keine Emotes"
     },
     "streamCard": {
       "live": "LIVE"
@@ -892,7 +894,9 @@
     "discoverPage": {
       "live": "LIVE",
       "dismiss": "Ausblenden",
-      "sessions": "Einheiten"
+      "sessions": "Einheiten",
+      "filters": "Filter",
+      "clearAllFilters": "Alle Filter löschen"
     },
     "streamViewPage": {
       "live": "LIVE",
@@ -914,7 +918,9 @@
       "goBack": "Zurück",
       "share": "Teilen",
       "clip": "Clip",
-      "saving": "Wird gespeichert…"
+      "saving": "Wird gespeichert…",
+      "category": "Kategorie",
+      "weightClass": "Gewichtsklasse"
     },
     "highlightShareSheet": {
       "copied": "Kopiert!",
@@ -999,7 +1005,13 @@
     "deepTaggingMatrix": {
       "all": "Alle",
       "liveNow": "Jetzt live",
-      "recent": "Neu"
+      "recent": "Neu",
+      "filters": "Filter",
+      "clearAll": "Alle löschen",
+      "category": "Kategorie",
+      "role": "Rolle",
+      "weightClass": "Gewichtsklasse",
+      "clearAllFilters": "Alle Filter löschen"
     },
     "emoteStudioPage": {
       "delete": "Löschen",
@@ -1007,7 +1019,8 @@
       "combo": "Kombi",
       "goBack": "Zurück",
       "free": "Kostenlos",
-      "unlocks": "schaltet frei"
+      "unlocks": "schaltet frei",
+      "noEmotesYet": "Noch keine Emotes"
     },
     "birthDateCard": {
       "enterYourDateOf": "Gib dein Geburtsdatum ein",
@@ -1092,15 +1105,46 @@
     "emoteShop": {
       "close": "Schließen",
       "tokens": "Tokens",
-      "free": "Kostenlos"
+      "free": "Kostenlos",
+      "unlocked": "{{name}} freigeschaltet!",
+      "notEnoughTokens": "Nicht genug Tokens.",
+      "alreadyInYourCollection": "Schon in deiner Sammlung.",
+      "purchaseFailed": "Kauf fehlgeschlagen.",
+      "emoteShop": "Emote-Shop",
+      "balance": "Guthaben:",
+      "noEmotesYet": "Noch keine Emotes",
+      "thisStreamerHasnT": "Dieser Streamer hat noch keine Emotes erstellt.",
+      "owned": "Im Besitz"
     },
     "giftSubModal": {
-      "close": "Schließen"
+      "close": "Schließen",
+      "couldNotStartCheckout": "Bezahlung konnte nicht gestartet werden.",
+      "giftASub": "Ein Abo verschenken",
+      "gifterBadges": "Schenker-Abzeichen",
+      "badgesAppearNextTo": "Abzeichen erscheinen für immer neben deinem Namen im Chat.",
+      "gift": "Verschenken",
+      "eachGiftGives30": "Jedes Geschenk gibt jemandem, der zuschaut und es noch nicht hat, 30 Tage Pro. Kann es gerade niemand annehmen, wartet es auf den nächsten Zuschauer. Der Streamer bekommt 80 % deiner Zahlung, nach MwSt. und Gebühren.",
+      "s1GiftSub": "1 Geschenk-Abo",
+      "giftASingleSubscription": "Ein einzelnes Abo verschenken",
+      "s5GiftSubs": "5 Geschenk-Abos",
+      "bestValueSave20": "Bester Wert · 20 % sparen",
+      "s10GiftSubs": "10 Geschenk-Abos",
+      "superValueSave30": "Super-Wert · 30 % sparen",
+      "s50GiftSubs": "50 Geschenk-Abos",
+      "communityBombSave40": "Community-Bombe · 40 % sparen",
+      "gifter": "Schenker",
+      "silverGifter": "Silber-Schenker",
+      "goldGifter": "Gold-Schenker",
+      "diamondGifter": "Diamant-Schenker"
     },
     "tipModal": {
       "close": "Schließen",
       "send": "Senden",
-      "punches": "Schläge"
+      "punches": "Schläge",
+      "notEnoughTokens": "Nicht genug Tokens.",
+      "balance": "Guthaben:",
+      "notEnoughTokensTop": "Nicht genug Tokens — lade dein Guthaben auf.",
+      "tipFailedPleaseTry": "Trinkgeld fehlgeschlagen — bitte versuch es noch mal."
     },
     "gymsPage": {
       "close": "Schließen"
@@ -1261,7 +1305,11 @@
       "fighter": "Kämpfer"
     },
     "hypeOverlay": {
-      "reactionsAtOnce": "Reaktionen auf einmal"
+      "reactionsAtOnce": "Reaktionen auf einmal",
+      "highlightClipped": "HIGHLIGHT GECLIPPT",
+      "youWerePartOf": "· du warst dabei",
+      "hype": "HYPE",
+      "sendHype": "Hype senden"
     },
     "identityCard": {
       "newTraitUnlocked": "Neue Eigenschaft freigeschaltet",
@@ -1311,7 +1359,8 @@
       "recordYourRoundsOn": "Nimm deine Runden auf Video auf, damit die KI sie bewerten kann."
     },
     "proDashboardPage": {
-      "left": "übrig"
+      "left": "übrig",
+      "setUpPayouts": "Auszahlungen einrichten"
     },
     "legendCard": {
       "watchBreakdown": "Analyse ansehen"
@@ -1319,7 +1368,10 @@
     "punchAlert": {
       "tokens": "Tokens",
       "gifted": "hat verschenkt",
-      "sub": "Abo"
+      "sub": "Abo",
+      "combo": "KOMBI!",
+      "titleShot": "TITELCHANCE!",
+      "goatStatus": "LEGENDEN-STATUS"
     },
     "subscriptionGate": {
       "goBack": "Zurück",
@@ -1337,7 +1389,10 @@
       "unlockPro": "Pro freischalten"
     },
     "advertisePage": {
-      "goBack": "Zurück"
+      "goBack": "Zurück",
+      "sponsoredBy": "Gesponsert von",
+      "learnMore": "Mehr erfahren",
+      "ad": "WERBUNG"
     },
     "blockedAccountsPage": {
       "goBack": "Zurück"
@@ -1412,7 +1467,8 @@
       "couldnTShareThat": "Konnte nicht geteilt werden"
     },
     "fighterBuddyCreator": {
-      "choose": "Wähle"
+      "choose": "Wähle",
+      "weightClass": "Gewichtsklasse"
     },
     "radarChart": {
       "thisSession": "Diese Einheit",
@@ -1500,7 +1556,25 @@
     },
     "trophyShelf": {
       "level": "Level",
-      "of": "von"
+      "of": "von",
+      "youGaveLeftToday": "Du hast {{given}} gegeben. Heute noch {{left_today}} übrig.",
+      "cornerSurprise": "Überraschung aus der Ecke: {{title}}",
+      "couldnTGiveThat": "Konnte gerade nicht vergeben werden",
+      "askAParentOr": "Bitte einen Elternteil oder Vormund, diese Zahlung abzuschließen.",
+      "couldnTStartThe": "Das Geschenk konnte gerade nicht gestartet werden",
+      "trophyShelf": "Trophäenregal",
+      "beltsCrownsAndTitles": "Gürtel, Kronen und Titel landen hier, sobald du sie verdienst.",
+      "nothingOnTheShelf": "Noch nichts im Regal.",
+      "hEarned": " · {{hours}} Std. verdient",
+      "earned": " · verdient",
+      "giftedBy": "· geschenkt von",
+      "fan": "Fan",
+      "provenHoursOnThe": "bewiesene Stunden auf dem Weg zu 10.000",
+      "hiddenEggsFound": "versteckte Eier gefunden",
+      "howToEarnThem": "So verdienst du sie",
+      "giveThemSomethingOnly": "Gib ihnen etwas, das nur ein Freund geben kann",
+      "giftThemGoldenGloves": "Schenk Goldene Handschuhe · 5 £",
+      "shareYourShelf": "Teile dein Regal"
     },
     "draftPanel": {
       "of": "von",
@@ -1703,7 +1777,49 @@
       "noSquadYet": "Noch kein Squad",
       "noGymYet": "Noch kein Gym",
       "startASquadAnd": "Gründe einen Squad und klettert gemeinsam.",
-      "joinAGymTo": "Tritt einem Gym bei, um auf dieser Liste für es zu kämpfen."
+      "joinAGymTo": "Tritt einem Gym bei, um auf dieser Liste für es zu kämpfen.",
+      "pointsBetweenYour": "Punkte zwischen deinem",
+      "andTheNextOne": "und dem nächsten darüber.",
+      "member": "Mitglied"
+    },
+    "thenVsNow": {
+      "thenVsNow": "Damals vs. jetzt",
+      "days": "Tage ·",
+      "scoredSessions": "bewertete Einheiten",
+      "noClipSaved": "Kein Clip gespeichert",
+      "playSideBySide": "Nebeneinander abspielen",
+      "upOverallSinceYour": "Insgesamt {{overall_change}} besser seit deiner ersten Einheit.",
+      "levelWithYourFirst": "Insgesamt gleichauf mit deiner ersten Einheit.",
+      "workOnThisNext": ": daran als Nächstes arbeiten",
+      "shareHowFarYou": "Teile, wie weit du gekommen bist"
+    },
+    "earningsCard": {
+      "couldnTOpenPayout": "Auszahlungs-Einrichtung konnte nicht geöffnet werden. Versuch es noch mal.",
+      "yourEarnings": "Deine Einnahmen",
+      "youGet": "Du bekommst",
+      "ofWhatFansSpend": "% von dem, was Fans in deinen Streams ausgeben, als Tokens.",
+      "cashingOutToA": "Auszahlung aufs Bankkonto ist ab 18 möglich.",
+      "yourMoney": "Dein Geld",
+      "earnedThisMonthYou": "diesen Monat verdient · du behältst",
+      "ofWhatFansSpend2": "% von dem, was Fans in deinen Streams ausgeben",
+      "onHold": "Zurückgehalten",
+      "readyToPay": "Bereit zur Auszahlung",
+      "paid": "Ausgezahlt",
+      "thisMonth": "Diesen Monat:",
+      "moneyIsHeld": "Das Geld wird zurückgehalten",
+      "daysInCaseA": "Tage, falls ein Fan eine Erstattung möchte, und dann monatlich auf dein Konto überwiesen, sobald es erreicht",
+      "setUpPayoutsWith": "Richte Auszahlungen mit Stripe ein, um das Geld auf dein Konto zu bekommen. Dauert etwa 5 Minuten und braucht deinen Ausweis und deine Bankdaten.",
+      "setUpPayouts": "Auszahlungen einrichten",
+      "tips": "Trinkgeld"
+    },
+    "beltCelebration": {},
+    "sponsorBanner": {
+      "adBreakIn": "Werbepause in",
+      "sponsoredBy": "Gesponsert von",
+      "learnMore": "Mehr erfahren",
+      "advertiseHere": "Hier werben",
+      "dismissAd": "Werbung schließen",
+      "ad": "WERBUNG"
     }
   },
   "feedback": {

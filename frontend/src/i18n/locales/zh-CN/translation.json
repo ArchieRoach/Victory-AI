@@ -884,7 +884,9 @@
       "emotes2": "表情",
       "goBack": "返回",
       "free": "免费",
-      "unlocks": "解锁"
+      "unlocks": "解锁",
+      "tips2": "打赏",
+      "noEmotesYet": "还没有表情"
     },
     "streamCard": {
       "live": "直播中"
@@ -892,7 +894,9 @@
     "discoverPage": {
       "live": "直播中",
       "dismiss": "关闭",
-      "sessions": "次训练"
+      "sessions": "次训练",
+      "filters": "筛选",
+      "clearAllFilters": "清除所有筛选"
     },
     "streamViewPage": {
       "live": "直播中",
@@ -914,7 +918,9 @@
       "goBack": "返回",
       "share": "分享",
       "clip": "短片",
-      "saving": "保存中…"
+      "saving": "保存中…",
+      "category": "类别",
+      "weightClass": "重量级别"
     },
     "highlightShareSheet": {
       "copied": "已复制！",
@@ -999,7 +1005,13 @@
     "deepTaggingMatrix": {
       "all": "全部",
       "liveNow": "正在直播",
-      "recent": "最近"
+      "recent": "最近",
+      "filters": "筛选",
+      "clearAll": "全部清除",
+      "category": "类别",
+      "role": "角色",
+      "weightClass": "重量级别",
+      "clearAllFilters": "清除所有筛选"
     },
     "emoteStudioPage": {
       "delete": "删除",
@@ -1007,7 +1019,8 @@
       "combo": "组合拳",
       "goBack": "返回",
       "free": "免费",
-      "unlocks": "解锁"
+      "unlocks": "解锁",
+      "noEmotesYet": "还没有表情"
     },
     "birthDateCard": {
       "enterYourDateOf": "输入你的出生日期",
@@ -1092,15 +1105,46 @@
     "emoteShop": {
       "close": "关闭",
       "tokens": "代币",
-      "free": "免费"
+      "free": "免费",
+      "unlocked": "{{name}} 已解锁！",
+      "notEnoughTokens": "代币不足。",
+      "alreadyInYourCollection": "已在你的收藏中。",
+      "purchaseFailed": "购买失败。",
+      "emoteShop": "表情商店",
+      "balance": "余额：",
+      "noEmotesYet": "还没有表情",
+      "thisStreamerHasnT": "这位主播还没有创建任何表情。",
+      "owned": "已拥有"
     },
     "giftSubModal": {
-      "close": "关闭"
+      "close": "关闭",
+      "couldNotStartCheckout": "无法开始付款。",
+      "giftASub": "赠送订阅",
+      "gifterBadges": "赠送者徽章",
+      "badgesAppearNextTo": "徽章会永久显示在你聊天名字旁边。",
+      "gift": "赠送",
+      "eachGiftGives30": "每份礼物会给一位正在观看且还没有 Pro 的观众 30 天 Pro。如果现在没人能领取，会留给下一位观众。主播在扣除增值税和手续费后获得你支付金额的 80%。",
+      "s1GiftSub": "1 份赠送订阅",
+      "giftASingleSubscription": "赠送一份订阅",
+      "s5GiftSubs": "5 份赠送订阅",
+      "bestValueSave20": "超值 · 省 20%",
+      "s10GiftSubs": "10 份赠送订阅",
+      "superValueSave30": "特惠 · 省 30%",
+      "s50GiftSubs": "50 份赠送订阅",
+      "communityBombSave40": "社区大放送 · 省 40%",
+      "gifter": "赠送者",
+      "silverGifter": "白银赠送者",
+      "goldGifter": "黄金赠送者",
+      "diamondGifter": "钻石赠送者"
     },
     "tipModal": {
       "close": "关闭",
       "send": "发送",
-      "punches": "拳"
+      "punches": "拳",
+      "notEnoughTokens": "代币不足。",
+      "balance": "余额：",
+      "notEnoughTokensTop": "代币不足 — 请充值。",
+      "tipFailedPleaseTry": "打赏失败 — 请重试。"
     },
     "gymsPage": {
       "close": "关闭"
@@ -1261,7 +1305,11 @@
       "fighter": "拳手"
     },
     "hypeOverlay": {
-      "reactionsAtOnce": "个同时反应"
+      "reactionsAtOnce": "个同时反应",
+      "highlightClipped": "精彩瞬间已剪辑",
+      "youWerePartOf": "· 你也在其中",
+      "hype": "助威",
+      "sendHype": "发送助威"
     },
     "identityCard": {
       "newTraitUnlocked": "解锁新特质",
@@ -1311,7 +1359,8 @@
       "recordYourRoundsOn": "把你的回合录成视频，让 AI 评分。"
     },
     "proDashboardPage": {
-      "left": "剩余"
+      "left": "剩余",
+      "setUpPayouts": "设置收款"
     },
     "legendCard": {
       "watchBreakdown": "观看分析"
@@ -1319,7 +1368,10 @@
     "punchAlert": {
       "tokens": "代币",
       "gifted": "赠送了",
-      "sub": "订阅"
+      "sub": "订阅",
+      "combo": "组合拳！",
+      "titleShot": "冠军挑战！",
+      "goatStatus": "传奇身份"
     },
     "subscriptionGate": {
       "goBack": "返回",
@@ -1337,7 +1389,10 @@
       "unlockPro": "解锁 Pro"
     },
     "advertisePage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "sponsoredBy": "赞助方",
+      "learnMore": "了解更多",
+      "ad": "广告"
     },
     "blockedAccountsPage": {
       "goBack": "返回"
@@ -1412,7 +1467,8 @@
       "couldnTShareThat": "无法分享"
     },
     "fighterBuddyCreator": {
-      "choose": "选择"
+      "choose": "选择",
+      "weightClass": "重量级别"
     },
     "radarChart": {
       "thisSession": "本次训练",
@@ -1500,7 +1556,25 @@
     },
     "trophyShelf": {
       "level": "等级",
-      "of": "/"
+      "of": "/",
+      "youGaveLeftToday": "你送出了 {{given}}。今天还剩 {{left_today}} 次。",
+      "cornerSurprise": "角落惊喜：{{title}}",
+      "couldnTGiveThat": "现在无法赠送",
+      "askAParentOr": "请家长或监护人完成这笔付款。",
+      "couldnTStartThe": "现在无法开始赠送",
+      "trophyShelf": "奖杯架",
+      "beltsCrownsAndTitles": "你获得的腰带、王冠和头衔都会出现在这里。",
+      "nothingOnTheShelf": "奖杯架上还没有东西。",
+      "hEarned": " · 已获得 {{hours}} 小时",
+      "earned": " · 已获得",
+      "giftedBy": "· 赠送者",
+      "fan": "位粉丝",
+      "provenHoursOnThe": "验证小时，迈向 10,000 小时",
+      "hiddenEggsFound": "个隐藏彩蛋已找到",
+      "howToEarnThem": "如何获得",
+      "giveThemSomethingOnly": "送一份只有朋友才能送的礼物",
+      "giftThemGoldenGloves": "赠送金手套 · £5",
+      "shareYourShelf": "分享你的奖杯架"
     },
     "draftPanel": {
       "of": "/",
@@ -1703,7 +1777,49 @@
       "noSquadYet": "还没有小队",
       "noGymYet": "还没有拳馆",
       "startASquadAnd": "创建小队，一起往上爬。",
-      "joinAGymTo": "加入拳馆，在这个榜单上为它而战。"
+      "joinAGymTo": "加入拳馆，在这个榜单上为它而战。",
+      "pointsBetweenYour": "积分，介于你的",
+      "andTheNextOne": "和上一名之间。",
+      "member": "名成员"
+    },
+    "thenVsNow": {
+      "thenVsNow": "过去 vs 现在",
+      "days": "天 ·",
+      "scoredSessions": "次评分训练",
+      "noClipSaved": "没有保存的短片",
+      "playSideBySide": "并排播放",
+      "upOverallSinceYour": "自第一次训练以来总分提高了 {{overall_change}}。",
+      "levelWithYourFirst": "总分与第一次训练持平。",
+      "workOnThisNext": "：下一步练这个",
+      "shareHowFarYou": "分享你的进步"
+    },
+    "earningsCard": {
+      "couldnTOpenPayout": "无法打开收款设置，请重试。",
+      "yourEarnings": "你的收入",
+      "youGet": "你可获得",
+      "ofWhatFansSpend": "% 粉丝在你直播中消费的金额，以代币形式。",
+      "cashingOutToA": "年满 18 岁后可提现到银行。",
+      "yourMoney": "你的钱",
+      "earnedThisMonthYou": "本月收入 · 你保留",
+      "ofWhatFansSpend2": "% 粉丝在你直播中的消费",
+      "onHold": "暂扣中",
+      "readyToPay": "待支付",
+      "paid": "已支付",
+      "thisMonth": "本月：",
+      "moneyIsHeld": "款项会暂扣",
+      "daysInCaseA": "天，以防粉丝申请退款，之后每月在达到以下金额时转入你的银行：",
+      "setUpPayoutsWith": "通过 Stripe 设置收款，把钱转入你的银行。大约需要 5 分钟，需要你的身份证件和银行信息。",
+      "setUpPayouts": "设置收款",
+      "tips": "打赏"
+    },
+    "beltCelebration": {},
+    "sponsorBanner": {
+      "adBreakIn": "广告将在",
+      "sponsoredBy": "赞助方",
+      "learnMore": "了解更多",
+      "advertiseHere": "在此投放广告",
+      "dismissAd": "关闭广告",
+      "ad": "广告"
     }
   },
   "feedback": {

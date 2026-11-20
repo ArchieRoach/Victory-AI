@@ -884,7 +884,9 @@
       "emotes2": "Emotes",
       "goBack": "Volver",
       "free": "Gratis",
-      "unlocks": "desbloquea"
+      "unlocks": "desbloquea",
+      "tips2": "Propinas",
+      "noEmotesYet": "Aún no hay emotes"
     },
     "streamCard": {
       "live": "EN VIVO"
@@ -892,7 +894,9 @@
     "discoverPage": {
       "live": "EN VIVO",
       "dismiss": "Descartar",
-      "sessions": "sesiones"
+      "sessions": "sesiones",
+      "filters": "Filtros",
+      "clearAllFilters": "Borrar todos los filtros"
     },
     "streamViewPage": {
       "live": "EN VIVO",
@@ -914,7 +918,9 @@
       "goBack": "Volver",
       "share": "Compartir",
       "clip": "Clip",
-      "saving": "Guardando…"
+      "saving": "Guardando…",
+      "category": "Categoría",
+      "weightClass": "Categoría de peso"
     },
     "highlightShareSheet": {
       "copied": "¡Copiado!",
@@ -999,7 +1005,13 @@
     "deepTaggingMatrix": {
       "all": "Todos",
       "liveNow": "En vivo ahora",
-      "recent": "Recientes"
+      "recent": "Recientes",
+      "filters": "Filtros",
+      "clearAll": "Borrar todo",
+      "category": "Categoría",
+      "role": "Rol",
+      "weightClass": "Categoría de peso",
+      "clearAllFilters": "Borrar todos los filtros"
     },
     "emoteStudioPage": {
       "delete": "Eliminar",
@@ -1007,7 +1019,8 @@
       "combo": "Combo",
       "goBack": "Volver",
       "free": "Gratis",
-      "unlocks": "desbloquea"
+      "unlocks": "desbloquea",
+      "noEmotesYet": "Aún no hay emotes"
     },
     "birthDateCard": {
       "enterYourDateOf": "Introduce tu fecha de nacimiento",
@@ -1092,15 +1105,46 @@
     "emoteShop": {
       "close": "Cerrar",
       "tokens": "tokens",
-      "free": "Gratis"
+      "free": "Gratis",
+      "unlocked": "¡{{name}} desbloqueado!",
+      "notEnoughTokens": "No tienes suficientes tokens.",
+      "alreadyInYourCollection": "Ya está en tu colección.",
+      "purchaseFailed": "La compra falló.",
+      "emoteShop": "Tienda de emotes",
+      "balance": "Saldo:",
+      "noEmotesYet": "Aún no hay emotes",
+      "thisStreamerHasnT": "Este streamer aún no ha creado emotes.",
+      "owned": "Tuyo"
     },
     "giftSubModal": {
-      "close": "Cerrar"
+      "close": "Cerrar",
+      "couldNotStartCheckout": "No se pudo iniciar el pago.",
+      "giftASub": "Regala una suscripción",
+      "gifterBadges": "Insignias de regalo",
+      "badgesAppearNextTo": "Las insignias aparecen junto a tu nombre en el chat para siempre.",
+      "gift": "Regalar",
+      "eachGiftGives30": "Cada regalo da 30 días de Pro a alguien que esté viendo y aún no lo tenga. Si nadie puede recibirlo ahora, espera al siguiente espectador. El streamer recibe el 80% de lo que pagas, tras IVA y comisiones.",
+      "s1GiftSub": "1 suscripción de regalo",
+      "giftASingleSubscription": "Regala una suscripción",
+      "s5GiftSubs": "5 suscripciones de regalo",
+      "bestValueSave20": "Mejor precio · ahorra 20%",
+      "s10GiftSubs": "10 suscripciones de regalo",
+      "superValueSave30": "Súper precio · ahorra 30%",
+      "s50GiftSubs": "50 suscripciones de regalo",
+      "communityBombSave40": "Bomba para la comunidad · ahorra 40%",
+      "gifter": "Regalador",
+      "silverGifter": "Regalador de Plata",
+      "goldGifter": "Regalador de Oro",
+      "diamondGifter": "Regalador de Diamante"
     },
     "tipModal": {
       "close": "Cerrar",
       "send": "Enviar",
-      "punches": "golpes"
+      "punches": "golpes",
+      "notEnoughTokens": "No tienes suficientes tokens.",
+      "balance": "Saldo:",
+      "notEnoughTokensTop": "No tienes suficientes tokens — recarga tu saldo.",
+      "tipFailedPleaseTry": "La propina falló — inténtalo de nuevo."
     },
     "gymsPage": {
       "close": "Cerrar"
@@ -1261,7 +1305,11 @@
       "fighter": "Luchador"
     },
     "hypeOverlay": {
-      "reactionsAtOnce": "reacciones a la vez"
+      "reactionsAtOnce": "reacciones a la vez",
+      "highlightClipped": "MOMENTO RECORTADO",
+      "youWerePartOf": "· formaste parte",
+      "hype": "HYPE",
+      "sendHype": "Enviar hype"
     },
     "identityCard": {
       "newTraitUnlocked": "Nuevo rasgo desbloqueado",
@@ -1311,7 +1359,8 @@
       "recordYourRoundsOn": "Graba tus asaltos en vídeo para que la IA los puntúe."
     },
     "proDashboardPage": {
-      "left": "restante"
+      "left": "restante",
+      "setUpPayouts": "Configurar cobros"
     },
     "legendCard": {
       "watchBreakdown": "Ver análisis"
@@ -1319,7 +1368,10 @@
     "punchAlert": {
       "tokens": "tokens",
       "gifted": "regaló",
-      "sub": "suscripción"
+      "sub": "suscripción",
+      "combo": "¡COMBO!",
+      "titleShot": "¡PELEA POR EL TÍTULO!",
+      "goatStatus": "ESTATUS DE LEYENDA"
     },
     "subscriptionGate": {
       "goBack": "Volver",
@@ -1337,7 +1389,10 @@
       "unlockPro": "Desbloquear Pro"
     },
     "advertisePage": {
-      "goBack": "Volver"
+      "goBack": "Volver",
+      "sponsoredBy": "Patrocinado por",
+      "learnMore": "Más información",
+      "ad": "ANUNCIO"
     },
     "blockedAccountsPage": {
       "goBack": "Volver"
@@ -1412,7 +1467,8 @@
       "couldnTShareThat": "No se pudo compartir"
     },
     "fighterBuddyCreator": {
-      "choose": "Elige"
+      "choose": "Elige",
+      "weightClass": "Categoría de peso"
     },
     "radarChart": {
       "thisSession": "Esta sesión",
@@ -1500,7 +1556,25 @@
     },
     "trophyShelf": {
       "level": "Nivel",
-      "of": "de"
+      "of": "de",
+      "youGaveLeftToday": "Diste {{given}}. Te quedan {{left_today}} hoy.",
+      "cornerSurprise": "Sorpresa de esquina: {{title}}",
+      "couldnTGiveThat": "No se pudo dar ahora",
+      "askAParentOr": "Pide a tu padre, madre o tutor que complete este pago.",
+      "couldnTStartThe": "No se pudo iniciar el regalo ahora",
+      "trophyShelf": "Vitrina de trofeos",
+      "beltsCrownsAndTitles": "Cinturones, coronas y títulos aparecen aquí cuando los ganas.",
+      "nothingOnTheShelf": "Aún no hay nada en la vitrina.",
+      "hEarned": " · {{hours}} h ganadas",
+      "earned": " · ganado",
+      "giftedBy": "· regalado por",
+      "fan": "fan",
+      "provenHoursOnThe": "horas comprobadas en el camino a 10.000",
+      "hiddenEggsFound": "huevos ocultos encontrados",
+      "howToEarnThem": "Cómo conseguirlos",
+      "giveThemSomethingOnly": "Dale algo que solo un amigo puede dar",
+      "giftThemGoldenGloves": "Regálale Guantes de Oro · 5 £",
+      "shareYourShelf": "Comparte tu vitrina"
     },
     "draftPanel": {
       "of": "de",
@@ -1703,7 +1777,49 @@
       "noSquadYet": "Aún sin squad",
       "noGymYet": "Aún sin gimnasio",
       "startASquadAnd": "Crea un squad y subid juntos.",
-      "joinAGymTo": "Únete a un gimnasio para pelear por él en esta tabla."
+      "joinAGymTo": "Únete a un gimnasio para pelear por él en esta tabla.",
+      "pointsBetweenYour": "puntos entre tu",
+      "andTheNextOne": "y el siguiente.",
+      "member": "miembro"
+    },
+    "thenVsNow": {
+      "thenVsNow": "Antes vs ahora",
+      "days": "días ·",
+      "scoredSessions": "sesiones puntuadas",
+      "noClipSaved": "No hay clip guardado",
+      "playSideBySide": "Ver lado a lado",
+      "upOverallSinceYour": "Has subido {{overall_change}} en total desde tu primera sesión.",
+      "levelWithYourFirst": "Igual que en tu primera sesión en total.",
+      "workOnThisNext": ": trabaja esto ahora",
+      "shareHowFarYou": "Comparte cuánto has avanzado"
+    },
+    "earningsCard": {
+      "couldnTOpenPayout": "No se pudo abrir la configuración de cobros. Inténtalo de nuevo.",
+      "yourEarnings": "Tus ganancias",
+      "youGet": "Recibes el",
+      "ofWhatFansSpend": "% de lo que gastan los fans en tus emisiones, en tokens.",
+      "cashingOutToA": "Retirar a un banco se activa cuando cumplas 18.",
+      "yourMoney": "Tu dinero",
+      "earnedThisMonthYou": "ganado este mes · te quedas con el",
+      "ofWhatFansSpend2": "% de lo que gastan los fans en tus emisiones",
+      "onHold": "Retenido",
+      "readyToPay": "Listo para pagar",
+      "paid": "Pagado",
+      "thisMonth": "Este mes:",
+      "moneyIsHeld": "El dinero se retiene",
+      "daysInCaseA": "días por si un fan pide reembolso, y luego se paga a tu banco cada mes al llegar a",
+      "setUpPayoutsWith": "Configura los cobros con Stripe para recibirlo en tu banco. Tarda unos 5 minutos y necesita tu documento y datos bancarios.",
+      "setUpPayouts": "Configurar cobros",
+      "tips": "Propinas"
+    },
+    "beltCelebration": {},
+    "sponsorBanner": {
+      "adBreakIn": "Pausa publicitaria en",
+      "sponsoredBy": "Patrocinado por",
+      "learnMore": "Más información",
+      "advertiseHere": "Anúnciate aquí",
+      "dismissAd": "Cerrar anuncio",
+      "ad": "ANUNCIO"
     }
   },
   "feedback": {

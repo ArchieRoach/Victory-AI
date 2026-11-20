@@ -884,7 +884,9 @@
       "emotes2": "エモート",
       "goBack": "戻る",
       "free": "無料",
-      "unlocks": "解除"
+      "unlocks": "解除",
+      "tips2": "チップ",
+      "noEmotesYet": "エモートはまだありません"
     },
     "streamCard": {
       "live": "ライブ"
@@ -892,7 +894,9 @@
     "discoverPage": {
       "live": "ライブ",
       "dismiss": "閉じる",
-      "sessions": "セッション"
+      "sessions": "セッション",
+      "filters": "フィルター",
+      "clearAllFilters": "すべてのフィルターをクリア"
     },
     "streamViewPage": {
       "live": "ライブ",
@@ -914,7 +918,9 @@
       "goBack": "戻る",
       "share": "共有",
       "clip": "クリップ",
-      "saving": "保存中…"
+      "saving": "保存中…",
+      "category": "カテゴリー",
+      "weightClass": "階級"
     },
     "highlightShareSheet": {
       "copied": "コピーしました！",
@@ -999,7 +1005,13 @@
     "deepTaggingMatrix": {
       "all": "すべて",
       "liveNow": "ライブ中",
-      "recent": "最近"
+      "recent": "最近",
+      "filters": "フィルター",
+      "clearAll": "すべてクリア",
+      "category": "カテゴリー",
+      "role": "役割",
+      "weightClass": "階級",
+      "clearAllFilters": "すべてのフィルターをクリア"
     },
     "emoteStudioPage": {
       "delete": "削除",
@@ -1007,7 +1019,8 @@
       "combo": "コンボ",
       "goBack": "戻る",
       "free": "無料",
-      "unlocks": "解除"
+      "unlocks": "解除",
+      "noEmotesYet": "エモートはまだありません"
     },
     "birthDateCard": {
       "enterYourDateOf": "生年月日を入力",
@@ -1092,15 +1105,46 @@
     "emoteShop": {
       "close": "閉じる",
       "tokens": "トークン",
-      "free": "無料"
+      "free": "無料",
+      "unlocked": "{{name}}を解除しました！",
+      "notEnoughTokens": "トークンが足りません。",
+      "alreadyInYourCollection": "すでにコレクションにあります。",
+      "purchaseFailed": "購入に失敗しました。",
+      "emoteShop": "エモートショップ",
+      "balance": "残高：",
+      "noEmotesYet": "エモートはまだありません",
+      "thisStreamerHasnT": "この配信者はまだエモートを作っていません。",
+      "owned": "所持"
     },
     "giftSubModal": {
-      "close": "閉じる"
+      "close": "閉じる",
+      "couldNotStartCheckout": "決済を開始できませんでした。",
+      "giftASub": "サブスクを贈る",
+      "gifterBadges": "ギフターバッジ",
+      "badgesAppearNextTo": "バッジはチャットのユーザー名の横にずっと表示されます。",
+      "gift": "贈る",
+      "eachGiftGives30": "ギフト1つで、まだProを持っていない視聴者に30日間のProが届きます。今受け取れる人がいなければ、次の視聴者を待ちます。配信者は消費税と手数料を除いた支払い額の80%を受け取ります。",
+      "s1GiftSub": "ギフトサブスク1件",
+      "giftASingleSubscription": "サブスクを1つ贈る",
+      "s5GiftSubs": "ギフトサブスク5件",
+      "bestValueSave20": "お得 · 20%オフ",
+      "s10GiftSubs": "ギフトサブスク10件",
+      "superValueSave30": "超お得 · 30%オフ",
+      "s50GiftSubs": "ギフトサブスク50件",
+      "communityBombSave40": "コミュニティ爆弾 · 40%オフ",
+      "gifter": "ギフター",
+      "silverGifter": "シルバーギフター",
+      "goldGifter": "ゴールドギフター",
+      "diamondGifter": "ダイヤモンドギフター"
     },
     "tipModal": {
       "close": "閉じる",
       "send": "送信",
-      "punches": "パンチ"
+      "punches": "パンチ",
+      "notEnoughTokens": "トークンが足りません。",
+      "balance": "残高：",
+      "notEnoughTokensTop": "トークンが足りません — 残高をチャージしてください。",
+      "tipFailedPleaseTry": "チップに失敗しました — もう一度お試しください。"
     },
     "gymsPage": {
       "close": "閉じる"
@@ -1261,7 +1305,11 @@
       "fighter": "ファイター"
     },
     "hypeOverlay": {
-      "reactionsAtOnce": "同時リアクション"
+      "reactionsAtOnce": "同時リアクション",
+      "highlightClipped": "ハイライトをクリップ",
+      "youWerePartOf": "· あなたも参加",
+      "hype": "盛り上げ",
+      "sendHype": "盛り上げを送る"
     },
     "identityCard": {
       "newTraitUnlocked": "新しい特性を解除",
@@ -1311,7 +1359,8 @@
       "recordYourRoundsOn": "AIが採点できるよう、ラウンドを動画で記録してください。"
     },
     "proDashboardPage": {
-      "left": "残り"
+      "left": "残り",
+      "setUpPayouts": "支払いを設定"
     },
     "legendCard": {
       "watchBreakdown": "分析を見る"
@@ -1319,7 +1368,10 @@
     "punchAlert": {
       "tokens": "トークン",
       "gifted": "がプレゼント",
-      "sub": "サブスク"
+      "sub": "サブスク",
+      "combo": "コンボ！",
+      "titleShot": "タイトル挑戦！",
+      "goatStatus": "レジェンドステータス"
     },
     "subscriptionGate": {
       "goBack": "戻る",
@@ -1337,7 +1389,10 @@
       "unlockPro": "Proを解除"
     },
     "advertisePage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "sponsoredBy": "提供",
+      "learnMore": "詳しく見る",
+      "ad": "広告"
     },
     "blockedAccountsPage": {
       "goBack": "戻る"
@@ -1412,7 +1467,8 @@
       "couldnTShareThat": "シェアできませんでした"
     },
     "fighterBuddyCreator": {
-      "choose": "選択"
+      "choose": "選択",
+      "weightClass": "階級"
     },
     "radarChart": {
       "thisSession": "今回のセッション",
@@ -1500,7 +1556,25 @@
     },
     "trophyShelf": {
       "level": "レベル",
-      "of": "/"
+      "of": "/",
+      "youGaveLeftToday": "{{given}}を贈りました。今日は残り{{left_today}}回。",
+      "cornerSurprise": "コーナーサプライズ：{{title}}",
+      "couldnTGiveThat": "今は贈れませんでした",
+      "askAParentOr": "保護者にこの支払いを完了してもらってください。",
+      "couldnTStartThe": "今はギフトを開始できませんでした",
+      "trophyShelf": "トロフィー棚",
+      "beltsCrownsAndTitles": "獲得したベルト、クラウン、タイトルがここに並びます。",
+      "nothingOnTheShelf": "棚にはまだ何もありません。",
+      "hEarned": " · {{hours}}時間で獲得",
+      "earned": " · 獲得済み",
+      "giftedBy": "· 贈り主",
+      "fan": "人のファン",
+      "provenHoursOnThe": "証明時間、10,000時間への道",
+      "hiddenEggsFound": "個の隠しエッグを発見",
+      "howToEarnThem": "獲得方法",
+      "giveThemSomethingOnly": "友達だけが贈れるものを贈ろう",
+      "giftThemGoldenGloves": "ゴールデングローブを贈る · £5",
+      "shareYourShelf": "棚をシェア"
     },
     "draftPanel": {
       "of": "/",
@@ -1703,7 +1777,49 @@
       "noSquadYet": "まだスクワッドがありません",
       "noGymYet": "まだジムがありません",
       "startASquadAnd": "スクワッドを作って一緒に上を目指そう。",
-      "joinAGymTo": "ジムに参加して、このボードでジムのために戦おう。"
+      "joinAGymTo": "ジムに参加して、このボードでジムのために戦おう。",
+      "pointsBetweenYour": "ポイント差（あなたの",
+      "andTheNextOne": "と一つ上の間）。",
+      "member": "人のメンバー"
+    },
+    "thenVsNow": {
+      "thenVsNow": "あの頃と今",
+      "days": "日 ·",
+      "scoredSessions": "件の採点済みセッション",
+      "noClipSaved": "保存されたクリップはありません",
+      "playSideBySide": "並べて再生",
+      "upOverallSinceYour": "最初のセッションから総合で{{overall_change}}アップ。",
+      "levelWithYourFirst": "総合では最初のセッションと同じです。",
+      "workOnThisNext": "：次はこれに取り組もう",
+      "shareHowFarYou": "どれだけ成長したかシェア"
+    },
+    "earningsCard": {
+      "couldnTOpenPayout": "支払い設定を開けませんでした。もう一度お試しください。",
+      "yourEarnings": "あなたの収益",
+      "youGet": "受け取れるのは",
+      "ofWhatFansSpend": "%（ファンが配信で使った額、トークンで）。",
+      "cashingOutToA": "銀行への出金は18歳から可能です。",
+      "yourMoney": "あなたのお金",
+      "earnedThisMonthYou": "今月の収益 · あなたの取り分",
+      "ofWhatFansSpend2": "%（ファンが配信で使った額）",
+      "onHold": "保留中",
+      "readyToPay": "支払い準備完了",
+      "paid": "支払い済み",
+      "thisMonth": "今月：",
+      "moneyIsHeld": "お金は保留されます",
+      "daysInCaseA": "日間（ファンの返金に備えて）。その後、次の額に達すると毎月銀行に支払われます：",
+      "setUpPayoutsWith": "Stripeで支払い設定をすると銀行で受け取れます。約5分で、身分証と銀行情報が必要です。",
+      "setUpPayouts": "支払いを設定",
+      "tips": "チップ"
+    },
+    "beltCelebration": {},
+    "sponsorBanner": {
+      "adBreakIn": "広告まで",
+      "sponsoredBy": "提供",
+      "learnMore": "詳しく見る",
+      "advertiseHere": "ここに広告を",
+      "dismissAd": "広告を閉じる",
+      "ad": "広告"
     }
   },
   "feedback": {

@@ -4,11 +4,11 @@ import { useTranslation } from "react-i18next";
 import { tx } from "@/i18n/tx";
 
 const TIER_STYLES = {
-  legend:  { glow: "rgba(234,179,8,0.45)",  ring: "ring-yellow-400/60", get text() { return tx("ui.beltCelebration.textYellow300", "text-yellow-300"); }, bg: "from-yellow-900/95 to-yellow-800/90" },
-  diamond: { glow: "rgba(96,165,250,0.45)", ring: "ring-blue-400/60",   get text() { return tx("ui.beltCelebration.textBlue300", "text-blue-300"); },   bg: "from-blue-900/95 to-blue-800/90" },
-  gold:    { glow: "rgba(245,158,11,0.45)", ring: "ring-amber-400/60",  get text() { return tx("ui.beltCelebration.textAmber300", "text-amber-300"); },  bg: "from-amber-900/95 to-amber-800/90" },
-  silver:  { glow: "rgba(148,163,184,0.4)", ring: "ring-slate-400/50",  get text() { return tx("ui.beltCelebration.textSlate200", "text-slate-200"); },  bg: "from-slate-800/95 to-slate-700/90" },
-  bronze:  { glow: "rgba(194,120,3,0.4)",   ring: "ring-orange-500/50", get text() { return tx("ui.beltCelebration.textOrange300", "text-orange-300"); }, bg: "from-orange-900/95 to-orange-800/90" },
+  legend:  { glow: "rgba(234,179,8,0.45)",  ring: "ring-yellow-400/60", text: "text-yellow-300", bg: "from-yellow-900/95 to-yellow-800/90" },
+  diamond: { glow: "rgba(96,165,250,0.45)", ring: "ring-blue-400/60",   text: "text-blue-300",   bg: "from-blue-900/95 to-blue-800/90" },
+  gold:    { glow: "rgba(245,158,11,0.45)", ring: "ring-amber-400/60",  text: "text-amber-300",  bg: "from-amber-900/95 to-amber-800/90" },
+  silver:  { glow: "rgba(148,163,184,0.4)", ring: "ring-slate-400/50",  text: "text-slate-200",  bg: "from-slate-800/95 to-slate-700/90" },
+  bronze:  { glow: "rgba(194,120,3,0.4)",   ring: "ring-orange-500/50", text: "text-orange-300", bg: "from-orange-900/95 to-orange-800/90" },
 };
 
 // Ring-announcer style belt-unlock moment — earned from a real logged session

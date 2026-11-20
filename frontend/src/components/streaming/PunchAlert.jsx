@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { tx } from "@/i18n/tx";
 
 const TIER_STYLES = {
-  bronze:   { bg: "from-amber-900/95 to-amber-800/90",   ring: "ring-amber-500/50",   get text() { return tx("ui.punchAlert.textAmber300", "text-amber-300"); },  duration: 3000 },
-  silver:   { bg: "from-slate-800/95 to-slate-700/90",   ring: "ring-slate-400/50",   get text() { return tx("ui.punchAlert.textSlate200", "text-slate-200"); },  duration: 3500 },
-  gold:     { bg: "from-yellow-900/95 to-yellow-800/90", ring: "ring-yellow-400/60",  get text() { return tx("ui.punchAlert.textYellow300", "text-yellow-300"); }, duration: 4000 },
-  platinum: { bg: "from-cyan-900/95 to-cyan-800/90",     ring: "ring-cyan-400/70",    get text() { return tx("ui.punchAlert.textCyan300", "text-cyan-300"); },   duration: 5000 },
-  diamond:  { bg: "from-violet-900/95 to-purple-900/90", ring: "ring-violet-400/80",  get text() { return tx("ui.punchAlert.textViolet200", "text-violet-200"); }, duration: 6000 },
+  bronze:   { bg: "from-amber-900/95 to-amber-800/90",   ring: "ring-amber-500/50",   text: "text-amber-300",  duration: 3000 },
+  silver:   { bg: "from-slate-800/95 to-slate-700/90",   ring: "ring-slate-400/50",   text: "text-slate-200",  duration: 3500 },
+  gold:     { bg: "from-yellow-900/95 to-yellow-800/90", ring: "ring-yellow-400/60",  text: "text-yellow-300", duration: 4000 },
+  platinum: { bg: "from-cyan-900/95 to-cyan-800/90",     ring: "ring-cyan-400/70",    text: "text-cyan-300",   duration: 5000 },
+  diamond:  { bg: "from-violet-900/95 to-purple-900/90", ring: "ring-violet-400/80",  text: "text-violet-200", duration: 6000 },
 };
 
 // Tier badge colors for the combo badge

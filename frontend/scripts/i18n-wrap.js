@@ -11,7 +11,7 @@ const ATTRS = new Set(["placeholder", "title", "aria-label", "alt", "label", "de
 const PROPS = new Set(["label", "question", "subtitle", "title", "desc", "description", "hint", "cta", "line", "helper", "placeholder", "text", "body", "heading", "blurb", "tagline", "caption", "empty", "sub", "detail", "tip", "short", "long", "why", "how"]);
 const SKIP_TAGS = new Set(["code", "pre", "style", "script", "Trans", "kbd"]);
 const HAS_WORDS = /[A-Za-z]{2,}/;
-const LOOKS_LIKE_CODE = /^[\w-]+(\.[\w-]+)+$|^[a-z]+(_[a-z]+)+$|^https?:|^\/|^#|^[a-z]+[A-Z]\w*$/;
+const LOOKS_LIKE_CODE = /^[a-z]+(-[a-z0-9]+)+$|^[\w-]+(\.[\w-]+)+$|^[a-z]+(_[a-z]+)+$|^https?:|^\/|^#|^[a-z]+[A-Z]\w*$/;
 
 const camel = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 const slugOf = (text) => {

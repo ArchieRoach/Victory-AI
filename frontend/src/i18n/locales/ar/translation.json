@@ -884,7 +884,9 @@
       "emotes2": "رموز تعبيرية",
       "goBack": "رجوع",
       "free": "مجاني",
-      "unlocks": "يفتح"
+      "unlocks": "يفتح",
+      "tips2": "الإكراميات",
+      "noEmotesYet": "لا توجد رموز تعبيرية بعد"
     },
     "streamCard": {
       "live": "مباشر"
@@ -892,7 +894,9 @@
     "discoverPage": {
       "live": "مباشر",
       "dismiss": "تجاهل",
-      "sessions": "جلسات"
+      "sessions": "جلسات",
+      "filters": "عوامل التصفية",
+      "clearAllFilters": "مسح كل عوامل التصفية"
     },
     "streamViewPage": {
       "live": "مباشر",
@@ -914,7 +918,9 @@
       "goBack": "رجوع",
       "share": "مشاركة",
       "clip": "مقطع",
-      "saving": "جارٍ الحفظ…"
+      "saving": "جارٍ الحفظ…",
+      "category": "الفئة",
+      "weightClass": "فئة الوزن"
     },
     "highlightShareSheet": {
       "copied": "تم النسخ!",
@@ -999,7 +1005,13 @@
     "deepTaggingMatrix": {
       "all": "الكل",
       "liveNow": "مباشر الآن",
-      "recent": "الأحدث"
+      "recent": "الأحدث",
+      "filters": "عوامل التصفية",
+      "clearAll": "مسح الكل",
+      "category": "الفئة",
+      "role": "الدور",
+      "weightClass": "فئة الوزن",
+      "clearAllFilters": "مسح كل عوامل التصفية"
     },
     "emoteStudioPage": {
       "delete": "حذف",
@@ -1007,7 +1019,8 @@
       "combo": "تركيبة",
       "goBack": "رجوع",
       "free": "مجاني",
-      "unlocks": "يفتح"
+      "unlocks": "يفتح",
+      "noEmotesYet": "لا توجد رموز تعبيرية بعد"
     },
     "birthDateCard": {
       "enterYourDateOf": "أدخل تاريخ ميلادك",
@@ -1092,15 +1105,46 @@
     "emoteShop": {
       "close": "إغلاق",
       "tokens": "رموز",
-      "free": "مجاني"
+      "free": "مجاني",
+      "unlocked": "تم فتح {{name}}!",
+      "notEnoughTokens": "لا توجد رموز كافية.",
+      "alreadyInYourCollection": "موجود بالفعل في مجموعتك.",
+      "purchaseFailed": "فشل الشراء.",
+      "emoteShop": "متجر الرموز التعبيرية",
+      "balance": "الرصيد:",
+      "noEmotesYet": "لا توجد رموز تعبيرية بعد",
+      "thisStreamerHasnT": "لم ينشئ هذا الباثّ أي رموز تعبيرية بعد.",
+      "owned": "مملوك"
     },
     "giftSubModal": {
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "couldNotStartCheckout": "تعذّر بدء الدفع.",
+      "giftASub": "أهدِ اشتراكًا",
+      "gifterBadges": "شارات المُهدين",
+      "badgesAppearNextTo": "تظهر الشارات بجانب اسمك في الدردشة للأبد.",
+      "gift": "إهداء",
+      "eachGiftGives30": "كل هدية تمنح 30 يومًا من Pro لشخص يشاهد ولا يملكه بعد. إن لم يتمكن أحد من استلامها الآن، تنتظر المشاهد التالي. يحصل الباثّ على 80% مما تدفعه بعد الضريبة والرسوم.",
+      "s1GiftSub": "اشتراك هدية واحد",
+      "giftASingleSubscription": "أهدِ اشتراكًا واحدًا",
+      "s5GiftSubs": "5 اشتراكات هدية",
+      "bestValueSave20": "أفضل قيمة · وفّر 20%",
+      "s10GiftSubs": "10 اشتراكات هدية",
+      "superValueSave30": "قيمة ممتازة · وفّر 30%",
+      "s50GiftSubs": "50 اشتراك هدية",
+      "communityBombSave40": "قنبلة للمجتمع · وفّر 40%",
+      "gifter": "مُهدٍ",
+      "silverGifter": "مُهدٍ فضي",
+      "goldGifter": "مُهدٍ ذهبي",
+      "diamondGifter": "مُهدٍ ماسي"
     },
     "tipModal": {
       "close": "إغلاق",
       "send": "إرسال",
-      "punches": "لكمات"
+      "punches": "لكمات",
+      "notEnoughTokens": "لا توجد رموز كافية.",
+      "balance": "الرصيد:",
+      "notEnoughTokensTop": "لا توجد رموز كافية — اشحن رصيدك.",
+      "tipFailedPleaseTry": "فشلت الإكرامية — حاول مرة أخرى."
     },
     "gymsPage": {
       "close": "إغلاق"
@@ -1261,7 +1305,11 @@
       "fighter": "ملاكم"
     },
     "hypeOverlay": {
-      "reactionsAtOnce": "تفاعلات دفعة واحدة"
+      "reactionsAtOnce": "تفاعلات دفعة واحدة",
+      "highlightClipped": "تم قص اللقطة",
+      "youWerePartOf": "· كنت جزءًا منها",
+      "hype": "حماس",
+      "sendHype": "أرسل حماسًا"
     },
     "identityCard": {
       "newTraitUnlocked": "صفة جديدة مفتوحة",
@@ -1311,7 +1359,8 @@
       "recordYourRoundsOn": "سجّل جولاتك بالفيديو ليتمكن الذكاء الاصطناعي من تقييمها."
     },
     "proDashboardPage": {
-      "left": "متبقٍ"
+      "left": "متبقٍ",
+      "setUpPayouts": "إعداد المدفوعات"
     },
     "legendCard": {
       "watchBreakdown": "شاهد التحليل"
@@ -1319,7 +1368,10 @@
     "punchAlert": {
       "tokens": "رموز",
       "gifted": "أهدى",
-      "sub": "اشتراك"
+      "sub": "اشتراك",
+      "combo": "تركيبة!",
+      "titleShot": "فرصة اللقب!",
+      "goatStatus": "مكانة الأسطورة"
     },
     "subscriptionGate": {
       "goBack": "رجوع",
@@ -1337,7 +1389,10 @@
       "unlockPro": "افتح Pro"
     },
     "advertisePage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "sponsoredBy": "برعاية",
+      "learnMore": "اعرف المزيد",
+      "ad": "إعلان"
     },
     "blockedAccountsPage": {
       "goBack": "رجوع"
@@ -1412,7 +1467,8 @@
       "couldnTShareThat": "تعذّرت المشاركة"
     },
     "fighterBuddyCreator": {
-      "choose": "اختر"
+      "choose": "اختر",
+      "weightClass": "فئة الوزن"
     },
     "radarChart": {
       "thisSession": "هذه الجلسة",
@@ -1500,7 +1556,25 @@
     },
     "trophyShelf": {
       "level": "المستوى",
-      "of": "من"
+      "of": "من",
+      "youGaveLeftToday": "منحت {{given}}. متبقٍ {{left_today}} اليوم.",
+      "cornerSurprise": "مفاجأة الزاوية: {{title}}",
+      "couldnTGiveThat": "تعذّر المنح الآن",
+      "askAParentOr": "اطلب من أحد والديك أو وليّك إكمال هذا الدفع.",
+      "couldnTStartThe": "تعذّر بدء الهدية الآن",
+      "trophyShelf": "رف الجوائز",
+      "beltsCrownsAndTitles": "الأحزمة والتيجان والألقاب تظهر هنا عندما تكسبها.",
+      "nothingOnTheShelf": "لا شيء على الرف بعد.",
+      "hEarned": " · {{hours}} ساعة مكتسبة",
+      "earned": " · مكتسب",
+      "giftedBy": "· أهداه",
+      "fan": "معجب",
+      "provenHoursOnThe": "ساعات مُثبتة على طريق الـ10,000",
+      "hiddenEggsFound": "بيضات مخفية وُجدت",
+      "howToEarnThem": "كيف تكسبها",
+      "giveThemSomethingOnly": "امنحه شيئًا لا يمنحه إلا صديق",
+      "giftThemGoldenGloves": "أهدِه القفازات الذهبية · 5 £",
+      "shareYourShelf": "شارك رفك"
     },
     "draftPanel": {
       "of": "من",
@@ -1703,7 +1777,49 @@
       "noSquadYet": "لا فريق بعد",
       "noGymYet": "لا نادٍ بعد",
       "startASquadAnd": "أنشئ فريقًا واصعدوا معًا.",
-      "joinAGymTo": "انضم إلى نادٍ لتقاتل من أجله في هذه اللوحة."
+      "joinAGymTo": "انضم إلى نادٍ لتقاتل من أجله في هذه اللوحة.",
+      "pointsBetweenYour": "نقاط بين",
+      "andTheNextOne": "والتالي في الترتيب.",
+      "member": "عضو"
+    },
+    "thenVsNow": {
+      "thenVsNow": "قبل مقابل الآن",
+      "days": "أيام ·",
+      "scoredSessions": "جلسات مُقيَّمة",
+      "noClipSaved": "لا يوجد مقطع محفوظ",
+      "playSideBySide": "تشغيل جنبًا إلى جنب",
+      "upOverallSinceYour": "تحسنت {{overall_change}} إجمالاً منذ جلستك الأولى.",
+      "levelWithYourFirst": "مساوٍ لجلستك الأولى إجمالاً.",
+      "workOnThisNext": ": اعمل على هذا بعد ذلك",
+      "shareHowFarYou": "شارك كم تقدمت"
+    },
+    "earningsCard": {
+      "couldnTOpenPayout": "تعذّر فتح إعداد المدفوعات. حاول مرة أخرى.",
+      "yourEarnings": "أرباحك",
+      "youGet": "تحصل على",
+      "ofWhatFansSpend": "% مما ينفقه المعجبون في بثك، كرموز.",
+      "cashingOutToA": "السحب إلى البنك متاح عندما تبلغ 18.",
+      "yourMoney": "أموالك",
+      "earnedThisMonthYou": "مكسوبة هذا الشهر · تحتفظ بـ",
+      "ofWhatFansSpend2": "% مما ينفقه المعجبون في بثك",
+      "onHold": "محتجز",
+      "readyToPay": "جاهز للدفع",
+      "paid": "مدفوع",
+      "thisMonth": "هذا الشهر:",
+      "moneyIsHeld": "تُحتجز الأموال",
+      "daysInCaseA": "أيام تحسبًا لطلب استرداد من معجب، ثم تُدفع لبنكك شهريًا عندما تصل إلى",
+      "setUpPayoutsWith": "اضبط المدفوعات عبر Stripe لتصلك إلى بنكك. يستغرق نحو 5 دقائق ويحتاج هويتك وبياناتك البنكية.",
+      "setUpPayouts": "إعداد المدفوعات",
+      "tips": "الإكراميات"
+    },
+    "beltCelebration": {},
+    "sponsorBanner": {
+      "adBreakIn": "فاصل إعلاني خلال",
+      "sponsoredBy": "برعاية",
+      "learnMore": "اعرف المزيد",
+      "advertiseHere": "أعلن هنا",
+      "dismissAd": "إغلاق الإعلان",
+      "ad": "إعلان"
     }
   },
   "feedback": {

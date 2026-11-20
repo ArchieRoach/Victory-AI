@@ -1596,12 +1596,7 @@
       "combo": "COMBO!",
       "tokens": "tokens",
       "titleShot": "TITLE SHOT!",
-      "goatStatus": "GOAT STATUS",
-      "textAmber300": "text-amber-300",
-      "textSlate200": "text-slate-200",
-      "textYellow300": "text-yellow-300",
-      "textCyan300": "text-cyan-300",
-      "textViolet200": "text-violet-200"
+      "goatStatus": "GOAT STATUS"
     },
     "sponsorBanner": {
       "adBreakIn": "Ad break in",
@@ -2861,8 +2856,7 @@
       "pushThePaceMake": "Push the pace — make every second count.",
       "returnYourHandsTo": "Return your hands to guard after every combination.",
       "stayBalancedThroughYour": "Stay balanced through your combinations.",
-      "myCircuitsAreOverheating": "My circuits are overheating just watching you. Push harder.",
-      "textSky400": "text-sky-400"
+      "myCircuitsAreOverheating": "My circuits are overheating just watching you. Push harder."
     },
     "trendingClipsPage": {
       "viral": "VIRAL",
@@ -2887,13 +2881,7 @@
       "victoryAi": "Victory AI",
       "whatKindOfFighter": "What kind of fighter are you? Take the quiz"
     },
-    "beltCelebration": {
-      "textYellow300": "text-yellow-300",
-      "textBlue300": "text-blue-300",
-      "textAmber300": "text-amber-300",
-      "textSlate200": "text-slate-200",
-      "textOrange300": "text-orange-300"
-    },
+    "beltCelebration": {},
     "languageSelector": {
       "english": "English",
       "espaOl": "Español",
