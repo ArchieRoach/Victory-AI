@@ -470,3 +470,26 @@ img[src*="image.pollinations.ai/prompt"]:not([src*="transparent=true"]) {
 .buddy-ring { animation: buddy-ring 1.2s ease-out infinite; }
 .buddy-zzz { animation: buddy-zzz 2.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .buddy-float, .buddy-blink rect, .buddy-ring, .buddy-zzz { animation: none; } }
+
+/* Trophy moment (components/TrophyCelebration.jsx): rays burst out, sparkles twinkle, the cup shines */
+@keyframes trophy-rays { 0% { transform: scale(0.4); opacity: 0; } 25% { opacity: 1; } 70% { transform: scale(1.08); opacity: 0.9; } 100% { transform: scale(1.15); opacity: 0; } }
+@keyframes trophy-spark { 0%, 100% { opacity: 0; scale: 0.4; } 50% { opacity: 1; scale: 1.2; } }
+@keyframes trophy-shine { 0%, 70%, 100% { opacity: 0.28; } 85% { opacity: 0.6; } }
+.trophy-rays { animation: trophy-rays 1.4s ease-out 0.3s both; }
+.trophy-spark { font-size: 20px; opacity: 0; animation: trophy-spark 1.6s ease-in-out infinite; }
+.trophy-shine { animation: trophy-shine 3s ease-in-out 1.2s infinite; }
+@media (prefers-reduced-motion: reduce) { .trophy-rays, .trophy-spark, .trophy-shine { animation: none; } }
+
+/* Corner orb (lib/cornerOrb.js): breathes, swells with the coach's voice, circles while thinking */
+@keyframes orb-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes orb-talk { 0%, 100% { transform: scale(1.04); } 50% { transform: scale(1.14); } }
+@keyframes orb-wave { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(1.9); opacity: 0; } }
+@keyframes orb-spin { to { transform: rotate(360deg); } }
+.orb-core.orb-ready, .orb-halo.orb-ready { animation: orb-breathe 3.6s ease-in-out infinite; }
+.orb-core.orb-watch, .orb-halo.orb-watch { animation: orb-breathe 2.2s ease-in-out infinite; }
+.orb-core.orb-rest, .orb-halo.orb-rest { animation: orb-breathe 4.5s ease-in-out infinite; }
+.orb-core.orb-talk, .orb-halo.orb-talk { animation: orb-talk 0.45s ease-in-out infinite; }
+.orb-core.orb-think, .orb-halo.orb-think { animation: orb-breathe 1s ease-in-out infinite; }
+.orb-wave { animation: orb-wave 1s ease-out infinite; }
+.orb-orbit { animation: orb-spin 2.4s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .orb-core, .orb-halo, .orb-wave, .orb-orbit { animation: none !important; } }

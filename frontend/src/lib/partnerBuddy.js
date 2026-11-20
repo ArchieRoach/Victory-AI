@@ -40,3 +40,15 @@ export function firstName(user) {
 export function toMessages(thread) {
   return thread.map((m) => ({ role: m.role, text: m.role === "assistant" ? m.bubbles.join("\n\n") : m.text }));
 }
+
+// The buddy checks in from what really happened this week (week_activity: the last 7 days,
+// oldest first, real sessions only). It never guesses how you feel; it asks.
+export function checkIn(stats) {
+  const days = stats?.week_activity || [];
+  if (!days.length) return "hello";
+  if (days[days.length - 1]?.active) return "trainedToday";
+  const lastIndex = days.map((d) => d.active).lastIndexOf(true);
+  if (lastIndex === -1) return "missed";
+  const daysAgo = days.length - 1 - lastIndex;
+  return daysAgo >= 3 ? "missed" : "hello";
+}

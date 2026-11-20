@@ -7,6 +7,7 @@ import { API } from "@/App";
 import { isNativeShell } from "@/lib/nativeShell";
 import { CLIP_MOMENTS, ORDER_STATUS, gbp, uploadToCloudinary } from "@/lib/proShop";
 import { tx } from "@/i18n/tx";
+import { WalletCard } from "@/components/WalletCard";
 
 const STYLES = [["tough_love", "Tough love"], ["supportive_mentor", "Supportive mentor"], ["analytical_technician", "Technician"],
   ["hype_man", "Hype man"], ["old_school_trainer", "Old-school trainer"]];
@@ -120,6 +121,8 @@ export default function ProDashboardPage() {
           <p className="text-victory-muted text-sm">{card.ring_name} · {card.division} · <span className="font-mono">{card.record}</span></p>
           <p className="text-victory-lime text-xs mt-1">{tx("ui.proDashboardPage.seeYourFighterCard", "See your Fighter Card")}</p>
         </button>
+
+        <WalletCard always />
 
         <section className="victory-card p-4 space-y-2">
           <p className="section-label flex items-center gap-1.5"><Banknote className="w-3 h-3" /> {tx("ui.proDashboardPage.payouts", "Payouts")}</p>

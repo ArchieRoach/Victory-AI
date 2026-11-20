@@ -14,6 +14,8 @@ import { sessionWin, glovesLine } from "@/lib/progression";
 import { haptic } from "@/lib/haptics";
 import { maybeAskForRating } from "@/lib/ratingPrompt";
 import { CoachMark } from "@/components/CoachMark";
+import { TrophyCelebration } from "@/components/TrophyCelebration";
+import { firstTime, markSeen } from "@/lib/trophyMoments";
 import { tx } from "@/i18n/tx";
 
 const RARITY = {
@@ -267,6 +269,16 @@ function BringYourCrew({ moment }) {
 }
 
 // Status points and the squad quest, with a brag button only when something was actually won.
+// Golden Gloves is a real trophy (20 hours of training the coach has seen), so it gets the trophy moment once.
+function GlovesTrophy({ gloves }) {
+  const id = gloves?.just_earned ? `gloves:${gloves.just_earned}` : "";
+  const [show, setShow] = useState(() => firstTime(id));
+  if (!show || !id) return null;
+  const item = { id, name: gloves.just_earned, emoji: "🥊", tier: "legend",
+    desc: tx("ui.sessionRewards.glovesDesc", "One per season, earned with 20 hours of real training.") };
+  return <TrophyCelebration items={[item]} onDone={() => { markSeen(id); setShow(false); }} />;
+}
+
 function StatusEarned({ status, quests, gloves }) {
   const navigate = useNavigate();
   if (!status?.earned) return null;
@@ -540,6 +552,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
         <EasterEgg eggs={rewards?.easter_eggs} />
         <CornerSurprise surprise={rewards?.surprise} />
         <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />
+        <GlovesTrophy gloves={rewards?.gloves} />
         <details className="victory-card p-3" data-testid="newcomer-details">
           <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[44px] flex items-center">{tx("ui.sessionRewards.seeAllYourNumbers", "See all your numbers")}</summary>
           <div className="space-y-3 mt-3">
@@ -572,6 +585,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
       )}
       <IdentityCard identity={rewards?.identity} />
       <CornerSurprise surprise={rewards?.surprise} />
+      <GlovesTrophy gloves={rewards?.gloves} />
       {mastery && <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />}
       <CalloutsBeaten beaten={rewards?.callouts_beaten} />
       <PersonalBests pb={rewards?.personal_bests} />

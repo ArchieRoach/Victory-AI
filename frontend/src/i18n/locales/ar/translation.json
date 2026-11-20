@@ -1654,7 +1654,8 @@
       "pointsStatusAndSeason": "النقاط والحالة والموسم",
       "scoutingReport": "تقرير استكشاف",
       "rareReport": "تقرير نادر",
-      "epicReport": "تقرير ملحمي"
+      "epicReport": "تقرير ملحمي",
+      "glovesDesc": "واحدة كل موسم، تُكسب بـ20 ساعة من التدريب الحقيقي."
     },
     "fighterCard": {
       "couldnTMakeYour": "تعذّر إنشاء بطاقتك — حاول مرة أخرى",
@@ -3033,7 +3034,35 @@
       "tapMe": "اضغط عليّ",
       "starterWork": "على ماذا يجب أن أعمل؟",
       "starterDrill": "أعطني تمريناً لمدة 10 دقائق",
-      "starterHands": "كيف أتوقف عن إنزال يديّ؟"
+      "starterHands": "كيف أتوقف عن إنزال يديّ؟",
+      "checkInToday": "عمل رائع اليوم. كيف كان شعورك؟",
+      "checkInMissed": "لم أرك منذ بضعة أيام. هل كل شيء بخير؟",
+      "starterFeltGood": "كان شعوراً جيداً",
+      "starterTired": "ذراعاي منهكتان",
+      "starterNext": "على ماذا أعمل في المرة القادمة؟",
+      "starterBusy": "كنت مشغولاً",
+      "starterShort": "أعطني حصة سريعة لمدة 10 دقائق",
+      "starterMotivation": "أجد صعوبة في البدء"
+    },
+    "trophyCelebration": {
+      "newTrophy": "كأس جديدة: {{name}}",
+      "youEarned": "حصلت على كأس",
+      "next": "التالي",
+      "continue": "متابعة"
+    },
+    "walletCard": {
+      "fromStreams": "من بثوثك",
+      "fromMerch": "من منتجاتك",
+      "close": "أغلق المحفظة",
+      "open": "افتح المحفظة",
+      "yourBalance": "رصيدك",
+      "readyLine": "{{ready}} جاهز للسحب",
+      "onItsWay": "في طريقه إليك",
+      "empty": "أول إكرامية أو عملية بيع لك ستظهر هنا.",
+      "sales": "{{count}} مبيعات",
+      "onHold": "معلّق",
+      "paidToBank": "دُفع إلى حسابك البنكي",
+      "holdWhy": "المال المعلّق آمن. أموال البث تنتظر {{days}} يوماً في حال طلب أحد المعجبين استرداداً. أموال المنتجات تُصرف عندما يؤكد المشتري وصولها (أو بعد {{merchDays}} يوماً من الشحن)."
     }
   },
   "feedback": {

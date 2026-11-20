@@ -2383,6 +2383,17 @@ async def my_earnings(user: dict = Depends(get_current_user)):
             "recent": [{k: r.get(k) for k in ("source", "share_pence", "created_at", "available_at", "status")} for r in rows[:20]]}
 
 
+@api_router.get("/wallet/me")
+async def my_wallet(user: dict = Depends(get_current_user)):
+    now = datetime.now(timezone.utc)
+    rows = await db.stream_earnings.find({"user_id": user["user_id"]}, {"_id": 0, "share_pence": 1, "status": 1,
+                                                                        "available_at": 1, "created_at": 1, "source": 1}).to_list(5000)
+    orders = await db.merch_orders.find({"seller_id": user["user_id"], "status": {"$ne": "pending_payment"}},
+                                        {"_id": 0, "seller_gets_gbp": 1, "status": 1, "transfer_id": 1}).to_list(2000)
+    return {**ern.wallet(ern.summarise(rows, now), ern.merch_summary(orders)),
+            "hold_days": ern.HOLD_DAYS, "merch_hold_days": px.AUTO_RELEASE_DAYS, "cash_out": not _is_minor(user)}
+
+
 # ---- Streamer bank payouts (Stripe Connect). A verified pro who also streams reuses their
 # Fighter Market payout account, so they only hand Stripe their ID and bank details once. ----
 

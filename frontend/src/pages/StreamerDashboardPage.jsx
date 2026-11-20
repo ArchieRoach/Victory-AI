@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
 import { EarningsCard } from "@/components/streaming/EarningsCard";
+import { WalletCard } from "@/components/WalletCard";
 import { ArrowLeft, Zap, Radio, Users, Smile, TrendingUp, Clock, ChevronRight, Scissors } from "lucide-react";
 import { tx } from "@/i18n/tx";
 
@@ -258,6 +259,7 @@ export default function StreamerDashboardPage() {
       ) : (
         <div className="max-w-lg mx-auto px-4 py-5 space-y-6">
 
+          <WalletCard always />
           <EarningsCard />
 
           {/* ── All-time earnings hero ── */}

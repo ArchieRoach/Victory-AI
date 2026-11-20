@@ -1131,7 +1131,8 @@
       "pointsStatusAndSeason": "Points, status and season",
       "scoutingReport": "SCOUTING REPORT",
       "rareReport": "RARE REPORT",
-      "epicReport": "EPIC REPORT"
+      "epicReport": "EPIC REPORT",
+      "glovesDesc": "One per season, earned with 20 hours of real training."
     },
     "shareSheet": {
       "savedPostItFrom": "Saved — post it from your camera roll",
@@ -3049,7 +3050,35 @@
       "tapMe": "Tap me",
       "starterWork": "What should I work on?",
       "starterDrill": "Give me a 10-minute drill",
-      "starterHands": "How do I stop dropping my hands?"
+      "starterHands": "How do I stop dropping my hands?",
+      "checkInToday": "Good work today. How did that feel?",
+      "checkInMissed": "Not seen you for a few days. Everything alright?",
+      "starterFeltGood": "It felt good",
+      "starterTired": "My arms are dead",
+      "starterNext": "What should I work on next time?",
+      "starterBusy": "I've been busy",
+      "starterShort": "Give me a quick 10-minute session",
+      "starterMotivation": "I'm struggling to get going"
+    },
+    "trophyCelebration": {
+      "newTrophy": "New trophy: {{name}}",
+      "youEarned": "Trophy earned",
+      "next": "Next",
+      "continue": "Continue"
+    },
+    "walletCard": {
+      "fromStreams": "From your streams",
+      "fromMerch": "From your merch",
+      "close": "Close wallet",
+      "open": "Open wallet",
+      "yourBalance": "Your balance",
+      "readyLine": "{{ready}} ready to pay out",
+      "onItsWay": "On its way to you",
+      "empty": "Your first tip or sale lands here.",
+      "sales": "{{count}} sales",
+      "onHold": "On hold",
+      "paidToBank": "Paid to your bank",
+      "holdWhy": "Money on hold is safe. Stream money waits {{days}} days in case a fan asks for a refund. Merch money is released when the buyer confirms it arrived (or {{merchDays}} days after you ship)."
     }
   },
   "lib": {

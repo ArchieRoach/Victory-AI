@@ -1654,7 +1654,8 @@
       "pointsStatusAndSeason": "积分、身份和赛季",
       "scoutingReport": "球探报告",
       "rareReport": "稀有报告",
-      "epicReport": "史诗报告"
+      "epicReport": "史诗报告",
+      "glovesDesc": "每赛季一个，靠20小时真实训练获得。"
     },
     "fighterCard": {
       "couldnTMakeYour": "无法生成你的卡片 — 请重试",
@@ -3033,7 +3034,35 @@
       "tapMe": "点我",
       "starterWork": "我该练什么？",
       "starterDrill": "给我一个10分钟的练习",
-      "starterHands": "怎样才能不掉手？"
+      "starterHands": "怎样才能不掉手？",
+      "checkInToday": "今天干得好。感觉怎么样？",
+      "checkInMissed": "好几天没见到你了。一切还好吗？",
+      "starterFeltGood": "感觉不错",
+      "starterTired": "胳膊累废了",
+      "starterNext": "下次该练什么？",
+      "starterBusy": "最近比较忙",
+      "starterShort": "给我一个10分钟的快速训练",
+      "starterMotivation": "我很难开始"
+    },
+    "trophyCelebration": {
+      "newTrophy": "新奖杯：{{name}}",
+      "youEarned": "获得奖杯",
+      "next": "下一个",
+      "continue": "继续"
+    },
+    "walletCard": {
+      "fromStreams": "来自你的直播",
+      "fromMerch": "来自你的周边",
+      "close": "合上钱包",
+      "open": "打开钱包",
+      "yourBalance": "你的余额",
+      "readyLine": "{{ready}} 可提现",
+      "onItsWay": "正在到你手上",
+      "empty": "你的第一笔打赏或销售会出现在这里。",
+      "sales": "{{count}} 笔销售",
+      "onHold": "暂扣中",
+      "paidToBank": "已打到你的银行卡",
+      "holdWhy": "暂扣的钱是安全的。直播收入会等待{{days}}天，以防粉丝申请退款。周边收入在买家确认收货后（或发货后{{merchDays}}天）发放。"
     }
   },
   "feedback": {

@@ -1654,7 +1654,8 @@
       "pointsStatusAndSeason": "Points, statut et saison",
       "scoutingReport": "RAPPORT DE SCOUT",
       "rareReport": "RAPPORT RARE",
-      "epicReport": "RAPPORT ÉPIQUE"
+      "epicReport": "RAPPORT ÉPIQUE",
+      "glovesDesc": "Un par saison, gagné avec 20 heures d'entraînement réel."
     },
     "fighterCard": {
       "couldnTMakeYour": "Impossible de créer ta carte — réessaie",
@@ -3033,7 +3034,35 @@
       "tapMe": "Touche-moi",
       "starterWork": "Sur quoi je dois travailler ?",
       "starterDrill": "Donne-moi un exercice de 10 minutes",
-      "starterHands": "Comment arrêter de baisser les mains ?"
+      "starterHands": "Comment arrêter de baisser les mains ?",
+      "checkInToday": "Beau travail aujourd'hui. C'était comment ?",
+      "checkInMissed": "Je ne t'ai pas vu depuis quelques jours. Tout va bien ?",
+      "starterFeltGood": "C'était bien",
+      "starterTired": "J'ai les bras morts",
+      "starterNext": "Sur quoi je travaille la prochaine fois ?",
+      "starterBusy": "J'ai été occupé",
+      "starterShort": "Donne-moi une séance rapide de 10 minutes",
+      "starterMotivation": "J'ai du mal à m'y remettre"
+    },
+    "trophyCelebration": {
+      "newTrophy": "Nouveau trophée : {{name}}",
+      "youEarned": "Trophée gagné",
+      "next": "Suivant",
+      "continue": "Continuer"
+    },
+    "walletCard": {
+      "fromStreams": "De tes lives",
+      "fromMerch": "De ton merch",
+      "close": "Fermer le portefeuille",
+      "open": "Ouvrir le portefeuille",
+      "yourBalance": "Ton solde",
+      "readyLine": "{{ready}} prêt à être versé",
+      "onItsWay": "En route vers toi",
+      "empty": "Ton premier pourboire ou ta première vente arrive ici.",
+      "sales": "{{count}} ventes",
+      "onHold": "En attente",
+      "paidToBank": "Versé sur ton compte",
+      "holdWhy": "L'argent en attente est en sécurité. L'argent des lives attend {{days}} jours au cas où un fan demande un remboursement. L'argent du merch est libéré quand l'acheteur confirme la réception (ou {{merchDays}} jours après l'envoi)."
     }
   },
   "feedback": {

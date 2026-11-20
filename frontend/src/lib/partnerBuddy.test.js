@@ -28,3 +28,13 @@ test("the chat is sent as plain turns", () => {
   expect(firstName({ display_name: "Lucas Ward" })).toBe("Lucas");
   expect(firstName({})).toBe("");
 });
+
+test("it checks in from the real week", () => {
+  const { checkIn } = require("./partnerBuddy");
+  const week = (pattern) => ({ week_activity: pattern.split("").map((c) => ({ active: c === "x" })) });
+  expect(checkIn(week("......x"))).toBe("trainedToday");
+  expect(checkIn(week("....x.."))).toBe("hello");
+  expect(checkIn(week("..x...."))).toBe("missed");
+  expect(checkIn(week("......."))).toBe("missed");
+  expect(checkIn(null)).toBe("hello");
+});
