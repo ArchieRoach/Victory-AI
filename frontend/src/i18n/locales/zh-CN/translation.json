@@ -855,7 +855,22 @@
       "goLive": "开始直播",
       "endStream": "结束直播",
       "live": "直播中",
-      "squads": "小队"
+      "squads": "小队",
+      "highlightClippedReactionsAt": "精彩瞬间已剪辑：同时 {{peak_reactions}} 个反应",
+      "highlightClipped": "精彩瞬间已剪辑",
+      "squadOnly": "仅限小队",
+      "highlight": "个精彩瞬间",
+      "highlights": "个精彩瞬间",
+      "youReLive": "你正在直播",
+      "settingUpYourStream": "正在设置你的直播…",
+      "tryAgain": "重试",
+      "readyToGoLive": "准备好开播了吗？",
+      "whoCanWatch": "谁可以观看",
+      "startASquadFirst": "先创建一个小队",
+      "squadOnlyStreamsAre": "仅限小队的直播只对你的小队开放。",
+      "pingMySquadWhen": "我开播时通知我的小队",
+      "startASquadSo": "创建小队，你开播时朋友们会收到通知，第一个精彩瞬间来得更容易 →",
+      "yourCameraAndMicrophone": "将使用你的摄像头和麦克风进行直播。"
     },
     "highlightsPage": {
       "goLive": "开始直播",
@@ -865,20 +880,75 @@
       "aiScore": "AI 评分",
       "rendering": "生成中…",
       "goBack": "返回",
-      "reactions": "个回应"
+      "reactions": "个回应",
+      "best": "最佳",
+      "auto": "自动",
+      "round": "回合",
+      "deleteHighlight": "删除精彩瞬间",
+      "tapToRetry": "点击重试",
+      "stream": "直播",
+      "couldnTLoadYour": "无法加载你的精彩瞬间",
+      "deleteThisHighlight": "删除这个精彩瞬间？",
+      "itLlBeRemoved": "它会从 Victory AI 中移除。你已分享出去的副本仍保留在你发布的地方。",
+      "couldnTDeleteTry": "无法删除 — 请重试",
+      "highlights": "精彩瞬间",
+      "yourBiggestMomentsClipped": "你最高光的时刻，在聊天沸腾时自动剪下",
+      "lastStream": "上次直播",
+      "biggestPop": "最大高潮",
+      "shares": "分享",
+      "noHighlightsYet": "还没有精彩瞬间",
+      "goLiveWhenYour": "开始直播。当观众同时狂按助威按钮时，我们会自动剪辑并加上你的水印。",
+      "biggestPops": "最大高潮"
     },
     "homePage": {
       "goLive": "开始直播",
       "live": "直播中",
       "recent": "最近",
       "trainNow": "马上训练",
-      "following": "已关注"
+      "following": "已关注",
+      "liveBoxingSession": "拳击训练直播",
+      "watchNow": "立即观看",
+      "replay": "回放",
+      "couldNotPostComment": "无法发表评论",
+      "reportPost": "举报帖子",
+      "noCommentsYet": "还没有评论",
+      "reportComment": "举报评论",
+      "addAComment": "添加评论…",
+      "postComment": "发表评论",
+      "coachSCorner": "教练角",
+      "yourFeedIsEmpty": "你的动态是空的",
+      "followFightersOrBe": "关注拳手，或者成为今天第一个开播的人。",
+      "browseLive": "浏览直播",
+      "youReAllCaught": "你已经看完了",
+      "likesCommentsTipsAnd": "点赞、评论、打赏和赠送订阅会显示在这里。",
+      "couldnTLoadFeed": "无法加载动态 — 请重试。",
+      "couldnTUpdateLike": "无法更新点赞 — 请重试。",
+      "trending": "热门",
+      "notifications": "通知",
+      "myProfile": "我的主页",
+      "forYou": "为你推荐",
+      "donTLoseYour": "别丢掉你的",
+      "dayStreak": "天连续纪录",
+      "oneRestDayIs": "休息一天没关系。连续两天就会中断，所以今天练一个回合就能保住。",
+      "noPostsYet": "还没有帖子",
+      "followFightersOnDiscover": "在发现中关注拳手，就能在这里看到他们的内容。",
+      "findFighters": "寻找拳手",
+      "stanceCheck": "检查架势",
+      "feetShoulderWidthApart": "双脚与肩同宽。前脚朝前，后脚转 45°。重心放在前脚掌。",
+      "theJabIsKing": "刺拳为王",
+      "yourJabSetsEverything": "刺拳为一切铺路。用肩膀出拳，不只是手臂 — 转体并快速收回。",
+      "breatheOut": "呼气",
+      "exhaleSharplyOnEvery": "每出一拳都用力呼气。这能调动核心，并自动调整你的呼吸节奏。",
+      "eyesOnTheChest": "盯住胸口",
+      "watchTheChestNot": "看胸口，不看眼睛。胸口会暴露每一拳，用余光就能看到整个身体。",
+      "returnToGuard": "回到防守"
     },
     "liveFeedPage": {
       "goLive": "开始直播",
       "live": "直播中",
       "all": "全部",
-      "recent": "最近"
+      "recent": "最近",
+      "liveBoxingSession": "拳击训练直播"
     },
     "streamerDashboardPage": {
       "goLive": "开始直播",
@@ -889,7 +959,8 @@
       "unlocks": "解锁",
       "tips2": "打赏",
       "noEmotesYet": "还没有表情",
-      "tokens2": "{{token_price}} 代币"
+      "tokens2": "{{token_price}} 代币",
+      "highlights": "精彩瞬间"
     },
     "streamCard": {
       "live": "直播中"
@@ -943,7 +1014,8 @@
       "follow": "关注"
     },
     "onboardingFlow": {
-      "ready": "就绪"
+      "ready": "就绪",
+      "victoryAi": "Victory AI"
     },
     "publicProfilePage": {
       "streamTitle": "直播标题",
@@ -1290,12 +1362,14 @@
       "combos": "组合拳"
     },
     "gymsPage": {
-      "close": "关闭"
+      "close": "关闭",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "squadsPage": {
       "close": "关闭",
       "callouts": "挑战",
-      "beatASquadMate": "在 7 天内超越小队成员的最佳成绩，夺走他的头衔"
+      "beatASquadMate": "在 7 天内超越小队成员的最佳成绩，夺走他的头衔",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "timerPage": {
       "close": "关闭",
@@ -1462,7 +1536,8 @@
     "proApplyPage": {
       "couldnTSendThat": "无法发送，请重试。",
       "sending": "发送中…",
-      "back": "返回"
+      "back": "返回",
+      "getYourFighterCard": "获取你的拳手卡"
     },
     "mentorPanel": {
       "send": "发送",
@@ -1569,7 +1644,8 @@
     "proDashboardPage": {
       "left": "剩余",
       "setUpPayouts": "设置收款",
-      "back": "返回"
+      "back": "返回",
+      "getYourFighterCard": "获取你的拳手卡"
     },
     "legendCard": {
       "watchBreakdown": "观看分析"
@@ -1678,10 +1754,29 @@
       "removeVideo": "移除视频"
     },
     "gymDetailPage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "leaveGym": "退出拳馆",
+      "deleteGym": "删除拳馆",
+      "printTheCheckIn": "打印签到海报",
+      "coach": "教练",
+      "coachRemoved": "已移除教练",
+      "couldnTUpdateCoaches": "无法更新教练",
+      "coaches": "教练",
+      "coachesAndYouCan": "可以请教练（和你）指导会员。他们能看到学员的进步并留下简短留言。"
     },
     "gymPosterPage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "couldnTLoadThe": "无法加载海报",
+      "newPosterReadyPrint": "新海报已就绪。打印出来替换旧的。",
+      "couldnTMakeA": "无法生成新海报",
+      "checkInPoster": "签到海报",
+      "victoryAi": "Victory AI",
+      "trainingAt": "训练地点：",
+      "scanBeforeYouTrain": "训练前扫码。你今天经过验证的时长会计入",
+      "forTheGym": "拳馆。",
+      "noLocationTrackingThe": "不追踪位置。这个码只告诉我们是哪家拳馆。",
+      "print": "打印",
+      "newCode": "新代码"
     },
     "profilePage": {
       "goBack": "返回",
@@ -1709,7 +1804,8 @@
     },
     "trendingClipsPage": {
       "goBack": "返回",
-      "viral": "爆款"
+      "viral": "爆款",
+      "couldnTUpdateLike": "无法更新点赞 — 请重试。"
     },
     "partnerCondition": {
       "rising": "上升中",
@@ -1830,7 +1926,11 @@
       "sStyle": "的风格",
       "inspiredBy": "灵感来自",
       "preview": "预览",
-      "lovesThe": "• 最爱"
+      "lovesThe": "• 最爱",
+      "creatingAvatar": "正在创建头像...",
+      "creating": "创建中...",
+      "create": "创建",
+      "trainingPartner": "训练搭档"
     },
     "radarChart": {
       "thisSession": "本次训练",
@@ -1996,7 +2096,8 @@
     },
     "trainPage": {
       "freestyle": "自由练",
-      "round": "回合"
+      "round": "回合",
+      "coach": "教练"
     },
     "merchSheet": {
       "linkCopiedSendIt": "链接已复制：发给家长",
@@ -2138,7 +2239,14 @@
     "fighterMarketPage": {
       "buyerProtection": "买家保障",
       "back": "返回",
-      "fighterMarket": "拳手市场"
+      "fighterMarket": "拳手市场",
+      "proFightersAndTheir": "职业拳手和他们的周边",
+      "verifiedPros": "认证职业拳手",
+      "noVerifiedProsYet": "还没有认证职业拳手。你是吗？",
+      "getYourFighterCard": "获取你的拳手卡",
+      "spotlight": "聚光灯",
+      "merch": "周边",
+      "nothingForSaleYet": "还没有在售商品。"
     },
     "bragButton": {
       "copiedPasteItAnywhere": "已复制。粘贴到任何地方。",
@@ -2273,6 +2381,18 @@
     "feedPage": {
       "undo": "撤销",
       "createPost": "发帖"
+    },
+    "joinSquadPage": {
+      "victoryAi": "Victory AI"
+    },
+    "loginPage": {
+      "victoryAi": "Victory AI"
+    },
+    "notFoundPage": {
+      "victoryAi": "Victory AI"
+    },
+    "welcomePage": {
+      "victoryAi": "Victory AI"
     }
   },
   "feedback": {

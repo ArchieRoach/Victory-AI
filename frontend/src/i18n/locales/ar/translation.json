@@ -855,7 +855,22 @@
       "goLive": "ابدأ البث",
       "endStream": "إنهاء البث",
       "live": "مباشر",
-      "squads": "الفرق"
+      "squads": "الفرق",
+      "highlightClippedReactionsAt": "تم قص اللقطة: {{peak_reactions}} تفاعلاً دفعة واحدة",
+      "highlightClipped": "تم قص اللقطة",
+      "squadOnly": "للفريق فقط",
+      "highlight": "لقطة",
+      "highlights": "لقطات",
+      "youReLive": "أنت مباشر",
+      "settingUpYourStream": "جارٍ إعداد بثك…",
+      "tryAgain": "حاول مرة أخرى",
+      "readyToGoLive": "جاهز للبث المباشر؟",
+      "whoCanWatch": "من يمكنه المشاهدة",
+      "startASquadFirst": "أنشئ فريقًا أولاً",
+      "squadOnlyStreamsAre": "البث الخاص بالفريق لأعضاء فريقك فقط.",
+      "pingMySquadWhen": "نبّه فريقي عندما أبدأ البث",
+      "startASquadSo": "أنشئ فريقًا ليصل لأصدقائك إشعار عند بدء بثك، وستأتي لقطتك الأولى بسهولة ←",
+      "yourCameraAndMicrophone": "ستُستخدم الكاميرا والميكروفون للبث المباشر."
     },
     "highlightsPage": {
       "goLive": "ابدأ البث",
@@ -865,20 +880,75 @@
       "aiScore": "تقييم الذكاء الاصطناعي",
       "rendering": "جارٍ الإنشاء…",
       "goBack": "رجوع",
-      "reactions": "تفاعلات"
+      "reactions": "تفاعلات",
+      "best": "الأفضل",
+      "auto": "تلقائي",
+      "round": "جولة",
+      "deleteHighlight": "حذف اللقطة",
+      "tapToRetry": "اضغط لإعادة المحاولة",
+      "stream": "البث",
+      "couldnTLoadYour": "تعذّر تحميل لقطاتك",
+      "deleteThisHighlight": "حذف هذه اللقطة؟",
+      "itLlBeRemoved": "ستُحذف من Victory AI. النسخ التي شاركتها تبقى حيث نشرتها.",
+      "couldnTDeleteTry": "تعذّر الحذف — حاول مرة أخرى",
+      "highlights": "اللقطات",
+      "yourBiggestMomentsClipped": "أكبر لحظاتك، مقصوصة عندما اشتعلت الدردشة",
+      "lastStream": "آخر بث",
+      "biggestPop": "أكبر ذروة",
+      "shares": "المشاركات",
+      "noHighlightsYet": "لا لقطات بعد",
+      "goLiveWhenYour": "ابدأ البث. عندما يضغط مشاهدوك زر الحماس في اللحظة نفسها، نقص اللقطة ونضع علامتك المائية تلقائيًا.",
+      "biggestPops": "أكبر الذروات"
     },
     "homePage": {
       "goLive": "ابدأ البث",
       "live": "مباشر",
       "recent": "الأحدث",
       "trainNow": "تدرّب الآن",
-      "following": "تتابعه"
+      "following": "تتابعه",
+      "liveBoxingSession": "جلسة ملاكمة مباشرة",
+      "watchNow": "شاهد الآن",
+      "replay": "إعادة",
+      "couldNotPostComment": "تعذّر نشر التعليق",
+      "reportPost": "الإبلاغ عن المنشور",
+      "noCommentsYet": "لا تعليقات بعد",
+      "reportComment": "الإبلاغ عن التعليق",
+      "addAComment": "أضف تعليقًا…",
+      "postComment": "نشر التعليق",
+      "coachSCorner": "ركن المدرب",
+      "yourFeedIsEmpty": "خلاصتك فارغة",
+      "followFightersOrBe": "تابع ملاكمين أو كن أول من يبث اليوم.",
+      "browseLive": "تصفح البث المباشر",
+      "youReAllCaught": "لقد اطلعت على كل شيء",
+      "likesCommentsTipsAnd": "الإعجابات والتعليقات والإكراميات واشتراكات الهدايا ستظهر هنا.",
+      "couldnTLoadFeed": "تعذّر تحميل الخلاصة — حاول مرة أخرى.",
+      "couldnTUpdateLike": "تعذّر تحديث الإعجاب — حاول مرة أخرى.",
+      "trending": "الرائج",
+      "notifications": "الإشعارات",
+      "myProfile": "ملفي",
+      "forYou": "لك",
+      "donTLoseYour": "لا تخسر سلسلتك البالغة",
+      "dayStreak": "يومًا",
+      "oneRestDayIs": "يوم راحة واحد لا بأس. يومان متتاليان ينهيانها، لذا جولة واحدة اليوم تبقيها حية.",
+      "noPostsYet": "لا منشورات بعد",
+      "followFightersOnDiscover": "تابع ملاكمين في الاستكشاف لترى محتواهم هنا.",
+      "findFighters": "ابحث عن ملاكمين",
+      "stanceCheck": "تحقق من وقفتك",
+      "feetShoulderWidthApart": "القدمان بعرض الكتفين. القدم الأمامية للأمام، والخلفية مائلة 45°. الوزن على مقدمة القدمين.",
+      "theJabIsKing": "الجاب هو الملك",
+      "yourJabSetsEverything": "الجاب يجهّز كل شيء. اضربه بكتفك لا بذراعك فقط — دوّر واسحب بسرعة.",
+      "breatheOut": "أخرج النفَس",
+      "exhaleSharplyOnEvery": "ازفر بقوة مع كل لكمة. يشغّل ذلك عضلات الجذع ويعيد ضبط إيقاع تنفسك تلقائيًا.",
+      "eyesOnTheChest": "العينان على الصدر",
+      "watchTheChestNot": "راقب الصدر لا العينين. الصدر يكشف كل لكمة وسترى الجسم كله بالرؤية الجانبية.",
+      "returnToGuard": "عُد إلى الحماية"
     },
     "liveFeedPage": {
       "goLive": "ابدأ البث",
       "live": "مباشر",
       "all": "الكل",
-      "recent": "الأحدث"
+      "recent": "الأحدث",
+      "liveBoxingSession": "جلسة ملاكمة مباشرة"
     },
     "streamerDashboardPage": {
       "goLive": "ابدأ البث",
@@ -889,7 +959,8 @@
       "unlocks": "يفتح",
       "tips2": "الإكراميات",
       "noEmotesYet": "لا توجد رموز تعبيرية بعد",
-      "tokens2": "{{token_price}} رموز"
+      "tokens2": "{{token_price}} رموز",
+      "highlights": "اللقطات"
     },
     "streamCard": {
       "live": "مباشر"
@@ -943,7 +1014,8 @@
       "follow": "متابعة"
     },
     "onboardingFlow": {
-      "ready": "جاهز"
+      "ready": "جاهز",
+      "victoryAi": "Victory AI"
     },
     "publicProfilePage": {
       "streamTitle": "عنوان البث",
@@ -1290,12 +1362,14 @@
       "combos": "التركيبات"
     },
     "gymsPage": {
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "squadsPage": {
       "close": "إغلاق",
       "callouts": "التحديات",
-      "beatASquadMate": "تغلّب على أفضل نتيجة لزميل في الفريق خلال 7 أيام وانتزع لقبه"
+      "beatASquadMate": "تغلّب على أفضل نتيجة لزميل في الفريق خلال 7 أيام وانتزع لقبه",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "timerPage": {
       "close": "إغلاق",
@@ -1462,7 +1536,8 @@
     "proApplyPage": {
       "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
       "sending": "جارٍ الإرسال…",
-      "back": "رجوع"
+      "back": "رجوع",
+      "getYourFighterCard": "احصل على بطاقة الملاكم"
     },
     "mentorPanel": {
       "send": "إرسال",
@@ -1569,7 +1644,8 @@
     "proDashboardPage": {
       "left": "متبقٍ",
       "setUpPayouts": "إعداد المدفوعات",
-      "back": "رجوع"
+      "back": "رجوع",
+      "getYourFighterCard": "احصل على بطاقة الملاكم"
     },
     "legendCard": {
       "watchBreakdown": "شاهد التحليل"
@@ -1678,10 +1754,29 @@
       "removeVideo": "إزالة الفيديو"
     },
     "gymDetailPage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "leaveGym": "مغادرة النادي",
+      "deleteGym": "حذف النادي",
+      "printTheCheckIn": "اطبع ملصق تسجيل الحضور",
+      "coach": "مدرب",
+      "coachRemoved": "تمت إزالة المدرب",
+      "couldnTUpdateCoaches": "تعذّر تحديث المدربين",
+      "coaches": "المدربون",
+      "coachesAndYouCan": "يمكن أن يُطلب من المدربين (ومنك) إرشاد الأعضاء. يرون تقدم المتدرب ويتركون ملاحظات قصيرة."
     },
     "gymPosterPage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "couldnTLoadThe": "تعذّر تحميل الملصق",
+      "newPosterReadyPrint": "الملصق الجديد جاهز. اطبعه واستبدل القديم.",
+      "couldnTMakeA": "تعذّر إنشاء ملصق جديد",
+      "checkInPoster": "ملصق تسجيل الحضور",
+      "victoryAi": "Victory AI",
+      "trainingAt": "التدريب في",
+      "scanBeforeYouTrain": "امسح الرمز قبل التدريب. وقتك الموثق اليوم يُحتسب",
+      "forTheGym": "للنادي.",
+      "noLocationTrackingThe": "لا تتبع للموقع. الرمز يخبرنا فقط بالنادي.",
+      "print": "طباعة",
+      "newCode": "رمز جديد"
     },
     "profilePage": {
       "goBack": "رجوع",
@@ -1709,7 +1804,8 @@
     },
     "trendingClipsPage": {
       "goBack": "رجوع",
-      "viral": "منتشر"
+      "viral": "منتشر",
+      "couldnTUpdateLike": "تعذّر تحديث الإعجاب — حاول مرة أخرى."
     },
     "partnerCondition": {
       "rising": "في صعود",
@@ -1830,7 +1926,11 @@
       "sStyle": " — أسلوبه",
       "inspiredBy": "مستوحى من",
       "preview": "معاينة",
-      "lovesThe": "• يحب"
+      "lovesThe": "• يحب",
+      "creatingAvatar": "جارٍ إنشاء الصورة الرمزية...",
+      "creating": "جارٍ الإنشاء...",
+      "create": "إنشاء",
+      "trainingPartner": "شريك التدريب"
     },
     "radarChart": {
       "thisSession": "هذه الجلسة",
@@ -1996,7 +2096,8 @@
     },
     "trainPage": {
       "freestyle": "حر",
-      "round": "الجولة"
+      "round": "الجولة",
+      "coach": "مدرب"
     },
     "merchSheet": {
       "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",
@@ -2138,7 +2239,14 @@
     "fighterMarketPage": {
       "buyerProtection": "حماية المشتري",
       "back": "رجوع",
-      "fighterMarket": "سوق الملاكمين"
+      "fighterMarket": "سوق الملاكمين",
+      "proFightersAndTheir": "الملاكمون المحترفون ومنتجاتهم",
+      "verifiedPros": "محترفون موثقون",
+      "noVerifiedProsYet": "لا يوجد محترفون موثقون بعد. هل أنت واحد منهم؟",
+      "getYourFighterCard": "احصل على بطاقة الملاكم",
+      "spotlight": "تسليط الضوء",
+      "merch": "المنتجات",
+      "nothingForSaleYet": "لا شيء للبيع بعد."
     },
     "bragButton": {
       "copiedPasteItAnywhere": "تم النسخ. الصقه في أي مكان.",
@@ -2273,6 +2381,18 @@
     "feedPage": {
       "undo": "تراجع",
       "createPost": "إنشاء منشور"
+    },
+    "joinSquadPage": {
+      "victoryAi": "Victory AI"
+    },
+    "loginPage": {
+      "victoryAi": "Victory AI"
+    },
+    "notFoundPage": {
+      "victoryAi": "Victory AI"
+    },
+    "welcomePage": {
+      "victoryAi": "Victory AI"
     }
   },
   "feedback": {

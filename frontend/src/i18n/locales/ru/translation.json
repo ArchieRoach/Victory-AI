@@ -855,7 +855,22 @@
       "goLive": "Выйти в эфир",
       "endStream": "Завершить эфир",
       "live": "ЭФИР",
-      "squads": "Команды"
+      "squads": "Команды",
+      "highlightClippedReactionsAt": "Момент вырезан: {{peak_reactions}} реакций разом",
+      "highlightClipped": "Момент вырезан",
+      "squadOnly": "ТОЛЬКО КОМАНДА",
+      "highlight": "момент",
+      "highlights": "моменты",
+      "youReLive": "Ты в эфире",
+      "settingUpYourStream": "Настраиваем эфир…",
+      "tryAgain": "Попробовать снова",
+      "readyToGoLive": "Готов выйти в эфир?",
+      "whoCanWatch": "Кто может смотреть",
+      "startASquadFirst": "Сначала создай команду",
+      "squadOnlyStreamsAre": "Эфиры для команды видит только твоя команда.",
+      "pingMySquadWhen": "Уведомлять команду, когда я в эфире",
+      "startASquadSo": "Создай команду, чтобы друзья узнавали о твоих эфирах, — и первый момент придёт легко →",
+      "yourCameraAndMicrophone": "Камера и микрофон будут использоваться для прямого эфира."
     },
     "highlightsPage": {
       "goLive": "Выйти в эфир",
@@ -865,20 +880,75 @@
       "aiScore": "Оценка ИИ",
       "rendering": "Создаём…",
       "goBack": "Назад",
-      "reactions": "реакций"
+      "reactions": "реакций",
+      "best": "ЛУЧШЕЕ",
+      "auto": "АВТО",
+      "round": "РАУНД",
+      "deleteHighlight": "Удалить момент",
+      "tapToRetry": "Нажми, чтобы повторить",
+      "stream": "Эфир",
+      "couldnTLoadYour": "Не удалось загрузить моменты",
+      "deleteThisHighlight": "Удалить этот момент?",
+      "itLlBeRemoved": "Он будет удалён из Victory AI. Копии, которыми ты уже поделился, останутся там, где ты их выложил.",
+      "couldnTDeleteTry": "Не удалось удалить — попробуй ещё раз",
+      "highlights": "Моменты",
+      "yourBiggestMomentsClipped": "Твои главные моменты — вырезаны, когда чат сходил с ума",
+      "lastStream": "Последний эфир",
+      "biggestPop": "Самый мощный всплеск",
+      "shares": "Репосты",
+      "noHighlightsYet": "Моментов пока нет",
+      "goLiveWhenYour": "Выйди в эфир. Когда зрители одновременно жмут кнопку хайпа, мы автоматически вырезаем момент и ставим твой водяной знак.",
+      "biggestPops": "Самые мощные всплески"
     },
     "homePage": {
       "goLive": "Выйти в эфир",
       "live": "ЭФИР",
       "recent": "Недавние",
       "trainNow": "Тренироваться",
-      "following": "Подписан"
+      "following": "Подписан",
+      "liveBoxingSession": "Прямой эфир тренировки",
+      "watchNow": "Смотреть",
+      "replay": "Повтор",
+      "couldNotPostComment": "Не удалось опубликовать комментарий",
+      "reportPost": "Пожаловаться на пост",
+      "noCommentsYet": "Комментариев пока нет",
+      "reportComment": "Пожаловаться на комментарий",
+      "addAComment": "Добавь комментарий…",
+      "postComment": "Опубликовать",
+      "coachSCorner": "Уголок тренера",
+      "yourFeedIsEmpty": "Лента пуста",
+      "followFightersOrBe": "Подпишись на бойцов или выйди в эфир первым сегодня.",
+      "browseLive": "Смотреть эфиры",
+      "youReAllCaught": "Всё просмотрено",
+      "likesCommentsTipsAnd": "Здесь появятся лайки, комментарии, чаевые и подарочные подписки.",
+      "couldnTLoadFeed": "Не удалось загрузить ленту — попробуй ещё раз.",
+      "couldnTUpdateLike": "Не удалось обновить лайк — попробуй ещё раз.",
+      "trending": "В тренде",
+      "notifications": "Уведомления",
+      "myProfile": "Мой профиль",
+      "forYou": "Для тебя",
+      "donTLoseYour": "Не потеряй серию:",
+      "dayStreak": "дн. подряд",
+      "oneRestDayIs": "Один день отдыха — нормально. Два подряд — и серия обнулится, так что один раунд сегодня её сохранит.",
+      "noPostsYet": "Постов пока нет",
+      "followFightersOnDiscover": "Подпишись на бойцов в «Обзоре», чтобы видеть их посты здесь.",
+      "findFighters": "Найти бойцов",
+      "stanceCheck": "Проверь стойку",
+      "feetShoulderWidthApart": "Ноги на ширине плеч. Передняя стопа смотрит вперёд, задняя развёрнута на 45°. Вес на подушечках стоп.",
+      "theJabIsKing": "Джеб — король",
+      "yourJabSetsEverything": "Джеб открывает всё. Бей плечом, а не только рукой — доворачивай и возвращай.",
+      "breatheOut": "Выдыхай",
+      "exhaleSharplyOnEvery": "Резко выдыхай на каждом ударе. Это включает кор и сам выравнивает дыхание.",
+      "eyesOnTheChest": "Смотри в грудь",
+      "watchTheChestNot": "Смотри в грудь, а не в глаза. Грудь выдаёт каждый удар, а всё тело ты видишь периферийным зрением.",
+      "returnToGuard": "Возвращай руки в защиту"
     },
     "liveFeedPage": {
       "goLive": "Выйти в эфир",
       "live": "ЭФИР",
       "all": "Все",
-      "recent": "Недавние"
+      "recent": "Недавние",
+      "liveBoxingSession": "Прямой эфир тренировки"
     },
     "streamerDashboardPage": {
       "goLive": "Выйти в эфир",
@@ -889,7 +959,8 @@
       "unlocks": "открывает",
       "tips2": "Чаевые",
       "noEmotesYet": "Эмодзи пока нет",
-      "tokens2": "{{token_price}} токенов"
+      "tokens2": "{{token_price}} токенов",
+      "highlights": "Моменты"
     },
     "streamCard": {
       "live": "ЭФИР"
@@ -943,7 +1014,8 @@
       "follow": "Подписаться"
     },
     "onboardingFlow": {
-      "ready": "Готово"
+      "ready": "Готово",
+      "victoryAi": "Victory AI"
     },
     "publicProfilePage": {
       "streamTitle": "Название эфира",
@@ -1290,12 +1362,14 @@
       "combos": "КОМБО"
     },
     "gymsPage": {
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "squadsPage": {
       "close": "Закрыть",
       "callouts": "Вызовы",
-      "beatASquadMate": "Побей рекорд товарища по команде за 7 дней и забери его титул"
+      "beatASquadMate": "Побей рекорд товарища по команде за 7 дней и забери его титул",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "timerPage": {
       "close": "Закрыть",
@@ -1462,7 +1536,8 @@
     "proApplyPage": {
       "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
       "sending": "Отправка…",
-      "back": "Назад"
+      "back": "Назад",
+      "getYourFighterCard": "Получи карточку бойца"
     },
     "mentorPanel": {
       "send": "Отправить",
@@ -1569,7 +1644,8 @@
     "proDashboardPage": {
       "left": "остался",
       "setUpPayouts": "Настроить выплаты",
-      "back": "Назад"
+      "back": "Назад",
+      "getYourFighterCard": "Получи карточку бойца"
     },
     "legendCard": {
       "watchBreakdown": "Смотреть разбор"
@@ -1678,10 +1754,29 @@
       "removeVideo": "Удалить видео"
     },
     "gymDetailPage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "leaveGym": "Покинуть зал",
+      "deleteGym": "Удалить зал",
+      "printTheCheckIn": "Распечатать постер для отметок",
+      "coach": "Тренер",
+      "coachRemoved": "Тренер удалён",
+      "couldnTUpdateCoaches": "Не удалось обновить тренеров",
+      "coaches": "Тренеры",
+      "coachesAndYouCan": "Тренеров (и тебя) могут попросить стать наставниками участников. Они видят прогресс подопечного и оставляют короткие заметки."
     },
     "gymPosterPage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "couldnTLoadThe": "Не удалось загрузить постер",
+      "newPosterReadyPrint": "Новый постер готов. Распечатай и замени старый.",
+      "couldnTMakeA": "Не удалось создать новый постер",
+      "checkInPoster": "Постер для отметок",
+      "victoryAi": "Victory AI",
+      "trainingAt": "Тренировка в",
+      "scanBeforeYouTrain": "Отсканируй перед тренировкой. Твоё подтверждённое время сегодня засчитается",
+      "forTheGym": "для зала.",
+      "noLocationTrackingThe": "Без отслеживания местоположения. Код сообщает только, какой это зал.",
+      "print": "Печать",
+      "newCode": "Новый код"
     },
     "profilePage": {
       "goBack": "Назад",
@@ -1709,7 +1804,8 @@
     },
     "trendingClipsPage": {
       "goBack": "Назад",
-      "viral": "ВИРУСНОЕ"
+      "viral": "ВИРУСНОЕ",
+      "couldnTUpdateLike": "Не удалось обновить лайк — попробуй ещё раз."
     },
     "partnerCondition": {
       "rising": "растёт",
@@ -1830,7 +1926,11 @@
       "sStyle": ": стиль",
       "inspiredBy": "Вдохновлён",
       "preview": "Предпросмотр",
-      "lovesThe": "• Любит"
+      "lovesThe": "• Любит",
+      "creatingAvatar": "Создаём аватар...",
+      "creating": "Создаём...",
+      "create": "Создать",
+      "trainingPartner": "Партнёр по тренировкам"
     },
     "radarChart": {
       "thisSession": "Эта тренировка",
@@ -1996,7 +2096,8 @@
     },
     "trainPage": {
       "freestyle": "Свободный",
-      "round": "Раунд"
+      "round": "Раунд",
+      "coach": "Тренер"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Ссылка скопирована: отправь её родителю",
@@ -2138,7 +2239,14 @@
     "fighterMarketPage": {
       "buyerProtection": "Защита покупателя",
       "back": "Назад",
-      "fighterMarket": "Рынок бойцов"
+      "fighterMarket": "Рынок бойцов",
+      "proFightersAndTheir": "Профи и их мерч",
+      "verifiedPros": "Проверенные профи",
+      "noVerifiedProsYet": "Проверенных профи пока нет. Ты один из них?",
+      "getYourFighterCard": "Получи карточку бойца",
+      "spotlight": "В центре внимания",
+      "merch": "Мерч",
+      "nothingForSaleYet": "Пока ничего не продаётся."
     },
     "bragButton": {
       "copiedPasteItAnywhere": "Скопировано. Вставь куда угодно.",
@@ -2273,6 +2381,18 @@
     "feedPage": {
       "undo": "Отменить",
       "createPost": "Создать пост"
+    },
+    "joinSquadPage": {
+      "victoryAi": "Victory AI"
+    },
+    "loginPage": {
+      "victoryAi": "Victory AI"
+    },
+    "notFoundPage": {
+      "victoryAi": "Victory AI"
+    },
+    "welcomePage": {
+      "victoryAi": "Victory AI"
     }
   },
   "feedback": {

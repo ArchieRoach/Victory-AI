@@ -855,7 +855,22 @@
       "goLive": "Ao vivo",
       "endStream": "Encerrar transmissão",
       "live": "AO VIVO",
-      "squads": "Squads"
+      "squads": "Squads",
+      "highlightClippedReactionsAt": "Destaque cortado: {{peak_reactions}} reações de uma vez",
+      "highlightClipped": "Destaque cortado",
+      "squadOnly": "SÓ SQUAD",
+      "highlight": "destaque",
+      "highlights": "destaques",
+      "youReLive": "Você está ao vivo",
+      "settingUpYourStream": "Preparando sua transmissão…",
+      "tryAgain": "Tentar de novo",
+      "readyToGoLive": "Pronto para entrar ao vivo?",
+      "whoCanWatch": "Quem pode assistir",
+      "startASquadFirst": "Crie um squad primeiro",
+      "squadOnlyStreamsAre": "Transmissões só para squad são apenas para seu squad.",
+      "pingMySquadWhen": "Avisar meu squad quando eu entrar ao vivo",
+      "startASquadSo": "Crie um squad para seus amigos serem avisados quando você entrar ao vivo, e seu primeiro destaque vem fácil →",
+      "yourCameraAndMicrophone": "Sua câmera e microfone serão usados para transmitir ao vivo."
     },
     "highlightsPage": {
       "goLive": "Ao vivo",
@@ -865,20 +880,75 @@
       "aiScore": "Nota da IA",
       "rendering": "Renderizando…",
       "goBack": "Voltar",
-      "reactions": "reações"
+      "reactions": "reações",
+      "best": "MELHOR",
+      "auto": "AUTO",
+      "round": "ROUND",
+      "deleteHighlight": "Excluir destaque",
+      "tapToRetry": "Toque para tentar de novo",
+      "stream": "Transmissão",
+      "couldnTLoadYour": "Não foi possível carregar seus destaques",
+      "deleteThisHighlight": "Excluir este destaque?",
+      "itLlBeRemoved": "Ele será removido do Victory AI. Cópias que você já compartilhou continuam onde você postou.",
+      "couldnTDeleteTry": "Não foi possível excluir — tente de novo",
+      "highlights": "Destaques",
+      "yourBiggestMomentsClipped": "Seus maiores momentos, cortados quando o chat enlouqueceu",
+      "lastStream": "Última transmissão",
+      "biggestPop": "Maior explosão",
+      "shares": "Compartilhamentos",
+      "noHighlightsYet": "Nenhum destaque ainda",
+      "goLiveWhenYour": "Entre ao vivo. Quando seus espectadores apertarem o botão de hype ao mesmo tempo, cortamos e colocamos sua marca d'água automaticamente.",
+      "biggestPops": "Maiores explosões"
     },
     "homePage": {
       "goLive": "Ao vivo",
       "live": "AO VIVO",
       "recent": "Recentes",
       "trainNow": "Treinar agora",
-      "following": "Seguindo"
+      "following": "Seguindo",
+      "liveBoxingSession": "Sessão de boxe ao vivo",
+      "watchNow": "Assistir agora",
+      "replay": "Replay",
+      "couldNotPostComment": "Não foi possível publicar o comentário",
+      "reportPost": "Denunciar post",
+      "noCommentsYet": "Nenhum comentário ainda",
+      "reportComment": "Denunciar comentário",
+      "addAComment": "Adicione um comentário…",
+      "postComment": "Publicar comentário",
+      "coachSCorner": "Canto do Treinador",
+      "yourFeedIsEmpty": "Seu feed está vazio",
+      "followFightersOrBe": "Siga lutadores ou seja o primeiro a entrar ao vivo hoje.",
+      "browseLive": "Ver ao vivo",
+      "youReAllCaught": "Você está em dia",
+      "likesCommentsTipsAnd": "Curtidas, comentários, gorjetas e assinaturas de presente aparecem aqui.",
+      "couldnTLoadFeed": "Não foi possível carregar o feed — tente de novo.",
+      "couldnTUpdateLike": "Não foi possível atualizar a curtida — tente de novo.",
+      "trending": "Em alta",
+      "notifications": "Notificações",
+      "myProfile": "Meu perfil",
+      "forYou": "Para você",
+      "donTLoseYour": "Não perca sua sequência de",
+      "dayStreak": "dias",
+      "oneRestDayIs": "Um dia de descanso tudo bem. Dois seguidos acabam com ela, então um round hoje a mantém viva.",
+      "noPostsYet": "Nenhum post ainda",
+      "followFightersOnDiscover": "Siga lutadores em Descobrir para ver o conteúdo deles aqui.",
+      "findFighters": "Encontrar lutadores",
+      "stanceCheck": "Confira a base",
+      "feetShoulderWidthApart": "Pés na largura dos ombros. Pé da frente apontando para a frente, pé de trás virado 45°. Peso na ponta dos pés.",
+      "theJabIsKing": "O jab é rei",
+      "yourJabSetsEverything": "Seu jab prepara tudo. Solte com o ombro, não só com o braço — gire e estale.",
+      "breatheOut": "Solte o ar",
+      "exhaleSharplyOnEvery": "Expire forte a cada soco. Isso ativa o abdômen e reajusta sua respiração automaticamente.",
+      "eyesOnTheChest": "Olhos no peito",
+      "watchTheChestNot": "Olhe o peito, não os olhos. O peito denuncia cada soco e você vê o corpo todo na visão periférica.",
+      "returnToGuard": "Volte para a guarda"
     },
     "liveFeedPage": {
       "goLive": "Ao vivo",
       "live": "AO VIVO",
       "all": "Todos",
-      "recent": "Recentes"
+      "recent": "Recentes",
+      "liveBoxingSession": "Sessão de boxe ao vivo"
     },
     "streamerDashboardPage": {
       "goLive": "Ao vivo",
@@ -889,7 +959,8 @@
       "unlocks": "desbloqueia",
       "tips2": "Gorjetas",
       "noEmotesYet": "Nenhum emote ainda",
-      "tokens2": "{{token_price}} tokens"
+      "tokens2": "{{token_price}} tokens",
+      "highlights": "Destaques"
     },
     "streamCard": {
       "live": "AO VIVO"
@@ -943,7 +1014,8 @@
       "follow": "Seguir"
     },
     "onboardingFlow": {
-      "ready": "Pronto"
+      "ready": "Pronto",
+      "victoryAi": "Victory AI"
     },
     "publicProfilePage": {
       "streamTitle": "Título da transmissão",
@@ -1290,12 +1362,14 @@
       "combos": "COMBOS"
     },
     "gymsPage": {
-      "close": "Fechar"
+      "close": "Fechar",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "squadsPage": {
       "close": "Fechar",
       "callouts": "Desafios",
-      "beatASquadMate": "Bata o recorde de um colega de squad em 7 dias e pegue o título dele"
+      "beatASquadMate": "Bata o recorde de um colega de squad em 7 dias e pegue o título dele",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "timerPage": {
       "close": "Fechar",
@@ -1462,7 +1536,8 @@
     "proApplyPage": {
       "couldnTSendThat": "Não foi possível enviar. Tente de novo.",
       "sending": "Enviando…",
-      "back": "Voltar"
+      "back": "Voltar",
+      "getYourFighterCard": "Pegue seu Card de Lutador"
     },
     "mentorPanel": {
       "send": "Enviar",
@@ -1569,7 +1644,8 @@
     "proDashboardPage": {
       "left": "restante",
       "setUpPayouts": "Configurar pagamentos",
-      "back": "Voltar"
+      "back": "Voltar",
+      "getYourFighterCard": "Pegue seu Card de Lutador"
     },
     "legendCard": {
       "watchBreakdown": "Ver análise"
@@ -1678,10 +1754,29 @@
       "removeVideo": "Remover vídeo"
     },
     "gymDetailPage": {
-      "goBack": "Voltar"
+      "goBack": "Voltar",
+      "leaveGym": "Sair da academia",
+      "deleteGym": "Excluir academia",
+      "printTheCheckIn": "Imprimir o pôster de check-in",
+      "coach": "Treinador",
+      "coachRemoved": "Treinador removido",
+      "couldnTUpdateCoaches": "Não foi possível atualizar os treinadores",
+      "coaches": "Treinadores",
+      "coachesAndYouCan": "Treinadores (e você) podem ser convidados a orientar membros. Eles veem o progresso do aluno e deixam recados curtos."
     },
     "gymPosterPage": {
-      "goBack": "Voltar"
+      "goBack": "Voltar",
+      "couldnTLoadThe": "Não foi possível carregar o pôster",
+      "newPosterReadyPrint": "Novo pôster pronto. Imprima e troque o antigo.",
+      "couldnTMakeA": "Não foi possível criar um novo pôster",
+      "checkInPoster": "Pôster de check-in",
+      "victoryAi": "Victory AI",
+      "trainingAt": "Treinando em",
+      "scanBeforeYouTrain": "Escaneie antes de treinar. Seu tempo verificado hoje conta",
+      "forTheGym": "para a academia.",
+      "noLocationTrackingThe": "Sem rastreamento de localização. O código só nos diz qual academia.",
+      "print": "Imprimir",
+      "newCode": "Novo código"
     },
     "profilePage": {
       "goBack": "Voltar",
@@ -1709,7 +1804,8 @@
     },
     "trendingClipsPage": {
       "goBack": "Voltar",
-      "viral": "VIRAL"
+      "viral": "VIRAL",
+      "couldnTUpdateLike": "Não foi possível atualizar a curtida — tente de novo."
     },
     "partnerCondition": {
       "rising": "subindo",
@@ -1830,7 +1926,11 @@
       "sStyle": "— estilo",
       "inspiredBy": "Inspirado em",
       "preview": "Prévia",
-      "lovesThe": "• Adora o"
+      "lovesThe": "• Adora o",
+      "creatingAvatar": "Criando avatar...",
+      "creating": "Criando...",
+      "create": "Criar",
+      "trainingPartner": "Parceiro de treino"
     },
     "radarChart": {
       "thisSession": "Esta sessão",
@@ -1996,7 +2096,8 @@
     },
     "trainPage": {
       "freestyle": "Livre",
-      "round": "Round"
+      "round": "Round",
+      "coach": "Treinador"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link copiado: envie para um responsável",
@@ -2138,7 +2239,14 @@
     "fighterMarketPage": {
       "buyerProtection": "Proteção ao Comprador",
       "back": "Voltar",
-      "fighterMarket": "Mercado de lutadores"
+      "fighterMarket": "Mercado de lutadores",
+      "proFightersAndTheir": "Lutadores profissionais e seus produtos",
+      "verifiedPros": "Profissionais verificados",
+      "noVerifiedProsYet": "Nenhum profissional verificado ainda. Você é um?",
+      "getYourFighterCard": "Pegue seu Card de Lutador",
+      "spotlight": "Destaque",
+      "merch": "Produtos",
+      "nothingForSaleYet": "Nada à venda ainda."
     },
     "bragButton": {
       "copiedPasteItAnywhere": "Copiado. Cole onde quiser.",
@@ -2273,6 +2381,18 @@
     "feedPage": {
       "undo": "Desfazer",
       "createPost": "Criar post"
+    },
+    "joinSquadPage": {
+      "victoryAi": "Victory AI"
+    },
+    "loginPage": {
+      "victoryAi": "Victory AI"
+    },
+    "notFoundPage": {
+      "victoryAi": "Victory AI"
+    },
+    "welcomePage": {
+      "victoryAi": "Victory AI"
     }
   },
   "feedback": {

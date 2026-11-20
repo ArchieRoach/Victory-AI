@@ -855,7 +855,22 @@
       "goLive": "ライブ配信",
       "endStream": "配信を終了",
       "live": "ライブ",
-      "squads": "スクワッド"
+      "squads": "スクワッド",
+      "highlightClippedReactionsAt": "ハイライトをクリップ：{{peak_reactions}}件の同時リアクション",
+      "highlightClipped": "ハイライトをクリップ",
+      "squadOnly": "スクワッド限定",
+      "highlight": "ハイライト",
+      "highlights": "ハイライト",
+      "youReLive": "ライブ中",
+      "settingUpYourStream": "配信を準備中…",
+      "tryAgain": "もう一度試す",
+      "readyToGoLive": "ライブを始める準備はOK？",
+      "whoCanWatch": "視聴できる人",
+      "startASquadFirst": "まずスクワッドを作ろう",
+      "squadOnlyStreamsAre": "スクワッド限定配信はスクワッドのメンバーだけが見られます。",
+      "pingMySquadWhen": "ライブ開始時にスクワッドに通知",
+      "startASquadSo": "スクワッドを作れば、ライブ開始時に友達へ通知が届き、最初のハイライトも簡単に →",
+      "yourCameraAndMicrophone": "ライブ配信にカメラとマイクを使用します。"
     },
     "highlightsPage": {
       "goLive": "ライブ配信",
@@ -865,20 +880,75 @@
       "aiScore": "AIスコア",
       "rendering": "生成中…",
       "goBack": "戻る",
-      "reactions": "リアクション"
+      "reactions": "リアクション",
+      "best": "ベスト",
+      "auto": "自動",
+      "round": "ラウンド",
+      "deleteHighlight": "ハイライトを削除",
+      "tapToRetry": "タップして再試行",
+      "stream": "配信",
+      "couldnTLoadYour": "ハイライトを読み込めませんでした",
+      "deleteThisHighlight": "このハイライトを削除しますか？",
+      "itLlBeRemoved": "Victory AIから削除されます。すでにシェアしたコピーは投稿先に残ります。",
+      "couldnTDeleteTry": "削除できませんでした — もう一度お試しください",
+      "highlights": "ハイライト",
+      "yourBiggestMomentsClipped": "チャットが盛り上がった瞬間を自動でクリップ",
+      "lastStream": "前回の配信",
+      "biggestPop": "最大の盛り上がり",
+      "shares": "シェア",
+      "noHighlightsYet": "まだハイライトはありません",
+      "goLiveWhenYour": "ライブ配信しよう。視聴者が同時に盛り上げボタンを連打すると、自動でクリップしてウォーターマークを入れます。",
+      "biggestPops": "最大の盛り上がり"
     },
     "homePage": {
       "goLive": "ライブ配信",
       "live": "ライブ",
       "recent": "最近",
       "trainNow": "今すぐトレーニング",
-      "following": "フォロー中"
+      "following": "フォロー中",
+      "liveBoxingSession": "ライブボクシングセッション",
+      "watchNow": "今すぐ見る",
+      "replay": "リプレイ",
+      "couldNotPostComment": "コメントを投稿できませんでした",
+      "reportPost": "投稿を報告",
+      "noCommentsYet": "まだコメントはありません",
+      "reportComment": "コメントを報告",
+      "addAComment": "コメントを追加…",
+      "postComment": "コメントを投稿",
+      "coachSCorner": "コーチのコーナー",
+      "yourFeedIsEmpty": "フィードは空です",
+      "followFightersOrBe": "ファイターをフォローするか、今日最初にライブ配信しよう。",
+      "browseLive": "ライブを見る",
+      "youReAllCaught": "すべて確認済みです",
+      "likesCommentsTipsAnd": "いいね、コメント、チップ、ギフトサブスクがここに表示されます。",
+      "couldnTLoadFeed": "フィードを読み込めませんでした — もう一度お試しください。",
+      "couldnTUpdateLike": "いいねを更新できませんでした — もう一度お試しください。",
+      "trending": "トレンド",
+      "notifications": "通知",
+      "myProfile": "マイプロフィール",
+      "forYou": "おすすめ",
+      "donTLoseYour": "途切れさせないで：",
+      "dayStreak": "日連続",
+      "oneRestDayIs": "休みは1日なら大丈夫。2日続くと途切れるので、今日1ラウンドで続けられます。",
+      "noPostsYet": "まだ投稿はありません",
+      "followFightersOnDiscover": "見つけるでファイターをフォローすると、ここに投稿が表示されます。",
+      "findFighters": "ファイターを探す",
+      "stanceCheck": "構えチェック",
+      "feetShoulderWidthApart": "足は肩幅。前足はまっすぐ前、後ろ足は45°外向き。体重は母指球に。",
+      "theJabIsKing": "ジャブは王様",
+      "yourJabSetsEverything": "ジャブがすべての起点。腕だけでなく肩で打とう — 回して素早く戻す。",
+      "breatheOut": "息を吐く",
+      "exhaleSharplyOnEvery": "パンチのたびに鋭く息を吐こう。体幹が締まり、呼吸のリズムも自然に整います。",
+      "eyesOnTheChest": "胸を見る",
+      "watchTheChestNot": "目ではなく胸を見よう。胸はすべてのパンチを予告し、周辺視野で全身が見えます。",
+      "returnToGuard": "ガードに戻す"
     },
     "liveFeedPage": {
       "goLive": "ライブ配信",
       "live": "ライブ",
       "all": "すべて",
-      "recent": "最近"
+      "recent": "最近",
+      "liveBoxingSession": "ライブボクシングセッション"
     },
     "streamerDashboardPage": {
       "goLive": "ライブ配信",
@@ -889,7 +959,8 @@
       "unlocks": "解除",
       "tips2": "チップ",
       "noEmotesYet": "エモートはまだありません",
-      "tokens2": "{{token_price}}トークン"
+      "tokens2": "{{token_price}}トークン",
+      "highlights": "ハイライト"
     },
     "streamCard": {
       "live": "ライブ"
@@ -943,7 +1014,8 @@
       "follow": "フォロー"
     },
     "onboardingFlow": {
-      "ready": "準備完了"
+      "ready": "準備完了",
+      "victoryAi": "Victory AI"
     },
     "publicProfilePage": {
       "streamTitle": "配信タイトル",
@@ -1290,12 +1362,14 @@
       "combos": "コンボ"
     },
     "gymsPage": {
-      "close": "閉じる"
+      "close": "閉じる",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "squadsPage": {
       "close": "閉じる",
       "callouts": "挑戦",
-      "beatASquadMate": "7日以内にスクワッド仲間のベストを超えてタイトルを奪おう"
+      "beatASquadMate": "7日以内にスクワッド仲間のベストを超えてタイトルを奪おう",
+      "xxxxxxxx": "XXXXXXXX"
     },
     "timerPage": {
       "close": "閉じる",
@@ -1462,7 +1536,8 @@
     "proApplyPage": {
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
       "sending": "送信中…",
-      "back": "戻る"
+      "back": "戻る",
+      "getYourFighterCard": "ファイターカードを手に入れよう"
     },
     "mentorPanel": {
       "send": "送信",
@@ -1569,7 +1644,8 @@
     "proDashboardPage": {
       "left": "残り",
       "setUpPayouts": "支払いを設定",
-      "back": "戻る"
+      "back": "戻る",
+      "getYourFighterCard": "ファイターカードを手に入れよう"
     },
     "legendCard": {
       "watchBreakdown": "分析を見る"
@@ -1678,10 +1754,29 @@
       "removeVideo": "動画を削除"
     },
     "gymDetailPage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "leaveGym": "ジムを退会",
+      "deleteGym": "ジムを削除",
+      "printTheCheckIn": "チェックインポスターを印刷",
+      "coach": "コーチ",
+      "coachRemoved": "コーチを外しました",
+      "couldnTUpdateCoaches": "コーチを更新できませんでした",
+      "coaches": "コーチ",
+      "coachesAndYouCan": "コーチ（とあなた）はメンバーのメンターを頼まれることがあります。メンティーの進捗を見て短いメモを残せます。"
     },
     "gymPosterPage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "couldnTLoadThe": "ポスターを読み込めませんでした",
+      "newPosterReadyPrint": "新しいポスターができました。印刷して古いものと交換してください。",
+      "couldnTMakeA": "新しいポスターを作れませんでした",
+      "checkInPoster": "チェックインポスター",
+      "victoryAi": "Victory AI",
+      "trainingAt": "トレーニング場所：",
+      "scanBeforeYouTrain": "トレーニング前にスキャン。今日の認証時間が",
+      "forTheGym": "ジムにカウントされます。",
+      "noLocationTrackingThe": "位置情報の追跡はありません。コードでわかるのはジムだけです。",
+      "print": "印刷",
+      "newCode": "新しいコード"
     },
     "profilePage": {
       "goBack": "戻る",
@@ -1709,7 +1804,8 @@
     },
     "trendingClipsPage": {
       "goBack": "戻る",
-      "viral": "バズり中"
+      "viral": "バズり中",
+      "couldnTUpdateLike": "いいねを更新できませんでした — もう一度お試しください。"
     },
     "partnerCondition": {
       "rising": "上昇中",
@@ -1830,7 +1926,11 @@
       "sStyle": "のスタイル",
       "inspiredBy": "インスピレーション：",
       "preview": "プレビュー",
-      "lovesThe": "• 大好き："
+      "lovesThe": "• 大好き：",
+      "creatingAvatar": "アバターを作成中...",
+      "creating": "作成中...",
+      "create": "作成",
+      "trainingPartner": "トレーニングパートナー"
     },
     "radarChart": {
       "thisSession": "今回のセッション",
@@ -1996,7 +2096,8 @@
     },
     "trainPage": {
       "freestyle": "フリースタイル",
-      "round": "ラウンド"
+      "round": "ラウンド",
+      "coach": "コーチ"
     },
     "merchSheet": {
       "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",
@@ -2138,7 +2239,14 @@
     "fighterMarketPage": {
       "buyerProtection": "購入者保護",
       "back": "戻る",
-      "fighterMarket": "ファイターマーケット"
+      "fighterMarket": "ファイターマーケット",
+      "proFightersAndTheir": "プロファイターとグッズ",
+      "verifiedPros": "認証済みプロ",
+      "noVerifiedProsYet": "まだ認証済みプロはいません。あなたはプロ？",
+      "getYourFighterCard": "ファイターカードを手に入れよう",
+      "spotlight": "スポットライト",
+      "merch": "グッズ",
+      "nothingForSaleYet": "まだ販売中のものはありません。"
     },
     "bragButton": {
       "copiedPasteItAnywhere": "コピーしました。どこにでも貼り付けられます。",
@@ -2273,6 +2381,18 @@
     "feedPage": {
       "undo": "元に戻す",
       "createPost": "投稿を作成"
+    },
+    "joinSquadPage": {
+      "victoryAi": "Victory AI"
+    },
+    "loginPage": {
+      "victoryAi": "Victory AI"
+    },
+    "notFoundPage": {
+      "victoryAi": "Victory AI"
+    },
+    "welcomePage": {
+      "victoryAi": "Victory AI"
     }
   },
   "feedback": {
