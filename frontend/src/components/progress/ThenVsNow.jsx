@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { History, Play, TrendingUp, TrendingDown } from "lucide-react";
 import { API } from "@/App";
@@ -71,6 +72,11 @@ export function ThenVsNow() {
         <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={playBoth}>
           <Play className="w-4 h-4" /> {tx("ui.thenVsNow.playSideBySide", "Play side by side")}
         </button>
+      )}
+      {t.now.video && (
+        <Link to={`/compare?video=${encodeURIComponent(t.now.video)}`} className="text-sm text-victory-lime flex items-center justify-center min-h-[44px]" data-testid="compare-latest">
+          {tx("ui.thenVsNow.compareFighter", "Now put it next to a fighter you look up to")}
+        </Link>
       )}
 
       {t.overall_change != null && (

@@ -2136,7 +2136,8 @@
     "sessionDetailPage": {
       "goBack": "戻る",
       "couldnTLoadThis": "このセッションを読み込めませんでした",
-      "couldnTLoadReplay": "リプレイを読み込めませんでした"
+      "couldnTLoadReplay": "リプレイを読み込めませんでした",
+      "compareWithFighter": "憧れのファイターと比べる"
     },
     "squadDetailPage": {
       "goBack": "戻る"
@@ -2757,7 +2758,8 @@
       "upOverallSinceYour": "最初のセッションから総合で{{overall_change}}アップ。",
       "levelWithYourFirst": "総合では最初のセッションと同じです。",
       "workOnThisNext": "：次はこれに取り組もう",
-      "shareHowFarYou": "どれだけ成長したかシェア"
+      "shareHowFarYou": "どれだけ成長したかシェア",
+      "compareFighter": "次は憧れのファイターと並べてみよう"
     },
     "earningsCard": {
       "couldnTOpenPayout": "支払い設定を開けませんでした。もう一度お試しください。",
@@ -2969,6 +2971,34 @@
       "progress": "ステップ {{n}} / {{total}}",
       "done": "始めよう",
       "next": "次へ"
+    },
+    "comparePage": {
+      "couldntAdd": "クリップを追加できませんでした。もう一度お試しください。",
+      "pasteLink": "YouTube、TikTok、Instagramのリンクを貼り付け",
+      "fighterName": "ファイターの名前（例：ロマチェンコ）",
+      "howToLink": "アプリで「共有」→「リンクをコピー」をタップ。クリップは元の投稿から再生されるので、再生回数は投稿者のものになります。",
+      "adding": "追加中…",
+      "addClip": "クリップを追加",
+      "thisRound": "このラウンド",
+      "couldntDelete": "クリップを削除できませんでした",
+      "goBack": "戻る",
+      "title": "並べて比較",
+      "subtitle": "あなたのラウンドと憧れのファイターを並べて",
+      "theirClip": "相手のクリップ",
+      "watchOn": "{{site}}で見る",
+      "instagramNote": "Instagramはアプリからプレーヤーを開始できないので、相手のクリップは自分で再生をタップしてください。",
+      "deleteClip": "クリップを削除",
+      "you": "あなた",
+      "pickYours": "録画したラウンドか、スマホの動画を選んでください。",
+      "roundOn": "ラウンド{{n}}、{{date}}",
+      "fromPhone": "スマホの動画を使う",
+      "staysOnPhone": "スマホの動画はスマホに残ります。アップロードされません。",
+      "pauseBoth": "両方を一時停止",
+      "playBoth": "両方を再生",
+      "restart": "最初から",
+      "speed": "速度",
+      "flipMe": "反転",
+      "flipNote": "サウスポー対オーソドックス？動画を反転すれば同じ向きになります。"
     }
   },
   "feedback": {

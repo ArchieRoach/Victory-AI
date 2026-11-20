@@ -2136,7 +2136,8 @@
     "sessionDetailPage": {
       "goBack": "Volver",
       "couldnTLoadThis": "No se pudo cargar esta sesión",
-      "couldnTLoadReplay": "No se pudo cargar la repetición"
+      "couldnTLoadReplay": "No se pudo cargar la repetición",
+      "compareWithFighter": "Compárate con un luchador que admiras"
     },
     "squadDetailPage": {
       "goBack": "Volver"
@@ -2757,7 +2758,8 @@
       "upOverallSinceYour": "Has subido {{overall_change}} en total desde tu primera sesión.",
       "levelWithYourFirst": "Igual que en tu primera sesión en total.",
       "workOnThisNext": ": trabaja esto ahora",
-      "shareHowFarYou": "Comparte cuánto has avanzado"
+      "shareHowFarYou": "Comparte cuánto has avanzado",
+      "compareFighter": "Ahora ponlo junto a un luchador que admiras"
     },
     "earningsCard": {
       "couldnTOpenPayout": "No se pudo abrir la configuración de cobros. Inténtalo de nuevo.",
@@ -2969,6 +2971,34 @@
       "progress": "Paso {{n}} de {{total}}",
       "done": "Vamos",
       "next": "Siguiente"
+    },
+    "comparePage": {
+      "couldntAdd": "No se pudo añadir ese clip. Inténtalo de nuevo.",
+      "pasteLink": "Pega un enlace de YouTube, TikTok o Instagram",
+      "fighterName": "Nombre del luchador, p. ej. Lomachenko",
+      "howToLink": "En la app, toca Compartir y luego Copiar enlace. El clip se reproduce desde la publicación original, así que quien lo subió se queda las visualizaciones.",
+      "adding": "Añadiendo…",
+      "addClip": "Añadir clip",
+      "thisRound": "Este asalto",
+      "couldntDelete": "No se pudo eliminar ese clip",
+      "goBack": "Volver",
+      "title": "Lado a lado",
+      "subtitle": "Tu asalto junto a un luchador que admiras",
+      "theirClip": "Su clip",
+      "watchOn": "Ver en {{site}}",
+      "instagramNote": "Instagram no deja que las apps inicien su reproductor, así que toca play en su clip tú mismo.",
+      "deleteClip": "Eliminar clip",
+      "you": "Tú",
+      "pickYours": "Elige uno de tus asaltos grabados o un vídeo de tu móvil.",
+      "roundOn": "Asalto {{n}}, {{date}}",
+      "fromPhone": "Usar un vídeo de mi móvil",
+      "staysOnPhone": "Un vídeo de tu móvil se queda en tu móvil. No se sube.",
+      "pauseBoth": "Pausar ambos",
+      "playBoth": "Reproducir ambos",
+      "restart": "Reiniciar",
+      "speed": "Velocidad",
+      "flipMe": "Voltearme",
+      "flipNote": "¿Zurdo contra diestro? Voltea tu vídeo para mirar hacia el mismo lado."
     }
   },
   "feedback": {

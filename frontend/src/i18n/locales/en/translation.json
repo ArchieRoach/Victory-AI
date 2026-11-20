@@ -1495,7 +1495,8 @@
       "upOverallSinceYour": "Up {{overall_change}} overall since your first session.",
       "levelWithYourFirst": "Level with your first session overall.",
       "workOnThisNext": ": work on this next",
-      "shareHowFarYou": "Share how far you've come"
+      "shareHowFarYou": "Share how far you've come",
+      "compareFighter": "Now put it next to a fighter you look up to"
     },
     "trophyShelf": {
       "youGaveLeftToday": "You gave {{given}}. {{left_today}} left today.",
@@ -2596,7 +2597,8 @@
     "sessionDetailPage": {
       "couldnTLoadThis": "Couldn't load this session",
       "couldnTLoadReplay": "Couldn't load replay",
-      "goBack": "Go back"
+      "goBack": "Go back",
+      "compareWithFighter": "Compare with a fighter you look up to"
     },
     "sessionResultsPage": {
       "scorecardSaved": "Scorecard saved!",
@@ -2985,6 +2987,34 @@
       "progress": "Step {{n}} of {{total}}",
       "done": "Let's go",
       "next": "Next"
+    },
+    "comparePage": {
+      "couldntAdd": "Couldn't add that clip. Try again.",
+      "pasteLink": "Paste a YouTube, TikTok or Instagram link",
+      "fighterName": "Fighter's name, e.g. Lomachenko",
+      "howToLink": "In the app, tap Share, then Copy link. The clip plays from the original post, so the person who posted it keeps the views.",
+      "adding": "Adding…",
+      "addClip": "Add clip",
+      "thisRound": "This round",
+      "couldntDelete": "Couldn't delete that clip",
+      "goBack": "Go back",
+      "title": "Side by side",
+      "subtitle": "Your round next to a fighter you look up to",
+      "theirClip": "Their clip",
+      "watchOn": "Watch on {{site}}",
+      "instagramNote": "Instagram doesn't let apps start its player, so tap play on their clip yourself.",
+      "deleteClip": "Delete clip",
+      "you": "You",
+      "pickYours": "Pick one of your recorded rounds, or a video from your phone.",
+      "roundOn": "Round {{n}}, {{date}}",
+      "fromPhone": "Use a video from my phone",
+      "staysOnPhone": "A video from your phone stays on your phone. It isn't uploaded.",
+      "pauseBoth": "Pause both",
+      "playBoth": "Play both",
+      "restart": "Restart",
+      "speed": "Speed",
+      "flipMe": "Flip me",
+      "flipNote": "Southpaw against orthodox? Flip your video so you're facing the same way."
     }
   },
   "lib": {

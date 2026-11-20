@@ -2136,7 +2136,8 @@
     "sessionDetailPage": {
       "goBack": "Zurück",
       "couldnTLoadThis": "Diese Einheit konnte nicht geladen werden",
-      "couldnTLoadReplay": "Wiederholung konnte nicht geladen werden"
+      "couldnTLoadReplay": "Wiederholung konnte nicht geladen werden",
+      "compareWithFighter": "Vergleich dich mit einem Kämpfer, zu dem du aufschaust"
     },
     "squadDetailPage": {
       "goBack": "Zurück"
@@ -2757,7 +2758,8 @@
       "upOverallSinceYour": "Insgesamt {{overall_change}} besser seit deiner ersten Einheit.",
       "levelWithYourFirst": "Insgesamt gleichauf mit deiner ersten Einheit.",
       "workOnThisNext": ": daran als Nächstes arbeiten",
-      "shareHowFarYou": "Teile, wie weit du gekommen bist"
+      "shareHowFarYou": "Teile, wie weit du gekommen bist",
+      "compareFighter": "Stell es jetzt neben einen Kämpfer, zu dem du aufschaust"
     },
     "earningsCard": {
       "couldnTOpenPayout": "Auszahlungs-Einrichtung konnte nicht geöffnet werden. Versuch es noch mal.",
@@ -2969,6 +2971,34 @@
       "progress": "Schritt {{n}} von {{total}}",
       "done": "Los geht's",
       "next": "Weiter"
+    },
+    "comparePage": {
+      "couldntAdd": "Clip konnte nicht hinzugefügt werden. Versuch es noch mal.",
+      "pasteLink": "Füge einen YouTube-, TikTok- oder Instagram-Link ein",
+      "fighterName": "Name des Kämpfers, z. B. Lomachenko",
+      "howToLink": "Tippe in der App auf Teilen und dann auf Link kopieren. Der Clip läuft vom Originalbeitrag, also behält die Person, die ihn gepostet hat, die Aufrufe.",
+      "adding": "Wird hinzugefügt…",
+      "addClip": "Clip hinzufügen",
+      "thisRound": "Diese Runde",
+      "couldntDelete": "Clip konnte nicht gelöscht werden",
+      "goBack": "Zurück",
+      "title": "Nebeneinander",
+      "subtitle": "Deine Runde neben einem Kämpfer, zu dem du aufschaust",
+      "theirClip": "Sein Clip",
+      "watchOn": "Auf {{site}} ansehen",
+      "instagramNote": "Instagram lässt Apps seinen Player nicht starten, also tipp bei seinem Clip selbst auf Play.",
+      "deleteClip": "Clip löschen",
+      "you": "Du",
+      "pickYours": "Wähle eine deiner aufgenommenen Runden oder ein Video von deinem Handy.",
+      "roundOn": "Runde {{n}}, {{date}}",
+      "fromPhone": "Video von meinem Handy nutzen",
+      "staysOnPhone": "Ein Video von deinem Handy bleibt auf deinem Handy. Es wird nicht hochgeladen.",
+      "pauseBoth": "Beide pausieren",
+      "playBoth": "Beide abspielen",
+      "restart": "Neu starten",
+      "speed": "Tempo",
+      "flipMe": "Spiegeln",
+      "flipNote": "Rechtsausleger gegen Linksausleger? Spiegle dein Video, damit ihr in dieselbe Richtung schaut."
     }
   },
   "feedback": {

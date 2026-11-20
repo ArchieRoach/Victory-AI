@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional, Dict, Any, Literal, Tuple
 from zoneinfo import ZoneInfo
 import run_clubs as rc
+import fighter_compare as fc
 import re
 import html
 import secrets
@@ -4889,6 +4890,61 @@ async def delete_run_club(club_id: str, user: dict = Depends(get_current_user)):
     for coll in (db.run_clubs, db.run_club_invites, db.run_club_rsvps):
         await coll.delete_many({"club_id": club_id})
     return {"deleted": True}
+
+# ============== COMPARE WITH A FIGHTER ==============
+# Why, and the copyright line (embed only, never re-host), live in fighter_compare.py.
+
+class FighterClipCreate(BaseModel):
+    url: str = Field(..., max_length=500)
+    fighter_name: str = Field(..., min_length=2, max_length=60)
+    note: str = Field("", max_length=140)
+
+
+@api_router.post("/compare/fighter-clips")
+async def save_fighter_clip(data: FighterClipCreate, user: dict = Depends(get_current_user)):
+    parsed = fc.parse_clip_url(data.url)
+    if not parsed:
+        if fc.is_short_link(data.url):
+            raise HTTPException(400, "Open the clip in the app, tap Share, then Copy link and paste the full link here")
+        raise HTTPException(400, "Paste a link to a YouTube, TikTok or Instagram video")
+    for text in (data.fighter_name, data.note):
+        if text and await is_content_flagged(text):
+            raise HTTPException(400, "That doesn't meet our community guidelines")
+    uid = user["user_id"]
+    existing = await db.fighter_clips.find_one({"user_id": uid, "provider": parsed["provider"], "clip_id": parsed["clip_id"],
+                                                "start": parsed["start"]}, {"_id": 0})
+    if existing:
+        return fc.clip_view(existing)
+    if await db.fighter_clips.count_documents({"user_id": uid}) >= fc.MAX_SAVED:
+        raise HTTPException(400, f"You can keep up to {fc.MAX_SAVED} clips. Delete one to add another")
+    doc = {"clip_doc_id": f"fc_{uuid.uuid4().hex[:12]}", "user_id": uid, **parsed, "source_url": fc.source_url(data.url),
+           "fighter_name": data.fighter_name.strip(), "note": data.note.strip(),
+           "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.fighter_clips.insert_one(doc)
+    return fc.clip_view(doc)
+
+
+@api_router.get("/compare/fighter-clips")
+async def list_fighter_clips(user: dict = Depends(get_current_user)):
+    docs = await db.fighter_clips.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(fc.MAX_SAVED)
+    return {"clips": [fc.clip_view(d) for d in docs]}
+
+
+@api_router.delete("/compare/fighter-clips/{clip_doc_id}")
+async def delete_fighter_clip(clip_doc_id: str, user: dict = Depends(get_current_user)):
+    result = await db.fighter_clips.delete_one({"clip_doc_id": clip_doc_id, "user_id": user["user_id"]})
+    if not result.deleted_count:
+        raise HTTPException(404, "Clip not found")
+    return {"deleted": True}
+
+
+@api_router.get("/compare/my-rounds")
+async def my_compare_rounds(user: dict = Depends(get_current_user)):
+    videos = await db.round_videos.find({"user_id": user["user_id"], "video_url": {"$nin": [None, ""]}},
+                                        {"_id": 0, "video_id": 1, "session_id": 1, "round_number": 1, "video_url": 1,
+                                         "created_at": 1}).sort("created_at", -1).to_list(30)
+    return {"rounds": [{"video_id": v.get("video_id"), "session_id": v.get("session_id"), "round_number": v.get("round_number"),
+                        "video_url": v["video_url"], "date": (v.get("created_at") or "")[:10]} for v in videos]}
 
 # ============== SQUAD CHALLENGES ==============
 # A squad is a lightweight, free friend group (max 8) with a real weekly leaderboard —

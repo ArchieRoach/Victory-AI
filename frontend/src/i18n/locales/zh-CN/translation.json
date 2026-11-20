@@ -2136,7 +2136,8 @@
     "sessionDetailPage": {
       "goBack": "返回",
       "couldnTLoadThis": "无法加载这次训练",
-      "couldnTLoadReplay": "无法加载回放"
+      "couldnTLoadReplay": "无法加载回放",
+      "compareWithFighter": "和你崇拜的拳手对比"
     },
     "squadDetailPage": {
       "goBack": "返回"
@@ -2757,7 +2758,8 @@
       "upOverallSinceYour": "自第一次训练以来总分提高了 {{overall_change}}。",
       "levelWithYourFirst": "总分与第一次训练持平。",
       "workOnThisNext": "：下一步练这个",
-      "shareHowFarYou": "分享你的进步"
+      "shareHowFarYou": "分享你的进步",
+      "compareFighter": "现在把它和你崇拜的拳手放在一起"
     },
     "earningsCard": {
       "couldnTOpenPayout": "无法打开收款设置，请重试。",
@@ -2969,6 +2971,34 @@
       "progress": "第 {{n}} 步，共 {{total}} 步",
       "done": "开始吧",
       "next": "下一步"
+    },
+    "comparePage": {
+      "couldntAdd": "无法添加这个短片，请重试。",
+      "pasteLink": "粘贴 YouTube、TikTok 或 Instagram 链接",
+      "fighterName": "拳手名字，例如洛马琴科",
+      "howToLink": "在应用里点“分享”，再点“复制链接”。短片从原帖播放，所以浏览量仍归发布者。",
+      "adding": "添加中…",
+      "addClip": "添加短片",
+      "thisRound": "这个回合",
+      "couldntDelete": "无法删除这个短片",
+      "goBack": "返回",
+      "title": "并排对比",
+      "subtitle": "你的回合和你崇拜的拳手并排",
+      "theirClip": "他的短片",
+      "watchOn": "在 {{site}} 观看",
+      "instagramNote": "Instagram 不允许应用启动它的播放器，请自己点他的短片播放。",
+      "deleteClip": "删除短片",
+      "you": "你",
+      "pickYours": "选择一个你录制的回合，或手机里的视频。",
+      "roundOn": "第 {{n}} 回合，{{date}}",
+      "fromPhone": "使用手机里的视频",
+      "staysOnPhone": "手机里的视频只留在你的手机上，不会上传。",
+      "pauseBoth": "同时暂停",
+      "playBoth": "同时播放",
+      "restart": "重新开始",
+      "speed": "速度",
+      "flipMe": "镜像我",
+      "flipNote": "左架对右架？把你的视频镜像一下，你们就朝同一个方向了。"
     }
   },
   "feedback": {
