@@ -14,7 +14,7 @@ const STARTERS = ["How do I cancel Pro?", "Why can't I hear my coach?", "How do 
 export function HelpChat({ onClose }) {
   const location = useLocation();
   const [messages, setMessages] = useState([
-    { role: "assistant", text: "Hi! I'm Ask Victory. Ask me anything about the app." },
+    { role: "assistant", text: tx("ui.helpChat.greeting", "Hi! I'm Ask Victory. Ask me anything about the app.") },
   ]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);

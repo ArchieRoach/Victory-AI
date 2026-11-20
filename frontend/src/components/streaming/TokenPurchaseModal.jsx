@@ -41,10 +41,10 @@ function TokenStorePrompt({ onClose }) {
           {/* Quick preview of packages */}
           <div className="grid grid-cols-2 gap-2">
             {[
-              { tokens: 200,  price: 1.99,  label: "Starter" },
-              { tokens: 500,  price: 4.99,  label: "Fighter",  popular: true },
-              { tokens: 1200, price: 9.99,  label: "Champion", save: "17%" },
-              { tokens: 3000, price: 19.99, label: "Legend",   save: "33%" },
+              { tokens: 200,  price: 1.99,  get label() { return tx("ui.tokenPurchaseModal.starter", "Starter"); } },
+              { tokens: 500,  price: 4.99,  get label() { return tx("ui.tokenPurchaseModal.fighter", "Fighter"); },  popular: true },
+              { tokens: 1200, price: 9.99,  get label() { return tx("ui.tokenPurchaseModal.champion", "Champion"); }, save: "17%" },
+              { tokens: 3000, price: 19.99, get label() { return tx("ui.tokenPurchaseModal.legend", "Legend"); },   save: "33%" },
             ].map((p) => (
               <div
                 key={p.label}

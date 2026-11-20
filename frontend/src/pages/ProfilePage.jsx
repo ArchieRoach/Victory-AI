@@ -279,9 +279,9 @@ export default function ProfilePage() {
       <div className="sticky top-0 material-header z-10">
         <div className="flex px-4 overflow-x-auto scrollbar-hide">
           {[
-            { key: "settings", label: "Profile Settings", icon: User },
-            { key: "clips",    label: "Clips",            icon: Clapperboard },
-            { key: "schedule", label: "Schedule",         icon: CalendarDays },
+            { key: "settings", get label() { return tx("ui.profilePage.profileSettings", "Profile Settings"); }, icon: User },
+            { key: "clips",    get label() { return tx("ui.profilePage.clips", "Clips"); },            icon: Clapperboard },
+            { key: "schedule", get label() { return tx("ui.profilePage.schedule", "Schedule"); },         icon: CalendarDays },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -632,9 +632,9 @@ export default function ProfilePage() {
               <p className="victory-label mb-2">{tx("ui.profilePage.proRecord", "Pro Record")}</p>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { field: "pro_wins",   label: "Wins" },
-                  { field: "pro_losses", label: "Losses" },
-                  { field: "pro_draws",  label: "Draws" },
+                  { field: "pro_wins",   get label() { return tx("ui.profilePage.wins", "Wins"); } },
+                  { field: "pro_losses", get label() { return tx("ui.profilePage.losses", "Losses"); } },
+                  { field: "pro_draws",  get label() { return tx("ui.profilePage.draws", "Draws"); } },
                 ].map(({ field, label }) => (
                   <div key={field} className="text-center">
                     <input

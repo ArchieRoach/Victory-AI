@@ -875,7 +875,8 @@
       "askAQuestion": "Ask a question",
       "yourQuestion": "Your question",
       "send": "Send",
-      "iCanTAnswer": "I can't answer right now. Tap \"Send to the team\" and someone will email you back."
+      "iCanTAnswer": "I can't answer right now. Tap \"Send to the team\" and someone will email you back.",
+      "greeting": "Hi! I'm Ask Victory. Ask me anything about the app."
     },
     "highlightShareSheet": {
       "savedPostItFrom": "Saved — post it from your camera roll",
@@ -1650,7 +1651,11 @@
       "popular": "Popular",
       "save": "Save",
       "viewAllPacksBuy": "View all packs & buy",
-      "tokensAreNonRefundable": "Tokens are non-refundable. Secured by Stripe."
+      "tokensAreNonRefundable": "Tokens are non-refundable. Secured by Stripe.",
+      "starter": "Starter",
+      "fighter": "Fighter",
+      "champion": "Champion",
+      "legend": "Legend"
     },
     "topKnockouts": {
       "topKnockouts": "Top Knockouts",
@@ -2140,7 +2145,9 @@
       "pingMySquadWhen": "Ping my squad when I go live",
       "startASquadSo": "Start a squad so your friends get pinged when you go live, and your first highlight comes easy →",
       "goLive": "Go Live",
-      "yourCameraAndMicrophone": "Your camera and microphone will be used to broadcast live."
+      "yourCameraAndMicrophone": "Your camera and microphone will be used to broadcast live.",
+      "everyone": "Everyone",
+      "squadOnly2": "Squad only"
     },
     "gymDetailPage": {
       "goBack": "Go back",
@@ -2485,7 +2492,13 @@
       "myBoxingRecordFights": "My boxing: record, fights & camp",
       "streamerDashboard": "Streamer Dashboard",
       "emoteStudio": "Emote Studio",
-      "blockedAccounts": "Blocked Accounts"
+      "blockedAccounts": "Blocked Accounts",
+      "profileSettings": "Profile Settings",
+      "clips": "Clips",
+      "schedule": "Schedule",
+      "wins": "Wins",
+      "losses": "Losses",
+      "draws": "Draws"
     },
     "publicProfilePage": {
       "couldnTUnfollowTry": "Couldn't unfollow. Try again.",
@@ -2856,7 +2869,8 @@
       "pushThePaceMake": "Push the pace — make every second count.",
       "returnYourHandsTo": "Return your hands to guard after every combination.",
       "stayBalancedThroughYour": "Stay balanced through your combinations.",
-      "myCircuitsAreOverheating": "My circuits are overheating just watching you. Push harder."
+      "myCircuitsAreOverheating": "My circuits are overheating just watching you. Push harder.",
+      "callsLikeWords": "Calls like \"{{example}}\". Switch on if your coach taught you numbers."
     },
     "trendingClipsPage": {
       "viral": "VIRAL",

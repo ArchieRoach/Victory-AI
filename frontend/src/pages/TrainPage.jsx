@@ -793,7 +793,7 @@ export default function TrainPage() {
                 {callsOn && (
                   <ToggleRow on={numbersOn} iconOn={Hash} title={tx("ui.trainPage.callNumbers", "Call numbers")}
                     onToggle={(next) => { setNumbersOn(next); setCallsNumbers(next); }}
-                    description={numbersOn ? tx("ui.trainPage.callsLike12", "Calls like \"1, 2, 3\".") : `Calls like "${comboSpeech("1-2-3", stance, false)}". Switch on if your coach taught you numbers.`} />
+                    description={numbersOn ? tx("ui.trainPage.callsLike12", "Calls like \"1, 2, 3\".") : tx("ui.trainPage.callsLikeWords", "Calls like \"{{example}}\". Switch on if your coach taught you numbers.", { example: comboSpeech("1-2-3", stance, false) })} />
                 )}
               </div>
               </CoachMark>

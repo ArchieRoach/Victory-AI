@@ -870,7 +870,9 @@
       "squadOnlyStreamsAre": "スクワッド限定配信はスクワッドのメンバーだけが見られます。",
       "pingMySquadWhen": "ライブ開始時にスクワッドに通知",
       "startASquadSo": "スクワッドを作れば、ライブ開始時に友達へ通知が届き、最初のハイライトも簡単に →",
-      "yourCameraAndMicrophone": "ライブ配信にカメラとマイクを使用します。"
+      "yourCameraAndMicrophone": "ライブ配信にカメラとマイクを使用します。",
+      "everyone": "全員",
+      "squadOnly2": "スクワッド限定"
     },
     "highlightsPage": {
       "goLive": "ライブ配信",
@@ -1326,7 +1328,11 @@
       "useTokensToTip": "トークンで配信者へのチップ、エモート購入、パンチアラート送信、サブスクのギフトができます。",
       "popular": "人気",
       "viewAllPacksBuy": "すべてのパックを見て購入",
-      "tokensAreNonRefundable": "トークンは返金できません。Stripeで安全に決済。"
+      "tokensAreNonRefundable": "トークンは返金できません。Stripeで安全に決済。",
+      "starter": "スターター",
+      "fighter": "ファイター",
+      "champion": "チャンピオン",
+      "legend": "レジェンド"
     },
     "comboBuilderPage": {
       "save": "保存",
@@ -1706,7 +1712,8 @@
       "askAQuestion": "質問する",
       "yourQuestion": "あなたの質問",
       "send": "送信",
-      "iCanTAnswer": "今は回答できません。「チームに送る」をタップすると、メールで返信します。"
+      "iCanTAnswer": "今は回答できません。「チームに送る」をタップすると、メールで返信します。",
+      "greeting": "こんにちは！Victoryに聞くです。アプリのことなら何でも聞いてください。"
     },
     "ordersPage": {
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
@@ -2080,7 +2087,13 @@
       "pushNotificationsAreBlocked": "ブラウザの設定でプッシュ通知がブロックされています。",
       "buyTokens": "トークンを買う",
       "myBoxingRecordFights": "マイボクシング：戦績、試合、キャンプ",
-      "streamerDashboard": "配信者ダッシュボード"
+      "streamerDashboard": "配信者ダッシュボード",
+      "profileSettings": "プロフィール設定",
+      "clips": "クリップ",
+      "schedule": "スケジュール",
+      "wins": "勝ち",
+      "losses": "負け",
+      "draws": "引き分け"
     },
     "rateRoundPage": {
       "goBack": "戻る",
@@ -2515,7 +2528,8 @@
       "pushThePaceMake": "ペースを上げろ — 1秒も無駄にするな。",
       "returnYourHandsTo": "コンビネーションの後は必ずガードに戻せ。",
       "stayBalancedThroughYour": "コンビネーション中もバランスを保て。",
-      "myCircuitsAreOverheating": "見てるだけで俺の回路がオーバーヒートしそうだ。もっと攻めろ。"
+      "myCircuitsAreOverheating": "見てるだけで俺の回路がオーバーヒートしそうだ。もっと攻めろ。",
+      "callsLikeWords": "「{{example}}」のようなコール。コーチに数字で教わったならオンに。"
     },
     "merchSheet": {
       "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",
@@ -2941,17 +2955,93 @@
       "step1": "あなたのレベルに合ったラウンド。{{partner}}が毎回ガイドし、あなたの{{focus}}をチェックします。",
       "everyRound": "毎ラウンド",
       "step2": "動画をオンにするとAIがボクシングの16項目を採点。何に取り組むべきかがはっきりわかります。",
-      "weekByWeek": "週ごとに"
+      "weekByWeek": "週ごとに",
+      "step3": "当てるほどコンボは難しくなり、宿題のドリルはあなたの{{focus}}に合わせて出ます。"
     },
     "tips": {
-      "technique": "テクニック"
+      "technique": "テクニック",
+      "yourPartner": "パートナー",
+      "homeOneRoundName": "{{name}}、ここから始めよう。{{partner}}と3分間1ラウンド。それが最初のセッションのすべてです。",
+      "homeOneRound": "ここから始めよう。{{partner}}と3分間1ラウンド。それが最初のセッションのすべてです。",
+      "homePartner": "これが{{partner}}です。トレーニングすれば絶好調を保ちます。数日休むとベンチ入り。1セッションで復帰します。",
+      "homeWeekPlan": "新機能：今週のセッションを2、3、4回から選べます。{{partner}}はあなたの選択に合わせます。",
+      "homeDriveCards": "これらのカードは動きます。よくタップするものが上に来ます。",
+      "homeComingUp": "次の予定を近い順に。本当の日付だけで、偽のカウントダウンはありません。",
+      "trainVideo": "動画をオンにすると、AIが実際に見たものからあなたの{{focus}}を採点します。",
+      "trainComboCalls": "{{partner}}がコンボを声に出してコールします：「ジャブ、クロス、フック」。当てるほど難しくなります。数字がいい？「数字でコール」をオンに。",
+      "trainRoundTypes": "新機能：フリースタイルはスコアなし。ただ動くだけ。今週の目標にはカウントされます。",
+      "trainVoice": "タップでコーチの音声フィードバックをミュート／解除。",
+      "trainSkip": "次のラウンドか休憩にスキップします。",
+      "trainEnd": "今すぐセッションを終了し、完了したラウンドを保存します。",
+      "resultsFirstName": "{{name}}、この数字はあなた自身とだけ比べます。次のセッションで超えてみよう。",
+      "resultsFirst": "この数字はあなた自身とだけ比べます。次のセッションで超えてみよう。"
     },
     "why": {
       "spot": {
         "defense_weak": "ディフェンス",
         "no_power": "パワー",
-        "footwork": "フットワーク"
+        "footwork": "フットワーク",
+        "no_feedback": "本当のフィードバック",
+        "bad_habits": "悪い癖"
+      },
+      "goal": "プランはこれを中心に組まれます。いつでも変更できます。",
+      "frustrationGoal": "いいですね。最初のラウンドはここを集中的に。「{{goal}}」への道です。",
+      "frustration": "最初のラウンドは、ここで選んだものから始まります。",
+      "levelSpot": "{{spot}}はいい選択です。レベルによって新しいドリルが届くペースが決まります。",
+      "level": "レベルによって新しいドリルが届くペースが決まります。",
+      "stanceBeginner": "「わからない」でも大丈夫。AIにどちらがリードハンドかを伝えます。",
+      "stance": "AIにどちらがリードハンドかを伝え、ジャブとクロスを正しく読み取れるようにします。",
+      "fighter": "そのボクサーの得意技を出すと、パートナーが教えてくれます。",
+      "style": "これがパートナーの話し方です。いつでも変更できます。",
+      "focusSpot": "最大2つ選んでください。{{spot}}から始めるのがおすすめです。",
+      "focus": "最大2つ選んでください。パートナーがまずここをチェックします。"
+    },
+    "trophy": {
+      "gloves": {
+        "name": "ゴールデングローブ",
+        "how": "1シーズンでAIが見たトレーニングを20時間。"
+      },
+      "title": {
+        "name": "タイトル",
+        "how": "トレーニングでレベルアップ。決まったレベルで新しいタイトルが解除されます。"
+      },
+      "founder": {
+        "name": "創設ファイター",
+        "how": "1月18日のシーズン2開始前に参加。"
+      },
+      "crown": {
+        "name": "クラウン",
+        "how": "週のトップに：総合の週間1位、またはスクワッド内のスクワッドクラウン。"
+      },
+      "belt": {
+        "name": "ベルト",
+        "how": "初セッション、10セッション、7日連続などの節目。"
+      },
+      "recruiter": {
+        "name": "リクルーターバッジ",
+        "how": "あなたの招待で友達が参加：1人、10人、100人。"
+      },
+      "treasure": {
+        "name": "トレジャー",
+        "how": "他のファイターから贈られる：リスペクト、ハート、シャープ。"
+      },
+      "egg": {
+        "name": "隠しエッグ",
+        "how": "トレーニング中に見つかる秘密の瞬間。"
+      },
+      "hours": {
+        "name": "証明時間",
+        "how": "AIが見た1時間1時間が10,000時間への道にカウントされます。"
       }
+    },
+    "goals": {
+      "Get_fitter": "体力をつけたい",
+      "Get_better_overall": "全体的に上達したい",
+      "Improve_my_defence": "ディフェンスを良くしたい",
+      "Sharpen_my_attack": "攻撃を磨きたい",
+      "Get_ready_to_spar": "スパーの準備をしたい",
+      "Compete_in_fights": "試合に出たい",
+      "Just_for_fun": "楽しみたいだけ"
     }
   }
 }

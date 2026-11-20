@@ -870,7 +870,9 @@
       "squadOnlyStreamsAre": "Transmisje tylko dla squadu widzi tylko twój squad.",
       "pingMySquadWhen": "Powiadom mój squad, gdy zacznę nadawać",
       "startASquadSo": "Załóż squad, żeby znajomi dostawali powiadomienie, gdy nadajesz — a pierwszy highlight przyjdzie łatwo →",
-      "yourCameraAndMicrophone": "Kamera i mikrofon będą używane do transmisji na żywo."
+      "yourCameraAndMicrophone": "Kamera i mikrofon będą używane do transmisji na żywo.",
+      "everyone": "Wszyscy",
+      "squadOnly2": "Tylko squad"
     },
     "highlightsPage": {
       "goLive": "Nadawaj na żywo",
@@ -1326,7 +1328,11 @@
       "useTokensToTip": "Używaj tokenów do napiwków dla streamerów, kupowania emotek, wysyłania alertów ciosów i podarowania subskrypcji.",
       "popular": "Popularne",
       "viewAllPacksBuy": "Zobacz wszystkie pakiety i kup",
-      "tokensAreNonRefundable": "Tokeny nie podlegają zwrotowi. Zabezpieczone przez Stripe."
+      "tokensAreNonRefundable": "Tokeny nie podlegają zwrotowi. Zabezpieczone przez Stripe.",
+      "starter": "Starter",
+      "fighter": "Zawodnik",
+      "champion": "Mistrz",
+      "legend": "Legenda"
     },
     "comboBuilderPage": {
       "save": "Zapisz",
@@ -1706,7 +1712,8 @@
       "askAQuestion": "Zadaj pytanie",
       "yourQuestion": "Twoje pytanie",
       "send": "Wyślij",
-      "iCanTAnswer": "Nie mogę teraz odpowiedzieć. Dotknij \"Wyślij do zespołu\", a ktoś odpisze ci mailem."
+      "iCanTAnswer": "Nie mogę teraz odpowiedzieć. Dotknij \"Wyślij do zespołu\", a ktoś odpisze ci mailem.",
+      "greeting": "Cześć! Jestem Zapytaj Victory. Pytaj o cokolwiek w aplikacji."
     },
     "ordersPage": {
       "couldnTSendThat": "Nie udało się wysłać. Spróbuj ponownie.",
@@ -2080,7 +2087,13 @@
       "pushNotificationsAreBlocked": "Powiadomienia push są zablokowane w ustawieniach przeglądarki.",
       "buyTokens": "Kup tokeny",
       "myBoxingRecordFights": "Mój boks: rekord, walki i obóz",
-      "streamerDashboard": "Panel streamera"
+      "streamerDashboard": "Panel streamera",
+      "profileSettings": "Ustawienia profilu",
+      "clips": "Klipy",
+      "schedule": "Harmonogram",
+      "wins": "Wygrane",
+      "losses": "Porażki",
+      "draws": "Remisy"
     },
     "rateRoundPage": {
       "goBack": "Wróć",
@@ -2515,7 +2528,8 @@
       "pushThePaceMake": "Podkręć tempo — niech każda sekunda się liczy.",
       "returnYourHandsTo": "Wracaj rękami do gardy po każdej kombinacji.",
       "stayBalancedThroughYour": "Zachowaj równowagę w kombinacjach.",
-      "myCircuitsAreOverheating": "Moje obwody się przegrzewają od samego patrzenia. Mocniej."
+      "myCircuitsAreOverheating": "Moje obwody się przegrzewają od samego patrzenia. Mocniej.",
+      "callsLikeWords": "Komendy w stylu „{{example}}”. Włącz, jeśli trener uczył cię numerów."
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link skopiowany: wyślij go rodzicowi",
@@ -2941,17 +2955,93 @@
       "step1": "Rundy na twoim poziomie. {{partner}} prowadzi cię przez każdą i obserwuje {{focus}}.",
       "everyRound": "Każda runda",
       "step2": "Włącz wideo, a AI oceni 16 elementów twojego boksu, żebyś wiedział dokładnie, nad czym pracować.",
-      "weekByWeek": "Tydzień po tygodniu"
+      "weekByWeek": "Tydzień po tygodniu",
+      "step3": "Kombinacje stają się trudniejsze, gdy je trafiasz, a ćwiczenia domowe idą za tym, co wybrałeś: {{focus}}."
     },
     "tips": {
-      "technique": "technikę"
+      "technique": "technikę",
+      "yourPartner": "twój partner",
+      "homeOneRoundName": "{{name}}, zacznij tutaj. Jedna 3-minutowa runda z {{partner}}. To cała twoja pierwsza sesja.",
+      "homeOneRound": "Zacznij tutaj. Jedna 3-minutowa runda z {{partner}}. To cała twoja pierwsza sesja.",
+      "homePartner": "To jest {{partner}}. Trenuj, a zostanie w formie. Weź kilka dni wolnego, a siądzie na ławce. Jedna sesja go przywróci.",
+      "homeWeekPlan": "Nowość: wybierz 2, 3 lub 4 sesje w tym tygodniu. {{partner}} dotrzyma kroku.",
+      "homeDriveCards": "Te karty się przesuwają. Te, których dotykasz najczęściej, idą na górę.",
+      "homeComingUp": "Co nadchodzi, najbliższe najpierw. Tylko prawdziwe daty, nigdy fałszywe odliczanie.",
+      "trainVideo": "Włącz wideo, a AI oceni {{focus}} na podstawie tego, co naprawdę widzi.",
+      "trainComboCalls": "{{partner}} będzie wywoływać kombinacje na głos: „Jab, prosty, sierp”. Trafiaj, a staną się trudniejsze. Wolisz numery? Włącz Wywołuj numery.",
+      "trainRoundTypes": "Nowość: Freestyle nie ma oceny. Po prostu się ruszaj. Nadal liczy się do tygodnia.",
+      "trainVoice": "Dotknij, by wyciszyć lub włączyć głos trenera.",
+      "trainSkip": "Przechodzi do następnej rundy lub przerwy.",
+      "trainEnd": "Kończy sesję teraz i zapisuje ukończone rundy.",
+      "resultsFirstName": "{{name}}, te liczby porównujemy tylko z tobą. Na następnej sesji spróbujesz je pobić.",
+      "resultsFirst": "Te liczby porównujemy tylko z tobą. Na następnej sesji spróbujesz je pobić."
     },
     "why": {
       "spot": {
         "defense_weak": "obronę",
         "no_power": "siłę",
-        "footwork": "pracę nóg"
+        "footwork": "pracę nóg",
+        "no_feedback": "prawdziwe uwagi",
+        "bad_habits": "złe nawyki"
+      },
+      "goal": "Twój plan jest zbudowany wokół tego. Możesz to zmienić w każdej chwili.",
+      "frustrationGoal": "Dobrze. Twoje pierwsze rundy celują prosto w to, w drodze do „{{goal}}”.",
+      "frustration": "Pierwsze rundy zaczną się od tego, co tu wybierzesz.",
+      "levelSpot": "Dobry wybór: {{spot}}. Twój poziom decyduje, jak szybko przychodzą nowe ćwiczenia.",
+      "level": "Twój poziom decyduje, jak szybko przychodzą nowe ćwiczenia.",
+      "stanceBeginner": "„Nie wiem” to też dobra odpowiedź. Mówi AI, która ręka jest przednia.",
+      "stance": "Mówi AI, która ręka jest przednia, żeby dobrze odczytywała twój jab i prosty.",
+      "fighter": "Partner zwróci uwagę, gdy zrobisz coś, z czego ten bokser słynął.",
+      "style": "Tak partner będzie do ciebie mówić. Możesz to zmienić w każdej chwili.",
+      "focusSpot": "Wybierz do 2. {{spot}} to dobry początek.",
+      "focus": "Wybierz do 2. Partner obserwuje to w pierwszej kolejności."
+    },
+    "trophy": {
+      "gloves": {
+        "name": "Złote Rękawice",
+        "how": "Wytrenuj w sezonie 20 godzin, które widziała AI."
+      },
+      "title": {
+        "name": "Tytuły",
+        "how": "Trenuj, by awansować. Nowe tytuły odblokowują się na określonych poziomach."
+      },
+      "founder": {
+        "name": "Zawodnik Założyciel",
+        "how": "Dołącz przed startem Sezonu 2, 18 stycznia."
+      },
+      "crown": {
+        "name": "Korony",
+        "how": "Wygraj tydzień: Nr 1 tygodnia w klasyfikacji ogólnej lub Korona Squadu w twoim squadzie."
+      },
+      "belt": {
+        "name": "Pasy",
+        "how": "Kamienie milowe jak pierwsza sesja, 10 sesji czy 7-dniowa seria."
+      },
+      "recruiter": {
+        "name": "Odznaki rekrutera",
+        "how": "Znajomi dołączają z twoich zaproszeń: 1, 10 lub 100."
+      },
+      "treasure": {
+        "name": "Skarby",
+        "how": "Dawane przez innych zawodników: Szacunek, Serce lub Ostrość."
+      },
+      "egg": {
+        "name": "Ukryte jajka",
+        "how": "Sekretne momenty, które znajdujesz, trenując."
+      },
+      "hours": {
+        "name": "Potwierdzone godziny",
+        "how": "Każda godzina, którą widzi AI, liczy się na drodze do 10 000."
       }
+    },
+    "goals": {
+      "Get_fitter": "Poprawić formę",
+      "Get_better_overall": "Być lepszym ogólnie",
+      "Improve_my_defence": "Poprawić obronę",
+      "Sharpen_my_attack": "Wyostrzyć atak",
+      "Get_ready_to_spar": "Przygotować się do sparingów",
+      "Compete_in_fights": "Startować w walkach",
+      "Just_for_fun": "Dla zabawy"
     }
   }
 }

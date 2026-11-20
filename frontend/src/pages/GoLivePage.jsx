@@ -389,8 +389,8 @@ export default function GoLivePage() {
             <div className="w-full space-y-3">
               <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={tx("ui.goLivePage.whoCanWatch", "Who can watch")}>
                 {[
-                  { value: "public", label: "Everyone", icon: Globe },
-                  { value: "squad",  label: "Squad only", icon: Lock },
+                  { value: "public", get label() { return tx("ui.goLivePage.everyone", "Everyone"); }, icon: Globe },
+                  { value: "squad",  get label() { return tx("ui.goLivePage.squadOnly2", "Squad only"); }, icon: Lock },
                 ].map(({ value, label, icon: Icon }) => {
                   const needsSquad = value === "squad" && squadCount === 0;
                   const active = audience === value;

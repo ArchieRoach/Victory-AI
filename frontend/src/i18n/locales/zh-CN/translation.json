@@ -870,7 +870,9 @@
       "squadOnlyStreamsAre": "仅限小队的直播只对你的小队开放。",
       "pingMySquadWhen": "我开播时通知我的小队",
       "startASquadSo": "创建小队，你开播时朋友们会收到通知，第一个精彩瞬间来得更容易 →",
-      "yourCameraAndMicrophone": "将使用你的摄像头和麦克风进行直播。"
+      "yourCameraAndMicrophone": "将使用你的摄像头和麦克风进行直播。",
+      "everyone": "所有人",
+      "squadOnly2": "仅限小队"
     },
     "highlightsPage": {
       "goLive": "开始直播",
@@ -1326,7 +1328,11 @@
       "useTokensToTip": "用代币打赏主播、购买表情、发送出拳提醒和赠送订阅。",
       "popular": "热门",
       "viewAllPacksBuy": "查看全部套餐并购买",
-      "tokensAreNonRefundable": "代币不可退款。由 Stripe 保障安全。"
+      "tokensAreNonRefundable": "代币不可退款。由 Stripe 保障安全。",
+      "starter": "入门",
+      "fighter": "拳手",
+      "champion": "冠军",
+      "legend": "传奇"
     },
     "comboBuilderPage": {
       "save": "保存",
@@ -1706,7 +1712,8 @@
       "askAQuestion": "提个问题",
       "yourQuestion": "你的问题",
       "send": "发送",
-      "iCanTAnswer": "我现在无法回答。点“发送给团队”，会有人通过邮件回复你。"
+      "iCanTAnswer": "我现在无法回答。点“发送给团队”，会有人通过邮件回复你。",
+      "greeting": "嗨！我是“问问 Victory”。关于应用的任何问题都可以问我。"
     },
     "ordersPage": {
       "couldnTSendThat": "无法发送，请重试。",
@@ -2080,7 +2087,13 @@
       "pushNotificationsAreBlocked": "推送通知在浏览器设置中被阻止。",
       "buyTokens": "购买代币",
       "myBoxingRecordFights": "我的拳击：战绩、比赛和训练营",
-      "streamerDashboard": "主播面板"
+      "streamerDashboard": "主播面板",
+      "profileSettings": "个人资料设置",
+      "clips": "短片",
+      "schedule": "日程",
+      "wins": "胜",
+      "losses": "负",
+      "draws": "平"
     },
     "rateRoundPage": {
       "goBack": "返回",
@@ -2515,7 +2528,8 @@
       "pushThePaceMake": "加快节奏 — 让每一秒都有价值。",
       "returnYourHandsTo": "每套组合拳后双手回到防守位置。",
       "stayBalancedThroughYour": "打组合拳时保持平衡。",
-      "myCircuitsAreOverheating": "光是看你，我的电路都要过热了。再加把劲。"
+      "myCircuitsAreOverheating": "光是看你，我的电路都要过热了。再加把劲。",
+      "callsLikeWords": "像“{{example}}”这样喊。如果教练教过你数字口令就打开。"
     },
     "merchSheet": {
       "linkCopiedSendIt": "链接已复制：发给家长",
@@ -2941,17 +2955,93 @@
       "step1": "适合你水平的回合。{{partner}} 会带你练每一个回合，并留意你的{{focus}}。",
       "everyRound": "每个回合",
       "step2": "打开视频，AI 会为你拳击的 16 个方面评分，让你清楚知道该练什么。",
-      "weekByWeek": "一周又一周"
+      "weekByWeek": "一周又一周",
+      "step3": "你打中后组合拳会越来越难，课后训练也会围绕你的{{focus}}。"
     },
     "tips": {
-      "technique": "技术"
+      "technique": "技术",
+      "yourPartner": "你的搭档",
+      "homeOneRoundName": "{{name}}，从这里开始。和 {{partner}} 打一个 3 分钟回合。这就是你的第一次训练。",
+      "homeOneRound": "从这里开始。和 {{partner}} 打一个 3 分钟回合。这就是你的第一次训练。",
+      "homePartner": "这是 {{partner}}。坚持训练，他就保持锋利。休息几天，他就会坐上板凳。一次训练就能把他带回来。",
+      "homeWeekPlan": "新功能：本周选择 2、3 或 4 次训练。{{partner}} 会跟上你的选择。",
+      "homeDriveCards": "这些卡片会移动。你点得最多的会升到最上面。",
+      "homeComingUp": "接下来的安排，最近的在前。只有真实日期，绝不搞虚假倒计时。",
+      "trainVideo": "打开视频，AI 会根据实际看到的内容为你的{{focus}}评分。",
+      "trainComboCalls": "{{partner}} 会大声喊出组合拳：“刺拳、直拳、勾拳”。打中后会变难。更喜欢数字？打开“用数字喊招”。",
+      "trainRoundTypes": "新功能：自由练不评分。尽情动起来。依然计入你的本周目标。",
+      "trainVoice": "点击静音或取消静音教练的语音反馈。",
+      "trainSkip": "跳到下一个回合或休息。",
+      "trainEnd": "立即结束训练并保存已完成的回合。",
+      "resultsFirstName": "{{name}}，这些数字只和你自己比较。下次训练，你会尝试打破它们。",
+      "resultsFirst": "这些数字只和你自己比较。下次训练，你会尝试打破它们。"
     },
     "why": {
       "spot": {
         "defense_weak": "防守",
         "no_power": "力量",
-        "footwork": "步法"
+        "footwork": "步法",
+        "no_feedback": "真正的反馈",
+        "bad_habits": "坏习惯"
+      },
+      "goal": "你的计划会围绕这一点制定。随时可以更改。",
+      "frustrationGoal": "很好。你的前几个回合会直接针对这一点，朝着“{{goal}}”前进。",
+      "frustration": "你的前几个回合会从你在这里选的内容开始。",
+      "levelSpot": "{{spot}}选得好。你的水平决定新训练出现的速度。",
+      "level": "你的水平决定新训练出现的速度。",
+      "stanceBeginner": "“不确定”也完全可以。这能告诉 AI 你的前手是哪只。",
+      "stance": "这能告诉 AI 你的前手是哪只，让它正确识别你的刺拳和直拳。",
+      "fighter": "当你做出那位拳手的招牌动作时，你的搭档会指出来。",
+      "style": "这是你的搭档和你说话的方式。随时可以更改。",
+      "focusSpot": "最多选 2 个。{{spot}}是个好起点。",
+      "focus": "最多选 2 个。你的搭档会先关注这些。"
+    },
+    "trophy": {
+      "gloves": {
+        "name": "金手套",
+        "how": "一个赛季内完成 20 小时 AI 看过的训练。"
+      },
+      "title": {
+        "name": "头衔",
+        "how": "训练升级。到达特定等级会解锁新头衔。"
+      },
+      "founder": {
+        "name": "创始拳手",
+        "how": "在 1 月 18 日第 2 赛季开始前加入。"
+      },
+      "crown": {
+        "name": "王冠",
+        "how": "成为本周第一：总榜周冠军，或你小队里的小队王冠。"
+      },
+      "belt": {
+        "name": "腰带",
+        "how": "里程碑，例如第一次训练、10 次训练或连续 7 天。"
+      },
+      "recruiter": {
+        "name": "招募徽章",
+        "how": "通过你的邀请加入的朋友：1、10 或 100 位。"
+      },
+      "treasure": {
+        "name": "宝物",
+        "how": "由其他拳手赠送：尊重、热血或犀利。"
+      },
+      "egg": {
+        "name": "隐藏彩蛋",
+        "how": "训练中发现的秘密时刻。"
+      },
+      "hours": {
+        "name": "验证小时",
+        "how": "AI 看到的每一小时都计入通往 10,000 小时的路。"
       }
+    },
+    "goals": {
+      "Get_fitter": "变得更健康",
+      "Get_better_overall": "全面提升",
+      "Improve_my_defence": "提高我的防守",
+      "Sharpen_my_attack": "磨利我的进攻",
+      "Get_ready_to_spar": "为实战对练做准备",
+      "Compete_in_fights": "参加比赛",
+      "Just_for_fun": "只是为了好玩"
     }
   }
 }

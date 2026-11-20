@@ -146,6 +146,8 @@ function wrapFile(file) {
     if (top.isVariableDeclarator() || top.isReturnStatement() || top.isJSXExpressionContainer()) return true;
     if (top.isArrowFunctionExpression() && q.key === "body") return true;
     if (top.isConditionalExpression() && q.key !== "test") return displayList(top);
+    // An inline list shown straight away: [{ label: "…" }, …].map(…)
+    if (top.isMemberExpression() && q.key === "object" && ["map", "filter", "find", "slice"].includes(top.node.property.name)) return true;
     return false;
   }
 
