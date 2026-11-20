@@ -3,6 +3,7 @@ import { ChevronRight, Swords, Shield, Footprints } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { usePalette } from "@/hooks/useColorScheme";
 import { tx } from "@/i18n/tx";
+import { MascotIntro } from "@/components/MascotIntro";
 
 // Same 3-ring category pattern SessionResultsPage.jsx actually shows after a real
 // session — a real user complained the old 16-spoke radar chart here "doesn't really
@@ -23,16 +24,9 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6" data-testid="welcome-page">
       <div className="w-full max-w-md text-center animate-fade-in">
-        {/* Mascot, wearing the actual belt design baked into the render itself (built
-            with Nano Banana from the real victory-logo.png as a reference) — one image,
-            not a layered composite. */}
-        <div className="mb-8">
-          <img
-            src="/mascot-render.png"
-            alt={tx("ui.welcomePage.victoryAi", "Victory AI")}
-            className="h-60 w-auto mx-auto object-contain"
-            data-testid="app-logo"
-          />
+        {/* Mascot (the real render with the belt), animated: lib/mascotMotion.js */}
+        <div className="mb-8" data-testid="app-logo">
+          <MascotIntro className="h-60" />
         </div>
 
         {/* Headlines */}

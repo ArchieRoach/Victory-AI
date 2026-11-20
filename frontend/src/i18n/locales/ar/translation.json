@@ -3008,6 +3008,9 @@
       "current": "سلسلة {{count}} أيام حتى الآن. يوم راحة واحد لا يكسرها أبدًا.",
       "trainedToday": "تدرّبت اليوم ✓",
       "trainToday": "تدرّب اليوم"
+    },
+    "mascotIntro": {
+      "tapHim": "Victory AI. اضغط عليه ليضرب لكمتين متتاليتين"
     }
   },
   "feedback": {

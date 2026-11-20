@@ -3024,6 +3024,9 @@
       "current": "{{count}}-day streak so far. One rest day never breaks it.",
       "trainedToday": "Trained today ✓",
       "trainToday": "Train today"
+    },
+    "mascotIntro": {
+      "tapHim": "Victory AI. Tap him for a one-two"
     }
   },
   "lib": {

@@ -3008,6 +3008,9 @@
       "current": "Na razie {{count}} dni z rzędu. Jeden dzień odpoczynku nigdy jej nie przerywa.",
       "trainedToday": "Dziś trenowałeś ✓",
       "trainToday": "Trenuj dziś"
+    },
+    "mascotIntro": {
+      "tapHim": "Victory AI. Stuknij go, a zada raz-dwa"
     }
   },
   "feedback": {
