@@ -1048,7 +1048,12 @@
     },
     "tokenPurchaseModal": {
       "save": "Сохранить",
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "topUpTokens": "Пополнить токены",
+      "useTokensToTip": "Токены нужны для чаевых стримерам, покупки эмодзи, отправки алертов и подарочных подписок.",
+      "popular": "Популярное",
+      "viewAllPacksBuy": "Все наборы и покупка",
+      "tokensAreNonRefundable": "Токены не возвращаются. Защищено Stripe."
     },
     "comboBuilderPage": {
       "save": "Сохранить"
@@ -1059,7 +1064,10 @@
       "goBack": "Назад",
       "stayInTheFight": "Оставайся в бою",
       "fighter": "Боец",
-      "openingCheckout": "Открываем оплату…"
+      "openingCheckout": "Открываем оплату…",
+      "couldNotStartCheckout": "Не удалось начать оплату — попробуй ещё раз.",
+      "starter": "Старт",
+      "champion": "Чемпион"
     },
     "bookNextRound": {
       "pickATimeBetween": "Выбери время с 5:00 до 22:00",
@@ -1144,7 +1152,32 @@
       "notEnoughTokens": "Недостаточно токенов.",
       "balance": "Баланс:",
       "notEnoughTokensTop": "Недостаточно токенов — пополни баланс.",
-      "tipFailedPleaseTry": "Чаевые не прошли — попробуй ещё раз."
+      "tipFailedPleaseTry": "Чаевые не прошли — попробуй ещё раз.",
+      "sendTokens": "Отправить токены",
+      "quickFire": "скорострел ·",
+      "tkn": "ток.",
+      "tokenAmountMin25": "Количество токенов (мин. 25)",
+      "enterAmount": "Введи сумму...",
+      "fires": "Запускает",
+      "overlays200msApart": "оверлеев · с интервалом 200 мс",
+      "addAMessageOptional": "Добавь сообщение (необязательно)...",
+      "tokens": "Токены",
+      "topUpYourBalance": "Пополни баланс",
+      "reactions": "РЕАКЦИИ",
+      "ooh": "Ого",
+      "heart": "Сердце",
+      "glassJaw": "Стеклянная челюсть",
+      "theyReGassed": "Он выдохся",
+      "theyGotHeart": "У него есть сердце",
+      "commands": "КОМАНДЫ",
+      "popTheJab": "Бей джеб",
+      "handsUp": "Руки выше",
+      "workTheBody": "Работай по корпусу",
+      "throwTheTowel": "Выбрось полотенце",
+      "status": "СТАТУС",
+      "champ": "Чемп",
+      "goatStatus": "Статус легенды",
+      "combos": "КОМБО"
     },
     "gymsPage": {
       "close": "Закрыть"
@@ -1157,7 +1190,8 @@
       "tryAgain": "Попробовать снова",
       "done": "Готово",
       "couldnTSaveThat": "Не удалось сохранить",
-      "bagPadsCircuitsHiit": "Мешок, лапы, круговые, HIIT. Снимай на том же экране."
+      "bagPadsCircuitsHiit": "Мешок, лапы, круговые, HIIT. Снимай на том же экране.",
+      "start": "Запустить"
     },
     "fightFilm": {
       "fightFilm": "Фильм боя",
@@ -1261,7 +1295,41 @@
     "billingPage": {
       "about": ", примерно на",
       "moreAYear": "больше в год.",
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "youReStayingFounder": "Ты остаёшься. Цена основателя сохранена.",
+      "couldnTReachBilling": "Нет связи с оплатой — попробуй ещё раз",
+      "subscription": "Подписка",
+      "youDonTHave": "У тебя нет подписки.",
+      "seePlans": "Смотреть планы",
+      "lifetime": "Навсегда",
+      "annual": "Годовая",
+      "monthly": "Месячная",
+      "plan": "план",
+      "freeTrial": "Бесплатный пробный период",
+      "boughtOnceThroughThe": "Куплено один раз в App Store: твоё навсегда",
+      "billedThroughTheApp": "Оплата через App Store",
+      "founderPriceYoursFor": "Цена основателя — твоя навсегда, пока активна подписка",
+      "endsOn": "Заканчивается {{endsOn}}",
+      "yourSubscriptionEndsOn": "Твоя подписка заканчивается",
+      "theEndOfThis": "в конце этого периода",
+      "yourFounderPriceOf": "Твоя цена основателя",
+      "endsWithItAnd": "пропадёт вместе с ней и не вернётся.",
+      "staySubscribedAndKeep": "Сохрани подписку и цену {{now}}",
+      "staySubscribed": "Сохранить подписку",
+      "manageSubscription": "Управление подпиской",
+      "toChangeOrCancel": "Чтобы изменить или отменить, открой Настройки iPhone, нажми на своё имя, затем «Подписки».",
+      "toChangeOrCancel2": "Чтобы изменить или отменить подписку, войди на victory-ai в браузере.",
+      "cancelSubscription": "Отменить подписку",
+      "youLlLoseYour": "Ты потеряешь цену основателя",
+      "youPay": "Ты платишь",
+      "forLifeIfYou": "навсегда. Если отменишь — её не вернуть. Коды основателя одноразовые, так что вернуться будет стоить",
+      "ifYouCancelYou": "Если отменишь, всё сохранится до",
+      "ifYouCancelYou2": "Если отменишь, доступ сохранится до",
+      "thenYourPlanStops": ", потом план остановится. История тренировок останется.",
+      "keepMyFounderPrice": "Сохранить цену основателя",
+      "keepMySubscription": "Сохранить подписку",
+      "cancelling": "Отменяем…",
+      "cancelAnyway": "Всё равно отменить"
     },
     "helpChat": {
       "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
@@ -1302,7 +1370,9 @@
     "tokenSuccessPage": {
       "tryAgain": "Попробовать снова",
       "tokens": "токенов",
-      "fighter": "Боец"
+      "fighter": "Боец",
+      "starter": "Старт",
+      "champion": "Чемпион"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "реакций разом",
@@ -1339,7 +1409,8 @@
     },
     "fantasyPage": {
       "seePro": "Смотреть Pro",
-      "you": "{{name}} (ты)"
+      "you": "{{name}} (ты)",
+      "days": "дней"
     },
     "goldenGloves": {
       "day": "день",
@@ -1392,10 +1463,45 @@
       "goBack": "Назад",
       "sponsoredBy": "Спонсор",
       "learnMore": "Подробнее",
-      "ad": "РЕКЛАМА"
+      "ad": "РЕКЛАМА",
+      "campaignLive": "Кампания запущена",
+      "yourBannerIsNow": "Твой баннер уже показывается в эфирах Victory AI. Мы отправили чек на почту.",
+      "watchLiveStreams": "Смотреть эфиры",
+      "couldNotStartCheckout": "Не удалось начать оплату — попробуй ещё раз.",
+      "advertiseOnVictoryAi": "Реклама в Victory AI",
+      "reachSeriousBoxingFans": "Достучись до настоящих фанатов бокса прямо на тренировке",
+      "sponsorBanner": "Спонсорский баннер",
+      "yourBrandLiveIn": "Твой бренд — в прямом эфире на ринге.",
+      "victoryAiStreamsReach": "Эфиры Victory AI доходят до преданных боксёров в самый вовлечённый момент — посреди тренировки, в перчатках, с телефоном перед глазами.",
+      "livePreview": "Живой предпросмотр",
+      "updatesAsYouType": "Обновляется, пока ты печатаешь",
+      "chooseAPackage": "Выбери пакет",
+      "days": "дней",
+      "campaignDetails": "Детали кампании",
+      "brandName": "Название бренда",
+      "eGEverlastWinning": "напр. Everlast, Winning, Cleto Reyes",
+      "tagline": "Слоган",
+      "eGPremiumBoxing": "напр. Премиальные перчатки для серьёзных бойцов",
+      "websiteUrl": "Сайт",
+      "yourEmailForReceipt": "Твоя почта (для чека и отчётов)",
+      "youYourbrandCom": "you@yourbrand.com",
+      "start": "Запустить",
+      "campaign": "кампанию — £",
+      "securedByStripeYour": "Защищено Stripe · Кампания запустится через несколько минут после оплаты.",
+      "starter": "Старт",
+      "s7DayCampaign": "Кампания на 7 дней",
+      "pro": "Pro",
+      "s30DayCampaign": "Кампания на 30 дней",
+      "champion": "Чемпион",
+      "s90DayCampaign": "Кампания на 90 дней",
+      "liveStreamsWeek": "Эфиров в неделю",
+      "activeBoxers": "Активных боксёров",
+      "engagementRate": "Вовлечённость",
+      "avgSessionTime": "Ср. длительность тренировки"
     },
     "blockedAccountsPage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "couldnTLoadBlocked": "Не удалось загрузить заблокированные аккаунты."
     },
     "calloutsPage": {
       "goBack": "Назад",
@@ -1415,7 +1521,8 @@
       "goBack": "Назад"
     },
     "profilePage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "subscription": "Подписка"
     },
     "rateRoundPage": {
       "goBack": "Назад",
@@ -1820,6 +1927,13 @@
       "advertiseHere": "Разместить рекламу",
       "dismissAd": "Закрыть рекламу",
       "ad": "РЕКЛАМА"
+    },
+    "topKnockouts": {
+      "tkn": "ток.",
+      "topKnockouts": "Лучшие нокауты"
+    },
+    "competitionsPage": {
+      "pro": "Pro"
     }
   },
   "feedback": {

@@ -1048,7 +1048,12 @@
     },
     "tokenPurchaseModal": {
       "save": "Guardar",
-      "close": "Cerrar"
+      "close": "Cerrar",
+      "topUpTokens": "Recargar tokens",
+      "useTokensToTip": "Usa tokens para dar propinas, comprar emotes, enviar alertas de golpe y regalar suscripciones.",
+      "popular": "Popular",
+      "viewAllPacksBuy": "Ver todos los paquetes y comprar",
+      "tokensAreNonRefundable": "Los tokens no son reembolsables. Protegido por Stripe."
     },
     "comboBuilderPage": {
       "save": "Guardar"
@@ -1059,7 +1064,10 @@
       "goBack": "Volver",
       "stayInTheFight": "Sigue en la pelea",
       "fighter": "Luchador",
-      "openingCheckout": "Abriendo el pago…"
+      "openingCheckout": "Abriendo el pago…",
+      "couldNotStartCheckout": "No se pudo iniciar el pago — inténtalo de nuevo.",
+      "starter": "Básico",
+      "champion": "Campeón"
     },
     "bookNextRound": {
       "pickATimeBetween": "Elige una hora entre las 5:00 y las 22:00",
@@ -1144,7 +1152,32 @@
       "notEnoughTokens": "No tienes suficientes tokens.",
       "balance": "Saldo:",
       "notEnoughTokensTop": "No tienes suficientes tokens — recarga tu saldo.",
-      "tipFailedPleaseTry": "La propina falló — inténtalo de nuevo."
+      "tipFailedPleaseTry": "La propina falló — inténtalo de nuevo.",
+      "sendTokens": "Enviar tokens",
+      "quickFire": "ráfaga ·",
+      "tkn": "tkn",
+      "tokenAmountMin25": "Cantidad de tokens (mín. 25)",
+      "enterAmount": "Introduce la cantidad...",
+      "fires": "Lanza",
+      "overlays200msApart": "superposiciones · cada 200 ms",
+      "addAMessageOptional": "Añade un mensaje (opcional)...",
+      "tokens": "Tokens",
+      "topUpYourBalance": "Recarga tu saldo",
+      "reactions": "REACCIONES",
+      "ooh": "Uuuh",
+      "heart": "Corazón",
+      "glassJaw": "Mandíbula de cristal",
+      "theyReGassed": "Están fundidos",
+      "theyGotHeart": "Tienen corazón",
+      "commands": "ÓRDENES",
+      "popTheJab": "Suelta el jab",
+      "handsUp": "Manos arriba",
+      "workTheBody": "Trabaja el cuerpo",
+      "throwTheTowel": "Tira la toalla",
+      "status": "ESTATUS",
+      "champ": "Campeón",
+      "goatStatus": "Estatus de leyenda",
+      "combos": "COMBOS"
     },
     "gymsPage": {
       "close": "Cerrar"
@@ -1157,7 +1190,8 @@
       "tryAgain": "Reintentar",
       "done": "Hecho",
       "couldnTSaveThat": "No se pudo guardar",
-      "bagPadsCircuitsHiit": "Saco, manoplas, circuitos, HIIT. Grábalo en la misma pantalla."
+      "bagPadsCircuitsHiit": "Saco, manoplas, circuitos, HIIT. Grábalo en la misma pantalla.",
+      "start": "Empezar"
     },
     "fightFilm": {
       "fightFilm": "Película de Combate",
@@ -1261,7 +1295,41 @@
     "billingPage": {
       "about": ", unos",
       "moreAYear": "más al año.",
-      "goBack": "Volver"
+      "goBack": "Volver",
+      "youReStayingFounder": "Te quedas. Precio de fundador conservado.",
+      "couldnTReachBilling": "No se pudo acceder a la facturación — inténtalo de nuevo",
+      "subscription": "Suscripción",
+      "youDonTHave": "No tienes suscripción.",
+      "seePlans": "Ver planes",
+      "lifetime": "De por vida",
+      "annual": "Anual",
+      "monthly": "Mensual",
+      "plan": "plan",
+      "freeTrial": "Prueba gratis",
+      "boughtOnceThroughThe": "Comprado una vez en la App Store: tuyo para siempre",
+      "billedThroughTheApp": "Facturado a través de la App Store",
+      "founderPriceYoursFor": "Precio de fundador, tuyo de por vida mientras sigas suscrito",
+      "endsOn": "Termina el {{endsOn}}",
+      "yourSubscriptionEndsOn": "Tu suscripción termina el",
+      "theEndOfThis": "el final de este periodo",
+      "yourFounderPriceOf": "Tu precio de fundador de",
+      "endsWithItAnd": "termina con ella y no se puede recuperar después.",
+      "staySubscribedAndKeep": "Sigue suscrito y conserva {{now}}",
+      "staySubscribed": "Seguir suscrito",
+      "manageSubscription": "Gestionar suscripción",
+      "toChangeOrCancel": "Para cambiar o cancelar, abre Ajustes del iPhone, toca tu nombre y luego Suscripciones.",
+      "toChangeOrCancel2": "Para cambiar o cancelar tu suscripción, inicia sesión en victory-ai en la web.",
+      "cancelSubscription": "Cancelar suscripción",
+      "youLlLoseYour": "Perderás tu precio de fundador",
+      "youPay": "Pagas",
+      "forLifeIfYou": "de por vida. Si cancelas, se pierde para siempre. Los códigos de fundador solo se usan una vez, así que volver costaría",
+      "ifYouCancelYou": "Si cancelas, conservas todo hasta el",
+      "ifYouCancelYou2": "Si cancelas, conservas el acceso hasta el",
+      "thenYourPlanStops": ", y luego tu plan se detiene. Tu historial de entrenamiento se queda.",
+      "keepMyFounderPrice": "Mantener mi precio de fundador",
+      "keepMySubscription": "Mantener mi suscripción",
+      "cancelling": "Cancelando…",
+      "cancelAnyway": "Cancelar de todos modos"
     },
     "helpChat": {
       "couldnTSendThat": "No se pudo enviar. Inténtalo de nuevo.",
@@ -1302,7 +1370,9 @@
     "tokenSuccessPage": {
       "tryAgain": "Reintentar",
       "tokens": "tokens",
-      "fighter": "Luchador"
+      "fighter": "Luchador",
+      "starter": "Básico",
+      "champion": "Campeón"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "reacciones a la vez",
@@ -1339,7 +1409,8 @@
     },
     "fantasyPage": {
       "seePro": "Ver Pro",
-      "you": "{{name}} (tú)"
+      "you": "{{name}} (tú)",
+      "days": "días"
     },
     "goldenGloves": {
       "day": "día",
@@ -1392,10 +1463,45 @@
       "goBack": "Volver",
       "sponsoredBy": "Patrocinado por",
       "learnMore": "Más información",
-      "ad": "ANUNCIO"
+      "ad": "ANUNCIO",
+      "campaignLive": "Campaña activa",
+      "yourBannerIsNow": "Tu banner ya aparece en las emisiones de Victory AI. Te hemos enviado un recibo por email.",
+      "watchLiveStreams": "Ver emisiones en vivo",
+      "couldNotStartCheckout": "No se pudo iniciar el pago — inténtalo de nuevo.",
+      "advertiseOnVictoryAi": "Anúnciate en Victory AI",
+      "reachSeriousBoxingFans": "Llega a fans serios del boxeo en plena sesión",
+      "sponsorBanner": "Banner de patrocinio",
+      "yourBrandLiveIn": "Tu marca, en vivo en el ring.",
+      "victoryAiStreamsReach": "Las emisiones de Victory AI llegan a boxeadores dedicados en su momento de mayor atención — en plena sesión, guantes puestos, móvil en mano.",
+      "livePreview": "Vista previa en vivo",
+      "updatesAsYouType": "Se actualiza mientras escribes abajo",
+      "chooseAPackage": "Elige un paquete",
+      "days": "días",
+      "campaignDetails": "Detalles de la campaña",
+      "brandName": "Nombre de la marca",
+      "eGEverlastWinning": "p. ej. Everlast, Winning, Cleto Reyes",
+      "tagline": "Eslogan",
+      "eGPremiumBoxing": "p. ej. Guantes de boxeo premium para luchadores serios",
+      "websiteUrl": "URL del sitio web",
+      "yourEmailForReceipt": "Tu email (para recibo e informes)",
+      "youYourbrandCom": "tu@tumarca.com",
+      "start": "Empezar",
+      "campaign": "Campaña — £",
+      "securedByStripeYour": "Protegido por Stripe · Tu campaña se activa minutos después del pago.",
+      "starter": "Básico",
+      "s7DayCampaign": "Campaña de 7 días",
+      "pro": "Pro",
+      "s30DayCampaign": "Campaña de 30 días",
+      "champion": "Campeón",
+      "s90DayCampaign": "Campaña de 90 días",
+      "liveStreamsWeek": "Emisiones/semana",
+      "activeBoxers": "Boxeadores activos",
+      "engagementRate": "Tasa de interacción",
+      "avgSessionTime": "Tiempo medio de sesión"
     },
     "blockedAccountsPage": {
-      "goBack": "Volver"
+      "goBack": "Volver",
+      "couldnTLoadBlocked": "No se pudieron cargar las cuentas bloqueadas."
     },
     "calloutsPage": {
       "goBack": "Volver",
@@ -1415,7 +1521,8 @@
       "goBack": "Volver"
     },
     "profilePage": {
-      "goBack": "Volver"
+      "goBack": "Volver",
+      "subscription": "Suscripción"
     },
     "rateRoundPage": {
       "goBack": "Volver",
@@ -1820,6 +1927,13 @@
       "advertiseHere": "Anúnciate aquí",
       "dismissAd": "Cerrar anuncio",
       "ad": "ANUNCIO"
+    },
+    "topKnockouts": {
+      "tkn": "tkn",
+      "topKnockouts": "Mejores KO"
+    },
+    "competitionsPage": {
+      "pro": "Pro"
     }
   },
   "feedback": {

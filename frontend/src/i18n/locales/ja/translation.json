@@ -1048,7 +1048,12 @@
     },
     "tokenPurchaseModal": {
       "save": "保存",
-      "close": "閉じる"
+      "close": "閉じる",
+      "topUpTokens": "トークンをチャージ",
+      "useTokensToTip": "トークンで配信者へのチップ、エモート購入、パンチアラート送信、サブスクのギフトができます。",
+      "popular": "人気",
+      "viewAllPacksBuy": "すべてのパックを見て購入",
+      "tokensAreNonRefundable": "トークンは返金できません。Stripeで安全に決済。"
     },
     "comboBuilderPage": {
       "save": "保存"
@@ -1059,7 +1064,10 @@
       "goBack": "戻る",
       "stayInTheFight": "戦い続けよう",
       "fighter": "ファイター",
-      "openingCheckout": "決済を開いています…"
+      "openingCheckout": "決済を開いています…",
+      "couldNotStartCheckout": "決済を開始できませんでした — もう一度お試しください。",
+      "starter": "スターター",
+      "champion": "チャンピオン"
     },
     "bookNextRound": {
       "pickATimeBetween": "午前5時から午後10時の間で選んでください",
@@ -1144,7 +1152,32 @@
       "notEnoughTokens": "トークンが足りません。",
       "balance": "残高：",
       "notEnoughTokensTop": "トークンが足りません — 残高をチャージしてください。",
-      "tipFailedPleaseTry": "チップに失敗しました — もう一度お試しください。"
+      "tipFailedPleaseTry": "チップに失敗しました — もう一度お試しください。",
+      "sendTokens": "トークンを送る",
+      "quickFire": "連射 ·",
+      "tkn": "tkn",
+      "tokenAmountMin25": "トークン数（最低25）",
+      "enterAmount": "数量を入力...",
+      "fires": "発動",
+      "overlays200msApart": "オーバーレイ · 200ms間隔",
+      "addAMessageOptional": "メッセージを追加（任意）...",
+      "tokens": "トークン",
+      "topUpYourBalance": "残高をチャージ",
+      "reactions": "リアクション",
+      "ooh": "おお",
+      "heart": "ハート",
+      "glassJaw": "ガラスのアゴ",
+      "theyReGassed": "ガス欠だ",
+      "theyGotHeart": "根性がある",
+      "commands": "コマンド",
+      "popTheJab": "ジャブを打て",
+      "handsUp": "手を上げろ",
+      "workTheBody": "ボディを攻めろ",
+      "throwTheTowel": "タオルを投げろ",
+      "status": "ステータス",
+      "champ": "チャンプ",
+      "goatStatus": "レジェンドステータス",
+      "combos": "コンボ"
     },
     "gymsPage": {
       "close": "閉じる"
@@ -1157,7 +1190,8 @@
       "tryAgain": "もう一度試す",
       "done": "完了",
       "couldnTSaveThat": "保存できませんでした",
-      "bagPadsCircuitsHiit": "サンドバッグ、ミット、サーキット、HIIT。同じ画面で撮影。"
+      "bagPadsCircuitsHiit": "サンドバッグ、ミット、サーキット、HIIT。同じ画面で撮影。",
+      "start": "開始"
     },
     "fightFilm": {
       "fightFilm": "ファイトフィルム",
@@ -1261,7 +1295,41 @@
     "billingPage": {
       "about": "、約",
       "moreAYear": "年間で多くかかります。",
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "youReStayingFounder": "継続ありがとうございます。創設者価格はそのままです。",
+      "couldnTReachBilling": "請求情報に接続できませんでした — もう一度お試しください",
+      "subscription": "サブスクリプション",
+      "youDonTHave": "サブスクリプションがありません。",
+      "seePlans": "プランを見る",
+      "lifetime": "買い切り",
+      "annual": "年額",
+      "monthly": "月額",
+      "plan": "プラン",
+      "freeTrial": "無料トライアル",
+      "boughtOnceThroughThe": "App Storeで一度購入：ずっとあなたのもの",
+      "billedThroughTheApp": "App Store経由で請求",
+      "founderPriceYoursFor": "創設者価格、購読を続ける限りずっとあなたのもの",
+      "endsOn": "{{endsOn}}に終了",
+      "yourSubscriptionEndsOn": "サブスクリプションの終了日：",
+      "theEndOfThis": "この期間の終わり",
+      "yourFounderPriceOf": "あなたの創設者価格",
+      "endsWithItAnd": "も一緒に終わり、後から取り戻せません。",
+      "staySubscribedAndKeep": "購読を続けて{{now}}をキープ",
+      "staySubscribed": "購読を続ける",
+      "manageSubscription": "サブスクリプションを管理",
+      "toChangeOrCancel": "変更や解約は、iPhoneの設定を開き、名前をタップし、サブスクリプションへ。",
+      "toChangeOrCancel2": "サブスクリプションの変更や解約は、ウェブでvictory-aiにサインインしてください。",
+      "cancelSubscription": "サブスクリプションを解約",
+      "youLlLoseYour": "創設者価格を失います",
+      "youPay": "お支払い額",
+      "forLifeIfYou": "ずっと。解約すると永久に失われます。創設者コードは一度しか使えないので、戻るには",
+      "ifYouCancelYou": "解約しても、次の日まですべて使えます：",
+      "ifYouCancelYou2": "解約しても、次の日までアクセスできます：",
+      "thenYourPlanStops": "。その後プランは停止します。トレーニング履歴は残ります。",
+      "keepMyFounderPrice": "創設者価格をキープ",
+      "keepMySubscription": "サブスクリプションをキープ",
+      "cancelling": "解約中…",
+      "cancelAnyway": "それでも解約"
     },
     "helpChat": {
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
@@ -1302,7 +1370,9 @@
     "tokenSuccessPage": {
       "tryAgain": "もう一度試す",
       "tokens": "トークン",
-      "fighter": "ファイター"
+      "fighter": "ファイター",
+      "starter": "スターター",
+      "champion": "チャンピオン"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "同時リアクション",
@@ -1339,7 +1409,8 @@
     },
     "fantasyPage": {
       "seePro": "Proを見る",
-      "you": "{{name}}（あなた）"
+      "you": "{{name}}（あなた）",
+      "days": "日"
     },
     "goldenGloves": {
       "day": "日",
@@ -1392,10 +1463,45 @@
       "goBack": "戻る",
       "sponsoredBy": "提供",
       "learnMore": "詳しく見る",
-      "ad": "広告"
+      "ad": "広告",
+      "campaignLive": "キャンペーン公開中",
+      "yourBannerIsNow": "バナーがVictory AIのライブ配信に表示されています。領収書をメールで送りました。",
+      "watchLiveStreams": "ライブ配信を見る",
+      "couldNotStartCheckout": "決済を開始できませんでした — もう一度お試しください。",
+      "advertiseOnVictoryAi": "Victory AIに広告を出す",
+      "reachSeriousBoxingFans": "トレーニング中の本気のボクシングファンに届ける",
+      "sponsorBanner": "スポンサーバナー",
+      "yourBrandLiveIn": "あなたのブランドを、リングでライブに。",
+      "victoryAiStreamsReach": "Victory AIの配信は、熱心なボクサーが最も集中している瞬間に届きます — トレーニング中、グローブを着けて、スマホを前に。",
+      "livePreview": "ライブプレビュー",
+      "updatesAsYouType": "下に入力すると更新されます",
+      "chooseAPackage": "パッケージを選ぶ",
+      "days": "日",
+      "campaignDetails": "キャンペーン詳細",
+      "brandName": "ブランド名",
+      "eGEverlastWinning": "例：Everlast、Winning、Cleto Reyes",
+      "tagline": "キャッチコピー",
+      "eGPremiumBoxing": "例：本気のファイターのためのプレミアムグローブ",
+      "websiteUrl": "ウェブサイトURL",
+      "yourEmailForReceipt": "メールアドレス（領収書とレポート用）",
+      "youYourbrandCom": "you@yourbrand.com",
+      "start": "開始",
+      "campaign": "キャンペーン — £",
+      "securedByStripeYour": "Stripeで安全に決済 · 支払い後数分でキャンペーンが公開されます。",
+      "starter": "スターター",
+      "s7DayCampaign": "7日間キャンペーン",
+      "pro": "Pro",
+      "s30DayCampaign": "30日間キャンペーン",
+      "champion": "チャンピオン",
+      "s90DayCampaign": "90日間キャンペーン",
+      "liveStreamsWeek": "週あたりの配信数",
+      "activeBoxers": "アクティブなボクサー",
+      "engagementRate": "エンゲージメント率",
+      "avgSessionTime": "平均セッション時間"
     },
     "blockedAccountsPage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "couldnTLoadBlocked": "ブロックしたアカウントを読み込めませんでした。"
     },
     "calloutsPage": {
       "goBack": "戻る",
@@ -1415,7 +1521,8 @@
       "goBack": "戻る"
     },
     "profilePage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "subscription": "サブスクリプション"
     },
     "rateRoundPage": {
       "goBack": "戻る",
@@ -1820,6 +1927,13 @@
       "advertiseHere": "ここに広告を",
       "dismissAd": "広告を閉じる",
       "ad": "広告"
+    },
+    "topKnockouts": {
+      "tkn": "tkn",
+      "topKnockouts": "トップKO"
+    },
+    "competitionsPage": {
+      "pro": "Pro"
     }
   },
   "feedback": {

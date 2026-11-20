@@ -1048,7 +1048,12 @@
     },
     "tokenPurchaseModal": {
       "save": "حفظ",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "topUpTokens": "اشحن الرموز",
+      "useTokensToTip": "استخدم الرموز لإكرام الباثّين وشراء الرموز التعبيرية وإرسال تنبيهات اللكمات وإهداء الاشتراكات.",
+      "popular": "الأكثر شعبية",
+      "viewAllPacksBuy": "اعرض كل الحزم واشترِ",
+      "tokensAreNonRefundable": "الرموز غير قابلة للاسترداد. مؤمّن عبر Stripe."
     },
     "comboBuilderPage": {
       "save": "حفظ"
@@ -1059,7 +1064,10 @@
       "goBack": "رجوع",
       "stayInTheFight": "ابقَ في المعركة",
       "fighter": "ملاكم",
-      "openingCheckout": "جارٍ فتح الدفع…"
+      "openingCheckout": "جارٍ فتح الدفع…",
+      "couldNotStartCheckout": "تعذّر بدء الدفع — حاول مرة أخرى.",
+      "starter": "المبتدئ",
+      "champion": "البطل"
     },
     "bookNextRound": {
       "pickATimeBetween": "اختر وقتًا بين 5 صباحًا و10 مساءً",
@@ -1144,7 +1152,32 @@
       "notEnoughTokens": "لا توجد رموز كافية.",
       "balance": "الرصيد:",
       "notEnoughTokensTop": "لا توجد رموز كافية — اشحن رصيدك.",
-      "tipFailedPleaseTry": "فشلت الإكرامية — حاول مرة أخرى."
+      "tipFailedPleaseTry": "فشلت الإكرامية — حاول مرة أخرى.",
+      "sendTokens": "إرسال رموز",
+      "quickFire": "إطلاق سريع ·",
+      "tkn": "رمز",
+      "tokenAmountMin25": "عدد الرموز (25 كحد أدنى)",
+      "enterAmount": "أدخل الكمية...",
+      "fires": "يطلق",
+      "overlays200msApart": "تأثيرات · بفاصل 200 مللي ثانية",
+      "addAMessageOptional": "أضف رسالة (اختياري)...",
+      "tokens": "الرموز",
+      "topUpYourBalance": "اشحن رصيدك",
+      "reactions": "التفاعلات",
+      "ooh": "أوووه",
+      "heart": "قلب",
+      "glassJaw": "فك زجاجي",
+      "theyReGassed": "لقد نفد نفَسهم",
+      "theyGotHeart": "لديهم قلب",
+      "commands": "الأوامر",
+      "popTheJab": "أطلق الجاب",
+      "handsUp": "ارفع يديك",
+      "workTheBody": "اضرب الجسم",
+      "throwTheTowel": "ارمِ المنشفة",
+      "status": "الحالة",
+      "champ": "بطل",
+      "goatStatus": "مكانة الأسطورة",
+      "combos": "التركيبات"
     },
     "gymsPage": {
       "close": "إغلاق"
@@ -1157,7 +1190,8 @@
       "tryAgain": "حاول مرة أخرى",
       "done": "تم",
       "couldnTSaveThat": "تعذّر الحفظ",
-      "bagPadsCircuitsHiit": "الكيس، الوسائد، الدوائر، HIIT. صوّرها على الشاشة نفسها."
+      "bagPadsCircuitsHiit": "الكيس، الوسائد، الدوائر، HIIT. صوّرها على الشاشة نفسها.",
+      "start": "ابدأ"
     },
     "fightFilm": {
       "fightFilm": "فيلم القتال",
@@ -1261,7 +1295,41 @@
     "billingPage": {
       "about": "، أي حوالي",
       "moreAYear": "إضافية سنويًا.",
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "youReStayingFounder": "ستبقى. تم الإبقاء على سعر المؤسس.",
+      "couldnTReachBilling": "تعذّر الوصول إلى الفوترة — حاول مرة أخرى",
+      "subscription": "الاشتراك",
+      "youDonTHave": "ليس لديك اشتراك.",
+      "seePlans": "اعرض الخطط",
+      "lifetime": "مدى الحياة",
+      "annual": "سنوي",
+      "monthly": "شهري",
+      "plan": "خطة",
+      "freeTrial": "تجربة مجانية",
+      "boughtOnceThroughThe": "تم الشراء مرة واحدة عبر App Store: لك مدى الحياة",
+      "billedThroughTheApp": "تتم الفوترة عبر App Store",
+      "founderPriceYoursFor": "سعر المؤسس، لك مدى الحياة طالما بقيت مشتركًا",
+      "endsOn": "ينتهي في {{endsOn}}",
+      "yourSubscriptionEndsOn": "ينتهي اشتراكك في",
+      "theEndOfThis": "نهاية هذه الفترة",
+      "yourFounderPriceOf": "سعر المؤسس الخاص بك البالغ",
+      "endsWithItAnd": "ينتهي معه ولا يمكن استعادته بعد ذلك.",
+      "staySubscribedAndKeep": "ابقَ مشتركًا واحتفظ بـ {{now}}",
+      "staySubscribed": "ابقَ مشتركًا",
+      "manageSubscription": "إدارة الاشتراك",
+      "toChangeOrCancel": "للتغيير أو الإلغاء، افتح إعدادات iPhone، واضغط على اسمك، ثم الاشتراكات.",
+      "toChangeOrCancel2": "لتغيير اشتراكك أو إلغائه، سجّل الدخول إلى victory-ai على الويب.",
+      "cancelSubscription": "إلغاء الاشتراك",
+      "youLlLoseYour": "ستفقد سعر المؤسس",
+      "youPay": "تدفع",
+      "forLifeIfYou": "مدى الحياة. إذا ألغيت، يضيع للأبد. رموز المؤسس تُستخدم مرة واحدة فقط، لذا ستكلفك العودة",
+      "ifYouCancelYou": "إذا ألغيت، تحتفظ بكل شيء حتى",
+      "ifYouCancelYou2": "إذا ألغيت، تحتفظ بالوصول حتى",
+      "thenYourPlanStops": "، ثم تتوقف خطتك. يبقى سجل تدريبك.",
+      "keepMyFounderPrice": "احتفظ بسعر المؤسس",
+      "keepMySubscription": "احتفظ باشتراكي",
+      "cancelling": "جارٍ الإلغاء…",
+      "cancelAnyway": "ألغِ على أي حال"
     },
     "helpChat": {
       "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
@@ -1302,7 +1370,9 @@
     "tokenSuccessPage": {
       "tryAgain": "حاول مرة أخرى",
       "tokens": "رموز",
-      "fighter": "ملاكم"
+      "fighter": "ملاكم",
+      "starter": "المبتدئ",
+      "champion": "البطل"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "تفاعلات دفعة واحدة",
@@ -1339,7 +1409,8 @@
     },
     "fantasyPage": {
       "seePro": "اعرض Pro",
-      "you": "{{name}} (أنت)"
+      "you": "{{name}} (أنت)",
+      "days": "أيام"
     },
     "goldenGloves": {
       "day": "يوم",
@@ -1392,10 +1463,45 @@
       "goBack": "رجوع",
       "sponsoredBy": "برعاية",
       "learnMore": "اعرف المزيد",
-      "ad": "إعلان"
+      "ad": "إعلان",
+      "campaignLive": "الحملة مباشرة",
+      "yourBannerIsNow": "لافتتك تظهر الآن في بثوث Victory AI. أرسلنا إيصالاً إلى بريدك.",
+      "watchLiveStreams": "شاهد البث المباشر",
+      "couldNotStartCheckout": "تعذّر بدء الدفع — حاول مرة أخرى.",
+      "advertiseOnVictoryAi": "أعلن على Victory AI",
+      "reachSeriousBoxingFans": "صِل إلى عشاق الملاكمة الجادين أثناء التدريب",
+      "sponsorBanner": "لافتة الرعاية",
+      "yourBrandLiveIn": "علامتك التجارية، مباشرة في الحلبة.",
+      "victoryAiStreamsReach": "بثوث Victory AI تصل إلى ملاكمين ملتزمين في أكثر لحظاتهم تركيزًا — أثناء التدريب، القفازات في أيديهم، والهاتف أمامهم.",
+      "livePreview": "معاينة مباشرة",
+      "updatesAsYouType": "تتحدث أثناء كتابتك أدناه",
+      "chooseAPackage": "اختر باقة",
+      "days": "أيام",
+      "campaignDetails": "تفاصيل الحملة",
+      "brandName": "اسم العلامة التجارية",
+      "eGEverlastWinning": "مثل Everlast وWinning وCleto Reyes",
+      "tagline": "الشعار",
+      "eGPremiumBoxing": "مثل قفازات ملاكمة فاخرة للمقاتلين الجادين",
+      "websiteUrl": "رابط الموقع",
+      "yourEmailForReceipt": "بريدك (للإيصال والتقارير)",
+      "youYourbrandCom": "you@yourbrand.com",
+      "start": "ابدأ",
+      "campaign": "الحملة — £",
+      "securedByStripeYour": "مؤمّن عبر Stripe · تبدأ حملتك خلال دقائق من الدفع.",
+      "starter": "المبتدئ",
+      "s7DayCampaign": "حملة 7 أيام",
+      "pro": "Pro",
+      "s30DayCampaign": "حملة 30 يومًا",
+      "champion": "البطل",
+      "s90DayCampaign": "حملة 90 يومًا",
+      "liveStreamsWeek": "بثوث/أسبوع",
+      "activeBoxers": "ملاكمون نشطون",
+      "engagementRate": "معدل التفاعل",
+      "avgSessionTime": "متوسط مدة الجلسة"
     },
     "blockedAccountsPage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "couldnTLoadBlocked": "تعذّر تحميل الحسابات المحظورة."
     },
     "calloutsPage": {
       "goBack": "رجوع",
@@ -1415,7 +1521,8 @@
       "goBack": "رجوع"
     },
     "profilePage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "subscription": "الاشتراك"
     },
     "rateRoundPage": {
       "goBack": "رجوع",
@@ -1820,6 +1927,13 @@
       "advertiseHere": "أعلن هنا",
       "dismissAd": "إغلاق الإعلان",
       "ad": "إعلان"
+    },
+    "topKnockouts": {
+      "tkn": "رمز",
+      "topKnockouts": "أفضل الضربات القاضية"
+    },
+    "competitionsPage": {
+      "pro": "Pro"
     }
   },
   "feedback": {

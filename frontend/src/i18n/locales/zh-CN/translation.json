@@ -1048,7 +1048,12 @@
     },
     "tokenPurchaseModal": {
       "save": "保存",
-      "close": "关闭"
+      "close": "关闭",
+      "topUpTokens": "充值代币",
+      "useTokensToTip": "用代币打赏主播、购买表情、发送出拳提醒和赠送订阅。",
+      "popular": "热门",
+      "viewAllPacksBuy": "查看全部套餐并购买",
+      "tokensAreNonRefundable": "代币不可退款。由 Stripe 保障安全。"
     },
     "comboBuilderPage": {
       "save": "保存"
@@ -1059,7 +1064,10 @@
       "goBack": "返回",
       "stayInTheFight": "保持战斗状态",
       "fighter": "拳手",
-      "openingCheckout": "正在打开结账…"
+      "openingCheckout": "正在打开结账…",
+      "couldNotStartCheckout": "无法开始付款 — 请重试。",
+      "starter": "入门",
+      "champion": "冠军"
     },
     "bookNextRound": {
       "pickATimeBetween": "请选择早上 5 点到晚上 10 点之间的时间",
@@ -1144,7 +1152,32 @@
       "notEnoughTokens": "代币不足。",
       "balance": "余额：",
       "notEnoughTokensTop": "代币不足 — 请充值。",
-      "tipFailedPleaseTry": "打赏失败 — 请重试。"
+      "tipFailedPleaseTry": "打赏失败 — 请重试。",
+      "sendTokens": "发送代币",
+      "quickFire": "连发 ·",
+      "tkn": "币",
+      "tokenAmountMin25": "代币数量（最少 25）",
+      "enterAmount": "输入数量...",
+      "fires": "触发",
+      "overlays200msApart": "个特效 · 间隔 200 毫秒",
+      "addAMessageOptional": "添加留言（可选）...",
+      "tokens": "代币",
+      "topUpYourBalance": "给余额充值",
+      "reactions": "反应",
+      "ooh": "哇哦",
+      "heart": "爱心",
+      "glassJaw": "玻璃下巴",
+      "theyReGassed": "体力耗尽了",
+      "theyGotHeart": "真有血性",
+      "commands": "指令",
+      "popTheJab": "出刺拳",
+      "handsUp": "双手抬高",
+      "workTheBody": "打身体",
+      "throwTheTowel": "扔毛巾",
+      "status": "身份",
+      "champ": "冠军",
+      "goatStatus": "传奇身份",
+      "combos": "组合拳"
     },
     "gymsPage": {
       "close": "关闭"
@@ -1157,7 +1190,8 @@
       "tryAgain": "重试",
       "done": "完成",
       "couldnTSaveThat": "无法保存",
-      "bagPadsCircuitsHiit": "沙袋、手靶、循环、HIIT。在同一屏幕上录制。"
+      "bagPadsCircuitsHiit": "沙袋、手靶、循环、HIIT。在同一屏幕上录制。",
+      "start": "开始"
     },
     "fightFilm": {
       "fightFilm": "战斗影集",
@@ -1261,7 +1295,41 @@
     "billingPage": {
       "about": "，大约",
       "moreAYear": "每年多付。",
-      "goBack": "返回"
+      "goBack": "返回",
+      "youReStayingFounder": "你留下来了。创始价已保留。",
+      "couldnTReachBilling": "无法连接账单 — 请重试",
+      "subscription": "订阅",
+      "youDonTHave": "你还没有订阅。",
+      "seePlans": "查看方案",
+      "lifetime": "终身",
+      "annual": "年付",
+      "monthly": "月付",
+      "plan": "方案",
+      "freeTrial": "免费试用",
+      "boughtOnceThroughThe": "已通过 App Store 一次性购买：终身属于你",
+      "billedThroughTheApp": "通过 App Store 计费",
+      "founderPriceYoursFor": "创始价，只要持续订阅就终身属于你",
+      "endsOn": "于 {{endsOn}} 结束",
+      "yourSubscriptionEndsOn": "你的订阅结束于",
+      "theEndOfThis": "本期结束时",
+      "yourFounderPriceOf": "你的创始价",
+      "endsWithItAnd": "会随之结束，之后无法找回。",
+      "staySubscribedAndKeep": "继续订阅，保留 {{now}}",
+      "staySubscribed": "继续订阅",
+      "manageSubscription": "管理订阅",
+      "toChangeOrCancel": "要更改或取消，请打开 iPhone 设置，点击你的名字，然后点击“订阅”。",
+      "toChangeOrCancel2": "要更改或取消订阅，请在网页上登录 victory-ai。",
+      "cancelSubscription": "取消订阅",
+      "youLlLoseYour": "你将失去创始价",
+      "youPay": "你支付",
+      "forLifeIfYou": "终身。如果取消，就永远失去了。创始码只能使用一次，所以再回来需要",
+      "ifYouCancelYou": "如果取消，你可保留所有内容直到",
+      "ifYouCancelYou2": "如果取消，你可保留访问权限直到",
+      "thenYourPlanStops": "，之后方案停止。你的训练记录会保留。",
+      "keepMyFounderPrice": "保留我的创始价",
+      "keepMySubscription": "保留我的订阅",
+      "cancelling": "正在取消…",
+      "cancelAnyway": "仍然取消"
     },
     "helpChat": {
       "couldnTSendThat": "无法发送，请重试。",
@@ -1302,7 +1370,9 @@
     "tokenSuccessPage": {
       "tryAgain": "重试",
       "tokens": "代币",
-      "fighter": "拳手"
+      "fighter": "拳手",
+      "starter": "入门",
+      "champion": "冠军"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "个同时反应",
@@ -1339,7 +1409,8 @@
     },
     "fantasyPage": {
       "seePro": "查看 Pro",
-      "you": "{{name}}（你）"
+      "you": "{{name}}（你）",
+      "days": "天"
     },
     "goldenGloves": {
       "day": "天",
@@ -1392,10 +1463,45 @@
       "goBack": "返回",
       "sponsoredBy": "赞助方",
       "learnMore": "了解更多",
-      "ad": "广告"
+      "ad": "广告",
+      "campaignLive": "广告已上线",
+      "yourBannerIsNow": "你的横幅现在出现在 Victory AI 直播中。我们已将收据发送到你的邮箱。",
+      "watchLiveStreams": "观看直播",
+      "couldNotStartCheckout": "无法开始付款 — 请重试。",
+      "advertiseOnVictoryAi": "在 Victory AI 投放广告",
+      "reachSeriousBoxingFans": "在训练中触达认真的拳击爱好者",
+      "sponsorBanner": "赞助横幅",
+      "yourBrandLiveIn": "你的品牌，现场登上擂台。",
+      "victoryAiStreamsReach": "Victory AI 直播在拳手最投入的时刻触达他们 — 训练中、戴着拳套、手机就在眼前。",
+      "livePreview": "实时预览",
+      "updatesAsYouType": "随你在下方输入而更新",
+      "chooseAPackage": "选择套餐",
+      "days": "天",
+      "campaignDetails": "广告详情",
+      "brandName": "品牌名称",
+      "eGEverlastWinning": "例如 Everlast、Winning、Cleto Reyes",
+      "tagline": "标语",
+      "eGPremiumBoxing": "例如：为认真拳手打造的高端拳套",
+      "websiteUrl": "网站链接",
+      "yourEmailForReceipt": "你的邮箱（用于收据和报告）",
+      "youYourbrandCom": "you@yourbrand.com",
+      "start": "开始",
+      "campaign": "投放 — £",
+      "securedByStripeYour": "由 Stripe 保障安全 · 付款后几分钟内上线。",
+      "starter": "入门",
+      "s7DayCampaign": "7 天投放",
+      "pro": "Pro",
+      "s30DayCampaign": "30 天投放",
+      "champion": "冠军",
+      "s90DayCampaign": "90 天投放",
+      "liveStreamsWeek": "每周直播数",
+      "activeBoxers": "活跃拳手",
+      "engagementRate": "互动率",
+      "avgSessionTime": "平均训练时长"
     },
     "blockedAccountsPage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "couldnTLoadBlocked": "无法加载已屏蔽的账户。"
     },
     "calloutsPage": {
       "goBack": "返回",
@@ -1415,7 +1521,8 @@
       "goBack": "返回"
     },
     "profilePage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "subscription": "订阅"
     },
     "rateRoundPage": {
       "goBack": "返回",
@@ -1820,6 +1927,13 @@
       "advertiseHere": "在此投放广告",
       "dismissAd": "关闭广告",
       "ad": "广告"
+    },
+    "topKnockouts": {
+      "tkn": "币",
+      "topKnockouts": "精彩 KO"
+    },
+    "competitionsPage": {
+      "pro": "Pro"
     }
   },
   "feedback": {
