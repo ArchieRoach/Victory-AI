@@ -79,6 +79,7 @@ export default function FeedbackWidget() {
       {/* Floating trigger button */}
       <button
         onClick={() => setOpen(true)}
+        data-testid="help-button"
         className="fixed bottom-20 left-4 z-40 w-12 h-12 rounded-full bg-victory-lime text-victory-bg flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
         aria-label={unreadCount > 0 ? `${t("feedback.title")} (${unreadCount} unread)` : t("feedback.title")}
       >

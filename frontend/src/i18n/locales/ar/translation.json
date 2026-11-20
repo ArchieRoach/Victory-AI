@@ -2962,6 +2962,13 @@
       "members": "الأعضاء · {{count}}",
       "going": "سيحضر",
       "leave": "غادر نادي الجري"
+    },
+    "walkthrough": {
+      "label": "جولة سريعة",
+      "skip": "تخطَّ",
+      "progress": "الخطوة {{n}} من {{total}}",
+      "done": "هيا بنا",
+      "next": "التالي"
     }
   },
   "feedback": {
@@ -3104,6 +3111,19 @@
       "Get_ready_to_spar": "الاستعداد للسبارينغ",
       "Compete_in_fights": "المنافسة في النزالات",
       "Just_for_fun": "للمتعة فقط"
+    },
+    "walkthrough": {
+      "firstLabel": "أولاً",
+      "startHere": "ابدأ من هنا.",
+      "thenLabel": "شريكك",
+      "meetPartner": "تعرّف على {{partner}}.",
+      "nextTimeLabel": "في المرة القادمة",
+      "trainTitle": "كل جلسة تبدأ من هنا.",
+      "trainBody": "اختر جولتك، وشغّل الفيديو إذا أردت تقييمًا، ثم اضغط ابدأ.",
+      "anytimeLabel": "في أي وقت",
+      "helpTitle": "عالق؟ اسأل هنا.",
+      "helpBody": "اسأل Victory يجيب عن أسئلة التطبيق ويمكنه تمرير أي شيء آخر إلى الفريق.",
+      "startBody": "جولة واحدة مدتها 3 دقائق مع {{partner}}. هذه جلستك الأولى كلها."
     }
   }
 }

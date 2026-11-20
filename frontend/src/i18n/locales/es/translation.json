@@ -2962,6 +2962,13 @@
       "members": "Miembros · {{count}}",
       "going": "Va",
       "leave": "Salir del club de running"
+    },
+    "walkthrough": {
+      "label": "Recorrido rápido",
+      "skip": "Saltar",
+      "progress": "Paso {{n}} de {{total}}",
+      "done": "Vamos",
+      "next": "Siguiente"
     }
   },
   "feedback": {
@@ -3104,6 +3111,19 @@
       "Get_ready_to_spar": "Prepararme para el sparring",
       "Compete_in_fights": "Competir en combates",
       "Just_for_fun": "Solo por diversión"
+    },
+    "walkthrough": {
+      "firstLabel": "Primero",
+      "startHere": "Empieza aquí.",
+      "thenLabel": "Tu compañero",
+      "meetPartner": "Te presentamos a {{partner}}.",
+      "nextTimeLabel": "La próxima vez",
+      "trainTitle": "Cada sesión empieza aquí.",
+      "trainBody": "Elige tu asalto, activa el vídeo si quieres puntuación y pulsa empezar.",
+      "anytimeLabel": "En cualquier momento",
+      "helpTitle": "¿Atascado? Pregunta aquí.",
+      "helpBody": "Pregunta a Victory resuelve dudas sobre la app y puede pasar lo demás al equipo.",
+      "startBody": "Un asalto de 3 minutos con {{partner}}. Esa es toda tu primera sesión."
     }
   }
 }
