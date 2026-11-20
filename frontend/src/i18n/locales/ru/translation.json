@@ -870,7 +870,9 @@
     "homePage": {
       "goLive": "Выйти в эфир",
       "live": "ЭФИР",
-      "recent": "Недавние"
+      "recent": "Недавние",
+      "trainNow": "Тренироваться",
+      "following": "Подписан"
     },
     "liveFeedPage": {
       "goLive": "Выйти в эфир",
@@ -886,7 +888,8 @@
       "free": "Бесплатно",
       "unlocks": "открывает",
       "tips2": "Чаевые",
-      "noEmotesYet": "Эмодзи пока нет"
+      "noEmotesYet": "Эмодзи пока нет",
+      "tokens2": "{{token_price}} токенов"
     },
     "streamCard": {
       "live": "ЭФИР"
@@ -896,7 +899,35 @@
       "dismiss": "Скрыть",
       "sessions": "тренировок",
       "filters": "Фильтры",
-      "clearAllFilters": "Сбросить все фильтры"
+      "clearAllFilters": "Сбросить все фильтры",
+      "couldnTUnfollowTry": "Не удалось отписаться. Попробуй ещё раз.",
+      "couldnTFollowTry": "Не удалось подписаться. Попробуй ещё раз.",
+      "following": "Подписан",
+      "follow": "Подписаться",
+      "noMatchesYetInvite": "Совпадений пока нет — пригласи их в Victory AI!",
+      "couldnTCheckYour": "Не удалось проверить контакты. Попробуй ещё раз.",
+      "searchFightersByName": "Искать бойцов по имени…",
+      "clearSearch": "Очистить поиск",
+      "stance": "Стойка",
+      "sortBy": "Сортировать",
+      "clearFilters": "Сбросить фильтры",
+      "fighterMarket": "Рынок бойцов",
+      "verifiedProsTheirFighter": "Проверенные профи, их карточки бойцов и мерч",
+      "findFriendsFromYour": "Найди друзей в контактах",
+      "youPickWhoTo": "Ты выбираешь, кого проверить, — ничего не загружается автоматически.",
+      "find": "Найти",
+      "fromYourContacts": "Из твоих контактов",
+      "fighters": "Бойцы: {{weightClass}}",
+      "resultsFor": "Результаты по «{{q}}»",
+      "allFighters": "Все бойцы",
+      "noFightersFound": "Бойцы не найдены",
+      "noOneMatches": "Никто не подходит под «{{q}}»",
+      "beTheFirstTo": "Стань первым в своей весовой категории!",
+      "loadMoreFighters": "Показать ещё бойцов",
+      "mostActive": "Самые активные",
+      "mostFollowed": "Больше всего подписчиков",
+      "bestRecord": "Лучший рекорд",
+      "newest": "Новые"
     },
     "streamViewPage": {
       "live": "ЭФИР",
@@ -905,7 +936,11 @@
       "clipFailedTryAgain": "Клип не получился — попробуй ещё раз.",
       "emotes": "Эмодзи",
       "goBack": "Назад",
-      "dismiss": "Скрыть"
+      "dismiss": "Скрыть",
+      "couldnTUnfollowTry": "Не удалось отписаться. Попробуй ещё раз.",
+      "couldnTFollowTry": "Не удалось подписаться. Попробуй ещё раз.",
+      "following": "Подписан",
+      "follow": "Подписаться"
     },
     "onboardingFlow": {
       "ready": "Готово"
@@ -920,7 +955,11 @@
       "clip": "Клип",
       "saving": "Сохраняем…",
       "category": "Категория",
-      "weightClass": "Весовая категория"
+      "weightClass": "Весовая категория",
+      "couldnTUnfollowTry": "Не удалось отписаться. Попробуй ещё раз.",
+      "couldnTFollowTry": "Не удалось подписаться. Попробуй ещё раз.",
+      "following": "Подписан",
+      "follow": "Подписаться"
     },
     "highlightShareSheet": {
       "copied": "Скопировано!",
@@ -1020,7 +1059,30 @@
       "goBack": "Назад",
       "free": "Бесплатно",
       "unlocks": "открывает",
-      "noEmotesYet": "Эмодзи пока нет"
+      "noEmotesYet": "Эмодзи пока нет",
+      "couldNotDeleteEmote": "Не удалось удалить эмодзи.",
+      "tokens": "{{token_price}} токенов",
+      "characterUpdated": "Персонаж обновлён!",
+      "couldNotRegenerateAvatar": "Не удалось пересоздать аватар. Попробуй ещё раз.",
+      "giveYourEmoteA": "Сначала дай эмодзи имя.",
+      "emoteCreated": "Эмодзи создано!",
+      "generationFailed": "Не удалось создать.",
+      "emoteDeleted": "Эмодзи удалено.",
+      "emoteStudio": "Студия эмодзи",
+      "generateCustomEmotesFrom": "Создавай свои эмодзи на основе ИИ-партнёра",
+      "yourEmoteCharacter": "Персонаж для эмодзи",
+      "customize": "Настроить",
+      "noTrainingPartnerYet": "Партнёра пока нет",
+      "createYourAiPartner": "Сначала создай ИИ-партнёра в разделе «Тренировка».",
+      "goToTrain": "К тренировке",
+      "createNewEmote": "Создать эмодзи",
+      "reactionType": "Тип реакции",
+      "emoteName": "Имя эмодзи",
+      "eGGogohype": "напр. GOGOHYPE",
+      "name": "ИМЯ",
+      "priceForViewers": "Цена для зрителей",
+      "savedToYourCollection": "Сохранено в коллекции",
+      "generating": "Создаём…"
     },
     "birthDateCard": {
       "enterYourDateOf": "Укажи дату рождения",
@@ -1056,7 +1118,23 @@
       "tokensAreNonRefundable": "Токены не возвращаются. Защищено Stripe."
     },
     "comboBuilderPage": {
-      "save": "Сохранить"
+      "save": "Сохранить",
+      "saved": "Сохранено",
+      "couldnTLoadYour": "Не удалось загрузить твои комбинации.",
+      "back": "Назад",
+      "comboBuilder": "Конструктор комбинаций",
+      "designItDrillIt": "Придумай. Отработай. ИИ-партнёр проверит по видео.",
+      "thisWeekSFocus": "Фокус недели",
+      "tapMovesToBuild": "Нажимай движения, чтобы собрать комбинацию",
+      "removeLastMove": "Убрать последнее движение",
+      "punches": "Удары",
+      "s1Jab2Cross": "1 джеб · 2 кросс · 3 боковой передней · 4 боковой задней · 5 апперкот передней · 6 апперкот задней",
+      "defenceAndFeet": "Защита и ноги",
+      "nameItOptional": "Назови (необязательно)",
+      "combinationName": "Название комбинации",
+      "makeItMyFocus": "Сделать фокусом",
+      "yourCombinations": "Твои комбинации ·",
+      "focus": "Фокус"
     },
     "tokensPage": {
       "save": "Сохранить",
@@ -1183,7 +1261,9 @@
       "close": "Закрыть"
     },
     "squadsPage": {
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "callouts": "Вызовы",
+      "beatASquadMate": "Побей рекорд товарища по команде за 7 дней и забери его титул"
     },
     "timerPage": {
       "close": "Закрыть",
@@ -1342,11 +1422,13 @@
     },
     "ordersPage": {
       "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
-      "send": "Отправить"
+      "send": "Отправить",
+      "back": "Назад"
     },
     "proApplyPage": {
       "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
-      "sending": "Отправка…"
+      "sending": "Отправка…",
+      "back": "Назад"
     },
     "mentorPanel": {
       "send": "Отправить",
@@ -1410,7 +1492,8 @@
     "fantasyPage": {
       "seePro": "Смотреть Pro",
       "you": "{{name}} (ты)",
-      "days": "дней"
+      "days": "дней",
+      "back": "Назад"
     },
     "goldenGloves": {
       "day": "день",
@@ -1431,7 +1514,8 @@
     },
     "proDashboardPage": {
       "left": "остался",
-      "setUpPayouts": "Настроить выплаты"
+      "setUpPayouts": "Настроить выплаты",
+      "back": "Назад"
     },
     "legendCard": {
       "watchBreakdown": "Смотреть разбор"
@@ -1501,18 +1585,43 @@
     },
     "blockedAccountsPage": {
       "goBack": "Назад",
-      "couldnTLoadBlocked": "Не удалось загрузить заблокированные аккаунты."
+      "couldnTLoadBlocked": "Не удалось загрузить заблокированные аккаунты.",
+      "unblocked": "Разблокирован.",
+      "couldnTUnblock": "Не удалось разблокировать.",
+      "blockedAccounts": "Заблокированные аккаунты",
+      "youHavenTBlocked": "Ты никого не заблокировал.",
+      "unblock": "Разблокировать"
     },
     "calloutsPage": {
       "goBack": "Назад",
       "daysLeft": "дней осталось",
-      "accept": "Принять"
+      "accept": "Принять",
+      "beatItWith": "побил результатом",
+      "defendedNobodyTouchedIt": "Защищено — никто не приблизился",
+      "defended": "Защищено",
+      "accepted": " · принято {{accepted_count}}/{{target_count}}",
+      "couldnTAccept": "Не удалось принять",
+      "callouts": "Вызовы",
+      "beatASquadMate": "Побей рекорд товарища по команде за 7 дней и забери его титул",
+      "noCalloutsYet": "Вызовов пока нет",
+      "hitANewPersonal": "Установи новый личный рекорд — и сможешь бросить вызов команде.",
+      "trainNow": "Тренироваться",
+      "calledOut": "Вызов брошен",
+      "daresYouToBeat": "вызывает тебя побить",
+      "accepted2": "Принято",
+      "trainIt": "Отработать",
+      "yourCallouts": "Твои вызовы",
+      "winItBack": "Верни его →"
     },
     "competitionDetailPage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "ai": "ИИ",
+      "castVote": "Проголосовать"
     },
     "createPostPage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "uploadFailed": "Ошибка загрузки: {{message}}",
+      "removeVideo": "Удалить видео"
     },
     "gymDetailPage": {
       "goBack": "Назад"
@@ -1522,7 +1631,9 @@
     },
     "profilePage": {
       "goBack": "Назад",
-      "subscription": "Подписка"
+      "subscription": "Подписка",
+      "blockedAccounts": "Заблокированные аккаунты",
+      "emoteStudio": "Студия эмодзи"
     },
     "rateRoundPage": {
       "goBack": "Назад",
@@ -1561,7 +1672,8 @@
       "dismiss": "Скрыть",
       "share": "Поделиться",
       "vs": "против",
-      "couldnTSaveThat": "Не удалось сохранить"
+      "couldnTSaveThat": "Не удалось сохранить",
+      "back": "Назад"
     },
     "streakShareButton": {
       "share": "Поделиться",
@@ -1571,11 +1683,13 @@
     "styleQuizPage": {
       "share": "Поделиться",
       "copiedPasteItAnywhere": "Скопировано. Вставь куда угодно.",
-      "couldnTShareThat": "Не удалось поделиться"
+      "couldnTShareThat": "Не удалось поделиться",
+      "back": "Назад"
     },
     "fighterBuddyCreator": {
       "choose": "Выбери",
-      "weightClass": "Весовая категория"
+      "weightClass": "Весовая категория",
+      "stance": "Стойка"
     },
     "radarChart": {
       "thisSession": "Эта тренировка",
@@ -1643,7 +1757,8 @@
       "toUnlockTheVerdict": "чтобы открыть вердикт"
     },
     "fantasyPartnersPage": {
-      "sending": "Отправка…"
+      "sending": "Отправка…",
+      "back": "Назад"
     },
     "levelCard": {
       "status": "Статус",
@@ -1764,11 +1879,19 @@
       "make": "Создать"
     },
     "checkinPage": {
-      "join": "Вступить"
+      "join": "Вступить",
+      "couldnTJoinThat": "Не удалось вступить в зал",
+      "goHome": "На главную",
+      "startTraining": "Начать тренировку",
+      "youReAt": "Ты в",
+      "checkInsCountFor": "Отметки засчитываются участникам.",
+      "joinToFightFor": "Вступи, чтобы сражаться за этот зал.",
+      "askTheGymFor": "Попроси у зала код приглашения."
     },
     "proCardPage": {
       "make": "Создать",
-      "buyerProtection": "Защита покупателя"
+      "buyerProtection": "Защита покупателя",
+      "back": "Назад"
     },
     "comingUp": {
       "comingUp": "Скоро",
@@ -1842,7 +1965,9 @@
       "bagPadsCircuitsHiit": "Мешок, лапы, круговые, HIIT. Снимай на том же экране."
     },
     "fighterMarketPage": {
-      "buyerProtection": "Защита покупателя"
+      "buyerProtection": "Защита покупателя",
+      "back": "Назад",
+      "fighterMarket": "Рынок бойцов"
     },
     "bragButton": {
       "copiedPasteItAnywhere": "Скопировано. Вставь куда угодно.",
@@ -1933,7 +2058,12 @@
       "topKnockouts": "Лучшие нокауты"
     },
     "competitionsPage": {
-      "pro": "Pro"
+      "pro": "Pro",
+      "ai": "ИИ",
+      "createCompetition": "Создать соревнование"
+    },
+    "fightStoryPage": {
+      "back": "Назад"
     }
   },
   "feedback": {

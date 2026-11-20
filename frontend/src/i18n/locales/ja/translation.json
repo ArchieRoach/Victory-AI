@@ -870,7 +870,9 @@
     "homePage": {
       "goLive": "ライブ配信",
       "live": "ライブ",
-      "recent": "最近"
+      "recent": "最近",
+      "trainNow": "今すぐトレーニング",
+      "following": "フォロー中"
     },
     "liveFeedPage": {
       "goLive": "ライブ配信",
@@ -886,7 +888,8 @@
       "free": "無料",
       "unlocks": "解除",
       "tips2": "チップ",
-      "noEmotesYet": "エモートはまだありません"
+      "noEmotesYet": "エモートはまだありません",
+      "tokens2": "{{token_price}}トークン"
     },
     "streamCard": {
       "live": "ライブ"
@@ -896,7 +899,35 @@
       "dismiss": "閉じる",
       "sessions": "セッション",
       "filters": "フィルター",
-      "clearAllFilters": "すべてのフィルターをクリア"
+      "clearAllFilters": "すべてのフィルターをクリア",
+      "couldnTUnfollowTry": "フォロー解除できませんでした。もう一度お試しください。",
+      "couldnTFollowTry": "フォローできませんでした。もう一度お試しください。",
+      "following": "フォロー中",
+      "follow": "フォロー",
+      "noMatchesYetInvite": "まだ見つかりません — Victory AIに招待しよう！",
+      "couldnTCheckYour": "連絡先を確認できませんでした。もう一度お試しください。",
+      "searchFightersByName": "名前でファイターを検索…",
+      "clearSearch": "検索をクリア",
+      "stance": "構え",
+      "sortBy": "並べ替え",
+      "clearFilters": "フィルターをクリア",
+      "fighterMarket": "ファイターマーケット",
+      "verifiedProsTheirFighter": "認証済みプロ、そのファイターカードとグッズ",
+      "findFriendsFromYour": "連絡先から友達を探す",
+      "youPickWhoTo": "確認する相手はあなたが選びます — 自動では何もアップロードされません。",
+      "find": "探す",
+      "fromYourContacts": "連絡先から",
+      "fighters": "{{weightClass}}のファイター",
+      "resultsFor": "「{{q}}」の結果",
+      "allFighters": "すべてのファイター",
+      "noFightersFound": "ファイターが見つかりません",
+      "noOneMatches": "「{{q}}」に一致する人はいません",
+      "beTheFirstTo": "あなたの階級の最初の代表になろう！",
+      "loadMoreFighters": "もっとファイターを読み込む",
+      "mostActive": "最もアクティブ",
+      "mostFollowed": "最もフォローされている",
+      "bestRecord": "最高戦績",
+      "newest": "新着"
     },
     "streamViewPage": {
       "live": "ライブ",
@@ -905,7 +936,11 @@
       "clipFailedTryAgain": "クリップに失敗しました — もう一度お試しください。",
       "emotes": "エモート",
       "goBack": "戻る",
-      "dismiss": "閉じる"
+      "dismiss": "閉じる",
+      "couldnTUnfollowTry": "フォロー解除できませんでした。もう一度お試しください。",
+      "couldnTFollowTry": "フォローできませんでした。もう一度お試しください。",
+      "following": "フォロー中",
+      "follow": "フォロー"
     },
     "onboardingFlow": {
       "ready": "準備完了"
@@ -920,7 +955,11 @@
       "clip": "クリップ",
       "saving": "保存中…",
       "category": "カテゴリー",
-      "weightClass": "階級"
+      "weightClass": "階級",
+      "couldnTUnfollowTry": "フォロー解除できませんでした。もう一度お試しください。",
+      "couldnTFollowTry": "フォローできませんでした。もう一度お試しください。",
+      "following": "フォロー中",
+      "follow": "フォロー"
     },
     "highlightShareSheet": {
       "copied": "コピーしました！",
@@ -1020,7 +1059,30 @@
       "goBack": "戻る",
       "free": "無料",
       "unlocks": "解除",
-      "noEmotesYet": "エモートはまだありません"
+      "noEmotesYet": "エモートはまだありません",
+      "couldNotDeleteEmote": "エモートを削除できませんでした。",
+      "tokens": "{{token_price}}トークン",
+      "characterUpdated": "キャラクターを更新しました！",
+      "couldNotRegenerateAvatar": "アバターを再生成できませんでした。もう一度お試しください。",
+      "giveYourEmoteA": "まずエモートに名前をつけてください。",
+      "emoteCreated": "エモートを作成しました！",
+      "generationFailed": "生成に失敗しました。",
+      "emoteDeleted": "エモートを削除しました。",
+      "emoteStudio": "エモートスタジオ",
+      "generateCustomEmotesFrom": "AIトレーニングパートナーからオリジナルエモートを生成",
+      "yourEmoteCharacter": "エモートのキャラクター",
+      "customize": "カスタマイズ",
+      "noTrainingPartnerYet": "まだトレーニングパートナーがいません",
+      "createYourAiPartner": "まずトレーニングでAIパートナーを作成してください。",
+      "goToTrain": "トレーニングへ",
+      "createNewEmote": "新しいエモートを作成",
+      "reactionType": "リアクションの種類",
+      "emoteName": "エモート名",
+      "eGGogohype": "例：GOGOHYPE",
+      "name": "名前",
+      "priceForViewers": "視聴者向け価格",
+      "savedToYourCollection": "コレクションに保存しました",
+      "generating": "生成中…"
     },
     "birthDateCard": {
       "enterYourDateOf": "生年月日を入力",
@@ -1056,7 +1118,23 @@
       "tokensAreNonRefundable": "トークンは返金できません。Stripeで安全に決済。"
     },
     "comboBuilderPage": {
-      "save": "保存"
+      "save": "保存",
+      "saved": "保存しました",
+      "couldnTLoadYour": "コンビネーションを読み込めませんでした。",
+      "back": "戻る",
+      "comboBuilder": "コンボビルダー",
+      "designItDrillIt": "作る。練習する。AIパートナーが動画でチェック。",
+      "thisWeekSFocus": "今週の重点",
+      "tapMovesToBuild": "動きをタップしてコンビネーションを作ろう",
+      "removeLastMove": "最後の動きを削除",
+      "punches": "パンチ",
+      "s1Jab2Cross": "1 ジャブ · 2 クロス · 3 リードフック · 4 リアフック · 5 リードアッパー · 6 リアアッパー",
+      "defenceAndFeet": "ディフェンスとフットワーク",
+      "nameItOptional": "名前をつける（任意）",
+      "combinationName": "コンビネーション名",
+      "makeItMyFocus": "重点にする",
+      "yourCombinations": "あなたのコンビネーション ·",
+      "focus": "重点"
     },
     "tokensPage": {
       "save": "保存",
@@ -1183,7 +1261,9 @@
       "close": "閉じる"
     },
     "squadsPage": {
-      "close": "閉じる"
+      "close": "閉じる",
+      "callouts": "挑戦",
+      "beatASquadMate": "7日以内にスクワッド仲間のベストを超えてタイトルを奪おう"
     },
     "timerPage": {
       "close": "閉じる",
@@ -1342,11 +1422,13 @@
     },
     "ordersPage": {
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
-      "send": "送信"
+      "send": "送信",
+      "back": "戻る"
     },
     "proApplyPage": {
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
-      "sending": "送信中…"
+      "sending": "送信中…",
+      "back": "戻る"
     },
     "mentorPanel": {
       "send": "送信",
@@ -1410,7 +1492,8 @@
     "fantasyPage": {
       "seePro": "Proを見る",
       "you": "{{name}}（あなた）",
-      "days": "日"
+      "days": "日",
+      "back": "戻る"
     },
     "goldenGloves": {
       "day": "日",
@@ -1431,7 +1514,8 @@
     },
     "proDashboardPage": {
       "left": "残り",
-      "setUpPayouts": "支払いを設定"
+      "setUpPayouts": "支払いを設定",
+      "back": "戻る"
     },
     "legendCard": {
       "watchBreakdown": "分析を見る"
@@ -1501,18 +1585,43 @@
     },
     "blockedAccountsPage": {
       "goBack": "戻る",
-      "couldnTLoadBlocked": "ブロックしたアカウントを読み込めませんでした。"
+      "couldnTLoadBlocked": "ブロックしたアカウントを読み込めませんでした。",
+      "unblocked": "ブロックを解除しました。",
+      "couldnTUnblock": "ブロックを解除できませんでした。",
+      "blockedAccounts": "ブロックしたアカウント",
+      "youHavenTBlocked": "誰もブロックしていません。",
+      "unblock": "ブロック解除"
     },
     "calloutsPage": {
       "goBack": "戻る",
       "daysLeft": "日残り",
-      "accept": "承認"
+      "accept": "承認",
+      "beatItWith": "の記録で更新：",
+      "defendedNobodyTouchedIt": "防衛 — 誰も届かず",
+      "defended": "防衛",
+      "accepted": " · {{accepted_count}}/{{target_count}}人が受諾",
+      "couldnTAccept": "受諾できませんでした",
+      "callouts": "挑戦",
+      "beatASquadMate": "7日以内にスクワッド仲間のベストを超えてタイトルを奪おう",
+      "noCalloutsYet": "まだ挑戦はありません",
+      "hitANewPersonal": "自己ベストを更新すると、スクワッドに超えてみろと挑戦できます。",
+      "trainNow": "今すぐトレーニング",
+      "calledOut": "挑戦された",
+      "daresYouToBeat": "が挑戦：超えてみろ",
+      "accepted2": "受諾済み",
+      "trainIt": "練習する",
+      "yourCallouts": "あなたの挑戦",
+      "winItBack": "取り返す →"
     },
     "competitionDetailPage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "ai": "AI",
+      "castVote": "投票する"
     },
     "createPostPage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "uploadFailed": "アップロード失敗：{{message}}",
+      "removeVideo": "動画を削除"
     },
     "gymDetailPage": {
       "goBack": "戻る"
@@ -1522,7 +1631,9 @@
     },
     "profilePage": {
       "goBack": "戻る",
-      "subscription": "サブスクリプション"
+      "subscription": "サブスクリプション",
+      "blockedAccounts": "ブロックしたアカウント",
+      "emoteStudio": "エモートスタジオ"
     },
     "rateRoundPage": {
       "goBack": "戻る",
@@ -1561,7 +1672,8 @@
       "dismiss": "閉じる",
       "share": "共有",
       "vs": "vs",
-      "couldnTSaveThat": "保存できませんでした"
+      "couldnTSaveThat": "保存できませんでした",
+      "back": "戻る"
     },
     "streakShareButton": {
       "share": "共有",
@@ -1571,11 +1683,13 @@
     "styleQuizPage": {
       "share": "共有",
       "copiedPasteItAnywhere": "コピーしました。どこにでも貼り付けられます。",
-      "couldnTShareThat": "シェアできませんでした"
+      "couldnTShareThat": "シェアできませんでした",
+      "back": "戻る"
     },
     "fighterBuddyCreator": {
       "choose": "選択",
-      "weightClass": "階級"
+      "weightClass": "階級",
+      "stance": "構え"
     },
     "radarChart": {
       "thisSession": "今回のセッション",
@@ -1643,7 +1757,8 @@
       "toUnlockTheVerdict": "で判定が解除"
     },
     "fantasyPartnersPage": {
-      "sending": "送信中…"
+      "sending": "送信中…",
+      "back": "戻る"
     },
     "levelCard": {
       "status": "ステータス",
@@ -1764,11 +1879,19 @@
       "make": "作成"
     },
     "checkinPage": {
-      "join": "参加"
+      "join": "参加",
+      "couldnTJoinThat": "そのジムに参加できませんでした",
+      "goHome": "ホームへ",
+      "startTraining": "トレーニングを始める",
+      "youReAt": "現在地：",
+      "checkInsCountFor": "チェックインはメンバーにカウントされます。",
+      "joinToFightFor": "参加してこのジムのために戦おう。",
+      "askTheGymFor": "ジムに招待コードを聞いてください。"
     },
     "proCardPage": {
       "make": "作成",
-      "buyerProtection": "購入者保護"
+      "buyerProtection": "購入者保護",
+      "back": "戻る"
     },
     "comingUp": {
       "comingUp": "今後の予定",
@@ -1842,7 +1965,9 @@
       "bagPadsCircuitsHiit": "サンドバッグ、ミット、サーキット、HIIT。同じ画面で撮影。"
     },
     "fighterMarketPage": {
-      "buyerProtection": "購入者保護"
+      "buyerProtection": "購入者保護",
+      "back": "戻る",
+      "fighterMarket": "ファイターマーケット"
     },
     "bragButton": {
       "copiedPasteItAnywhere": "コピーしました。どこにでも貼り付けられます。",
@@ -1933,7 +2058,12 @@
       "topKnockouts": "トップKO"
     },
     "competitionsPage": {
-      "pro": "Pro"
+      "pro": "Pro",
+      "ai": "AI",
+      "createCompetition": "大会を作成"
+    },
+    "fightStoryPage": {
+      "back": "戻る"
     }
   },
   "feedback": {

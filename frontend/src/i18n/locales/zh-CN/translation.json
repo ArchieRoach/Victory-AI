@@ -870,7 +870,9 @@
     "homePage": {
       "goLive": "开始直播",
       "live": "直播中",
-      "recent": "最近"
+      "recent": "最近",
+      "trainNow": "马上训练",
+      "following": "已关注"
     },
     "liveFeedPage": {
       "goLive": "开始直播",
@@ -886,7 +888,8 @@
       "free": "免费",
       "unlocks": "解锁",
       "tips2": "打赏",
-      "noEmotesYet": "还没有表情"
+      "noEmotesYet": "还没有表情",
+      "tokens2": "{{token_price}} 代币"
     },
     "streamCard": {
       "live": "直播中"
@@ -896,7 +899,35 @@
       "dismiss": "关闭",
       "sessions": "次训练",
       "filters": "筛选",
-      "clearAllFilters": "清除所有筛选"
+      "clearAllFilters": "清除所有筛选",
+      "couldnTUnfollowTry": "无法取消关注，请重试。",
+      "couldnTFollowTry": "无法关注，请重试。",
+      "following": "已关注",
+      "follow": "关注",
+      "noMatchesYetInvite": "还没有匹配 — 邀请他们加入 Victory AI！",
+      "couldnTCheckYour": "无法检查你的联系人，请重试。",
+      "searchFightersByName": "按名字搜索拳手…",
+      "clearSearch": "清除搜索",
+      "stance": "架势",
+      "sortBy": "排序方式",
+      "clearFilters": "清除筛选",
+      "fighterMarket": "拳手市场",
+      "verifiedProsTheirFighter": "认证职业拳手、他们的拳手卡和周边",
+      "findFriendsFromYour": "从联系人中找朋友",
+      "youPickWhoTo": "由你选择要检查的人 — 不会自动上传任何内容。",
+      "find": "查找",
+      "fromYourContacts": "来自你的联系人",
+      "fighters": "{{weightClass}} 拳手",
+      "resultsFor": "“{{q}}”的结果",
+      "allFighters": "所有拳手",
+      "noFightersFound": "未找到拳手",
+      "noOneMatches": "没有人匹配“{{q}}”",
+      "beTheFirstTo": "成为你所在级别的第一位代表！",
+      "loadMoreFighters": "加载更多拳手",
+      "mostActive": "最活跃",
+      "mostFollowed": "最多关注",
+      "bestRecord": "最佳战绩",
+      "newest": "最新"
     },
     "streamViewPage": {
       "live": "直播中",
@@ -905,7 +936,11 @@
       "clipFailedTryAgain": "剪辑失败 — 请重试。",
       "emotes": "表情",
       "goBack": "返回",
-      "dismiss": "关闭"
+      "dismiss": "关闭",
+      "couldnTUnfollowTry": "无法取消关注，请重试。",
+      "couldnTFollowTry": "无法关注，请重试。",
+      "following": "已关注",
+      "follow": "关注"
     },
     "onboardingFlow": {
       "ready": "就绪"
@@ -920,7 +955,11 @@
       "clip": "短片",
       "saving": "保存中…",
       "category": "类别",
-      "weightClass": "重量级别"
+      "weightClass": "重量级别",
+      "couldnTUnfollowTry": "无法取消关注，请重试。",
+      "couldnTFollowTry": "无法关注，请重试。",
+      "following": "已关注",
+      "follow": "关注"
     },
     "highlightShareSheet": {
       "copied": "已复制！",
@@ -1020,7 +1059,30 @@
       "goBack": "返回",
       "free": "免费",
       "unlocks": "解锁",
-      "noEmotesYet": "还没有表情"
+      "noEmotesYet": "还没有表情",
+      "couldNotDeleteEmote": "无法删除表情。",
+      "tokens": "{{token_price}} 代币",
+      "characterUpdated": "角色已更新！",
+      "couldNotRegenerateAvatar": "无法重新生成头像，请重试。",
+      "giveYourEmoteA": "请先给你的表情起个名字。",
+      "emoteCreated": "表情已创建！",
+      "generationFailed": "生成失败。",
+      "emoteDeleted": "表情已删除。",
+      "emoteStudio": "表情工作室",
+      "generateCustomEmotesFrom": "根据你的 AI 训练搭档生成自定义表情",
+      "yourEmoteCharacter": "你的表情角色",
+      "customize": "自定义",
+      "noTrainingPartnerYet": "还没有训练搭档",
+      "createYourAiPartner": "请先在训练板块创建你的 AI 搭档。",
+      "goToTrain": "前往训练",
+      "createNewEmote": "创建新表情",
+      "reactionType": "反应类型",
+      "emoteName": "表情名称",
+      "eGGogohype": "例如 GOGOHYPE",
+      "name": "名称",
+      "priceForViewers": "观众价格",
+      "savedToYourCollection": "已保存到你的收藏",
+      "generating": "生成中…"
     },
     "birthDateCard": {
       "enterYourDateOf": "输入你的出生日期",
@@ -1056,7 +1118,23 @@
       "tokensAreNonRefundable": "代币不可退款。由 Stripe 保障安全。"
     },
     "comboBuilderPage": {
-      "save": "保存"
+      "save": "保存",
+      "saved": "已保存",
+      "couldnTLoadYour": "无法加载你的组合拳。",
+      "back": "返回",
+      "comboBuilder": "组合拳编辑器",
+      "designItDrillIt": "设计它。练习它。你的 AI 搭档通过视频检查。",
+      "thisWeekSFocus": "本周重点",
+      "tapMovesToBuild": "点击动作来组建你的组合拳",
+      "removeLastMove": "移除最后一个动作",
+      "punches": "拳法",
+      "s1Jab2Cross": "1 刺拳 · 2 后手直拳 · 3 前手勾拳 · 4 后手勾拳 · 5 前手上勾拳 · 6 后手上勾拳",
+      "defenceAndFeet": "防守和步法",
+      "nameItOptional": "给它起个名字（可选）",
+      "combinationName": "组合拳名称",
+      "makeItMyFocus": "设为我的重点",
+      "yourCombinations": "你的组合拳 ·",
+      "focus": "重点"
     },
     "tokensPage": {
       "save": "保存",
@@ -1183,7 +1261,9 @@
       "close": "关闭"
     },
     "squadsPage": {
-      "close": "关闭"
+      "close": "关闭",
+      "callouts": "挑战",
+      "beatASquadMate": "在 7 天内超越小队成员的最佳成绩，夺走他的头衔"
     },
     "timerPage": {
       "close": "关闭",
@@ -1342,11 +1422,13 @@
     },
     "ordersPage": {
       "couldnTSendThat": "无法发送，请重试。",
-      "send": "发送"
+      "send": "发送",
+      "back": "返回"
     },
     "proApplyPage": {
       "couldnTSendThat": "无法发送，请重试。",
-      "sending": "发送中…"
+      "sending": "发送中…",
+      "back": "返回"
     },
     "mentorPanel": {
       "send": "发送",
@@ -1410,7 +1492,8 @@
     "fantasyPage": {
       "seePro": "查看 Pro",
       "you": "{{name}}（你）",
-      "days": "天"
+      "days": "天",
+      "back": "返回"
     },
     "goldenGloves": {
       "day": "天",
@@ -1431,7 +1514,8 @@
     },
     "proDashboardPage": {
       "left": "剩余",
-      "setUpPayouts": "设置收款"
+      "setUpPayouts": "设置收款",
+      "back": "返回"
     },
     "legendCard": {
       "watchBreakdown": "观看分析"
@@ -1501,18 +1585,43 @@
     },
     "blockedAccountsPage": {
       "goBack": "返回",
-      "couldnTLoadBlocked": "无法加载已屏蔽的账户。"
+      "couldnTLoadBlocked": "无法加载已屏蔽的账户。",
+      "unblocked": "已取消屏蔽。",
+      "couldnTUnblock": "无法取消屏蔽。",
+      "blockedAccounts": "已屏蔽的账户",
+      "youHavenTBlocked": "你还没有屏蔽任何人。",
+      "unblock": "取消屏蔽"
     },
     "calloutsPage": {
       "goBack": "返回",
       "daysLeft": "天剩余",
-      "accept": "接受"
+      "accept": "接受",
+      "beatItWith": "以此成绩超越：",
+      "defendedNobodyTouchedIt": "守住了 — 没人碰得到",
+      "defended": "守住了",
+      "accepted": " · {{accepted_count}}/{{target_count}} 人接受",
+      "couldnTAccept": "无法接受",
+      "callouts": "挑战",
+      "beatASquadMate": "在 7 天内超越小队成员的最佳成绩，夺走他的头衔",
+      "noCalloutsYet": "还没有挑战",
+      "hitANewPersonal": "创下新的个人最佳后，你就可以挑战小队来超越它。",
+      "trainNow": "马上训练",
+      "calledOut": "已被挑战",
+      "daresYouToBeat": "挑战你超越",
+      "accepted2": "已接受",
+      "trainIt": "去练",
+      "yourCallouts": "你的挑战",
+      "winItBack": "夺回来 →"
     },
     "competitionDetailPage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "ai": "AI",
+      "castVote": "投票"
     },
     "createPostPage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "uploadFailed": "上传失败：{{message}}",
+      "removeVideo": "移除视频"
     },
     "gymDetailPage": {
       "goBack": "返回"
@@ -1522,7 +1631,9 @@
     },
     "profilePage": {
       "goBack": "返回",
-      "subscription": "订阅"
+      "subscription": "订阅",
+      "blockedAccounts": "已屏蔽的账户",
+      "emoteStudio": "表情工作室"
     },
     "rateRoundPage": {
       "goBack": "返回",
@@ -1561,7 +1672,8 @@
       "dismiss": "关闭",
       "share": "分享",
       "vs": "对",
-      "couldnTSaveThat": "无法保存"
+      "couldnTSaveThat": "无法保存",
+      "back": "返回"
     },
     "streakShareButton": {
       "share": "分享",
@@ -1571,11 +1683,13 @@
     "styleQuizPage": {
       "share": "分享",
       "copiedPasteItAnywhere": "已复制。粘贴到任何地方。",
-      "couldnTShareThat": "无法分享"
+      "couldnTShareThat": "无法分享",
+      "back": "返回"
     },
     "fighterBuddyCreator": {
       "choose": "选择",
-      "weightClass": "重量级别"
+      "weightClass": "重量级别",
+      "stance": "架势"
     },
     "radarChart": {
       "thisSession": "本次训练",
@@ -1643,7 +1757,8 @@
       "toUnlockTheVerdict": "即可解锁评价"
     },
     "fantasyPartnersPage": {
-      "sending": "发送中…"
+      "sending": "发送中…",
+      "back": "返回"
     },
     "levelCard": {
       "status": "身份",
@@ -1764,11 +1879,19 @@
       "make": "创建"
     },
     "checkinPage": {
-      "join": "加入"
+      "join": "加入",
+      "couldnTJoinThat": "无法加入那个拳馆",
+      "goHome": "回到首页",
+      "startTraining": "开始训练",
+      "youReAt": "你在",
+      "checkInsCountFor": "签到计入会员。",
+      "joinToFightFor": "加入以为这个拳馆而战。",
+      "askTheGymFor": "向拳馆索取邀请码。"
     },
     "proCardPage": {
       "make": "创建",
-      "buyerProtection": "买家保障"
+      "buyerProtection": "买家保障",
+      "back": "返回"
     },
     "comingUp": {
       "comingUp": "即将开始",
@@ -1842,7 +1965,9 @@
       "bagPadsCircuitsHiit": "沙袋、手靶、循环、HIIT。在同一屏幕上录制。"
     },
     "fighterMarketPage": {
-      "buyerProtection": "买家保障"
+      "buyerProtection": "买家保障",
+      "back": "返回",
+      "fighterMarket": "拳手市场"
     },
     "bragButton": {
       "copiedPasteItAnywhere": "已复制。粘贴到任何地方。",
@@ -1933,7 +2058,12 @@
       "topKnockouts": "精彩 KO"
     },
     "competitionsPage": {
-      "pro": "Pro"
+      "pro": "Pro",
+      "ai": "AI",
+      "createCompetition": "创建比赛"
+    },
+    "fightStoryPage": {
+      "back": "返回"
     }
   },
   "feedback": {

@@ -870,7 +870,9 @@
     "homePage": {
       "goLive": "ابدأ البث",
       "live": "مباشر",
-      "recent": "الأحدث"
+      "recent": "الأحدث",
+      "trainNow": "تدرّب الآن",
+      "following": "تتابعه"
     },
     "liveFeedPage": {
       "goLive": "ابدأ البث",
@@ -886,7 +888,8 @@
       "free": "مجاني",
       "unlocks": "يفتح",
       "tips2": "الإكراميات",
-      "noEmotesYet": "لا توجد رموز تعبيرية بعد"
+      "noEmotesYet": "لا توجد رموز تعبيرية بعد",
+      "tokens2": "{{token_price}} رموز"
     },
     "streamCard": {
       "live": "مباشر"
@@ -896,7 +899,35 @@
       "dismiss": "تجاهل",
       "sessions": "جلسات",
       "filters": "عوامل التصفية",
-      "clearAllFilters": "مسح كل عوامل التصفية"
+      "clearAllFilters": "مسح كل عوامل التصفية",
+      "couldnTUnfollowTry": "تعذّر إلغاء المتابعة. حاول مرة أخرى.",
+      "couldnTFollowTry": "تعذّرت المتابعة. حاول مرة أخرى.",
+      "following": "تتابعه",
+      "follow": "متابعة",
+      "noMatchesYetInvite": "لا تطابقات بعد — ادعهم للانضمام إلى Victory AI!",
+      "couldnTCheckYour": "تعذّر فحص جهات اتصالك. حاول مرة أخرى.",
+      "searchFightersByName": "ابحث عن ملاكمين بالاسم…",
+      "clearSearch": "مسح البحث",
+      "stance": "الوقفة",
+      "sortBy": "ترتيب حسب",
+      "clearFilters": "مسح عوامل التصفية",
+      "fighterMarket": "سوق الملاكمين",
+      "verifiedProsTheirFighter": "محترفون موثقون، وبطاقاتهم ومنتجاتهم",
+      "findFriendsFromYour": "ابحث عن أصدقاء من جهات اتصالك",
+      "youPickWhoTo": "أنت تختار من تفحص — لا يُرفع شيء تلقائيًا.",
+      "find": "بحث",
+      "fromYourContacts": "من جهات اتصالك",
+      "fighters": "ملاكمو {{weightClass}}",
+      "resultsFor": "نتائج \"{{q}}\"",
+      "allFighters": "كل الملاكمين",
+      "noFightersFound": "لم يُعثر على ملاكمين",
+      "noOneMatches": "لا أحد يطابق \"{{q}}\"",
+      "beTheFirstTo": "كن أول من يمثل فئة وزنك!",
+      "loadMoreFighters": "تحميل المزيد من الملاكمين",
+      "mostActive": "الأكثر نشاطًا",
+      "mostFollowed": "الأكثر متابعة",
+      "bestRecord": "أفضل سجل",
+      "newest": "الأحدث"
     },
     "streamViewPage": {
       "live": "مباشر",
@@ -905,7 +936,11 @@
       "clipFailedTryAgain": "فشل المقطع — حاول مرة أخرى.",
       "emotes": "رموز تعبيرية",
       "goBack": "رجوع",
-      "dismiss": "تجاهل"
+      "dismiss": "تجاهل",
+      "couldnTUnfollowTry": "تعذّر إلغاء المتابعة. حاول مرة أخرى.",
+      "couldnTFollowTry": "تعذّرت المتابعة. حاول مرة أخرى.",
+      "following": "تتابعه",
+      "follow": "متابعة"
     },
     "onboardingFlow": {
       "ready": "جاهز"
@@ -920,7 +955,11 @@
       "clip": "مقطع",
       "saving": "جارٍ الحفظ…",
       "category": "الفئة",
-      "weightClass": "فئة الوزن"
+      "weightClass": "فئة الوزن",
+      "couldnTUnfollowTry": "تعذّر إلغاء المتابعة. حاول مرة أخرى.",
+      "couldnTFollowTry": "تعذّرت المتابعة. حاول مرة أخرى.",
+      "following": "تتابعه",
+      "follow": "متابعة"
     },
     "highlightShareSheet": {
       "copied": "تم النسخ!",
@@ -1020,7 +1059,30 @@
       "goBack": "رجوع",
       "free": "مجاني",
       "unlocks": "يفتح",
-      "noEmotesYet": "لا توجد رموز تعبيرية بعد"
+      "noEmotesYet": "لا توجد رموز تعبيرية بعد",
+      "couldNotDeleteEmote": "تعذّر حذف الرمز التعبيري.",
+      "tokens": "{{token_price}} رموز",
+      "characterUpdated": "تم تحديث الشخصية!",
+      "couldNotRegenerateAvatar": "تعذّر إعادة إنشاء الصورة الرمزية. حاول مرة أخرى.",
+      "giveYourEmoteA": "سمِّ رمزك التعبيري أولاً.",
+      "emoteCreated": "تم إنشاء الرمز التعبيري!",
+      "generationFailed": "فشل الإنشاء.",
+      "emoteDeleted": "تم حذف الرمز التعبيري.",
+      "emoteStudio": "استوديو الرموز التعبيرية",
+      "generateCustomEmotesFrom": "أنشئ رموزًا تعبيرية مخصصة من شريك تدريبك بالذكاء الاصطناعي",
+      "yourEmoteCharacter": "شخصية رمزك التعبيري",
+      "customize": "تخصيص",
+      "noTrainingPartnerYet": "لا شريك تدريب بعد",
+      "createYourAiPartner": "أنشئ شريكك بالذكاء الاصطناعي في قسم التدريب أولاً.",
+      "goToTrain": "اذهب إلى التدريب",
+      "createNewEmote": "إنشاء رمز تعبيري جديد",
+      "reactionType": "نوع التفاعل",
+      "emoteName": "اسم الرمز التعبيري",
+      "eGGogohype": "مثل GOGOHYPE",
+      "name": "الاسم",
+      "priceForViewers": "السعر للمشاهدين",
+      "savedToYourCollection": "تم الحفظ في مجموعتك",
+      "generating": "جارٍ الإنشاء…"
     },
     "birthDateCard": {
       "enterYourDateOf": "أدخل تاريخ ميلادك",
@@ -1056,7 +1118,23 @@
       "tokensAreNonRefundable": "الرموز غير قابلة للاسترداد. مؤمّن عبر Stripe."
     },
     "comboBuilderPage": {
-      "save": "حفظ"
+      "save": "حفظ",
+      "saved": "تم الحفظ",
+      "couldnTLoadYour": "تعذّر تحميل تركيباتك.",
+      "back": "رجوع",
+      "comboBuilder": "صانع التركيبات",
+      "designItDrillIt": "صمّمها. تمرّن عليها. شريكك بالذكاء الاصطناعي يتحقق منها بالفيديو.",
+      "thisWeekSFocus": "تركيز هذا الأسبوع",
+      "tapMovesToBuild": "اضغط على الحركات لبناء تركيبتك",
+      "removeLastMove": "إزالة آخر حركة",
+      "punches": "اللكمات",
+      "s1Jab2Cross": "1 جاب · 2 كروس · 3 خطاف أمامي · 4 خطاف خلفي · 5 أبركت أمامي · 6 أبركت خلفي",
+      "defenceAndFeet": "الدفاع والقدمان",
+      "nameItOptional": "سمّها (اختياري)",
+      "combinationName": "اسم التركيبة",
+      "makeItMyFocus": "اجعلها تركيزي",
+      "yourCombinations": "تركيباتك ·",
+      "focus": "التركيز"
     },
     "tokensPage": {
       "save": "حفظ",
@@ -1183,7 +1261,9 @@
       "close": "إغلاق"
     },
     "squadsPage": {
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "callouts": "التحديات",
+      "beatASquadMate": "تغلّب على أفضل نتيجة لزميل في الفريق خلال 7 أيام وانتزع لقبه"
     },
     "timerPage": {
       "close": "إغلاق",
@@ -1342,11 +1422,13 @@
     },
     "ordersPage": {
       "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
-      "send": "إرسال"
+      "send": "إرسال",
+      "back": "رجوع"
     },
     "proApplyPage": {
       "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
-      "sending": "جارٍ الإرسال…"
+      "sending": "جارٍ الإرسال…",
+      "back": "رجوع"
     },
     "mentorPanel": {
       "send": "إرسال",
@@ -1410,7 +1492,8 @@
     "fantasyPage": {
       "seePro": "اعرض Pro",
       "you": "{{name}} (أنت)",
-      "days": "أيام"
+      "days": "أيام",
+      "back": "رجوع"
     },
     "goldenGloves": {
       "day": "يوم",
@@ -1431,7 +1514,8 @@
     },
     "proDashboardPage": {
       "left": "متبقٍ",
-      "setUpPayouts": "إعداد المدفوعات"
+      "setUpPayouts": "إعداد المدفوعات",
+      "back": "رجوع"
     },
     "legendCard": {
       "watchBreakdown": "شاهد التحليل"
@@ -1501,18 +1585,43 @@
     },
     "blockedAccountsPage": {
       "goBack": "رجوع",
-      "couldnTLoadBlocked": "تعذّر تحميل الحسابات المحظورة."
+      "couldnTLoadBlocked": "تعذّر تحميل الحسابات المحظورة.",
+      "unblocked": "تم إلغاء الحظر.",
+      "couldnTUnblock": "تعذّر إلغاء الحظر.",
+      "blockedAccounts": "الحسابات المحظورة",
+      "youHavenTBlocked": "لم تحظر أحدًا.",
+      "unblock": "إلغاء الحظر"
     },
     "calloutsPage": {
       "goBack": "رجوع",
       "daysLeft": "أيام متبقية",
-      "accept": "قبول"
+      "accept": "قبول",
+      "beatItWith": "تغلّب عليه بـ",
+      "defendedNobodyTouchedIt": "تم الدفاع — لم يقترب أحد",
+      "defended": "تم الدفاع",
+      "accepted": " · {{accepted_count}}/{{target_count}} قبلوا",
+      "couldnTAccept": "تعذّر القبول",
+      "callouts": "التحديات",
+      "beatASquadMate": "تغلّب على أفضل نتيجة لزميل في الفريق خلال 7 أيام وانتزع لقبه",
+      "noCalloutsYet": "لا تحديات بعد",
+      "hitANewPersonal": "حقق رقمًا شخصيًا جديدًا ويمكنك تحدي فريقك للتغلب عليه.",
+      "trainNow": "تدرّب الآن",
+      "calledOut": "تم تحديك",
+      "daresYouToBeat": "يتحداك أن تتغلب على",
+      "accepted2": "مقبول",
+      "trainIt": "تدرّب عليه",
+      "yourCallouts": "تحدياتك",
+      "winItBack": "استعده ←"
     },
     "competitionDetailPage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "ai": "ذكاء اصطناعي",
+      "castVote": "صوّت"
     },
     "createPostPage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "uploadFailed": "فشل الرفع: {{message}}",
+      "removeVideo": "إزالة الفيديو"
     },
     "gymDetailPage": {
       "goBack": "رجوع"
@@ -1522,7 +1631,9 @@
     },
     "profilePage": {
       "goBack": "رجوع",
-      "subscription": "الاشتراك"
+      "subscription": "الاشتراك",
+      "blockedAccounts": "الحسابات المحظورة",
+      "emoteStudio": "استوديو الرموز التعبيرية"
     },
     "rateRoundPage": {
       "goBack": "رجوع",
@@ -1561,7 +1672,8 @@
       "dismiss": "تجاهل",
       "share": "مشاركة",
       "vs": "ضد",
-      "couldnTSaveThat": "تعذّر الحفظ"
+      "couldnTSaveThat": "تعذّر الحفظ",
+      "back": "رجوع"
     },
     "streakShareButton": {
       "share": "مشاركة",
@@ -1571,11 +1683,13 @@
     "styleQuizPage": {
       "share": "مشاركة",
       "copiedPasteItAnywhere": "تم النسخ. الصقه في أي مكان.",
-      "couldnTShareThat": "تعذّرت المشاركة"
+      "couldnTShareThat": "تعذّرت المشاركة",
+      "back": "رجوع"
     },
     "fighterBuddyCreator": {
       "choose": "اختر",
-      "weightClass": "فئة الوزن"
+      "weightClass": "فئة الوزن",
+      "stance": "الوقفة"
     },
     "radarChart": {
       "thisSession": "هذه الجلسة",
@@ -1643,7 +1757,8 @@
       "toUnlockTheVerdict": "لفتح الحكم"
     },
     "fantasyPartnersPage": {
-      "sending": "جارٍ الإرسال…"
+      "sending": "جارٍ الإرسال…",
+      "back": "رجوع"
     },
     "levelCard": {
       "status": "الحالة",
@@ -1764,11 +1879,19 @@
       "make": "إنشاء"
     },
     "checkinPage": {
-      "join": "انضم"
+      "join": "انضم",
+      "couldnTJoinThat": "تعذّر الانضمام إلى ذلك النادي",
+      "goHome": "العودة للرئيسية",
+      "startTraining": "ابدأ التدريب",
+      "youReAt": "أنت في",
+      "checkInsCountFor": "تسجيلات الحضور تُحتسب للأعضاء.",
+      "joinToFightFor": "انضم لتقاتل من أجل هذا النادي.",
+      "askTheGymFor": "اطلب رمز دعوة من النادي."
     },
     "proCardPage": {
       "make": "إنشاء",
-      "buyerProtection": "حماية المشتري"
+      "buyerProtection": "حماية المشتري",
+      "back": "رجوع"
     },
     "comingUp": {
       "comingUp": "قريبًا",
@@ -1842,7 +1965,9 @@
       "bagPadsCircuitsHiit": "الكيس، الوسائد، الدوائر، HIIT. صوّرها على الشاشة نفسها."
     },
     "fighterMarketPage": {
-      "buyerProtection": "حماية المشتري"
+      "buyerProtection": "حماية المشتري",
+      "back": "رجوع",
+      "fighterMarket": "سوق الملاكمين"
     },
     "bragButton": {
       "copiedPasteItAnywhere": "تم النسخ. الصقه في أي مكان.",
@@ -1933,7 +2058,12 @@
       "topKnockouts": "أفضل الضربات القاضية"
     },
     "competitionsPage": {
-      "pro": "Pro"
+      "pro": "Pro",
+      "ai": "ذكاء اصطناعي",
+      "createCompetition": "إنشاء مسابقة"
+    },
+    "fightStoryPage": {
+      "back": "رجوع"
     }
   },
   "feedback": {

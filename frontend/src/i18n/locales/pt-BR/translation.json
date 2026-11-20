@@ -870,7 +870,9 @@
     "homePage": {
       "goLive": "Ao vivo",
       "live": "AO VIVO",
-      "recent": "Recentes"
+      "recent": "Recentes",
+      "trainNow": "Treinar agora",
+      "following": "Seguindo"
     },
     "liveFeedPage": {
       "goLive": "Ao vivo",
@@ -886,7 +888,8 @@
       "free": "Grátis",
       "unlocks": "desbloqueia",
       "tips2": "Gorjetas",
-      "noEmotesYet": "Nenhum emote ainda"
+      "noEmotesYet": "Nenhum emote ainda",
+      "tokens2": "{{token_price}} tokens"
     },
     "streamCard": {
       "live": "AO VIVO"
@@ -896,7 +899,35 @@
       "dismiss": "Dispensar",
       "sessions": "sessões",
       "filters": "Filtros",
-      "clearAllFilters": "Limpar todos os filtros"
+      "clearAllFilters": "Limpar todos os filtros",
+      "couldnTUnfollowTry": "Não foi possível deixar de seguir. Tente de novo.",
+      "couldnTFollowTry": "Não foi possível seguir. Tente de novo.",
+      "following": "Seguindo",
+      "follow": "Seguir",
+      "noMatchesYetInvite": "Nenhum encontrado ainda — convide-os para o Victory AI!",
+      "couldnTCheckYour": "Não foi possível verificar seus contatos. Tente de novo.",
+      "searchFightersByName": "Buscar lutadores pelo nome…",
+      "clearSearch": "Limpar busca",
+      "stance": "Base",
+      "sortBy": "Ordenar por",
+      "clearFilters": "Limpar filtros",
+      "fighterMarket": "Mercado de lutadores",
+      "verifiedProsTheirFighter": "Profissionais verificados, seus Cards de Lutador e produtos",
+      "findFriendsFromYour": "Encontre amigos nos seus contatos",
+      "youPickWhoTo": "Você escolhe quem verificar — nada é enviado automaticamente.",
+      "find": "Buscar",
+      "fromYourContacts": "Dos seus contatos",
+      "fighters": "Lutadores {{weightClass}}",
+      "resultsFor": "Resultados para \"{{q}}\"",
+      "allFighters": "Todos os lutadores",
+      "noFightersFound": "Nenhum lutador encontrado",
+      "noOneMatches": "Ninguém corresponde a \"{{q}}\"",
+      "beTheFirstTo": "Seja o primeiro a representar sua categoria!",
+      "loadMoreFighters": "Carregar mais lutadores",
+      "mostActive": "Mais ativos",
+      "mostFollowed": "Mais seguidos",
+      "bestRecord": "Melhor cartel",
+      "newest": "Mais novos"
     },
     "streamViewPage": {
       "live": "AO VIVO",
@@ -905,7 +936,11 @@
       "clipFailedTryAgain": "O clipe falhou — tente de novo.",
       "emotes": "Emotes",
       "goBack": "Voltar",
-      "dismiss": "Dispensar"
+      "dismiss": "Dispensar",
+      "couldnTUnfollowTry": "Não foi possível deixar de seguir. Tente de novo.",
+      "couldnTFollowTry": "Não foi possível seguir. Tente de novo.",
+      "following": "Seguindo",
+      "follow": "Seguir"
     },
     "onboardingFlow": {
       "ready": "Pronto"
@@ -920,7 +955,11 @@
       "clip": "Clipe",
       "saving": "Salvando…",
       "category": "Categoria",
-      "weightClass": "Categoria de peso"
+      "weightClass": "Categoria de peso",
+      "couldnTUnfollowTry": "Não foi possível deixar de seguir. Tente de novo.",
+      "couldnTFollowTry": "Não foi possível seguir. Tente de novo.",
+      "following": "Seguindo",
+      "follow": "Seguir"
     },
     "highlightShareSheet": {
       "copied": "Copiado!",
@@ -1020,7 +1059,30 @@
       "goBack": "Voltar",
       "free": "Grátis",
       "unlocks": "desbloqueia",
-      "noEmotesYet": "Nenhum emote ainda"
+      "noEmotesYet": "Nenhum emote ainda",
+      "couldNotDeleteEmote": "Não foi possível excluir o emote.",
+      "tokens": "{{token_price}} tokens",
+      "characterUpdated": "Personagem atualizado!",
+      "couldNotRegenerateAvatar": "Não foi possível gerar o avatar de novo. Tente de novo.",
+      "giveYourEmoteA": "Dê um nome ao seu emote primeiro.",
+      "emoteCreated": "Emote criado!",
+      "generationFailed": "A geração falhou.",
+      "emoteDeleted": "Emote excluído.",
+      "emoteStudio": "Estúdio de emotes",
+      "generateCustomEmotesFrom": "Gere emotes personalizados a partir do seu parceiro de treino de IA",
+      "yourEmoteCharacter": "Seu personagem de emote",
+      "customize": "Personalizar",
+      "noTrainingPartnerYet": "Nenhum parceiro de treino ainda",
+      "createYourAiPartner": "Crie seu parceiro de IA primeiro na seção Treinar.",
+      "goToTrain": "Ir para Treinar",
+      "createNewEmote": "Criar novo emote",
+      "reactionType": "Tipo de reação",
+      "emoteName": "Nome do emote",
+      "eGGogohype": "ex.: GOGOHYPE",
+      "name": "NOME",
+      "priceForViewers": "Preço para espectadores",
+      "savedToYourCollection": "Salvo na sua coleção",
+      "generating": "Gerando…"
     },
     "birthDateCard": {
       "enterYourDateOf": "Informe sua data de nascimento",
@@ -1056,7 +1118,23 @@
       "tokensAreNonRefundable": "Tokens não são reembolsáveis. Protegido pela Stripe."
     },
     "comboBuilderPage": {
-      "save": "Salvar"
+      "save": "Salvar",
+      "saved": "Salvo",
+      "couldnTLoadYour": "Não foi possível carregar suas combinações.",
+      "back": "Voltar",
+      "comboBuilder": "Montador de combos",
+      "designItDrillIt": "Crie. Treine. Seu parceiro de IA confere no vídeo.",
+      "thisWeekSFocus": "Foco da semana",
+      "tapMovesToBuild": "Toque nos movimentos para montar sua combinação",
+      "removeLastMove": "Remover último movimento",
+      "punches": "Socos",
+      "s1Jab2Cross": "1 jab · 2 direto · 3 gancho de frente · 4 gancho de trás · 5 uppercut de frente · 6 uppercut de trás",
+      "defenceAndFeet": "Defesa e pés",
+      "nameItOptional": "Dê um nome (opcional)",
+      "combinationName": "Nome da combinação",
+      "makeItMyFocus": "Tornar meu foco",
+      "yourCombinations": "Suas combinações ·",
+      "focus": "Foco"
     },
     "tokensPage": {
       "save": "Salvar",
@@ -1183,7 +1261,9 @@
       "close": "Fechar"
     },
     "squadsPage": {
-      "close": "Fechar"
+      "close": "Fechar",
+      "callouts": "Desafios",
+      "beatASquadMate": "Bata o recorde de um colega de squad em 7 dias e pegue o título dele"
     },
     "timerPage": {
       "close": "Fechar",
@@ -1342,11 +1422,13 @@
     },
     "ordersPage": {
       "couldnTSendThat": "Não foi possível enviar. Tente de novo.",
-      "send": "Enviar"
+      "send": "Enviar",
+      "back": "Voltar"
     },
     "proApplyPage": {
       "couldnTSendThat": "Não foi possível enviar. Tente de novo.",
-      "sending": "Enviando…"
+      "sending": "Enviando…",
+      "back": "Voltar"
     },
     "mentorPanel": {
       "send": "Enviar",
@@ -1410,7 +1492,8 @@
     "fantasyPage": {
       "seePro": "Ver Pro",
       "you": "{{name}} (você)",
-      "days": "dias"
+      "days": "dias",
+      "back": "Voltar"
     },
     "goldenGloves": {
       "day": "dia",
@@ -1431,7 +1514,8 @@
     },
     "proDashboardPage": {
       "left": "restante",
-      "setUpPayouts": "Configurar pagamentos"
+      "setUpPayouts": "Configurar pagamentos",
+      "back": "Voltar"
     },
     "legendCard": {
       "watchBreakdown": "Ver análise"
@@ -1501,18 +1585,43 @@
     },
     "blockedAccountsPage": {
       "goBack": "Voltar",
-      "couldnTLoadBlocked": "Não foi possível carregar as contas bloqueadas."
+      "couldnTLoadBlocked": "Não foi possível carregar as contas bloqueadas.",
+      "unblocked": "Desbloqueado.",
+      "couldnTUnblock": "Não foi possível desbloquear.",
+      "blockedAccounts": "Contas bloqueadas",
+      "youHavenTBlocked": "Você não bloqueou ninguém.",
+      "unblock": "Desbloquear"
     },
     "calloutsPage": {
       "goBack": "Voltar",
       "daysLeft": "dias restantes",
-      "accept": "Aceitar"
+      "accept": "Aceitar",
+      "beatItWith": "bateu com",
+      "defendedNobodyTouchedIt": "Defendido — ninguém chegou perto",
+      "defended": "Defendido",
+      "accepted": " · {{accepted_count}}/{{target_count}} aceitos",
+      "couldnTAccept": "Não foi possível aceitar",
+      "callouts": "Desafios",
+      "beatASquadMate": "Bata o recorde de um colega de squad em 7 dias e pegue o título dele",
+      "noCalloutsYet": "Nenhum desafio ainda",
+      "hitANewPersonal": "Bata um novo recorde pessoal e você pode desafiar seu squad a superá-lo.",
+      "trainNow": "Treinar agora",
+      "calledOut": "Desafiado",
+      "daresYouToBeat": "te desafia a bater",
+      "accepted2": "Aceito",
+      "trainIt": "Treinar",
+      "yourCallouts": "Seus desafios",
+      "winItBack": "Recupere →"
     },
     "competitionDetailPage": {
-      "goBack": "Voltar"
+      "goBack": "Voltar",
+      "ai": "IA",
+      "castVote": "Votar"
     },
     "createPostPage": {
-      "goBack": "Voltar"
+      "goBack": "Voltar",
+      "uploadFailed": "Falha no envio: {{message}}",
+      "removeVideo": "Remover vídeo"
     },
     "gymDetailPage": {
       "goBack": "Voltar"
@@ -1522,7 +1631,9 @@
     },
     "profilePage": {
       "goBack": "Voltar",
-      "subscription": "Assinatura"
+      "subscription": "Assinatura",
+      "blockedAccounts": "Contas bloqueadas",
+      "emoteStudio": "Estúdio de emotes"
     },
     "rateRoundPage": {
       "goBack": "Voltar",
@@ -1561,7 +1672,8 @@
       "dismiss": "Dispensar",
       "share": "Compartilhar",
       "vs": "vs",
-      "couldnTSaveThat": "Não foi possível salvar"
+      "couldnTSaveThat": "Não foi possível salvar",
+      "back": "Voltar"
     },
     "streakShareButton": {
       "share": "Compartilhar",
@@ -1571,11 +1683,13 @@
     "styleQuizPage": {
       "share": "Compartilhar",
       "copiedPasteItAnywhere": "Copiado. Cole onde quiser.",
-      "couldnTShareThat": "Não foi possível compartilhar"
+      "couldnTShareThat": "Não foi possível compartilhar",
+      "back": "Voltar"
     },
     "fighterBuddyCreator": {
       "choose": "Escolha",
-      "weightClass": "Categoria de peso"
+      "weightClass": "Categoria de peso",
+      "stance": "Base"
     },
     "radarChart": {
       "thisSession": "Esta sessão",
@@ -1643,7 +1757,8 @@
       "toUnlockTheVerdict": "para liberar o veredito"
     },
     "fantasyPartnersPage": {
-      "sending": "Enviando…"
+      "sending": "Enviando…",
+      "back": "Voltar"
     },
     "levelCard": {
       "status": "Status",
@@ -1764,11 +1879,19 @@
       "make": "Criar"
     },
     "checkinPage": {
-      "join": "Entrar"
+      "join": "Entrar",
+      "couldnTJoinThat": "Não foi possível entrar nessa academia",
+      "goHome": "Ir para o início",
+      "startTraining": "Começar a treinar",
+      "youReAt": "Você está em",
+      "checkInsCountFor": "Check-ins contam para membros.",
+      "joinToFightFor": "Entre para lutar por esta academia.",
+      "askTheGymFor": "Peça um código de convite à academia."
     },
     "proCardPage": {
       "make": "Criar",
-      "buyerProtection": "Proteção ao Comprador"
+      "buyerProtection": "Proteção ao Comprador",
+      "back": "Voltar"
     },
     "comingUp": {
       "comingUp": "Em breve",
@@ -1842,7 +1965,9 @@
       "bagPadsCircuitsHiit": "Saco, manopla, circuitos, HIIT. Grave na mesma tela."
     },
     "fighterMarketPage": {
-      "buyerProtection": "Proteção ao Comprador"
+      "buyerProtection": "Proteção ao Comprador",
+      "back": "Voltar",
+      "fighterMarket": "Mercado de lutadores"
     },
     "bragButton": {
       "copiedPasteItAnywhere": "Copiado. Cole onde quiser.",
@@ -1933,7 +2058,12 @@
       "topKnockouts": "Melhores nocautes"
     },
     "competitionsPage": {
-      "pro": "Pro"
+      "pro": "Pro",
+      "ai": "IA",
+      "createCompetition": "Criar competição"
+    },
+    "fightStoryPage": {
+      "back": "Voltar"
     }
   },
   "feedback": {
