@@ -7,6 +7,7 @@ import { Users } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { savePendingInvite } from "@/lib/pendingInvite";
 import { tx } from "@/i18n/tx";
+import { MascotIntro } from "@/components/MascotIntro";
 
 // Public landing for a squad invite. The brag comes first — the friend sees what their
 // mate just did before being asked for anything.
@@ -44,7 +45,7 @@ export default function JoinSquadPage() {
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6" data-testid="join-squad-page">
       <div className="w-full max-w-md text-center animate-fade-in">
-        <img src="/mascot-render.png" alt={tx("ui.joinSquadPage.victoryAi", "Victory AI")} className="h-40 w-auto mx-auto object-contain mb-6" />
+        <div className="mb-6"><MascotIntro className="h-40" wordmark={false} /></div>
 
         {invite === undefined && <div className="skeleton-shimmer h-48 rounded-lg" />}
 
