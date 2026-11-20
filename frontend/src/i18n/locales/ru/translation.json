@@ -864,7 +864,8 @@
       "clip": "КЛИП",
       "aiScore": "Оценка ИИ",
       "rendering": "Создаём…",
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "reactions": "реакций"
     },
     "homePage": {
       "goLive": "Выйти в эфир",
@@ -908,7 +909,9 @@
       "sparring": "Спарринг",
       "close": "Закрыть",
       "goBack": "Назад",
-      "share": "Поделиться"
+      "share": "Поделиться",
+      "clip": "Клип",
+      "saving": "Сохраняем…"
     },
     "highlightShareSheet": {
       "copied": "Скопировано!",
@@ -956,7 +959,17 @@
       "shares": "репостов",
       "preparingVideo": "Готовим видео…",
       "copyLink": "Копировать ссылку",
-      "share": "Поделиться"
+      "share": "Поделиться",
+      "shareFailed": "Не удалось поделиться",
+      "shareClip": "Поделиться клипом",
+      "viral": "ВИРУСНОЕ",
+      "likes": "лайков",
+      "clip": "Клип",
+      "by": "от",
+      "fighter": "Боец",
+      "shareVideoToTiktok": "Поделись видео в TikTok, Reels…",
+      "sendTo": "Отправить…",
+      "copyShare": "Копировать и поделиться"
     },
     "liveChat": {
       "sendAMessage": "Напиши сообщение...",
@@ -1000,7 +1013,20 @@
       "save": "Сохранить"
     },
     "cosmeticsSheet": {
-      "save": "Сохранить"
+      "save": "Сохранить",
+      "linkCopiedSendIt": "Ссылка скопирована: отправь её родителю",
+      "couldnTStartCheckout": "Не удалось начать оплату. Попробуй ещё раз.",
+      "teamNameSaved": "Название команды сохранено",
+      "on": "{{name}} включено!",
+      "couldnTChangeThat": "Не удалось изменить. Попробуй ещё раз.",
+      "teamLooks": "Вид команды",
+      "justForShowThey": "Только для красоты. Очки не меняются.",
+      "on2": "Вкл",
+      "use": "Использовать",
+      "notOwned": "Нет в наличии",
+      "yourTeamName": "Название твоей команды",
+      "teamName": "Название команды",
+      "boughtOnceYoursTo": "Покупка один раз, навсегда твоя. Младше 18? Нажатие на цену создаст ссылку для родителя."
     },
     "tokenPurchaseModal": {
       "save": "Сохранить",
@@ -1013,7 +1039,8 @@
       "save": "Сохранить",
       "tokens": "токенов",
       "goBack": "Назад",
-      "stayInTheFight": "Оставайся в бою"
+      "stayInTheFight": "Оставайся в бою",
+      "fighter": "Боец"
     },
     "bookNextRound": {
       "pickATimeBetween": "Выбери время с 5:00 до 22:00",
@@ -1127,7 +1154,44 @@
       "level": "Уровень",
       "statusPointsAndThey": "очков статуса, и они никогда не убывают.",
       "justCompletedTheMission": "только что выполнил миссию! Выбери бустер.",
-      "thisOneDidnT": "Это не засчиталось в"
+      "thisOneDidnT": "Это не засчиталось в",
+      "sMissionCheckWhat": "(миссия команды). Посмотри, что нужно.",
+      "squadMission": "Миссия команды:",
+      "for": "за",
+      "howDidThatFeel": "Как ощущения?",
+      "howMuchYouEnjoyed": "Насколько понравилось, от 1 до 5",
+      "notForMe": "Не моё",
+      "lovedIt": "Обожаю",
+      "notedYourPartnerLearns": "Записали. Партнёр учится тому, что тебе нравится.",
+      "bossRound": "Раунд с боссом",
+      "youGot": ". Ты получил:",
+      "nothingCounted": "ничего не засчитано",
+      "status2": "статус",
+      "showOffTheWin": "Покажи победу",
+      "unlocked": "Открыто",
+      "hiddenEggFound": "Найдено пасхальное яйцо",
+      "of": "из",
+      "foundTheRestAre": "найдено. Остальные пока спрятаны.",
+      "predictionProved": "Прогноз подтвердился",
+      "coachSEye": "Глаз тренера",
+      "drill": "· упражнение:",
+      "couldnTSendThat": "Не удалось отправить поддержку",
+      "yourSquadTrainedToday": "Твоя команда тоже тренировалась сегодня",
+      "cheered": "Ты поддержал {{name}}",
+      "cheer": "Поддержать {{name}}",
+      "couldnTCountThat": "Не удалось засчитать голос",
+      "pickNextWeekS": "Выбери босса следующей недели. Побеждает больше голосов.",
+      "combosCalled": "комбинаций названо.",
+      "youLanded": "Ты попал",
+      "nextSessionStartsAt": "; следующая тренировка начнётся с этого уровня.",
+      "turnOnLiveCoach": " Включи живого тренера, и команды подстроятся под тебя.",
+      "freestyle": "Свободный",
+      "noScoreTodayJust": "Сегодня без оценки, просто тренировка. Засчитывается в неделю и для партнёра.",
+      "seeAllYourNumbers": "Все твои цифры",
+      "pointsStatusAndSeason": "Очки, статус и сезон",
+      "scoutingReport": "РАЗБОР СКАУТА",
+      "rareReport": "РЕДКИЙ РАЗБОР",
+      "epicReport": "ЭПИЧЕСКИЙ РАЗБОР"
     },
     "fighterCard": {
       "couldnTMakeYour": "Не удалось сделать карточку — попробуй ещё раз",
@@ -1168,7 +1232,8 @@
     },
     "tokenSuccessPage": {
       "tryAgain": "Попробовать снова",
-      "tokens": "токенов"
+      "tokens": "токенов",
+      "fighter": "Боец"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "реакций разом"
@@ -1217,7 +1282,19 @@
       "sub": "подписку"
     },
     "subscriptionGate": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "aiCreditsLeftThis": "ИИ-кредитов осталось в этом месяце",
+      "used": "% использовано",
+      "goPro": "Перейти на Pro",
+      "monthlyLimitReached": "Месячный лимит исчерпан",
+      "youVeUsedYour": "Ты использовал 10 000 бесплатных ИИ-кредитов в этом месяце.",
+      "resetsOnThe1st": "Обновится 1-го числа. Перейди на Pro для безлимита",
+      "withNoMonthlyCap": "без месячного лимита.",
+      "upgradeToPro": "Перейти на Pro",
+      "proFeature": "Функция Pro",
+      "usesAiCreditsFree": "тратит ИИ-кредиты. Бесплатно — 10 000 кредитов в месяц, хватит примерно на 5 полных разборов тренировок.",
+      "alwaysFree": "Всегда бесплатно",
+      "unlockPro": "Открыть Pro"
     },
     "advertisePage": {
       "goBack": "Назад"
@@ -1246,7 +1323,8 @@
     },
     "rateRoundPage": {
       "goBack": "Назад",
-      "sending": "Отправка…"
+      "sending": "Отправка…",
+      "of": "из"
     },
     "schoolLeaderboardPage": {
       "goBack": "Назад"
@@ -1261,7 +1339,8 @@
       "goBack": "Назад"
     },
     "trendingClipsPage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "viral": "ВИРУСНОЕ"
     },
     "partnerCondition": {
       "rising": "растёт",
@@ -1281,7 +1360,9 @@
       "vs": "против"
     },
     "streakShareButton": {
-      "share": "Поделиться"
+      "share": "Поделиться",
+      "couldnTMakeYour": "Не удалось сделать карточку. Попробуй ещё раз.",
+      "makingIt": "Делаем…"
     },
     "styleQuizPage": {
       "share": "Поделиться"
@@ -1294,7 +1375,8 @@
       "lastSession": "Прошлая тренировка"
     },
     "questCard": {
-      "done": "Готово"
+      "done": "Готово",
+      "by": "от"
     },
     "sessionCard": {
       "logged": "записано"
@@ -1303,10 +1385,21 @@
       "logged": "записано"
     },
     "gymSeasonHours": {
-      "preseason": "Предсезонка"
+      "preseason": "Предсезонка",
+      "of": "из"
     },
     "squadVerdict": {
-      "sending": "Отправка…"
+      "sending": "Отправка…",
+      "of": "из",
+      "couldnTSendTo": "Не удалось отправить команде",
+      "getYourSquadS": "Узнай вердикт команды",
+      "squadVerdict": "Вердикт команды",
+      "reacted": "отреагировали",
+      "saidIt": "сказали",
+      "more": "ещё",
+      "reaction": "реакция",
+      "reactions": "реакций",
+      "toUnlockTheVerdict": "чтобы открыть вердикт"
     },
     "fantasyPartnersPage": {
       "sending": "Отправка…"
@@ -1316,7 +1409,41 @@
       "level": "Уровень"
     },
     "trophyShelf": {
-      "level": "Уровень"
+      "level": "Уровень",
+      "of": "из"
+    },
+    "draftPanel": {
+      "of": "из",
+      "youAlreadyHaveBoxers": "У тебя уже {{STABLE_SIZE}} боксёров. Сначала нажми на одного, чтобы убрать.",
+      "yourTeamIsReady": "Команда готова! Смотри бои, чтобы набирать очки.",
+      "yourCoins": "Твои монеты",
+      "pretendCoinsFreeNot": "Игровые монеты — бесплатно, не настоящие деньги",
+      "left": "Осталось {{remaining}}",
+      "boxersPicked": "боксёров выбрано",
+      "theFightsHaveStarted": "Бои начались, состав команд менять нельзя.",
+      "fight": "Бой",
+      "trainsOnVictoryAi": "Тренируется в Victory AI",
+      "saving": "Сохраняем…",
+      "yourTeamIsReady2": "Твоя команда готова",
+      "thisIsMyTeam": "Это моя команда!"
+    },
+    "scorecardPanel": {
+      "of": "из",
+      "fight": "Бой"
+    },
+    "trainPage": {
+      "freestyle": "Свободный"
+    },
+    "merchSheet": {
+      "linkCopiedSendIt": "Ссылка скопирована: отправь её родителю",
+      "couldnTStartCheckout": "Не удалось начать оплату. Попробуй ещё раз."
+    },
+    "fantasySidecar": {
+      "fantasyBoxing": "Фэнтези-бокс",
+      "freeGameNoMoney": "Бесплатная игра · никаких денег · просто весело с друзьями",
+      "pickNow": "Выбирай сейчас",
+      "fightsOn": "Бои идут",
+      "finished": "Завершено"
     }
   },
   "feedback": {

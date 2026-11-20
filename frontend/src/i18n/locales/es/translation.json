@@ -864,7 +864,8 @@
       "clip": "CLIP",
       "aiScore": "Puntuación IA",
       "rendering": "Generando…",
-      "goBack": "Volver"
+      "goBack": "Volver",
+      "reactions": "reacciones"
     },
     "homePage": {
       "goLive": "Emitir en vivo",
@@ -908,7 +909,9 @@
       "sparring": "Sparring",
       "close": "Cerrar",
       "goBack": "Volver",
-      "share": "Compartir"
+      "share": "Compartir",
+      "clip": "Clip",
+      "saving": "Guardando…"
     },
     "highlightShareSheet": {
       "copied": "¡Copiado!",
@@ -956,7 +959,17 @@
       "shares": "compartidos",
       "preparingVideo": "Preparando vídeo…",
       "copyLink": "Copiar enlace",
-      "share": "Compartir"
+      "share": "Compartir",
+      "shareFailed": "Error al compartir",
+      "shareClip": "Compartir clip",
+      "viral": "VIRAL",
+      "likes": "me gusta",
+      "clip": "Clip",
+      "by": "de",
+      "fighter": "Luchador",
+      "shareVideoToTiktok": "Comparte el vídeo en TikTok, Reels…",
+      "sendTo": "Enviar a…",
+      "copyShare": "Copiar y compartir"
     },
     "liveChat": {
       "sendAMessage": "Escribe un mensaje...",
@@ -1000,7 +1013,20 @@
       "save": "Guardar"
     },
     "cosmeticsSheet": {
-      "save": "Guardar"
+      "save": "Guardar",
+      "linkCopiedSendIt": "Enlace copiado: envíaselo a un padre o madre",
+      "couldnTStartCheckout": "No se pudo iniciar el pago. Inténtalo de nuevo.",
+      "teamNameSaved": "Nombre del equipo guardado",
+      "on": "¡{{name}} activado!",
+      "couldnTChangeThat": "No se pudo cambiar. Inténtalo de nuevo.",
+      "teamLooks": "Estilo del equipo",
+      "justForShowThey": "Solo estética. Nunca cambian tus puntos.",
+      "on2": "Activo",
+      "use": "Usar",
+      "notOwned": "No lo tienes",
+      "yourTeamName": "Nombre de tu equipo",
+      "teamName": "Nombre del equipo",
+      "boughtOnceYoursTo": "Pago único, tuyo para siempre. ¿Menor de 18? Al tocar un precio se crea un enlace para enviar a tu padre o madre."
     },
     "tokenPurchaseModal": {
       "save": "Guardar",
@@ -1013,7 +1039,8 @@
       "save": "Guardar",
       "tokens": "tokens",
       "goBack": "Volver",
-      "stayInTheFight": "Sigue en la pelea"
+      "stayInTheFight": "Sigue en la pelea",
+      "fighter": "Luchador"
     },
     "bookNextRound": {
       "pickATimeBetween": "Elige una hora entre las 5:00 y las 22:00",
@@ -1127,7 +1154,44 @@
       "level": "Nivel",
       "statusPointsAndThey": "puntos de estatus, y nunca bajan.",
       "justCompletedTheMission": "¡acaba de completar la misión! Elige tu potenciador.",
-      "thisOneDidnT": "Este no contó para"
+      "thisOneDidnT": "Este no contó para",
+      "sMissionCheckWhat": "(misión del squad). Mira qué necesita.",
+      "squadMission": "Misión del squad:",
+      "for": "para",
+      "howDidThatFeel": "¿Qué tal te sentó?",
+      "howMuchYouEnjoyed": "Cuánto lo disfrutaste, del 1 al 5",
+      "notForMe": "No es para mí",
+      "lovedIt": "Me encantó",
+      "notedYourPartnerLearns": "Anotado. Tu compañero aprende lo que te gusta.",
+      "bossRound": "Asalto del Jefe",
+      "youGot": ". Conseguiste:",
+      "nothingCounted": "no contó nada",
+      "status2": "estatus",
+      "showOffTheWin": "Presume la victoria",
+      "unlocked": "Desbloqueado",
+      "hiddenEggFound": "Huevo oculto encontrado",
+      "of": "de",
+      "foundTheRestAre": "encontrados. El resto siguen ocultos.",
+      "predictionProved": "Predicción cumplida",
+      "coachSEye": "Ojo del Coach",
+      "drill": "· ejercicio:",
+      "couldnTSendThat": "No se pudo enviar ese ánimo",
+      "yourSquadTrainedToday": "Tu squad también entrenó hoy",
+      "cheered": "Animaste a {{name}}",
+      "cheer": "Animar a {{name}}",
+      "couldnTCountThat": "No se pudo contar ese voto",
+      "pickNextWeekS": "Elige al jefe de la próxima semana. Gana el más votado.",
+      "combosCalled": "combos cantados.",
+      "youLanded": "Acertaste",
+      "nextSessionStartsAt": "; la próxima sesión empieza a ese nivel.",
+      "turnOnLiveCoach": " Activa el Coach en vivo y las llamadas se adaptan a ti.",
+      "freestyle": "Libre",
+      "noScoreTodayJust": "Sin puntuación hoy, solo entrenar. Cuenta para tu semana y tu compañero.",
+      "seeAllYourNumbers": "Ver todos tus números",
+      "pointsStatusAndSeason": "Puntos, estatus y temporada",
+      "scoutingReport": "INFORME DE OJEADOR",
+      "rareReport": "INFORME RARO",
+      "epicReport": "INFORME ÉPICO"
     },
     "fighterCard": {
       "couldnTMakeYour": "No se pudo crear tu tarjeta — inténtalo de nuevo",
@@ -1168,7 +1232,8 @@
     },
     "tokenSuccessPage": {
       "tryAgain": "Reintentar",
-      "tokens": "tokens"
+      "tokens": "tokens",
+      "fighter": "Luchador"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "reacciones a la vez"
@@ -1217,7 +1282,19 @@
       "sub": "suscripción"
     },
     "subscriptionGate": {
-      "goBack": "Volver"
+      "goBack": "Volver",
+      "aiCreditsLeftThis": "créditos de IA restantes este mes",
+      "used": "% usado",
+      "goPro": "Hazte Pro",
+      "monthlyLimitReached": "Límite mensual alcanzado",
+      "youVeUsedYour": "Has usado tus 10.000 créditos de IA gratis de este mes.",
+      "resetsOnThe1st": "Se reinicia el día 1. Hazte Pro para tener ilimitado",
+      "withNoMonthlyCap": "sin límite mensual.",
+      "upgradeToPro": "Hazte Pro",
+      "proFeature": "Función Pro",
+      "usesAiCreditsFree": "usa créditos de IA. Los usuarios gratis tienen 10.000 créditos al mes — suficiente para ~5 análisis completos.",
+      "alwaysFree": "Siempre gratis",
+      "unlockPro": "Desbloquear Pro"
     },
     "advertisePage": {
       "goBack": "Volver"
@@ -1246,7 +1323,8 @@
     },
     "rateRoundPage": {
       "goBack": "Volver",
-      "sending": "Enviando…"
+      "sending": "Enviando…",
+      "of": "de"
     },
     "schoolLeaderboardPage": {
       "goBack": "Volver"
@@ -1261,7 +1339,8 @@
       "goBack": "Volver"
     },
     "trendingClipsPage": {
-      "goBack": "Volver"
+      "goBack": "Volver",
+      "viral": "VIRAL"
     },
     "partnerCondition": {
       "rising": "subiendo",
@@ -1281,7 +1360,9 @@
       "vs": "vs"
     },
     "streakShareButton": {
-      "share": "Compartir"
+      "share": "Compartir",
+      "couldnTMakeYour": "No se pudo crear tu tarjeta. Inténtalo de nuevo.",
+      "makingIt": "Creando…"
     },
     "styleQuizPage": {
       "share": "Compartir"
@@ -1294,7 +1375,8 @@
       "lastSession": "Última sesión"
     },
     "questCard": {
-      "done": "Hecho"
+      "done": "Hecho",
+      "by": "de"
     },
     "sessionCard": {
       "logged": "registrado"
@@ -1303,10 +1385,21 @@
       "logged": "registrado"
     },
     "gymSeasonHours": {
-      "preseason": "Pretemporada"
+      "preseason": "Pretemporada",
+      "of": "de"
     },
     "squadVerdict": {
-      "sending": "Enviando…"
+      "sending": "Enviando…",
+      "of": "de",
+      "couldnTSendTo": "No se pudo enviar a tu squad",
+      "getYourSquadS": "Pide el veredicto de tu squad",
+      "squadVerdict": "Veredicto del squad",
+      "reacted": "reaccionaron",
+      "saidIt": "dijeron",
+      "more": "más",
+      "reaction": "reacción",
+      "reactions": "reacciones",
+      "toUnlockTheVerdict": "para desbloquear el veredicto"
     },
     "fantasyPartnersPage": {
       "sending": "Enviando…"
@@ -1316,7 +1409,41 @@
       "level": "Nivel"
     },
     "trophyShelf": {
-      "level": "Nivel"
+      "level": "Nivel",
+      "of": "de"
+    },
+    "draftPanel": {
+      "of": "de",
+      "youAlreadyHaveBoxers": "Ya tienes {{STABLE_SIZE}} boxeadores. Toca uno para quitarlo primero.",
+      "yourTeamIsReady": "¡Tu equipo está listo! Mira los combates para sumar puntos.",
+      "yourCoins": "Tus monedas",
+      "pretendCoinsFreeNot": "Monedas de mentira — gratis, no es dinero real",
+      "left": "Quedan {{remaining}}",
+      "boxersPicked": "boxeadores elegidos",
+      "theFightsHaveStarted": "Los combates han empezado, así que los equipos ya no pueden cambiar.",
+      "fight": "Combate",
+      "trainsOnVictoryAi": "Entrena en Victory AI",
+      "saving": "Guardando…",
+      "yourTeamIsReady2": "Tu equipo está listo",
+      "thisIsMyTeam": "¡Este es mi equipo!"
+    },
+    "scorecardPanel": {
+      "of": "de",
+      "fight": "Combate"
+    },
+    "trainPage": {
+      "freestyle": "Libre"
+    },
+    "merchSheet": {
+      "linkCopiedSendIt": "Enlace copiado: envíaselo a un padre o madre",
+      "couldnTStartCheckout": "No se pudo iniciar el pago. Inténtalo de nuevo."
+    },
+    "fantasySidecar": {
+      "fantasyBoxing": "Boxeo Fantasy",
+      "freeGameNoMoney": "Juego gratis · sin dinero, nunca · solo para divertirse con amigos",
+      "pickNow": "Elige ahora",
+      "fightsOn": "Combates en marcha",
+      "finished": "Terminado"
     }
   },
   "feedback": {

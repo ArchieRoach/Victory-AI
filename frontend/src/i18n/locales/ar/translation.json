@@ -864,7 +864,8 @@
       "clip": "مقطع",
       "aiScore": "تقييم الذكاء الاصطناعي",
       "rendering": "جارٍ الإنشاء…",
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "reactions": "تفاعلات"
     },
     "homePage": {
       "goLive": "ابدأ البث",
@@ -908,7 +909,9 @@
       "sparring": "سبارينغ",
       "close": "إغلاق",
       "goBack": "رجوع",
-      "share": "مشاركة"
+      "share": "مشاركة",
+      "clip": "مقطع",
+      "saving": "جارٍ الحفظ…"
     },
     "highlightShareSheet": {
       "copied": "تم النسخ!",
@@ -956,7 +959,17 @@
       "shares": "مشاركات",
       "preparingVideo": "جارٍ تجهيز الفيديو…",
       "copyLink": "نسخ الرابط",
-      "share": "مشاركة"
+      "share": "مشاركة",
+      "shareFailed": "فشلت المشاركة",
+      "shareClip": "شارك المقطع",
+      "viral": "منتشر",
+      "likes": "إعجابات",
+      "clip": "مقطع",
+      "by": "بواسطة",
+      "fighter": "ملاكم",
+      "shareVideoToTiktok": "شارك الفيديو على تيك توك وريلز…",
+      "sendTo": "أرسل إلى…",
+      "copyShare": "انسخ وشارك"
     },
     "liveChat": {
       "sendAMessage": "أرسل رسالة...",
@@ -1000,7 +1013,20 @@
       "save": "حفظ"
     },
     "cosmeticsSheet": {
-      "save": "حفظ"
+      "save": "حفظ",
+      "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",
+      "couldnTStartCheckout": "تعذّر بدء الدفع. حاول مرة أخرى.",
+      "teamNameSaved": "تم حفظ اسم الفريق",
+      "on": "تم تفعيل {{name}}!",
+      "couldnTChangeThat": "تعذّر التغيير. حاول مرة أخرى.",
+      "teamLooks": "مظهر الفريق",
+      "justForShowThey": "للعرض فقط. لا تغيّر نقاطك أبدًا.",
+      "on2": "مفعّل",
+      "use": "استخدام",
+      "notOwned": "غير مملوك",
+      "yourTeamName": "اسم فريقك",
+      "teamName": "اسم الفريق",
+      "boughtOnceYoursTo": "شراء لمرة واحدة، لك للأبد. أقل من 18؟ الضغط على السعر ينشئ رابطًا لإرساله لأحد والديك."
     },
     "tokenPurchaseModal": {
       "save": "حفظ",
@@ -1013,7 +1039,8 @@
       "save": "حفظ",
       "tokens": "رموز",
       "goBack": "رجوع",
-      "stayInTheFight": "ابقَ في المعركة"
+      "stayInTheFight": "ابقَ في المعركة",
+      "fighter": "ملاكم"
     },
     "bookNextRound": {
       "pickATimeBetween": "اختر وقتًا بين 5 صباحًا و10 مساءً",
@@ -1127,7 +1154,44 @@
       "level": "المستوى",
       "statusPointsAndThey": "نقاط حالة، ولا تنخفض أبدًا.",
       "justCompletedTheMission": "أكمل المهمة للتو! اختر معزّزك.",
-      "thisOneDidnT": "هذا لم يُحتسب لـ"
+      "thisOneDidnT": "هذا لم يُحتسب لـ",
+      "sMissionCheckWhat": "(مهمة الفريق). تحقق مما تحتاجه.",
+      "squadMission": "مهمة الفريق:",
+      "for": "لـ",
+      "howDidThatFeel": "كيف كان شعورك؟",
+      "howMuchYouEnjoyed": "إلى أي حد استمتعت، من 1 إلى 5",
+      "notForMe": "ليس لي",
+      "lovedIt": "أحببته",
+      "notedYourPartnerLearns": "تم التسجيل. شريكك يتعلم ما تستمتع به.",
+      "bossRound": "جولة الزعيم",
+      "youGot": ". حصلت على:",
+      "nothingCounted": "لم يُحتسب شيء",
+      "status2": "الحالة",
+      "showOffTheWin": "تباهَ بالفوز",
+      "unlocked": "مفتوح",
+      "hiddenEggFound": "عُثر على بيضة مخفية",
+      "of": "من",
+      "foundTheRestAre": "تم العثور عليها. البقية ما زالت مخفية.",
+      "predictionProved": "تحقّق التوقع",
+      "coachSEye": "عين المدرب",
+      "drill": "· تمرين:",
+      "couldnTSendThat": "تعذّر إرسال التشجيع",
+      "yourSquadTrainedToday": "فريقك تدرّب اليوم أيضًا",
+      "cheered": "شجّعت {{name}}",
+      "cheer": "شجّع {{name}}",
+      "couldnTCountThat": "تعذّر احتساب هذا التصويت",
+      "pickNextWeekS": "اختر زعيم الأسبوع القادم. الأكثر أصواتًا يفوز.",
+      "combosCalled": "تركيبات تم النداء بها.",
+      "youLanded": "أصبت",
+      "nextSessionStartsAt": "؛ الجلسة القادمة تبدأ من هذا المستوى.",
+      "turnOnLiveCoach": " شغّل المدرب المباشر وستتكيف النداءات معك.",
+      "freestyle": "حر",
+      "noScoreTodayJust": "لا تقييم اليوم، تدريب فقط. يُحتسب لأسبوعك ولشريكك.",
+      "seeAllYourNumbers": "اعرض كل أرقامك",
+      "pointsStatusAndSeason": "النقاط والحالة والموسم",
+      "scoutingReport": "تقرير استكشاف",
+      "rareReport": "تقرير نادر",
+      "epicReport": "تقرير ملحمي"
     },
     "fighterCard": {
       "couldnTMakeYour": "تعذّر إنشاء بطاقتك — حاول مرة أخرى",
@@ -1168,7 +1232,8 @@
     },
     "tokenSuccessPage": {
       "tryAgain": "حاول مرة أخرى",
-      "tokens": "رموز"
+      "tokens": "رموز",
+      "fighter": "ملاكم"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "تفاعلات دفعة واحدة"
@@ -1217,7 +1282,19 @@
       "sub": "اشتراك"
     },
     "subscriptionGate": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "aiCreditsLeftThis": "رصيد ذكاء اصطناعي متبقٍ هذا الشهر",
+      "used": "% مستخدم",
+      "goPro": "اشترك في Pro",
+      "monthlyLimitReached": "تم بلوغ الحد الشهري",
+      "youVeUsedYour": "لقد استخدمت 10,000 رصيد مجاني من الذكاء الاصطناعي لهذا الشهر.",
+      "resetsOnThe1st": "يتجدد في يوم 1. اشترك في Pro للحصول على",
+      "withNoMonthlyCap": "بلا حد شهري.",
+      "upgradeToPro": "الترقية إلى Pro",
+      "proFeature": "ميزة Pro",
+      "usesAiCreditsFree": "تستخدم رصيد الذكاء الاصطناعي. المستخدمون المجانيون يحصلون على 10,000 رصيد شهريًا — يكفي لنحو 5 تحليلات تدريب كاملة.",
+      "alwaysFree": "مجاني دائمًا",
+      "unlockPro": "افتح Pro"
     },
     "advertisePage": {
       "goBack": "رجوع"
@@ -1246,7 +1323,8 @@
     },
     "rateRoundPage": {
       "goBack": "رجوع",
-      "sending": "جارٍ الإرسال…"
+      "sending": "جارٍ الإرسال…",
+      "of": "من"
     },
     "schoolLeaderboardPage": {
       "goBack": "رجوع"
@@ -1261,7 +1339,8 @@
       "goBack": "رجوع"
     },
     "trendingClipsPage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "viral": "منتشر"
     },
     "partnerCondition": {
       "rising": "في صعود",
@@ -1281,7 +1360,9 @@
       "vs": "ضد"
     },
     "streakShareButton": {
-      "share": "مشاركة"
+      "share": "مشاركة",
+      "couldnTMakeYour": "تعذّر إنشاء بطاقتك. حاول مرة أخرى.",
+      "makingIt": "جارٍ الإنشاء…"
     },
     "styleQuizPage": {
       "share": "مشاركة"
@@ -1294,7 +1375,8 @@
       "lastSession": "الجلسة الماضية"
     },
     "questCard": {
-      "done": "تم"
+      "done": "تم",
+      "by": "بواسطة"
     },
     "sessionCard": {
       "logged": "مسجّلة"
@@ -1303,10 +1385,21 @@
       "logged": "مسجّلة"
     },
     "gymSeasonHours": {
-      "preseason": "ما قبل الموسم"
+      "preseason": "ما قبل الموسم",
+      "of": "من"
     },
     "squadVerdict": {
-      "sending": "جارٍ الإرسال…"
+      "sending": "جارٍ الإرسال…",
+      "of": "من",
+      "couldnTSendTo": "تعذّر الإرسال إلى فريقك",
+      "getYourSquadS": "احصل على حكم فريقك",
+      "squadVerdict": "حكم الفريق",
+      "reacted": "تفاعلوا",
+      "saidIt": "قالوا",
+      "more": "إضافية",
+      "reaction": "تفاعل",
+      "reactions": "تفاعلات",
+      "toUnlockTheVerdict": "لفتح الحكم"
     },
     "fantasyPartnersPage": {
       "sending": "جارٍ الإرسال…"
@@ -1316,7 +1409,41 @@
       "level": "المستوى"
     },
     "trophyShelf": {
-      "level": "المستوى"
+      "level": "المستوى",
+      "of": "من"
+    },
+    "draftPanel": {
+      "of": "من",
+      "youAlreadyHaveBoxers": "لديك بالفعل {{STABLE_SIZE}} ملاكمين. اضغط على أحدهم لإخراجه أولاً.",
+      "yourTeamIsReady": "فريقك جاهز! شاهد النزالات لتحصل على النقاط.",
+      "yourCoins": "عملاتك",
+      "pretendCoinsFreeNot": "عملات وهمية — مجانية، ليست أموالاً حقيقية",
+      "left": "متبقٍ {{remaining}}",
+      "boxersPicked": "ملاكمين تم اختيارهم",
+      "theFightsHaveStarted": "بدأت النزالات، لذا لا يمكن تغيير الفرق الآن.",
+      "fight": "نزال",
+      "trainsOnVictoryAi": "يتدرب على Victory AI",
+      "saving": "جارٍ الحفظ…",
+      "yourTeamIsReady2": "فريقك جاهز",
+      "thisIsMyTeam": "هذا فريقي!"
+    },
+    "scorecardPanel": {
+      "of": "من",
+      "fight": "نزال"
+    },
+    "trainPage": {
+      "freestyle": "حر"
+    },
+    "merchSheet": {
+      "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",
+      "couldnTStartCheckout": "تعذّر بدء الدفع. حاول مرة أخرى."
+    },
+    "fantasySidecar": {
+      "fantasyBoxing": "ملاكمة فانتازي",
+      "freeGameNoMoney": "لعبة مجانية · بلا أموال أبدًا · للمتعة مع الأصدقاء فقط",
+      "pickNow": "اختر الآن",
+      "fightsOn": "النزالات جارية",
+      "finished": "انتهى"
     }
   },
   "feedback": {

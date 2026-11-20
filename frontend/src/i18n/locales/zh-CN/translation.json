@@ -864,7 +864,8 @@
       "clip": "短片",
       "aiScore": "AI 评分",
       "rendering": "生成中…",
-      "goBack": "返回"
+      "goBack": "返回",
+      "reactions": "个回应"
     },
     "homePage": {
       "goLive": "开始直播",
@@ -908,7 +909,9 @@
       "sparring": "实战对练",
       "close": "关闭",
       "goBack": "返回",
-      "share": "分享"
+      "share": "分享",
+      "clip": "短片",
+      "saving": "保存中…"
     },
     "highlightShareSheet": {
       "copied": "已复制！",
@@ -956,7 +959,17 @@
       "shares": "次分享",
       "preparingVideo": "正在准备视频…",
       "copyLink": "复制链接",
-      "share": "分享"
+      "share": "分享",
+      "shareFailed": "分享失败",
+      "shareClip": "分享短片",
+      "viral": "爆款",
+      "likes": "赞",
+      "clip": "短片",
+      "by": "来自",
+      "fighter": "拳手",
+      "shareVideoToTiktok": "分享视频到 TikTok、Reels…",
+      "sendTo": "发送给…",
+      "copyShare": "复制并分享"
     },
     "liveChat": {
       "sendAMessage": "发送消息...",
@@ -1000,7 +1013,20 @@
       "save": "保存"
     },
     "cosmeticsSheet": {
-      "save": "保存"
+      "save": "保存",
+      "linkCopiedSendIt": "链接已复制：发给家长",
+      "couldnTStartCheckout": "无法开始付款，请重试。",
+      "teamNameSaved": "队名已保存",
+      "on": "{{name}} 已启用！",
+      "couldnTChangeThat": "无法更改，请重试。",
+      "teamLooks": "队伍外观",
+      "justForShowThey": "仅供展示，绝不影响你的积分。",
+      "on2": "已启用",
+      "use": "使用",
+      "notOwned": "未拥有",
+      "yourTeamName": "你的队名",
+      "teamName": "队名",
+      "boughtOnceYoursTo": "一次购买，永久拥有。未满 18 岁？点击价格会生成一个发给家长的链接。"
     },
     "tokenPurchaseModal": {
       "save": "保存",
@@ -1013,7 +1039,8 @@
       "save": "保存",
       "tokens": "代币",
       "goBack": "返回",
-      "stayInTheFight": "保持战斗状态"
+      "stayInTheFight": "保持战斗状态",
+      "fighter": "拳手"
     },
     "bookNextRound": {
       "pickATimeBetween": "请选择早上 5 点到晚上 10 点之间的时间",
@@ -1127,7 +1154,44 @@
       "level": "等级",
       "statusPointsAndThey": "身份积分，而且永不下降。",
       "justCompletedTheMission": "刚完成了任务！选择你的加成。",
-      "thisOneDidnT": "这次没有计入"
+      "thisOneDidnT": "这次没有计入",
+      "sMissionCheckWhat": "（小队任务）。看看需要什么。",
+      "squadMission": "小队任务：",
+      "for": "为",
+      "howDidThatFeel": "感觉怎么样？",
+      "howMuchYouEnjoyed": "你有多喜欢，1 到 5",
+      "notForMe": "不适合我",
+      "lovedIt": "太喜欢了",
+      "notedYourPartnerLearns": "记下了。你的搭档会了解你喜欢什么。",
+      "bossRound": "Boss 回合",
+      "youGot": "。你获得了：",
+      "nothingCounted": "没有计入任何内容",
+      "status2": "身份",
+      "showOffTheWin": "晒出胜利",
+      "unlocked": "已解锁",
+      "hiddenEggFound": "发现隐藏彩蛋",
+      "of": "/",
+      "foundTheRestAre": "已找到。其余的仍然隐藏着。",
+      "predictionProved": "预测成真",
+      "coachSEye": "教练之眼",
+      "drill": "· 训练：",
+      "couldnTSendThat": "无法发送加油",
+      "yourSquadTrainedToday": "你的小队今天也训练了",
+      "cheered": "已为 {{name}} 加油",
+      "cheer": "为 {{name}} 加油",
+      "couldnTCountThat": "无法计入这一票",
+      "pickNextWeekS": "选出下周的 Boss。票数最多者获胜。",
+      "combosCalled": "个组合拳已喊出。",
+      "youLanded": "你打中了",
+      "nextSessionStartsAt": "；下次训练从这个等级开始。",
+      "turnOnLiveCoach": " 打开实时教练，喊招会根据你调整。",
+      "freestyle": "自由练",
+      "noScoreTodayJust": "今天不评分，只是训练。会计入你的本周目标和搭档。",
+      "seeAllYourNumbers": "查看你的全部数据",
+      "pointsStatusAndSeason": "积分、身份和赛季",
+      "scoutingReport": "球探报告",
+      "rareReport": "稀有报告",
+      "epicReport": "史诗报告"
     },
     "fighterCard": {
       "couldnTMakeYour": "无法生成你的卡片 — 请重试",
@@ -1168,7 +1232,8 @@
     },
     "tokenSuccessPage": {
       "tryAgain": "重试",
-      "tokens": "代币"
+      "tokens": "代币",
+      "fighter": "拳手"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "个同时反应"
@@ -1217,7 +1282,19 @@
       "sub": "订阅"
     },
     "subscriptionGate": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "aiCreditsLeftThis": "本月剩余 AI 额度",
+      "used": "% 已用",
+      "goPro": "升级 Pro",
+      "monthlyLimitReached": "已达本月上限",
+      "youVeUsedYour": "你已用完本月 10,000 个免费 AI 额度。",
+      "resetsOnThe1st": "每月 1 日重置。升级 Pro 即可无限使用",
+      "withNoMonthlyCap": "无月度上限。",
+      "upgradeToPro": "升级到 Pro",
+      "proFeature": "Pro 功能",
+      "usesAiCreditsFree": "会消耗 AI 额度。免费用户每月有 10,000 额度 — 足够约 5 次完整训练分析。",
+      "alwaysFree": "永久免费",
+      "unlockPro": "解锁 Pro"
     },
     "advertisePage": {
       "goBack": "返回"
@@ -1246,7 +1323,8 @@
     },
     "rateRoundPage": {
       "goBack": "返回",
-      "sending": "发送中…"
+      "sending": "发送中…",
+      "of": "/"
     },
     "schoolLeaderboardPage": {
       "goBack": "返回"
@@ -1261,7 +1339,8 @@
       "goBack": "返回"
     },
     "trendingClipsPage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "viral": "爆款"
     },
     "partnerCondition": {
       "rising": "上升中",
@@ -1281,7 +1360,9 @@
       "vs": "对"
     },
     "streakShareButton": {
-      "share": "分享"
+      "share": "分享",
+      "couldnTMakeYour": "无法生成你的卡片，请重试。",
+      "makingIt": "生成中…"
     },
     "styleQuizPage": {
       "share": "分享"
@@ -1294,7 +1375,8 @@
       "lastSession": "上次训练"
     },
     "questCard": {
-      "done": "完成"
+      "done": "完成",
+      "by": "来自"
     },
     "sessionCard": {
       "logged": "已记录"
@@ -1303,10 +1385,21 @@
       "logged": "已记录"
     },
     "gymSeasonHours": {
-      "preseason": "季前赛"
+      "preseason": "季前赛",
+      "of": "/"
     },
     "squadVerdict": {
-      "sending": "发送中…"
+      "sending": "发送中…",
+      "of": "/",
+      "couldnTSendTo": "无法发送给你的小队",
+      "getYourSquadS": "听听小队的评价",
+      "squadVerdict": "小队评价",
+      "reacted": "人回应",
+      "saidIt": "人说了",
+      "more": "更多",
+      "reaction": "个回应",
+      "reactions": "个回应",
+      "toUnlockTheVerdict": "即可解锁评价"
     },
     "fantasyPartnersPage": {
       "sending": "发送中…"
@@ -1316,7 +1409,41 @@
       "level": "等级"
     },
     "trophyShelf": {
-      "level": "等级"
+      "level": "等级",
+      "of": "/"
+    },
+    "draftPanel": {
+      "of": "/",
+      "youAlreadyHaveBoxers": "你已经有 {{STABLE_SIZE}} 名拳手了。先点击一名把他移出。",
+      "yourTeamIsReady": "你的队伍准备好了！观看比赛来赚积分。",
+      "yourCoins": "你的金币",
+      "pretendCoinsFreeNot": "虚拟金币 — 免费，不是真钱",
+      "left": "剩余 {{remaining}}",
+      "boxersPicked": "名拳手已选",
+      "theFightsHaveStarted": "比赛已开始，队伍现在不能更改。",
+      "fight": "比赛",
+      "trainsOnVictoryAi": "在 Victory AI 训练",
+      "saving": "保存中…",
+      "yourTeamIsReady2": "你的队伍准备好了",
+      "thisIsMyTeam": "这是我的队伍！"
+    },
+    "scorecardPanel": {
+      "of": "/",
+      "fight": "比赛"
+    },
+    "trainPage": {
+      "freestyle": "自由练"
+    },
+    "merchSheet": {
+      "linkCopiedSendIt": "链接已复制：发给家长",
+      "couldnTStartCheckout": "无法开始付款，请重试。"
+    },
+    "fantasySidecar": {
+      "fantasyBoxing": "梦幻拳击",
+      "freeGameNoMoney": "免费游戏 · 永不涉及金钱 · 只为和朋友一起玩",
+      "pickNow": "现在选择",
+      "fightsOn": "比赛进行中",
+      "finished": "已结束"
     }
   },
   "feedback": {

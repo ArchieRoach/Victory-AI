@@ -864,7 +864,8 @@
       "clip": "クリップ",
       "aiScore": "AIスコア",
       "rendering": "生成中…",
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "reactions": "リアクション"
     },
     "homePage": {
       "goLive": "ライブ配信",
@@ -908,7 +909,9 @@
       "sparring": "スパーリング",
       "close": "閉じる",
       "goBack": "戻る",
-      "share": "共有"
+      "share": "共有",
+      "clip": "クリップ",
+      "saving": "保存中…"
     },
     "highlightShareSheet": {
       "copied": "コピーしました！",
@@ -956,7 +959,17 @@
       "shares": "シェア",
       "preparingVideo": "動画を準備中…",
       "copyLink": "リンクをコピー",
-      "share": "共有"
+      "share": "共有",
+      "shareFailed": "シェアに失敗しました",
+      "shareClip": "クリップをシェア",
+      "viral": "バズり中",
+      "likes": "いいね",
+      "clip": "クリップ",
+      "by": "by",
+      "fighter": "ファイター",
+      "shareVideoToTiktok": "TikTok、リールなどに動画をシェア…",
+      "sendTo": "送る…",
+      "copyShare": "コピーしてシェア"
     },
     "liveChat": {
       "sendAMessage": "メッセージを送る...",
@@ -1000,7 +1013,20 @@
       "save": "保存"
     },
     "cosmeticsSheet": {
-      "save": "保存"
+      "save": "保存",
+      "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",
+      "couldnTStartCheckout": "決済を開始できませんでした。もう一度お試しください。",
+      "teamNameSaved": "チーム名を保存しました",
+      "on": "{{name}}をオン！",
+      "couldnTChangeThat": "変更できませんでした。もう一度お試しください。",
+      "teamLooks": "チームの見た目",
+      "justForShowThey": "見た目だけ。ポイントは変わりません。",
+      "on2": "使用中",
+      "use": "使う",
+      "notOwned": "未所持",
+      "yourTeamName": "あなたのチーム名",
+      "teamName": "チーム名",
+      "boughtOnceYoursTo": "一度買えばずっとあなたのもの。18歳未満？価格をタップすると保護者に送るリンクができます。"
     },
     "tokenPurchaseModal": {
       "save": "保存",
@@ -1013,7 +1039,8 @@
       "save": "保存",
       "tokens": "トークン",
       "goBack": "戻る",
-      "stayInTheFight": "戦い続けよう"
+      "stayInTheFight": "戦い続けよう",
+      "fighter": "ファイター"
     },
     "bookNextRound": {
       "pickATimeBetween": "午前5時から午後10時の間で選んでください",
@@ -1127,7 +1154,44 @@
       "level": "レベル",
       "statusPointsAndThey": "ステータスポイント。減ることはありません。",
       "justCompletedTheMission": "がミッションを達成！ブースターを選ぼう。",
-      "thisOneDidnT": "これはカウントされませんでした："
+      "thisOneDidnT": "これはカウントされませんでした：",
+      "sMissionCheckWhat": "（スクワッドミッション）。必要なものを確認しよう。",
+      "squadMission": "スクワッドミッション：",
+      "for": "対象",
+      "howDidThatFeel": "どうでしたか？",
+      "howMuchYouEnjoyed": "どれくらい楽しめたか、1〜5",
+      "notForMe": "合わない",
+      "lovedIt": "最高",
+      "notedYourPartnerLearns": "了解。パートナーがあなたの好みを学びます。",
+      "bossRound": "ボスラウンド",
+      "youGot": "。獲得：",
+      "nothingCounted": "カウントなし",
+      "status2": "ステータス",
+      "showOffTheWin": "勝利を自慢しよう",
+      "unlocked": "解除",
+      "hiddenEggFound": "隠しエッグ発見",
+      "of": "/",
+      "foundTheRestAre": "発見。残りはまだ隠れています。",
+      "predictionProved": "予想的中",
+      "coachSEye": "コーチの目",
+      "drill": "· ドリル：",
+      "couldnTSendThat": "応援を送れませんでした",
+      "yourSquadTrainedToday": "スクワッドも今日トレーニングしました",
+      "cheered": "{{name}}を応援しました",
+      "cheer": "{{name}}を応援",
+      "couldnTCountThat": "投票をカウントできませんでした",
+      "pickNextWeekS": "来週のボスを選ぼう。最多得票が勝ち。",
+      "combosCalled": "回のコンボコール。",
+      "youLanded": "成功",
+      "nextSessionStartsAt": "。次のセッションはそのレベルから始まります。",
+      "turnOnLiveCoach": " ライブコーチをオンにすると、コールがあなたに合わせて変わります。",
+      "freestyle": "フリースタイル",
+      "noScoreTodayJust": "今日はスコアなし、トレーニングだけ。今週の目標とパートナーにカウントされます。",
+      "seeAllYourNumbers": "すべての数字を見る",
+      "pointsStatusAndSeason": "ポイント、ステータス、シーズン",
+      "scoutingReport": "スカウティングレポート",
+      "rareReport": "レアレポート",
+      "epicReport": "エピックレポート"
     },
     "fighterCard": {
       "couldnTMakeYour": "カードを作れませんでした — もう一度お試しください",
@@ -1168,7 +1232,8 @@
     },
     "tokenSuccessPage": {
       "tryAgain": "もう一度試す",
-      "tokens": "トークン"
+      "tokens": "トークン",
+      "fighter": "ファイター"
     },
     "hypeOverlay": {
       "reactionsAtOnce": "同時リアクション"
@@ -1217,7 +1282,19 @@
       "sub": "サブスク"
     },
     "subscriptionGate": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "aiCreditsLeftThis": "今月の残りAIクレジット",
+      "used": "% 使用",
+      "goPro": "Proにする",
+      "monthlyLimitReached": "月間上限に達しました",
+      "youVeUsedYour": "今月の無料AIクレジット10,000を使い切りました。",
+      "resetsOnThe1st": "毎月1日にリセット。Proなら無制限",
+      "withNoMonthlyCap": "月間上限なし。",
+      "upgradeToPro": "Proにアップグレード",
+      "proFeature": "Pro機能",
+      "usesAiCreditsFree": "AIクレジットを使います。無料ユーザーは毎月10,000クレジット — フル分析約5回分です。",
+      "alwaysFree": "いつでも無料",
+      "unlockPro": "Proを解除"
     },
     "advertisePage": {
       "goBack": "戻る"
@@ -1246,7 +1323,8 @@
     },
     "rateRoundPage": {
       "goBack": "戻る",
-      "sending": "送信中…"
+      "sending": "送信中…",
+      "of": "/"
     },
     "schoolLeaderboardPage": {
       "goBack": "戻る"
@@ -1261,7 +1339,8 @@
       "goBack": "戻る"
     },
     "trendingClipsPage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "viral": "バズり中"
     },
     "partnerCondition": {
       "rising": "上昇中",
@@ -1281,7 +1360,9 @@
       "vs": "vs"
     },
     "streakShareButton": {
-      "share": "共有"
+      "share": "共有",
+      "couldnTMakeYour": "カードを作れませんでした。もう一度お試しください。",
+      "makingIt": "作成中…"
     },
     "styleQuizPage": {
       "share": "共有"
@@ -1294,7 +1375,8 @@
       "lastSession": "前回のセッション"
     },
     "questCard": {
-      "done": "完了"
+      "done": "完了",
+      "by": "by"
     },
     "sessionCard": {
       "logged": "記録"
@@ -1303,10 +1385,21 @@
       "logged": "記録"
     },
     "gymSeasonHours": {
-      "preseason": "プレシーズン"
+      "preseason": "プレシーズン",
+      "of": "/"
     },
     "squadVerdict": {
-      "sending": "送信中…"
+      "sending": "送信中…",
+      "of": "/",
+      "couldnTSendTo": "スクワッドに送れませんでした",
+      "getYourSquadS": "スクワッドの判定をもらう",
+      "squadVerdict": "スクワッドの判定",
+      "reacted": "人が反応",
+      "saidIt": "人が言った",
+      "more": "件あと",
+      "reaction": "リアクション",
+      "reactions": "リアクション",
+      "toUnlockTheVerdict": "で判定が解除"
     },
     "fantasyPartnersPage": {
       "sending": "送信中…"
@@ -1316,7 +1409,41 @@
       "level": "レベル"
     },
     "trophyShelf": {
-      "level": "レベル"
+      "level": "レベル",
+      "of": "/"
+    },
+    "draftPanel": {
+      "of": "/",
+      "youAlreadyHaveBoxers": "すでに{{STABLE_SIZE}}人のボクサーがいます。先に1人をタップして外してください。",
+      "yourTeamIsReady": "チームの準備完了！試合を見てポイントを獲得しよう。",
+      "yourCoins": "あなたのコイン",
+      "pretendCoinsFreeNot": "ゲーム内コイン — 無料、本物のお金ではありません",
+      "left": "残り{{remaining}}",
+      "boxersPicked": "人のボクサーを選択",
+      "theFightsHaveStarted": "試合が始まったので、チームはもう変更できません。",
+      "fight": "試合",
+      "trainsOnVictoryAi": "Victory AIでトレーニング中",
+      "saving": "保存中…",
+      "yourTeamIsReady2": "チームの準備完了",
+      "thisIsMyTeam": "これが私のチーム！"
+    },
+    "scorecardPanel": {
+      "of": "/",
+      "fight": "試合"
+    },
+    "trainPage": {
+      "freestyle": "フリースタイル"
+    },
+    "merchSheet": {
+      "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",
+      "couldnTStartCheckout": "決済を開始できませんでした。もう一度お試しください。"
+    },
+    "fantasySidecar": {
+      "fantasyBoxing": "ファンタジーボクシング",
+      "freeGameNoMoney": "無料ゲーム · お金は一切なし · 友達と楽しむだけ",
+      "pickNow": "今すぐ選ぶ",
+      "fightsOn": "試合中",
+      "finished": "終了"
     }
   },
   "feedback": {
