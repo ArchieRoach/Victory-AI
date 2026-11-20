@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { API } from "@/App";
 import { BragButton } from "./BragButton";
 import { isNativeShell } from "@/lib/nativeShell";
+import { TROPHY_GUIDE, trophyHow } from "@/lib/trophyGuide";
 
 // Goal: permission to show off without posting anything.
 // Psychology: a trophy shelf is implicit bragging; it only means something because every
@@ -16,6 +17,9 @@ const TREASURE_ICONS = { respect: Medal, heart: Heart, sharp: Flame };
 export function TrophyShelf({ userId, isMe = false }) {
   const [shelf, setShelf] = useState(null);
   const [giving, setGiving] = useState(false);
+  // Phones have no hover, so tapping a trophy says what it is and how it was earned.
+  const [picked, setPicked] = useState(null);
+  const pick = (name, how) => setPicked((p) => (p?.name === name ? null : { name, how }));
   const load = useCallback(() => {
     axios.get(`${API}/users/${userId}/trophy-shelf`).then((r) => setShelf(r.data)).catch(() => setShelf(false));
   }, [userId]);
@@ -63,10 +67,10 @@ export function TrophyShelf({ userId, isMe = false }) {
       {(shelf.gloves?.length > 0 || shelf.gifted_gloves?.length > 0) && (
         <div className="flex flex-wrap gap-1.5">
           {shelf.gloves.map((g) => (
-            <span key={g.season_id} title={g.hours ? `${g.hours} proven hours` : undefined}
+            <button type="button" key={g.season_id} onClick={() => pick(g.name, trophyHow("gloves"))}
               className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full bg-victory-lime/15 border border-victory-lime/40 text-victory-lime flex items-center gap-1">
               <Trophy className="w-3 h-3" /> {g.name}{g.hours ? ` · ${g.hours}h earned` : " · earned"}
-            </span>
+            </button>
           ))}
           {shelf.gifted_gloves.map((g) => (
             <span key={`gift-${g.season_id}`} className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full border border-victory-teal/40 text-victory-teal flex items-center gap-1">
@@ -85,7 +89,7 @@ export function TrophyShelf({ userId, isMe = false }) {
       {shelf.eggs?.found?.length > 0 && (
         <p className="text-[11px] text-victory-muted flex items-center gap-1.5 flex-wrap" data-testid="shelf-eggs">
           <Egg className="w-3.5 h-3.5 text-victory-orange" />
-          {shelf.eggs.found.map((e) => <span key={e.key} title={e.desc} className="text-victory-text">{e.name}</span>)}
+          {shelf.eggs.found.map((e) => <button type="button" key={e.key} onClick={() => pick(e.name, e.desc)} className="text-victory-text underline decoration-dotted">{e.name}</button>)}
           <span>· {shelf.eggs.found.length} of {shelf.eggs.total} hidden eggs found</span>
         </p>
       )}
@@ -93,14 +97,14 @@ export function TrophyShelf({ userId, isMe = false }) {
       {(shelf.titles.length > 0 || shelf.crowns.length > 0) && (
         <div className="flex flex-wrap gap-1.5">
           {shelf.titles.map((t) => (
-            <span key={t.name} title={t.desc} className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full bg-victory-teal/10 text-victory-teal flex items-center gap-1">
+            <button type="button" key={t.name} onClick={() => pick(t.name, t.desc)} className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full bg-victory-teal/10 text-victory-teal flex items-center gap-1">
               <Sparkles className="w-3 h-3" /> {t.name}
-            </span>
+            </button>
           ))}
           {shelf.crowns.map((c) => (
-            <span key={`${c.name}-${c.week_id}-${c.scope}`} title={`${c.scope}, ${c.week_id}`} className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full bg-victory-lime/10 text-victory-lime flex items-center gap-1">
+            <button type="button" key={`${c.name}-${c.week_id}-${c.scope}`} onClick={() => pick(c.name, `Most points in ${c.scope} that week.`)} className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full bg-victory-lime/10 text-victory-lime flex items-center gap-1">
               <Crown className="w-3 h-3" /> {c.name}
-            </span>
+            </button>
           ))}
         </div>
       )}
@@ -108,10 +112,10 @@ export function TrophyShelf({ userId, isMe = false }) {
       {shelf.belts.length > 0 && (
         <div className="grid grid-cols-4 gap-2">
           {shelf.belts.slice(0, 8).map((b) => (
-            <div key={b.belt_id} title={b.desc} className="rounded-lg bg-victory-card-highlight border border-victory-border p-2 text-center">
+            <button type="button" key={b.belt_id} onClick={() => pick(b.name, b.desc)} className="rounded-lg bg-victory-card-highlight border border-victory-border p-2 text-center">
               <Award className="w-5 h-5 mx-auto text-victory-lime" />
               <p className="text-[10px] text-victory-text mt-1 leading-tight line-clamp-2">{b.name}</p>
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -121,13 +125,28 @@ export function TrophyShelf({ userId, isMe = false }) {
           {shelf.treasures.map((t) => {
             const Icon = TREASURE_ICONS[t.kind] || Medal;
             return (
-              <span key={t.kind} className="flex items-center gap-1.5 text-[12px] text-victory-text">
+              <button type="button" key={t.kind} onClick={() => pick(t.name, trophyHow("treasure"))} className="flex items-center gap-1.5 text-[12px] text-victory-text">
                 <Icon className="w-4 h-4 text-victory-orange" /> {t.name} <span className="font-mono text-victory-muted">×{t.count}</span>
-              </span>
+              </button>
             );
           })}
         </div>
       )}
+
+      {picked && (
+        <p className="text-[12px] text-victory-text bg-victory-card-highlight rounded-lg px-3 py-2" data-testid="trophy-picked" aria-live="polite">
+          <span className="font-semibold">{picked.name}:</span> {picked.how}
+        </p>
+      )}
+
+      <details className="text-[12px]" data-testid="trophy-guide">
+        <summary className="text-victory-muted cursor-pointer min-h-[44px] flex items-center">How to earn them</summary>
+        <ul className="space-y-1.5 pb-1">
+          {TROPHY_GUIDE.map((g) => (
+            <li key={g.key}><span className="text-victory-text font-semibold">{g.name}:</span> <span className="text-victory-muted">{g.how}</span></li>
+          ))}
+        </ul>
+      </details>
 
       {shelf.can_give && (
         <div className="pt-1">
