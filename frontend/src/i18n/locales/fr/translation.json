@@ -3008,6 +3008,9 @@
       "current": "Série de {{count}} jours pour l'instant. Un jour de repos ne la casse jamais.",
       "trainedToday": "Entraîné aujourd'hui ✓",
       "trainToday": "S'entraîner aujourd'hui"
+    },
+    "mascotIntro": {
+      "tapHim": "Victory AI. Touche-le pour un une-deux"
     }
   },
   "feedback": {

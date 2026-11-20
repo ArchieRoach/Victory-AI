@@ -445,3 +445,17 @@ img[src*="image.pollinations.ai/prompt"]:not([src*="transparent=true"]) {
 .streak-pop { animation: streak-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.55s backwards; }
 @keyframes streak-reveal { from { opacity: 0; transform: translateY(10px) scale(0.9); } to { opacity: 1; transform: none; } }
 .streak-reveal { animation: streak-reveal 0.4s ease-out 0.35s backwards; }
+
+/* Mascot idle: bouncing on his toes while he bobs and weaves (see lib/mascotMotion.js) */
+@keyframes mascot-guard {
+  0%, 50%, 100% { transform: translate(0, 0) rotate(0); }
+  12.5% { transform: translate(-1%, -2.5%) rotate(-1.5deg); }
+  25% { transform: translate(-2%, 0) rotate(-2.5deg); }
+  37.5% { transform: translate(-1%, -2.5%) rotate(-1.5deg); }
+  62.5% { transform: translate(1%, -2.5%) rotate(1.5deg); }
+  75% { transform: translate(2%, 0) rotate(2.5deg); }
+  87.5% { transform: translate(1%, -2.5%) rotate(1.5deg); }
+}
+.mascot-stage { transform-origin: 50% 100%; }
+.mascot-idle { animation: mascot-guard 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .mascot-idle { animation: none; } }

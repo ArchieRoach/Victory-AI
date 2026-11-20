@@ -3008,6 +3008,9 @@
       "current": "Bisher {{count}} Tage in Folge. Ein Ruhetag bricht die Serie nie.",
       "trainedToday": "Heute trainiert ✓",
       "trainToday": "Heute trainieren"
+    },
+    "mascotIntro": {
+      "tapHim": "Victory AI. Tippe ihn an für eine Eins-zwei-Kombi"
     }
   },
   "feedback": {

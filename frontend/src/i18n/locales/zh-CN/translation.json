@@ -3008,6 +3008,9 @@
       "current": "目前已连续 {{count}} 天。休息一天绝不会中断。",
       "trainedToday": "今天已训练 ✓",
       "trainToday": "今天训练"
+    },
+    "mascotIntro": {
+      "tapHim": "Victory AI。点他，打出一记一二连击"
     }
   },
   "feedback": {

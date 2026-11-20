@@ -3008,6 +3008,9 @@
       "current": "現在{{count}}日連続。休みが1日なら途切れません。",
       "trainedToday": "今日はトレーニング済み ✓",
       "trainToday": "今日トレーニングする"
+    },
+    "mascotIntro": {
+      "tapHim": "Victory AI。タップするとワンツーを打つよ"
     }
   },
   "feedback": {

@@ -3008,6 +3008,9 @@
       "current": "Sequência de {{count}} dias até agora. Um dia de descanso nunca a quebra.",
       "trainedToday": "Treinou hoje ✓",
       "trainToday": "Treinar hoje"
+    },
+    "mascotIntro": {
+      "tapHim": "Victory AI. Toque nele para um um-dois"
     }
   },
   "feedback": {
