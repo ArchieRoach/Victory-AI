@@ -2962,6 +2962,13 @@
       "members": "Membros · {{count}}",
       "going": "Vai",
       "leave": "Sair do clube de corrida"
+    },
+    "walkthrough": {
+      "label": "Tour rápido",
+      "skip": "Pular",
+      "progress": "Passo {{n}} de {{total}}",
+      "done": "Bora",
+      "next": "Próximo"
     }
   },
   "feedback": {
@@ -3104,6 +3111,19 @@
       "Get_ready_to_spar": "Me preparar para o sparring",
       "Compete_in_fights": "Competir em lutas",
       "Just_for_fun": "Só por diversão"
+    },
+    "walkthrough": {
+      "firstLabel": "Primeiro",
+      "startHere": "Comece aqui.",
+      "thenLabel": "Seu parceiro",
+      "meetPartner": "Conheça {{partner}}.",
+      "nextTimeLabel": "Da próxima vez",
+      "trainTitle": "Toda sessão começa aqui.",
+      "trainBody": "Escolha seu round, ative o vídeo se quiser uma nota e aperte começar.",
+      "anytimeLabel": "A qualquer hora",
+      "helpTitle": "Travou? Pergunte aqui.",
+      "helpBody": "O Pergunte ao Victory responde dúvidas sobre o app e pode passar o resto para a equipe.",
+      "startBody": "Um round de 3 minutos com {{partner}}. Essa é toda a sua primeira sessão."
     }
   }
 }

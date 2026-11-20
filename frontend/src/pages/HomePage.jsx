@@ -11,6 +11,7 @@ import {
   Send, Tv, ChevronDown, ChevronUp, Zap, Gift, Share2, Flame, Flag, Footprints,
 } from "lucide-react";
 import { ShareSheet } from "@/components/ShareSheet";
+import { Walkthrough } from "@/components/Walkthrough";
 import { ReportModal } from "@/components/ReportModal";
 import { PartnerCondition } from "@/components/PartnerCondition";
 import { JourneyCard } from "@/components/JourneyCard";
@@ -625,6 +626,7 @@ export default function HomePage() {
         </div>
       </header>
 
+      <Walkthrough enabled={tab === "foryou" && !!unlocks?.newcomer} />
       {tab === "foryou" && (
         <div className="px-4 pt-3 space-y-3">
           {unlocks && !unlocks.newcomer && <WelcomeBack />}

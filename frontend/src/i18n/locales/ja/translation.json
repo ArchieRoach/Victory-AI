@@ -2962,6 +2962,13 @@
       "members": "メンバー · {{count}}",
       "going": "参加",
       "leave": "ランクラブを退会"
+    },
+    "walkthrough": {
+      "label": "かんたんツアー",
+      "skip": "スキップ",
+      "progress": "ステップ {{n}} / {{total}}",
+      "done": "始めよう",
+      "next": "次へ"
     }
   },
   "feedback": {
@@ -3104,6 +3111,19 @@
       "Get_ready_to_spar": "スパーの準備をしたい",
       "Compete_in_fights": "試合に出たい",
       "Just_for_fun": "楽しみたいだけ"
+    },
+    "walkthrough": {
+      "firstLabel": "まずは",
+      "startHere": "ここから始めよう。",
+      "thenLabel": "パートナー",
+      "meetPartner": "{{partner}}を紹介します。",
+      "nextTimeLabel": "次回からは",
+      "trainTitle": "すべてのセッションはここから。",
+      "trainBody": "ラウンドを選び、スコアが欲しければ動画をオンにして、スタートを押そう。",
+      "anytimeLabel": "いつでも",
+      "helpTitle": "困ったらここで質問。",
+      "helpBody": "Victoryに聞くはアプリの質問に答え、それ以外はチームに伝えられます。",
+      "startBody": "{{partner}}と3分間1ラウンド。それが最初のセッションのすべてです。"
     }
   }
 }

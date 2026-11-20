@@ -2962,6 +2962,13 @@
       "members": "Mitglieder · {{count}}",
       "going": "Dabei",
       "leave": "Laufclub verlassen"
+    },
+    "walkthrough": {
+      "label": "Kurze Tour",
+      "skip": "Überspringen",
+      "progress": "Schritt {{n}} von {{total}}",
+      "done": "Los geht's",
+      "next": "Weiter"
     }
   },
   "feedback": {
@@ -3104,6 +3111,19 @@
       "Get_ready_to_spar": "Mich aufs Sparring vorbereiten",
       "Compete_in_fights": "In Kämpfen antreten",
       "Just_for_fun": "Einfach aus Spaß"
+    },
+    "walkthrough": {
+      "firstLabel": "Zuerst",
+      "startHere": "Fang hier an.",
+      "thenLabel": "Dein Partner",
+      "meetPartner": "Das ist {{partner}}.",
+      "nextTimeLabel": "Beim nächsten Mal",
+      "trainTitle": "Jede Einheit startet hier.",
+      "trainBody": "Wähle deine Runde, schalte das Video ein, wenn du eine Bewertung willst, und drück auf Start.",
+      "anytimeLabel": "Jederzeit",
+      "helpTitle": "Hängst du fest? Frag hier.",
+      "helpBody": "Frag Victory beantwortet Fragen zur App und kann alles andere ans Team weitergeben.",
+      "startBody": "Eine 3-Minuten-Runde mit {{partner}}. Das ist deine ganze erste Einheit."
     }
   }
 }

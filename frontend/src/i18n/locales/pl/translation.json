@@ -2962,6 +2962,13 @@
       "members": "Członkowie · {{count}}",
       "going": "Idzie",
       "leave": "Opuść klub biegowy"
+    },
+    "walkthrough": {
+      "label": "Krótka wycieczka",
+      "skip": "Pomiń",
+      "progress": "Krok {{n}} z {{total}}",
+      "done": "Lecimy",
+      "next": "Dalej"
     }
   },
   "feedback": {
@@ -3104,6 +3111,19 @@
       "Get_ready_to_spar": "Przygotować się do sparingów",
       "Compete_in_fights": "Startować w walkach",
       "Just_for_fun": "Dla zabawy"
+    },
+    "walkthrough": {
+      "firstLabel": "Najpierw",
+      "startHere": "Zacznij tutaj.",
+      "thenLabel": "Twój partner",
+      "meetPartner": "Poznaj: {{partner}}.",
+      "nextTimeLabel": "Następnym razem",
+      "trainTitle": "Każda sesja zaczyna się tutaj.",
+      "trainBody": "Wybierz rundę, włącz wideo, jeśli chcesz ocenę, i naciśnij start.",
+      "anytimeLabel": "W każdej chwili",
+      "helpTitle": "Utknąłeś? Zapytaj tutaj.",
+      "helpBody": "Zapytaj Victory odpowiada na pytania o aplikację i może przekazać resztę zespołowi.",
+      "startBody": "Jedna 3-minutowa runda z {{partner}}. To cała twoja pierwsza sesja."
     }
   }
 }

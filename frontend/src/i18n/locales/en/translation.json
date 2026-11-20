@@ -2978,6 +2978,13 @@
       "members": "Members · {{count}}",
       "going": "Going",
       "leave": "Leave run club"
+    },
+    "walkthrough": {
+      "label": "Quick tour",
+      "skip": "Skip",
+      "progress": "Step {{n}} of {{total}}",
+      "done": "Let's go",
+      "next": "Next"
     }
   },
   "lib": {
@@ -3104,6 +3111,19 @@
       "Get_ready_to_spar": "Get ready to spar",
       "Compete_in_fights": "Compete in fights",
       "Just_for_fun": "Just for fun"
+    },
+    "walkthrough": {
+      "firstLabel": "First",
+      "startHere": "Start here.",
+      "thenLabel": "Your partner",
+      "meetPartner": "Meet {{partner}}.",
+      "nextTimeLabel": "Next time",
+      "trainTitle": "Every session starts here.",
+      "trainBody": "Pick your round, turn on video if you want a score, and press start.",
+      "anytimeLabel": "Any time",
+      "helpTitle": "Stuck? Ask here.",
+      "helpBody": "Ask Victory answers questions about the app, and can pass anything else to the team.",
+      "startBody": "One 3-minute round with {{partner}}. That's your whole first session."
     }
   }
 }
