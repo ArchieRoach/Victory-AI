@@ -959,7 +959,8 @@
       "couldnTUnfollowTry": "无法取消关注，请重试。",
       "couldnTFollowTry": "无法关注，请重试。",
       "following": "已关注",
-      "follow": "关注"
+      "follow": "关注",
+      "cancel": "取消"
     },
     "highlightShareSheet": {
       "copied": "已复制！",
@@ -1302,7 +1303,8 @@
       "done": "完成",
       "couldnTSaveThat": "无法保存",
       "bagPadsCircuitsHiit": "沙袋、手靶、循环、HIIT。在同一屏幕上录制。",
-      "start": "开始"
+      "start": "开始",
+      "rounds": "回合数"
     },
     "fightFilm": {
       "fightFilm": "战斗影集",
@@ -1454,7 +1456,8 @@
     "ordersPage": {
       "couldnTSendThat": "无法发送，请重试。",
       "send": "发送",
-      "back": "返回"
+      "back": "返回",
+      "cancel": "取消"
     },
     "proApplyPage": {
       "couldnTSendThat": "无法发送，请重试。",
@@ -1695,7 +1698,8 @@
       "goBack": "返回"
     },
     "seasonWrappedPage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "seasonWrapped": "赛季回顾"
     },
     "sessionDetailPage": {
       "goBack": "返回"
@@ -1732,7 +1736,70 @@
       "noFightBooked": "还没有安排比赛",
       "tell": "告诉",
       "whenItIsAnd": "比赛时间，他会陪你度过训练营。",
-      "addMyNextFight": "添加我的下一场比赛"
+      "addMyNextFight": "添加我的下一场比赛",
+      "addAnotherFight": "再添加一场比赛",
+      "tellThem": "告诉他们",
+      "addMyResult": "添加我的结果",
+      "amateurRecord": "业余战绩",
+      "editRecord": "编辑战绩",
+      "saveRecord": "保存战绩",
+      "verifiedBy": "认证人",
+      "selfReportedYourGym": "自行填报 — 你的拳馆馆主可以认证",
+      "copiedPasteItAnywhere": "已复制 — 粘贴到任何地方",
+      "dayToGo": "天后开赛",
+      "daysToGo": "天后开赛",
+      "rounds": "回合",
+      "kg": " · {{target_weight_kg}} 公斤",
+      "inFantasy": "在 Fantasy 中",
+      "yourGymAndSquad": "（仅你的拳馆和小队）",
+      "campCheckIn": "训练营打卡",
+      "removeFight": "移除比赛",
+      "fightDate": "比赛日期",
+      "showName": "赛事名称",
+      "eGRaysAbc": "例如 Rays ABC 俱乐部赛",
+      "opponent": "对手",
+      "theirClubOptional": "对手俱乐部（可选）",
+      "opponentSClub": "对手俱乐部",
+      "theirRecordIfYou": "对手战绩，如果知道的话（会决定 Fantasy 价格）",
+      "rounds2": "回合数",
+      "fightWeightKg": "比赛体重（公斤）",
+      "weightClassOptional": "重量级别（可选）",
+      "weightClass": "重量级别",
+      "campGoalsUpTo": "训练营目标（最多 3 个，用逗号分隔）",
+      "sharperJabMoreSparring": "刺拳更犀利、更多实战、控好体重",
+      "putThisFightIn": "把这场比赛放进 Fantasy，让朋友可以选我",
+      "onlyYourGymAnd": "（只有你的拳馆和小队能看到）",
+      "theVenueIsNever": "。场地永远不会显示。",
+      "cancel": "取消",
+      "saveFight": "保存比赛",
+      "sessionsThisWeek": "本周训练次数",
+      "sparringRounds": "实战回合",
+      "weightKg": "体重（公斤）",
+      "energy": "精力",
+      "anythingElseOptional": "还有别的吗？（可选）",
+      "note": "备注",
+      "sendCheckIn": "提交打卡",
+      "round": "回合",
+      "saveResult": "保存结果",
+      "thisCamp": "本次训练营",
+      "sessions": "次训练 ·",
+      "sparringRds": "个实战回合",
+      "kg2": " · {{weight_kg}} 公斤",
+      "sRecordVerified": "{{name}} 的战绩已认证",
+      "gym": "拳馆",
+      "youRunThisGym": "你管理这家拳馆",
+      "member": "会员",
+      "notInAGym": "还没有加入拳馆 —",
+      "findYours": "找到你的拳馆",
+      "soYourCoachCan": "，让教练可以认证你的战绩。",
+      "recordsToCheck": "待审核的战绩",
+      "correct": "正确",
+      "whoILlWork": "我愿意一起练的人",
+      "showOthersYouRe": "向别人展示你愿意：",
+      "findBoxersOpenTo": "寻找愿意以下内容的拳手：",
+      "noOneYetYour": "还没有人。你拳馆的伙伴开启后会最先出现。",
+      "yourGym": "· 你的拳馆",
+      "fights": "比赛"
     },
     "streakShareButton": {
       "share": "分享",
@@ -1748,7 +1815,22 @@
     "fighterBuddyCreator": {
       "choose": "选择",
       "weightClass": "重量级别",
-      "stance": "架势"
+      "stance": "架势",
+      "couldnTLoadFighter": "无法加载拳手风格 — 请重试",
+      "pleaseCompleteAllFields": "请填写所有字段",
+      "isReadyToTrain": "{{name}} 已准备好和你一起训练！",
+      "failedToCreateTraining": "创建训练搭档失败",
+      "createYourAiTraining": "创建你的 AI 训练搭档",
+      "aTrainingPartnerNot": "是训练搭档，不是教练 — 你的 AI 陪练伙伴",
+      "fighterName": "拳手名字",
+      "giveYourBuddyA": "给你的伙伴起个名字",
+      "favoritePunch": "最爱的拳",
+      "chooseFightingStyle": "选择拳风",
+      "backToDetails": "← 返回详情",
+      "sStyle": "的风格",
+      "inspiredBy": "灵感来自",
+      "preview": "预览",
+      "lovesThe": "• 最爱"
     },
     "radarChart": {
       "thisSession": "本次训练",
@@ -1913,7 +1995,8 @@
       "fightingNow": "正在比赛"
     },
     "trainPage": {
-      "freestyle": "自由练"
+      "freestyle": "自由练",
+      "round": "回合"
     },
     "merchSheet": {
       "linkCopiedSendIt": "链接已复制：发给家长",
@@ -2151,7 +2234,29 @@
       "createCompetition": "创建比赛"
     },
     "fightStoryPage": {
-      "back": "返回"
+      "back": "返回",
+      "yourHistoryIsOn": "你的历史记录在你的拳击故事里",
+      "couldnTSaveThat": "无法保存，请检查数字",
+      "couldnTLoadYour": "无法加载你的拳击故事。请检查网络。",
+      "yourFightStory": "你的拳击故事",
+      "everythingYouVeBuilt": "你在这里打造的一切。永远属于你。",
+      "seasonWrapped": "赛季回顾",
+      "trainingOnVictoryAi": "自 {{since}} 起在 Victory AI 训练",
+      "yourStoryStartsWith": "你的故事从第一次训练开始",
+      "onTheRoadTo": "，迈向 10,000 验证小时。",
+      "personalBests": "个人最佳",
+      "honours": "荣誉",
+      "boxingBeforeVictoryAi": "加入 Victory AI 之前的拳击经历",
+      "shownOnYourFight": "在你的拳击故事中显示为自行填报。永远不计入验证小时或等级。",
+      "yearsBoxing": "拳龄（年）",
+      "sessionsAWeek": "每周训练次数",
+      "saveMyHistory": "保存我的经历",
+      "boxingFor": "加入前已练拳",
+      "yearsBeforeJoiningAbout": "年，大约每周",
+      "sessionsAWeekSelf": "次训练（自行填报）。",
+      "printOrPdf": "打印或 PDF",
+      "download": "下载",
+      "wantEverythingIncludingEvery": "想要全部内容，包括每条帖子和消息？在个人资料中使用“下载我的数据”。"
     },
     "fantasyResultsPage": {
       "thatDidnTSave": "没有保存成功 — 请重试",

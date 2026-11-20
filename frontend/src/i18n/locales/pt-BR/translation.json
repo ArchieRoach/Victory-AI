@@ -959,7 +959,8 @@
       "couldnTUnfollowTry": "Não foi possível deixar de seguir. Tente de novo.",
       "couldnTFollowTry": "Não foi possível seguir. Tente de novo.",
       "following": "Seguindo",
-      "follow": "Seguir"
+      "follow": "Seguir",
+      "cancel": "Cancelar"
     },
     "highlightShareSheet": {
       "copied": "Copiado!",
@@ -1302,7 +1303,8 @@
       "done": "Concluído",
       "couldnTSaveThat": "Não foi possível salvar",
       "bagPadsCircuitsHiit": "Saco, manopla, circuitos, HIIT. Grave na mesma tela.",
-      "start": "Começar"
+      "start": "Começar",
+      "rounds": "Rounds"
     },
     "fightFilm": {
       "fightFilm": "Filme de Luta",
@@ -1454,7 +1456,8 @@
     "ordersPage": {
       "couldnTSendThat": "Não foi possível enviar. Tente de novo.",
       "send": "Enviar",
-      "back": "Voltar"
+      "back": "Voltar",
+      "cancel": "Cancelar"
     },
     "proApplyPage": {
       "couldnTSendThat": "Não foi possível enviar. Tente de novo.",
@@ -1695,7 +1698,8 @@
       "goBack": "Voltar"
     },
     "seasonWrappedPage": {
-      "goBack": "Voltar"
+      "goBack": "Voltar",
+      "seasonWrapped": "Retrospectiva da temporada"
     },
     "sessionDetailPage": {
       "goBack": "Voltar"
@@ -1732,7 +1736,70 @@
       "noFightBooked": "Nenhuma luta marcada",
       "tell": "Diga a",
       "whenItIsAnd": "quando será, e ele vai te ajudar no camp.",
-      "addMyNextFight": "Adicionar minha próxima luta"
+      "addMyNextFight": "Adicionar minha próxima luta",
+      "addAnotherFight": "Adicionar outra luta",
+      "tellThem": "Avise-os",
+      "addMyResult": "Adicionar meu resultado",
+      "amateurRecord": "Cartel amador",
+      "editRecord": "Editar cartel",
+      "saveRecord": "Salvar cartel",
+      "verifiedBy": "Verificado por",
+      "selfReportedYourGym": "Autodeclarado — o dono da sua academia pode verificar",
+      "copiedPasteItAnywhere": "Copiado — cole onde quiser",
+      "dayToGo": "dia restante",
+      "daysToGo": "dias restantes",
+      "rounds": "rounds",
+      "kg": " · {{target_weight_kg}} kg",
+      "inFantasy": "No Fantasy",
+      "yourGymAndSquad": " (só sua academia e squad)",
+      "campCheckIn": "Check-in do camp",
+      "removeFight": "Remover luta",
+      "fightDate": "Data da luta",
+      "showName": "Nome do evento",
+      "eGRaysAbc": "ex.: evento do clube Rays ABC",
+      "opponent": "Adversário",
+      "theirClubOptional": "Clube dele (opcional)",
+      "opponentSClub": "Clube do adversário",
+      "theirRecordIfYou": "Cartel dele, se souber (define os preços no Fantasy)",
+      "rounds2": "Rounds",
+      "fightWeightKg": "Peso da luta (kg)",
+      "weightClassOptional": "Categoria de peso (opcional)",
+      "weightClass": "Categoria de peso",
+      "campGoalsUpTo": "Metas do camp (até 3, separadas por vírgula)",
+      "sharperJabMoreSparring": "jab mais afiado, mais sparring, bater o peso",
+      "putThisFightIn": "Colocar esta luta no Fantasy para os amigos me escolherem",
+      "onlyYourGymAnd": " (só sua academia e squad vão ver)",
+      "theVenueIsNever": ". O local nunca é mostrado.",
+      "cancel": "Cancelar",
+      "saveFight": "Salvar luta",
+      "sessionsThisWeek": "Sessões nesta semana",
+      "sparringRounds": "Rounds de sparring",
+      "weightKg": "Peso (kg)",
+      "energy": "Energia",
+      "anythingElseOptional": "Algo mais? (opcional)",
+      "note": "Nota",
+      "sendCheckIn": "Enviar check-in",
+      "round": "Round",
+      "saveResult": "Salvar resultado",
+      "thisCamp": "Este camp",
+      "sessions": "sessões ·",
+      "sparringRds": "rounds de sparring",
+      "kg2": " · {{weight_kg}} kg",
+      "sRecordVerified": "Cartel de {{name}} verificado",
+      "gym": "Academia",
+      "youRunThisGym": "Você administra esta academia",
+      "member": "Membro",
+      "notInAGym": "Ainda sem academia —",
+      "findYours": "encontre a sua",
+      "soYourCoachCan": "para seu treinador verificar seu cartel.",
+      "recordsToCheck": "Cartéis para verificar",
+      "correct": "Correto",
+      "whoILlWork": "Com quem vou treinar",
+      "showOthersYouRe": "Mostre que você está aberto a:",
+      "findBoxersOpenTo": "Encontre boxeadores abertos a:",
+      "noOneYetYour": "Ninguém ainda. Seus colegas de academia aparecem primeiro quando ativarem.",
+      "yourGym": "· sua academia",
+      "fights": "Lutas"
     },
     "streakShareButton": {
       "share": "Compartilhar",
@@ -1748,7 +1815,22 @@
     "fighterBuddyCreator": {
       "choose": "Escolha",
       "weightClass": "Categoria de peso",
-      "stance": "Base"
+      "stance": "Base",
+      "couldnTLoadFighter": "Não foi possível carregar os estilos — tente de novo",
+      "pleaseCompleteAllFields": "Preencha todos os campos",
+      "isReadyToTrain": "{{name}} está pronto para treinar com você!",
+      "failedToCreateTraining": "Falha ao criar o parceiro de treino",
+      "createYourAiTraining": "Crie seu parceiro de treino de IA",
+      "aTrainingPartnerNot": "Um parceiro de treino, não um treinador — seu companheiro de sparring de IA",
+      "fighterName": "Nome do lutador",
+      "giveYourBuddyA": "Dê um nome ao seu parceiro",
+      "favoritePunch": "Soco favorito",
+      "chooseFightingStyle": "Escolha o estilo de luta",
+      "backToDetails": "← Voltar aos detalhes",
+      "sStyle": "— estilo",
+      "inspiredBy": "Inspirado em",
+      "preview": "Prévia",
+      "lovesThe": "• Adora o"
     },
     "radarChart": {
       "thisSession": "Esta sessão",
@@ -1913,7 +1995,8 @@
       "fightingNow": "Lutando agora"
     },
     "trainPage": {
-      "freestyle": "Livre"
+      "freestyle": "Livre",
+      "round": "Round"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link copiado: envie para um responsável",
@@ -2151,7 +2234,29 @@
       "createCompetition": "Criar competição"
     },
     "fightStoryPage": {
-      "back": "Voltar"
+      "back": "Voltar",
+      "yourHistoryIsOn": "Seu histórico está na sua História de Luta",
+      "couldnTSaveThat": "Não foi possível salvar, confira os números",
+      "couldnTLoadYour": "Não foi possível carregar sua História de Luta. Verifique sua conexão.",
+      "yourFightStory": "Sua História de Luta",
+      "everythingYouVeBuilt": "Tudo o que você construiu aqui. Seu para sempre.",
+      "seasonWrapped": "Retrospectiva da temporada",
+      "trainingOnVictoryAi": "Treinando no Victory AI desde {{since}}",
+      "yourStoryStartsWith": "Sua história começa com sua primeira sessão",
+      "onTheRoadTo": "no caminho para 10.000 horas comprovadas.",
+      "personalBests": "Recordes pessoais",
+      "honours": "Honras",
+      "boxingBeforeVictoryAi": "Boxe antes do Victory AI",
+      "shownOnYourFight": "Aparece na sua História de Luta como autodeclarado. Nunca conta como horas comprovadas ou níveis.",
+      "yearsBoxing": "Anos de boxe",
+      "sessionsAWeek": "Sessões por semana",
+      "saveMyHistory": "Salvar meu histórico",
+      "boxingFor": "Lutando boxe há",
+      "yearsBeforeJoiningAbout": "anos antes de entrar, cerca de",
+      "sessionsAWeekSelf": "sessões por semana (autodeclarado).",
+      "printOrPdf": "Imprimir ou PDF",
+      "download": "Baixar",
+      "wantEverythingIncludingEvery": "Quer tudo, incluindo cada post e mensagem? Use \"Baixar meus dados\" no seu Perfil."
     },
     "fantasyResultsPage": {
       "thatDidnTSave": "Não salvou — tente de novo",

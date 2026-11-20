@@ -959,7 +959,8 @@
       "couldnTUnfollowTry": "تعذّر إلغاء المتابعة. حاول مرة أخرى.",
       "couldnTFollowTry": "تعذّرت المتابعة. حاول مرة أخرى.",
       "following": "تتابعه",
-      "follow": "متابعة"
+      "follow": "متابعة",
+      "cancel": "إلغاء"
     },
     "highlightShareSheet": {
       "copied": "تم النسخ!",
@@ -1302,7 +1303,8 @@
       "done": "تم",
       "couldnTSaveThat": "تعذّر الحفظ",
       "bagPadsCircuitsHiit": "الكيس، الوسائد، الدوائر، HIIT. صوّرها على الشاشة نفسها.",
-      "start": "ابدأ"
+      "start": "ابدأ",
+      "rounds": "الجولات"
     },
     "fightFilm": {
       "fightFilm": "فيلم القتال",
@@ -1454,7 +1456,8 @@
     "ordersPage": {
       "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
       "send": "إرسال",
-      "back": "رجوع"
+      "back": "رجوع",
+      "cancel": "إلغاء"
     },
     "proApplyPage": {
       "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
@@ -1695,7 +1698,8 @@
       "goBack": "رجوع"
     },
     "seasonWrappedPage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "seasonWrapped": "ملخص الموسم"
     },
     "sessionDetailPage": {
       "goBack": "رجوع"
@@ -1732,7 +1736,70 @@
       "noFightBooked": "لا يوجد نزال محجوز",
       "tell": "أخبر",
       "whenItIsAnd": "بموعده، وسيساعدك خلال المعسكر.",
-      "addMyNextFight": "أضف نزالي القادم"
+      "addMyNextFight": "أضف نزالي القادم",
+      "addAnotherFight": "أضف نزالاً آخر",
+      "tellThem": "أخبرهم",
+      "addMyResult": "أضف نتيجتي",
+      "amateurRecord": "سجل الهواة",
+      "editRecord": "تعديل السجل",
+      "saveRecord": "حفظ السجل",
+      "verifiedBy": "موثّق من",
+      "selfReportedYourGym": "مُعلن ذاتيًا — يمكن لمالك ناديك توثيقه",
+      "copiedPasteItAnywhere": "تم النسخ — الصقه في أي مكان",
+      "dayToGo": "يوم متبقٍ",
+      "daysToGo": "أيام متبقية",
+      "rounds": "جولات",
+      "kg": " · {{target_weight_kg}} كغ",
+      "inFantasy": "في Fantasy",
+      "yourGymAndSquad": " (ناديك وفريقك فقط)",
+      "campCheckIn": "تسجيل حضور المعسكر",
+      "removeFight": "إزالة النزال",
+      "fightDate": "تاريخ النزال",
+      "showName": "اسم الأمسية",
+      "eGRaysAbc": "مثل أمسية نادي Rays ABC",
+      "opponent": "الخصم",
+      "theirClubOptional": "ناديه (اختياري)",
+      "opponentSClub": "نادي الخصم",
+      "theirRecordIfYou": "سجله إن كنت تعرفه (يحدد أسعار Fantasy)",
+      "rounds2": "الجولات",
+      "fightWeightKg": "وزن النزال (كغ)",
+      "weightClassOptional": "فئة الوزن (اختياري)",
+      "weightClass": "فئة الوزن",
+      "campGoalsUpTo": "أهداف المعسكر (حتى 3، مفصولة بفواصل)",
+      "sharperJabMoreSparring": "جاب أحدّ، سبارينغ أكثر، الوصول للوزن",
+      "putThisFightIn": "ضع هذا النزال في Fantasy ليختارني أصدقائي",
+      "onlyYourGymAnd": " (ناديك وفريقك فقط سيرونه)",
+      "theVenueIsNever": ". المكان لا يظهر أبدًا.",
+      "cancel": "إلغاء",
+      "saveFight": "حفظ النزال",
+      "sessionsThisWeek": "جلسات هذا الأسبوع",
+      "sparringRounds": "جولات السبارينغ",
+      "weightKg": "الوزن (كغ)",
+      "energy": "الطاقة",
+      "anythingElseOptional": "أي شيء آخر؟ (اختياري)",
+      "note": "ملاحظة",
+      "sendCheckIn": "إرسال تسجيل الحضور",
+      "round": "الجولة",
+      "saveResult": "حفظ النتيجة",
+      "thisCamp": "هذا المعسكر",
+      "sessions": "جلسات ·",
+      "sparringRds": "جولات سبارينغ",
+      "kg2": " · {{weight_kg}} كغ",
+      "sRecordVerified": "تم توثيق سجل {{name}}",
+      "gym": "النادي",
+      "youRunThisGym": "أنت تدير هذا النادي",
+      "member": "عضو",
+      "notInAGym": "لست في نادٍ بعد —",
+      "findYours": "ابحث عن ناديك",
+      "soYourCoachCan": "ليتمكن مدربك من توثيق سجلك.",
+      "recordsToCheck": "سجلات للمراجعة",
+      "correct": "صحيح",
+      "whoILlWork": "مع من سأتدرب",
+      "showOthersYouRe": "أظهر للآخرين أنك منفتح على:",
+      "findBoxersOpenTo": "ابحث عن ملاكمين منفتحين على:",
+      "noOneYetYour": "لا أحد بعد. يظهر زملاؤك في النادي أولاً عندما يفعّلونه.",
+      "yourGym": "· ناديك",
+      "fights": "النزالات"
     },
     "streakShareButton": {
       "share": "مشاركة",
@@ -1748,7 +1815,22 @@
     "fighterBuddyCreator": {
       "choose": "اختر",
       "weightClass": "فئة الوزن",
-      "stance": "الوقفة"
+      "stance": "الوقفة",
+      "couldnTLoadFighter": "تعذّر تحميل أساليب القتال — حاول مرة أخرى",
+      "pleaseCompleteAllFields": "يرجى إكمال كل الحقول",
+      "isReadyToTrain": "{{name}} جاهز للتدرب معك!",
+      "failedToCreateTraining": "فشل إنشاء شريك التدريب",
+      "createYourAiTraining": "أنشئ شريك تدريبك بالذكاء الاصطناعي",
+      "aTrainingPartnerNot": "شريك تدريب، لا مدرب — رفيقك في السبارينغ بالذكاء الاصطناعي",
+      "fighterName": "اسم الملاكم",
+      "giveYourBuddyA": "اختر اسمًا لرفيقك",
+      "favoritePunch": "اللكمة المفضلة",
+      "chooseFightingStyle": "اختر أسلوب القتال",
+      "backToDetails": "→ العودة إلى التفاصيل",
+      "sStyle": " — أسلوبه",
+      "inspiredBy": "مستوحى من",
+      "preview": "معاينة",
+      "lovesThe": "• يحب"
     },
     "radarChart": {
       "thisSession": "هذه الجلسة",
@@ -1913,7 +1995,8 @@
       "fightingNow": "يتنافس الآن"
     },
     "trainPage": {
-      "freestyle": "حر"
+      "freestyle": "حر",
+      "round": "الجولة"
     },
     "merchSheet": {
       "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",
@@ -2151,7 +2234,29 @@
       "createCompetition": "إنشاء مسابقة"
     },
     "fightStoryPage": {
-      "back": "رجوع"
+      "back": "رجوع",
+      "yourHistoryIsOn": "تاريخك موجود في قصة قتالك",
+      "couldnTSaveThat": "تعذّر الحفظ، تحقق من الأرقام",
+      "couldnTLoadYour": "تعذّر تحميل قصة قتالك. تحقق من اتصالك.",
+      "yourFightStory": "قصة قتالك",
+      "everythingYouVeBuilt": "كل ما بنيته هنا. لك للأبد.",
+      "seasonWrapped": "ملخص الموسم",
+      "trainingOnVictoryAi": "يتدرب على Victory AI منذ {{since}}",
+      "yourStoryStartsWith": "تبدأ قصتك مع جلستك الأولى",
+      "onTheRoadTo": "على طريق 10,000 ساعة مُثبتة.",
+      "personalBests": "الأرقام الشخصية",
+      "honours": "الأوسمة",
+      "boxingBeforeVictoryAi": "الملاكمة قبل Victory AI",
+      "shownOnYourFight": "تظهر في قصة قتالك كمُعلنة ذاتيًا. لا تُحتسب أبدًا كساعات مُثبتة أو مستويات.",
+      "yearsBoxing": "سنوات الملاكمة",
+      "sessionsAWeek": "جلسات أسبوعيًا",
+      "saveMyHistory": "احفظ تاريخي",
+      "boxingFor": "يلاكم منذ",
+      "yearsBeforeJoiningAbout": "سنوات قبل الانضمام، نحو",
+      "sessionsAWeekSelf": "جلسات أسبوعيًا (مُعلن ذاتيًا).",
+      "printOrPdf": "طباعة أو PDF",
+      "download": "تنزيل",
+      "wantEverythingIncludingEvery": "تريد كل شيء، بما في ذلك كل منشور ورسالة؟ استخدم \"تنزيل بياناتي\" في ملفك."
     },
     "fantasyResultsPage": {
       "thatDidnTSave": "لم يُحفظ — حاول مرة أخرى",

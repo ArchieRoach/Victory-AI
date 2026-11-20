@@ -959,7 +959,8 @@
       "couldnTUnfollowTry": "Nie udało się przestać obserwować. Spróbuj ponownie.",
       "couldnTFollowTry": "Nie udało się zaobserwować. Spróbuj ponownie.",
       "following": "Obserwujesz",
-      "follow": "Obserwuj"
+      "follow": "Obserwuj",
+      "cancel": "Anuluj"
     },
     "highlightShareSheet": {
       "copied": "Skopiowano!",
@@ -1302,7 +1303,8 @@
       "done": "Gotowe",
       "couldnTSaveThat": "Nie udało się zapisać",
       "bagPadsCircuitsHiit": "Worek, tarcze, obwody, HIIT. Nagrywaj na tym samym ekranie.",
-      "start": "Uruchom"
+      "start": "Uruchom",
+      "rounds": "Rundy"
     },
     "fightFilm": {
       "fightFilm": "Film walki",
@@ -1454,7 +1456,8 @@
     "ordersPage": {
       "couldnTSendThat": "Nie udało się wysłać. Spróbuj ponownie.",
       "send": "Wyślij",
-      "back": "Wstecz"
+      "back": "Wstecz",
+      "cancel": "Anuluj"
     },
     "proApplyPage": {
       "couldnTSendThat": "Nie udało się wysłać. Spróbuj ponownie.",
@@ -1695,7 +1698,8 @@
       "goBack": "Wróć"
     },
     "seasonWrappedPage": {
-      "goBack": "Wróć"
+      "goBack": "Wróć",
+      "seasonWrapped": "Podsumowanie sezonu"
     },
     "sessionDetailPage": {
       "goBack": "Wróć"
@@ -1732,7 +1736,70 @@
       "noFightBooked": "Brak zaplanowanej walki",
       "tell": "Powiedz",
       "whenItIsAnd": ", kiedy to będzie, a pomoże ci przejść przez obóz.",
-      "addMyNextFight": "Dodaj następną walkę"
+      "addMyNextFight": "Dodaj następną walkę",
+      "addAnotherFight": "Dodaj kolejną walkę",
+      "tellThem": "Powiedz im",
+      "addMyResult": "Dodaj mój wynik",
+      "amateurRecord": "Rekord amatorski",
+      "editRecord": "Edytuj rekord",
+      "saveRecord": "Zapisz rekord",
+      "verifiedBy": "Zweryfikowane przez",
+      "selfReportedYourGym": "Podane samodzielnie — właściciel sali może to zweryfikować",
+      "copiedPasteItAnywhere": "Skopiowano — wklej gdziekolwiek",
+      "dayToGo": "dzień do walki",
+      "daysToGo": "dni do walki",
+      "rounds": "rundy",
+      "kg": " · {{target_weight_kg}} kg",
+      "inFantasy": "W Fantasy",
+      "yourGymAndSquad": " (tylko twoja sala i squad)",
+      "campCheckIn": "Meldunek z obozu",
+      "removeFight": "Usuń walkę",
+      "fightDate": "Data walki",
+      "showName": "Nazwa gali",
+      "eGRaysAbc": "np. gala klubu Rays ABC",
+      "opponent": "Rywal",
+      "theirClubOptional": "Jego klub (opcjonalnie)",
+      "opponentSClub": "Klub rywala",
+      "theirRecordIfYou": "Jego rekord, jeśli znasz (ustala ceny w Fantasy)",
+      "rounds2": "Rundy",
+      "fightWeightKg": "Waga walki (kg)",
+      "weightClassOptional": "Kategoria wagowa (opcjonalnie)",
+      "weightClass": "Kategoria wagowa",
+      "campGoalsUpTo": "Cele obozu (do 3, po przecinku)",
+      "sharperJabMoreSparring": "ostrzejszy jab, więcej sparingów, zrobić wagę",
+      "putThisFightIn": "Dodaj tę walkę do Fantasy, żeby znajomi mogli mnie wybrać",
+      "onlyYourGymAnd": " (zobaczą to tylko twoja sala i squad)",
+      "theVenueIsNever": ". Miejsce nigdy nie jest pokazywane.",
+      "cancel": "Anuluj",
+      "saveFight": "Zapisz walkę",
+      "sessionsThisWeek": "Sesje w tym tygodniu",
+      "sparringRounds": "Rundy sparingowe",
+      "weightKg": "Waga (kg)",
+      "energy": "Energia",
+      "anythingElseOptional": "Coś jeszcze? (opcjonalnie)",
+      "note": "Notatka",
+      "sendCheckIn": "Wyślij meldunek",
+      "round": "Runda",
+      "saveResult": "Zapisz wynik",
+      "thisCamp": "Ten obóz",
+      "sessions": "sesji ·",
+      "sparringRds": "rund sparingowych",
+      "kg2": " · {{weight_kg}} kg",
+      "sRecordVerified": "Rekord {{name}} zweryfikowany",
+      "gym": "Sala",
+      "youRunThisGym": "Prowadzisz tę salę",
+      "member": "Członek",
+      "notInAGym": "Nie należysz jeszcze do sali —",
+      "findYours": "znajdź swoją",
+      "soYourCoachCan": ", żeby trener mógł zweryfikować twój rekord.",
+      "recordsToCheck": "Rekordy do sprawdzenia",
+      "correct": "Poprawne",
+      "whoILlWork": "Z kim będę trenować",
+      "showOthersYouRe": "Pokaż innym, że jesteś otwarty na:",
+      "findBoxersOpenTo": "Znajdź bokserów otwartych na:",
+      "noOneYetYour": "Jeszcze nikogo. Koledzy z sali pojawią się pierwsi, gdy to włączą.",
+      "yourGym": "· twoja sala",
+      "fights": "Walki"
     },
     "streakShareButton": {
       "share": "Udostępnij",
@@ -1748,7 +1815,22 @@
     "fighterBuddyCreator": {
       "choose": "Wybierz",
       "weightClass": "Kategoria wagowa",
-      "stance": "Pozycja"
+      "stance": "Pozycja",
+      "couldnTLoadFighter": "Nie udało się wczytać stylów — spróbuj ponownie",
+      "pleaseCompleteAllFields": "Uzupełnij wszystkie pola",
+      "isReadyToTrain": "{{name}} jest gotowy do treningu z tobą!",
+      "failedToCreateTraining": "Nie udało się utworzyć partnera treningowego",
+      "createYourAiTraining": "Stwórz swojego partnera treningowego AI",
+      "aTrainingPartnerNot": "Partner treningowy, nie trener — twój sparingpartner AI",
+      "fighterName": "Imię zawodnika",
+      "giveYourBuddyA": "Nadaj kumplowi imię",
+      "favoritePunch": "Ulubiony cios",
+      "chooseFightingStyle": "Wybierz styl walki",
+      "backToDetails": "← Wróć do szczegółów",
+      "sStyle": " — styl",
+      "inspiredBy": "Inspirowany przez",
+      "preview": "Podgląd",
+      "lovesThe": "• Uwielbia"
     },
     "radarChart": {
       "thisSession": "Ta sesja",
@@ -1913,7 +1995,8 @@
       "fightingNow": "Walczy teraz"
     },
     "trainPage": {
-      "freestyle": "Freestyle"
+      "freestyle": "Freestyle",
+      "round": "Runda"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link skopiowany: wyślij go rodzicowi",
@@ -2151,7 +2234,29 @@
       "createCompetition": "Utwórz zawody"
     },
     "fightStoryPage": {
-      "back": "Wstecz"
+      "back": "Wstecz",
+      "yourHistoryIsOn": "Twoja historia jest w twojej Historii walk",
+      "couldnTSaveThat": "Nie udało się zapisać, sprawdź liczby",
+      "couldnTLoadYour": "Nie udało się wczytać Historii walk. Sprawdź połączenie.",
+      "yourFightStory": "Twoja Historia walk",
+      "everythingYouVeBuilt": "Wszystko, co tu zbudowałeś. Twoje na zawsze.",
+      "seasonWrapped": "Podsumowanie sezonu",
+      "trainingOnVictoryAi": "Trenuje w Victory AI od {{since}}",
+      "yourStoryStartsWith": "Twoja historia zaczyna się od pierwszej sesji",
+      "onTheRoadTo": "na drodze do 10 000 potwierdzonych godzin.",
+      "personalBests": "Rekordy osobiste",
+      "honours": "Wyróżnienia",
+      "boxingBeforeVictoryAi": "Boks przed Victory AI",
+      "shownOnYourFight": "Widoczne w Historii walk jako podane samodzielnie. Nigdy nie liczy się do potwierdzonych godzin ani poziomów.",
+      "yearsBoxing": "Lata boksu",
+      "sessionsAWeek": "Sesje w tygodniu",
+      "saveMyHistory": "Zapisz moją historię",
+      "boxingFor": "Boksuje od",
+      "yearsBeforeJoiningAbout": "lat przed dołączeniem, około",
+      "sessionsAWeekSelf": "sesji w tygodniu (podane samodzielnie).",
+      "printOrPdf": "Drukuj lub PDF",
+      "download": "Pobierz",
+      "wantEverythingIncludingEvery": "Chcesz wszystko, łącznie z każdym postem i wiadomością? Użyj „Pobierz moje dane” w Profilu."
     },
     "fantasyResultsPage": {
       "thatDidnTSave": "Nie zapisało się — spróbuj ponownie",

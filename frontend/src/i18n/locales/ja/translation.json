@@ -959,7 +959,8 @@
       "couldnTUnfollowTry": "フォロー解除できませんでした。もう一度お試しください。",
       "couldnTFollowTry": "フォローできませんでした。もう一度お試しください。",
       "following": "フォロー中",
-      "follow": "フォロー"
+      "follow": "フォロー",
+      "cancel": "キャンセル"
     },
     "highlightShareSheet": {
       "copied": "コピーしました！",
@@ -1302,7 +1303,8 @@
       "done": "完了",
       "couldnTSaveThat": "保存できませんでした",
       "bagPadsCircuitsHiit": "サンドバッグ、ミット、サーキット、HIIT。同じ画面で撮影。",
-      "start": "開始"
+      "start": "開始",
+      "rounds": "ラウンド数"
     },
     "fightFilm": {
       "fightFilm": "ファイトフィルム",
@@ -1454,7 +1456,8 @@
     "ordersPage": {
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
       "send": "送信",
-      "back": "戻る"
+      "back": "戻る",
+      "cancel": "キャンセル"
     },
     "proApplyPage": {
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
@@ -1695,7 +1698,8 @@
       "goBack": "戻る"
     },
     "seasonWrappedPage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "seasonWrapped": "シーズンまとめ"
     },
     "sessionDetailPage": {
       "goBack": "戻る"
@@ -1732,7 +1736,70 @@
       "noFightBooked": "予定された試合はありません",
       "tell": "伝えよう：",
       "whenItIsAnd": "に日程を伝えれば、キャンプをサポートしてくれます。",
-      "addMyNextFight": "次の試合を追加"
+      "addMyNextFight": "次の試合を追加",
+      "addAnotherFight": "別の試合を追加",
+      "tellThem": "伝えよう",
+      "addMyResult": "結果を追加",
+      "amateurRecord": "アマチュア戦績",
+      "editRecord": "戦績を編集",
+      "saveRecord": "戦績を保存",
+      "verifiedBy": "認証者：",
+      "selfReportedYourGym": "自己申告 — ジムのオーナーが認証できます",
+      "copiedPasteItAnywhere": "コピーしました — どこにでも貼り付けられます",
+      "dayToGo": "日後",
+      "daysToGo": "日後",
+      "rounds": "ラウンド",
+      "kg": " · {{target_weight_kg}} kg",
+      "inFantasy": "Fantasyで",
+      "yourGymAndSquad": "（ジムとスクワッドのみ）",
+      "campCheckIn": "キャンプのチェックイン",
+      "removeFight": "試合を削除",
+      "fightDate": "試合日",
+      "showName": "興行名",
+      "eGRaysAbc": "例：Rays ABCクラブ興行",
+      "opponent": "対戦相手",
+      "theirClubOptional": "相手のクラブ（任意）",
+      "opponentSClub": "相手のクラブ",
+      "theirRecordIfYou": "相手の戦績（わかれば。Fantasyの価格が決まります）",
+      "rounds2": "ラウンド数",
+      "fightWeightKg": "試合体重（kg）",
+      "weightClassOptional": "階級（任意）",
+      "weightClass": "階級",
+      "campGoalsUpTo": "キャンプの目標（最大3つ、カンマ区切り）",
+      "sharperJabMoreSparring": "鋭いジャブ、スパーを増やす、計量パス",
+      "putThisFightIn": "この試合をFantasyに出して友達に選んでもらう",
+      "onlyYourGymAnd": "（ジムとスクワッドだけが見られます）",
+      "theVenueIsNever": "。会場は表示されません。",
+      "cancel": "キャンセル",
+      "saveFight": "試合を保存",
+      "sessionsThisWeek": "今週のセッション",
+      "sparringRounds": "スパーリングラウンド",
+      "weightKg": "体重（kg）",
+      "energy": "エネルギー",
+      "anythingElseOptional": "他に何か？（任意）",
+      "note": "メモ",
+      "sendCheckIn": "チェックインを送る",
+      "round": "ラウンド",
+      "saveResult": "結果を保存",
+      "thisCamp": "今回のキャンプ",
+      "sessions": "セッション ·",
+      "sparringRds": "スパーラウンド",
+      "kg2": " · {{weight_kg}} kg",
+      "sRecordVerified": "{{name}}の戦績を認証しました",
+      "gym": "ジム",
+      "youRunThisGym": "あなたはこのジムの運営者です",
+      "member": "メンバー",
+      "notInAGym": "まだジムに入っていません —",
+      "findYours": "ジムを探そう",
+      "soYourCoachCan": "コーチに戦績を認証してもらえます。",
+      "recordsToCheck": "確認待ちの戦績",
+      "correct": "正しい",
+      "whoILlWork": "一緒に練習する相手",
+      "showOthersYouRe": "受け入れ可能なことを表示：",
+      "findBoxersOpenTo": "次を受け入れているボクサーを探す：",
+      "noOneYetYour": "まだ誰もいません。ジム仲間がオンにすると最初に表示されます。",
+      "yourGym": "· あなたのジム",
+      "fights": "試合"
     },
     "streakShareButton": {
       "share": "共有",
@@ -1748,7 +1815,22 @@
     "fighterBuddyCreator": {
       "choose": "選択",
       "weightClass": "階級",
-      "stance": "構え"
+      "stance": "構え",
+      "couldnTLoadFighter": "ファイタースタイルを読み込めませんでした — もう一度お試しください",
+      "pleaseCompleteAllFields": "すべての項目を入力してください",
+      "isReadyToTrain": "{{name}}はあなたとトレーニングする準備ができました！",
+      "failedToCreateTraining": "トレーニングパートナーを作成できませんでした",
+      "createYourAiTraining": "AIトレーニングパートナーを作成",
+      "aTrainingPartnerNot": "コーチではなくトレーニングパートナー — あなたのAIスパーリング相手",
+      "fighterName": "ファイター名",
+      "giveYourBuddyA": "相棒に名前をつけよう",
+      "favoritePunch": "得意パンチ",
+      "chooseFightingStyle": "ファイトスタイルを選ぶ",
+      "backToDetails": "← 詳細に戻る",
+      "sStyle": "のスタイル",
+      "inspiredBy": "インスピレーション：",
+      "preview": "プレビュー",
+      "lovesThe": "• 大好き："
     },
     "radarChart": {
       "thisSession": "今回のセッション",
@@ -1913,7 +1995,8 @@
       "fightingNow": "試合中"
     },
     "trainPage": {
-      "freestyle": "フリースタイル"
+      "freestyle": "フリースタイル",
+      "round": "ラウンド"
     },
     "merchSheet": {
       "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",
@@ -2151,7 +2234,29 @@
       "createCompetition": "大会を作成"
     },
     "fightStoryPage": {
-      "back": "戻る"
+      "back": "戻る",
+      "yourHistoryIsOn": "履歴はファイトストーリーにあります",
+      "couldnTSaveThat": "保存できませんでした。数字を確認してください",
+      "couldnTLoadYour": "ファイトストーリーを読み込めませんでした。接続を確認してください。",
+      "yourFightStory": "あなたのファイトストーリー",
+      "everythingYouVeBuilt": "ここで積み上げたすべて。ずっとあなたのもの。",
+      "seasonWrapped": "シーズンまとめ",
+      "trainingOnVictoryAi": "{{since}}からVictory AIでトレーニング",
+      "yourStoryStartsWith": "あなたの物語は最初のセッションから始まります",
+      "onTheRoadTo": "10,000証明時間への道。",
+      "personalBests": "自己ベスト",
+      "honours": "栄誉",
+      "boxingBeforeVictoryAi": "Victory AI以前のボクシング",
+      "shownOnYourFight": "ファイトストーリーに自己申告として表示されます。証明時間やレベルにはカウントされません。",
+      "yearsBoxing": "ボクシング歴（年）",
+      "sessionsAWeek": "週あたりのセッション",
+      "saveMyHistory": "履歴を保存",
+      "boxingFor": "ボクシング歴",
+      "yearsBeforeJoiningAbout": "年（参加前）、約",
+      "sessionsAWeekSelf": "回/週（自己申告）。",
+      "printOrPdf": "印刷またはPDF",
+      "download": "ダウンロード",
+      "wantEverythingIncludingEvery": "投稿やメッセージもすべて欲しい？プロフィールの「データをダウンロード」を使ってください。"
     },
     "fantasyResultsPage": {
       "thatDidnTSave": "保存されませんでした — もう一度お試しください",

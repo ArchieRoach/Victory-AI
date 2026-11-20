@@ -959,7 +959,8 @@
       "couldnTUnfollowTry": "Не удалось отписаться. Попробуй ещё раз.",
       "couldnTFollowTry": "Не удалось подписаться. Попробуй ещё раз.",
       "following": "Подписан",
-      "follow": "Подписаться"
+      "follow": "Подписаться",
+      "cancel": "Отмена"
     },
     "highlightShareSheet": {
       "copied": "Скопировано!",
@@ -1302,7 +1303,8 @@
       "done": "Готово",
       "couldnTSaveThat": "Не удалось сохранить",
       "bagPadsCircuitsHiit": "Мешок, лапы, круговые, HIIT. Снимай на том же экране.",
-      "start": "Запустить"
+      "start": "Запустить",
+      "rounds": "Раунды"
     },
     "fightFilm": {
       "fightFilm": "Фильм боя",
@@ -1454,7 +1456,8 @@
     "ordersPage": {
       "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
       "send": "Отправить",
-      "back": "Назад"
+      "back": "Назад",
+      "cancel": "Отмена"
     },
     "proApplyPage": {
       "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
@@ -1695,7 +1698,8 @@
       "goBack": "Назад"
     },
     "seasonWrappedPage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "seasonWrapped": "Итоги сезона"
     },
     "sessionDetailPage": {
       "goBack": "Назад"
@@ -1732,7 +1736,70 @@
       "noFightBooked": "Бой не назначен",
       "tell": "Скажи",
       "whenItIsAnd": ", когда он, и он поможет тебе в лагере.",
-      "addMyNextFight": "Добавить следующий бой"
+      "addMyNextFight": "Добавить следующий бой",
+      "addAnotherFight": "Добавить ещё бой",
+      "tellThem": "Скажи им",
+      "addMyResult": "Добавить мой результат",
+      "amateurRecord": "Любительский рекорд",
+      "editRecord": "Изменить рекорд",
+      "saveRecord": "Сохранить рекорд",
+      "verifiedBy": "Подтверждено:",
+      "selfReportedYourGym": "Указано тобой — владелец зала может подтвердить",
+      "copiedPasteItAnywhere": "Скопировано — вставь куда угодно",
+      "dayToGo": "день до боя",
+      "daysToGo": "дней до боя",
+      "rounds": "раундов",
+      "kg": " · {{target_weight_kg}} кг",
+      "inFantasy": "В Fantasy",
+      "yourGymAndSquad": " (только твой зал и команда)",
+      "campCheckIn": "Отметка лагеря",
+      "removeFight": "Удалить бой",
+      "fightDate": "Дата боя",
+      "showName": "Название вечера",
+      "eGRaysAbc": "напр. клубный вечер Rays ABC",
+      "opponent": "Соперник",
+      "theirClubOptional": "Его клуб (необязательно)",
+      "opponentSClub": "Клуб соперника",
+      "theirRecordIfYou": "Его рекорд, если знаешь (от него зависят цены в Fantasy)",
+      "rounds2": "Раунды",
+      "fightWeightKg": "Вес боя (кг)",
+      "weightClassOptional": "Весовая категория (необязательно)",
+      "weightClass": "Весовая категория",
+      "campGoalsUpTo": "Цели лагеря (до 3, через запятую)",
+      "sharperJabMoreSparring": "острее джеб, больше спаррингов, сделать вес",
+      "putThisFightIn": "Добавить бой в Fantasy, чтобы друзья могли выбрать меня",
+      "onlyYourGymAnd": " (увидят только твой зал и команда)",
+      "theVenueIsNever": ". Место проведения не показывается.",
+      "cancel": "Отмена",
+      "saveFight": "Сохранить бой",
+      "sessionsThisWeek": "Тренировок на этой неделе",
+      "sparringRounds": "Раунды спарринга",
+      "weightKg": "Вес (кг)",
+      "energy": "Энергия",
+      "anythingElseOptional": "Что-то ещё? (необязательно)",
+      "note": "Заметка",
+      "sendCheckIn": "Отправить отметку",
+      "round": "Раунд",
+      "saveResult": "Сохранить результат",
+      "thisCamp": "Этот лагерь",
+      "sessions": "тренировок ·",
+      "sparringRds": "раундов спарринга",
+      "kg2": " · {{weight_kg}} кг",
+      "sRecordVerified": "Рекорд {{name}} подтверждён",
+      "gym": "Зал",
+      "youRunThisGym": "Ты управляешь этим залом",
+      "member": "Участник",
+      "notInAGym": "Ты пока не в зале —",
+      "findYours": "найди свой",
+      "soYourCoachCan": ", чтобы тренер подтвердил твой рекорд.",
+      "recordsToCheck": "Рекорды на проверку",
+      "correct": "Верно",
+      "whoILlWork": "С кем буду работать",
+      "showOthersYouRe": "Покажи другим, что ты открыт для:",
+      "findBoxersOpenTo": "Найди боксёров, открытых для:",
+      "noOneYetYour": "Пока никого. Товарищи по залу появятся первыми, когда включат это.",
+      "yourGym": "· твой зал",
+      "fights": "Бои"
     },
     "streakShareButton": {
       "share": "Поделиться",
@@ -1748,7 +1815,22 @@
     "fighterBuddyCreator": {
       "choose": "Выбери",
       "weightClass": "Весовая категория",
-      "stance": "Стойка"
+      "stance": "Стойка",
+      "couldnTLoadFighter": "Не удалось загрузить стили — попробуй ещё раз",
+      "pleaseCompleteAllFields": "Заполни все поля",
+      "isReadyToTrain": "{{name}} готов тренироваться с тобой!",
+      "failedToCreateTraining": "Не удалось создать партнёра",
+      "createYourAiTraining": "Создай своего ИИ-партнёра",
+      "aTrainingPartnerNot": "Партнёр по тренировкам, а не тренер — твой ИИ-спарринг-партнёр",
+      "fighterName": "Имя бойца",
+      "giveYourBuddyA": "Дай напарнику имя",
+      "favoritePunch": "Любимый удар",
+      "chooseFightingStyle": "Выбери стиль боя",
+      "backToDetails": "← Назад к деталям",
+      "sStyle": ": стиль",
+      "inspiredBy": "Вдохновлён",
+      "preview": "Предпросмотр",
+      "lovesThe": "• Любит"
     },
     "radarChart": {
       "thisSession": "Эта тренировка",
@@ -1913,7 +1995,8 @@
       "fightingNow": "Сейчас в бою"
     },
     "trainPage": {
-      "freestyle": "Свободный"
+      "freestyle": "Свободный",
+      "round": "Раунд"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Ссылка скопирована: отправь её родителю",
@@ -2151,7 +2234,29 @@
       "createCompetition": "Создать соревнование"
     },
     "fightStoryPage": {
-      "back": "Назад"
+      "back": "Назад",
+      "yourHistoryIsOn": "Твоя история — в твоей Истории боёв",
+      "couldnTSaveThat": "Не удалось сохранить, проверь цифры",
+      "couldnTLoadYour": "Не удалось загрузить Историю боёв. Проверь соединение.",
+      "yourFightStory": "Твоя История боёв",
+      "everythingYouVeBuilt": "Всё, что ты здесь построил. Навсегда твоё.",
+      "seasonWrapped": "Итоги сезона",
+      "trainingOnVictoryAi": "Тренируется в Victory AI с {{since}}",
+      "yourStoryStartsWith": "Твоя история начнётся с первой тренировки",
+      "onTheRoadTo": "на пути к 10 000 подтверждённых часов.",
+      "personalBests": "Личные рекорды",
+      "honours": "Награды",
+      "boxingBeforeVictoryAi": "Бокс до Victory AI",
+      "shownOnYourFight": "Показывается в Истории боёв как указанное тобой. Никогда не засчитывается в подтверждённые часы или уровни.",
+      "yearsBoxing": "Лет в боксе",
+      "sessionsAWeek": "Тренировок в неделю",
+      "saveMyHistory": "Сохранить историю",
+      "boxingFor": "В боксе",
+      "yearsBeforeJoiningAbout": "лет до прихода сюда, примерно",
+      "sessionsAWeekSelf": "тренировок в неделю (со слов).",
+      "printOrPdf": "Печать или PDF",
+      "download": "Скачать",
+      "wantEverythingIncludingEvery": "Нужно всё, включая каждый пост и сообщение? Используй «Скачать мои данные» в Профиле."
     },
     "fantasyResultsPage": {
       "thatDidnTSave": "Не сохранилось — попробуй ещё раз",
