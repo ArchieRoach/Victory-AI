@@ -2130,7 +2130,20 @@
       "goBack": "رجوع",
       "viral": "منتشر",
       "couldnTUpdateLike": "تعذّر تحديث الإعجاب — حاول مرة أخرى.",
-      "noClipsYet": "لا مقاطع بعد"
+      "noClipsYet": "لا مقاطع بعد",
+      "reactionsAtOnce": "تفاعلات دفعة واحدة",
+      "playVideo": "تشغيل الفيديو",
+      "pauseVideo": "إيقاف الفيديو",
+      "fromStream": "من البث:",
+      "trendingClips": "المقاطع الرائجة",
+      "sharedClip": "مقطع مُشارَك",
+      "noClipsInThe": "لا مقاطع في آخر 24 ساعة. تحقق من الصاعدة أو كل الأوقات.",
+      "beTheFirstTo": "كن أول من يقص مقطعًا من بث مباشر!",
+      "loading": "جارٍ التحميل…",
+      "loadMoreClips": "تحميل المزيد من المقاطع",
+      "hot": "الأكثر سخونة 🔥",
+      "rising": "الصاعدة",
+      "allTime": "كل الأوقات"
     },
     "partnerCondition": {
       "rising": "في صعود",
@@ -2462,7 +2475,47 @@
       "callNumbers": "النداء بالأرقام",
       "callsLike12": "نداءات مثل \"1، 2، 3\".",
       "todaySFocus": "تركيز اليوم:",
-      "personalBestToBeat": "الرقم الشخصي للتغلب عليه:"
+      "personalBestToBeat": "الرقم الشخصي للتغلب عليه:",
+      "turnOnVideoSo": "شغّل الفيديو ليقيّمه الذكاء الاصطناعي",
+      "sessionMode": "وضع الجلسة",
+      "privateAiRoom": "غرفة ذكاء اصطناعي خاصة",
+      "trainWithYourAi": "تدرّب مع شريكك بالذكاء الاصطناعي — بتركيز وخصوصية",
+      "publicLivestream": "بث عام مباشر",
+      "goLiveLetThe": "ابدأ البث — دع المجتمع يشاهد",
+      "tappingStartWillOpen": "الضغط على ابدأ يفتح شاشة البث المباشر.",
+      "yourAiPartnerWill": "شريكك بالذكاء الاصطناعي سيحفّزك ويدرّبك ويمازحك بين الجولات.",
+      "goLive": "🔴 ابدأ البث",
+      "faceTheBoss": "💀 واجه الزعيم",
+      "riffOnIt": "ارتجل عليها",
+      "last10FinishStrong": ": آخر 10 — أنهِ بقوة!",
+      "debrief": "المراجعة",
+      "disableVoice": "إيقاف الصوت",
+      "enableVoice": "تشغيل الصوت",
+      "ringCardGirl": "فتاة البطاقات",
+      "skip": "تخطَّ",
+      "endSession": "إنهاء الجلسة",
+      "backToSetup": "→ العودة إلى الإعداد",
+      "normal": "عادي",
+      "scoredWhenVideoIs": "يُقيَّم عند تشغيل الفيديو",
+      "noScoreJustPlay": "بلا تقييم. استمتع فقط.",
+      "boss": "الزعيم",
+      "thisWeekSTough": "جولة الأسبوع الصعبة",
+      "handsUpYouRe": "ارفع يديك — أنت تُنزل اليمنى مجددًا!",
+      "youReSweatingLike": "تتعرق كأنك رأيت الجاب الخاص بي. جيد.",
+      "breatheOutOnEach": "ازفر مع كل لكمة — يبقي عضلات جذعك مشدودة.",
+      "stayLightOnYour": "ابقَ خفيفًا على قدميك — حركة القدمين تكسب الجولات.",
+      "stayInYourStance": "ابقَ في وقفتك، لا تمِل للأمام.",
+      "iVeSeenSlower": "رأيت حركة أقدام أبطأ… عند جدتي. لكنك تتحسن.",
+      "doubleUpThatJab": "ضاعف الجاب — لا تكتفِ بالنقر، التزم.",
+      "trustYourShotsDon": "ثق بضرباتك — لا تتعجلها.",
+      "championsDonTStop": "الأبطال لا يتوقفون عندما يؤلمهم — يتوقفون عندما ينتهي الأمر.",
+      "turnYourHipOn": "دوّر وركك في الكروس — انقل القوة كاملة.",
+      "youLookTiredGood": "تبدو متعبًا. جيد. هذا يعني أنك تعمل.",
+      "keepThatHeadMoving": "حرّك رأسك — لا تكن هدفًا ثابتًا.",
+      "pushThePaceMake": "ارفع الإيقاع — اجعل كل ثانية تُحتسب.",
+      "returnYourHandsTo": "أعد يديك إلى الحماية بعد كل تركيبة.",
+      "stayBalancedThroughYour": "حافظ على توازنك خلال تركيباتك.",
+      "myCircuitsAreOverheating": "دوائري ترتفع حرارتها بمجرد مشاهدتك. اضغط أكثر."
     },
     "merchSheet": {
       "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",
@@ -2790,7 +2843,8 @@
       "goHome": "العودة للرئيسية"
     },
     "welcomePage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "whatKindOfFighter": "أي نوع من الملاكمين أنت؟ خذ الاختبار"
     },
     "leaderboardPage": {
       "statusOnlyGoesUp": "الحالة ترتفع فقط. التصنيفات تُعاد كل يوم اثنين.",
@@ -2811,6 +2865,27 @@
     },
     "scorePage": {
       "failedToSaveSession": "فشل حفظ الجلسة. حاول مرة أخرى."
+    },
+    "languageSelector": {
+      "english": "English",
+      "espaOl": "Español",
+      "franAis": "Français",
+      "portuguS": "Português",
+      "deutsch": "Deutsch",
+      "polski": "Polski"
+    },
+    "howToPlay": {
+      "pick3Boxers": "اختر 3 ملاكمين",
+      "watchThemFight": "شاهدهم يتنافسون",
+      "getPointsWhenThey": "احصل على نقاط عندما يفوزون"
+    },
+    "fighterStyle": {
+      "youWalkThemDown": "تتقدم نحوهم وتقطع الحلبة وتجعل كل جولة معركة. يشعر بك خصومك طوال الليل.",
+      "youControlDistanceLive": "تتحكم بالمسافة، تعيش خلف الجاب وتجبرهم على القتال في مداك.",
+      "youMakeThemMiss": "تجعلهم يخطئون وتجعلهم يدفعون الثمن. الصبر سلاحك.",
+      "explosiveAndDangerousFrom": "متفجر وخطير من الجرس الأول. ضربة نظيفة واحدة تغيّر كل شيء.",
+      "speedAnglesAndVolume": "سرعة وزوايا وكثافة. تلكم في رشقات ولا يرون الأخيرة أبدًا.",
+      "youCanBoxOr": "تستطيع الملاكمة الفنية أو الاشتباك، وتعرف ما تحتاجه الجولة."
     }
   },
   "feedback": {
@@ -2831,7 +2906,52 @@
   },
   "lib": {
     "pitch": {
-      "yourPartner": "شريكك"
+      "yourPartner": "شريكك",
+      "goal": {
+        "Get_fitter": "تصبح أكثر لياقة",
+        "Get_better_overall": "تتحسن في الملاكمة",
+        "Improve_my_defence": "تُحكم دفاعك",
+        "Sharpen_my_attack": "تشحذ هجومك",
+        "Get_ready_to_spar": "تستعد للسبارينغ",
+        "Compete_in_fights": "تستعد للمنافسة",
+        "Just_for_fun": "تستمتع بملاكمتك أكثر"
+      },
+      "held": {
+        "no_feedback": "عدم وجود من يخبرك بأخطائك",
+        "bad_habits": "عودة العادات السيئة نفسها",
+        "defense_weak": "دفاع يسمح بمرور الكثير",
+        "no_power": "لكمات بلا القوة التي تريدها",
+        "footwork": "حركة قدمين تصبح مهملة"
+      },
+      "focus": {
+        "no_feedback": "التقنية",
+        "default": "التقنية",
+        "bad_habits": "عاداتك",
+        "defense_weak": "الدفاع",
+        "no_power": "القوة",
+        "footwork": "حركة القدمين"
+      },
+      "reflectHeld": "يبدو أنك تريد أن {{goal}}، و{{held}} كان يعيق ذلك. هل هذا صحيح؟",
+      "reflect": "يبدو أنك تريد أن {{goal}}. هل هذا صحيح؟",
+      "notYourFault1": "هذا ليس خطأك. معظم الناس يتدربون دون أن يراقب أحد تقنيتهم. هذه هي القطعة الناقصة.",
+      "notYourFault2": "هذا ليس خطأك. من الصعب إصلاح ما لا يشير إليه أحد أثناء قيامك به. هذه هي القطعة الناقصة.",
+      "headline": "خطتك لكي {{goal}}",
+      "thisWeek": "هذا الأسبوع",
+      "step1Beginner": "جولات قصيرة وبسيطة. {{partner}} يرشدك في كل واحدة ويراقب {{focus}}.",
+      "step1": "جولات بمستواك. {{partner}} يرشدك في كل واحدة ويراقب {{focus}}.",
+      "everyRound": "كل جولة",
+      "step2": "شغّل الفيديو وسيقيّم الذكاء الاصطناعي 16 جانبًا من ملاكمتك، لترى بالضبط ما تعمل عليه.",
+      "weekByWeek": "أسبوعًا بعد أسبوع"
+    },
+    "tips": {
+      "technique": "التقنية"
+    },
+    "why": {
+      "spot": {
+        "defense_weak": "الدفاع",
+        "no_power": "القوة",
+        "footwork": "حركة القدمين"
+      }
     }
   }
 }

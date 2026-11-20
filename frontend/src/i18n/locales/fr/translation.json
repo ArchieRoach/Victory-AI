@@ -2130,7 +2130,20 @@
       "goBack": "Retour",
       "viral": "VIRAL",
       "couldnTUpdateLike": "Impossible de mettre à jour le j'aime — réessaie.",
-      "noClipsYet": "Pas encore de clips"
+      "noClipsYet": "Pas encore de clips",
+      "reactionsAtOnce": "RÉACTIONS D'UN COUP",
+      "playVideo": "Lire la vidéo",
+      "pauseVideo": "Mettre la vidéo en pause",
+      "fromStream": "Du direct :",
+      "trendingClips": "Clips tendance",
+      "sharedClip": "Clip partagé",
+      "noClipsInThe": "Aucun clip ces dernières 24 heures. Regarde En hausse ou Depuis toujours.",
+      "beTheFirstTo": "Sois le premier à clipper un direct !",
+      "loading": "Chargement…",
+      "loadMoreClips": "Charger plus de clips",
+      "hot": "Chaud 🔥",
+      "rising": "En hausse",
+      "allTime": "Depuis toujours"
     },
     "partnerCondition": {
       "rising": "en hausse",
@@ -2462,7 +2475,47 @@
       "callNumbers": "Annoncer les numéros",
       "callsLike12": "Des annonces comme « 1, 2, 3 ».",
       "todaySFocus": "Objectif du jour :",
-      "personalBestToBeat": "Record perso à battre :"
+      "personalBestToBeat": "Record perso à battre :",
+      "turnOnVideoSo": "Active la vidéo pour que l'IA la note",
+      "sessionMode": "Mode de séance",
+      "privateAiRoom": "Salle IA privée",
+      "trainWithYourAi": "Entraîne-toi avec ton partenaire IA — concentré et privé",
+      "publicLivestream": "Direct public",
+      "goLiveLetThe": "Passe en direct — laisse la communauté regarder",
+      "tappingStartWillOpen": "Toucher Commencer ouvre l'écran de direct.",
+      "yourAiPartnerWill": "Ton partenaire IA va te motiver, te coacher et te chambrer entre les rounds.",
+      "goLive": "🔴 Passer en direct",
+      "faceTheBoss": "💀 Affronte le boss",
+      "riffOnIt": "Improvise dessus",
+      "last10FinishStrong": " : 10 dernières — finis fort !",
+      "debrief": "bilan",
+      "disableVoice": "Désactiver la voix",
+      "enableVoice": "Activer la voix",
+      "ringCardGirl": "Ring girl",
+      "skip": "Passer",
+      "endSession": "Terminer la séance",
+      "backToSetup": "← Retour aux réglages",
+      "normal": "Normal",
+      "scoredWhenVideoIs": "Noté quand la vidéo est activée",
+      "noScoreJustPlay": "Pas de note. Juste du plaisir.",
+      "boss": "Boss",
+      "thisWeekSTough": "Le round difficile de la semaine",
+      "handsUpYouRe": "Les mains en HAUT — tu baisses encore la droite !",
+      "youReSweatingLike": "Tu transpires comme si tu avais vu mon jab. Bien.",
+      "breatheOutOnEach": "Expire à chaque coup — ça garde ton gainage serré.",
+      "stayLightOnYour": "Reste léger sur tes appuis — le jeu de jambes gagne les rounds.",
+      "stayInYourStance": "Reste dans ta garde, ne te penche pas en avant.",
+      "iVeSeenSlower": "J'ai vu des jeux de jambes plus lents… chez ma mamie. Mais tu progresses.",
+      "doubleUpThatJab": "Double ce jab — ne fais pas que piquer, engage-toi.",
+      "trustYourShotsDon": "Fais confiance à tes coups — ne les précipite pas.",
+      "championsDonTStop": "Les champions ne s'arrêtent pas quand ça fait mal — ils s'arrêtent quand c'est fini.",
+      "turnYourHipOn": "Tourne la hanche sur le direct — transfère toute la puissance.",
+      "youLookTiredGood": "Tu as l'air fatigué. Bien. Ça veut dire que tu bosses.",
+      "keepThatHeadMoving": "Bouge la tête — ne sois pas une cible fixe.",
+      "pushThePaceMake": "Accélère le rythme — fais compter chaque seconde.",
+      "returnYourHandsTo": "Ramène les mains en garde après chaque enchaînement.",
+      "stayBalancedThroughYour": "Reste équilibré pendant tes enchaînements.",
+      "myCircuitsAreOverheating": "Mes circuits surchauffent rien qu'à te regarder. Pousse plus fort."
     },
     "merchSheet": {
       "linkCopiedSendIt": "Lien copié : envoie-le à un parent",
@@ -2790,7 +2843,8 @@
       "goHome": "Accueil"
     },
     "welcomePage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "whatKindOfFighter": "Quel genre de boxeur es-tu ? Fais le quiz"
     },
     "leaderboardPage": {
       "statusOnlyGoesUp": "Le statut ne fait que monter. Les classements repartent à zéro chaque lundi.",
@@ -2811,6 +2865,27 @@
     },
     "scorePage": {
       "failedToSaveSession": "Impossible d'enregistrer la séance. Réessaie."
+    },
+    "languageSelector": {
+      "english": "English",
+      "espaOl": "Español",
+      "franAis": "Français",
+      "portuguS": "Português",
+      "deutsch": "Deutsch",
+      "polski": "Polski"
+    },
+    "howToPlay": {
+      "pick3Boxers": "Choisis 3 boxeurs",
+      "watchThemFight": "Regarde-les combattre",
+      "getPointsWhenThey": "Marque des points quand ils gagnent"
+    },
+    "fighterStyle": {
+      "youWalkThemDown": "Tu avances, coupes le ring et fais de chaque round une bagarre. Tes adversaires te sentent toute la soirée.",
+      "youControlDistanceLive": "Tu contrôles la distance, vis derrière ton jab et les forces à boxer à ta portée.",
+      "youMakeThemMiss": "Tu les fais rater et tu les fais payer. La patience est ton arme.",
+      "explosiveAndDangerousFrom": "Explosif et dangereux dès le premier gong. Un coup propre change tout.",
+      "speedAnglesAndVolume": "Vitesse, angles et volume. Tu frappes en rafales et ils ne voient jamais le dernier.",
+      "youCanBoxOr": "Tu sais boxer ou cogner, et tu sais ce que le round demande."
     }
   },
   "feedback": {
@@ -2831,7 +2906,52 @@
   },
   "lib": {
     "pitch": {
-      "yourPartner": "Ton partenaire"
+      "yourPartner": "Ton partenaire",
+      "goal": {
+        "Get_fitter": "te remettre en forme",
+        "Get_better_overall": "progresser en boxe",
+        "Improve_my_defence": "resserrer ta défense",
+        "Sharpen_my_attack": "affûter ton attaque",
+        "Get_ready_to_spar": "te préparer au sparring",
+        "Compete_in_fights": "te préparer à combattre",
+        "Just_for_fun": "prendre plus de plaisir à boxer"
+      },
+      "held": {
+        "no_feedback": "personne pour te dire ce que tu fais de travers",
+        "bad_habits": "les mêmes mauvaises habitudes qui reviennent",
+        "defense_weak": "une défense qui laisse trop passer",
+        "no_power": "des coups sans la puissance que tu veux",
+        "footwork": "un jeu de jambes qui se relâche"
+      },
+      "focus": {
+        "no_feedback": "ta technique",
+        "default": "ta technique",
+        "bad_habits": "tes habitudes",
+        "defense_weak": "ta défense",
+        "no_power": "ta puissance",
+        "footwork": "ton jeu de jambes"
+      },
+      "reflectHeld": "Si je comprends bien, tu veux {{goal}}, et {{held}} te freine. C'est bien ça ?",
+      "reflect": "Si je comprends bien, tu veux {{goal}}. C'est bien ça ?",
+      "notYourFault1": "Ce n'est pas ta faute. La plupart des gens s'entraînent sans personne pour regarder leur technique. C'est la pièce qui manque.",
+      "notYourFault2": "Ce n'est pas ta faute. C'est dur de corriger ce que personne ne te signale sur le moment. C'est la pièce qui manque.",
+      "headline": "Ton plan pour {{goal}}",
+      "thisWeek": "Cette semaine",
+      "step1Beginner": "Des rounds courts et simples. {{partner}} te guide à chaque fois et surveille {{focus}}.",
+      "step1": "Des rounds à ton niveau. {{partner}} te guide à chaque fois et surveille {{focus}}.",
+      "everyRound": "Chaque round",
+      "step2": "Active la vidéo et l'IA note 16 aspects de ta boxe, pour que tu saches exactement quoi travailler.",
+      "weekByWeek": "Semaine après semaine"
+    },
+    "tips": {
+      "technique": "ta technique"
+    },
+    "why": {
+      "spot": {
+        "defense_weak": "ta défense",
+        "no_power": "ta puissance",
+        "footwork": "ton jeu de jambes"
+      }
     }
   }
 }

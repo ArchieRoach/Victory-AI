@@ -2130,7 +2130,20 @@
       "goBack": "返回",
       "viral": "爆款",
       "couldnTUpdateLike": "无法更新点赞 — 请重试。",
-      "noClipsYet": "还没有短片"
+      "noClipsYet": "还没有短片",
+      "reactionsAtOnce": "同时反应",
+      "playVideo": "播放视频",
+      "pauseVideo": "暂停视频",
+      "fromStream": "来自直播：",
+      "trendingClips": "热门短片",
+      "sharedClip": "已分享的短片",
+      "noClipsInThe": "过去 24 小时没有短片。看看上升中或全部时间。",
+      "beTheFirstTo": "成为第一个剪辑直播的人！",
+      "loading": "加载中…",
+      "loadMoreClips": "加载更多短片",
+      "hot": "热门 🔥",
+      "rising": "上升中",
+      "allTime": "全部时间"
     },
     "partnerCondition": {
       "rising": "上升中",
@@ -2462,7 +2475,47 @@
       "callNumbers": "用数字喊招",
       "callsLike12": "像“1、2、3”这样喊。",
       "todaySFocus": "今日重点：",
-      "personalBestToBeat": "要打破的个人最佳："
+      "personalBestToBeat": "要打破的个人最佳：",
+      "turnOnVideoSo": "打开视频，让 AI 评分",
+      "sessionMode": "训练模式",
+      "privateAiRoom": "私人 AI 训练室",
+      "trainWithYourAi": "和你的 AI 搭档训练 — 专注且私密",
+      "publicLivestream": "公开直播",
+      "goLiveLetThe": "开播 — 让社区一起看",
+      "tappingStartWillOpen": "点击开始将打开开播界面。",
+      "yourAiPartnerWill": "你的 AI 搭档会在回合间激励你、指导你、和你斗嘴。",
+      "goLive": "🔴 开播",
+      "faceTheBoss": "💀 挑战 Boss",
+      "riffOnIt": "在此基础上发挥",
+      "last10FinishStrong": "：最后 10 下 — 强势收尾！",
+      "debrief": "复盘",
+      "disableVoice": "关闭语音",
+      "enableVoice": "开启语音",
+      "ringCardGirl": "举牌女郎",
+      "skip": "跳过",
+      "endSession": "结束训练",
+      "backToSetup": "← 返回设置",
+      "normal": "普通",
+      "scoredWhenVideoIs": "打开视频时评分",
+      "noScoreJustPlay": "不评分，尽情玩。",
+      "boss": "Boss",
+      "thisWeekSTough": "本周的硬仗回合",
+      "handsUpYouRe": "手抬起来 — 你又把右手放下了！",
+      "youReSweatingLike": "你出汗的样子像是见识过我的刺拳。很好。",
+      "breatheOutOnEach": "每出一拳就呼气 — 保持核心收紧。",
+      "stayLightOnYour": "脚步保持轻盈 — 步法赢得回合。",
+      "stayInYourStance": "保持架势，别往前倾。",
+      "iVeSeenSlower": "我见过更慢的步法……在我奶奶身上。不过你在进步。",
+      "doubleUpThatJab": "刺拳打双 — 别只是戳，要打实。",
+      "trustYourShotsDon": "相信你的拳 — 别急。",
+      "championsDonTStop": "冠军不是在疼的时候停下 — 而是在完成的时候停下。",
+      "turnYourHipOn": "直拳时转胯 — 把力量全部传出去。",
+      "youLookTiredGood": "你看起来累了。很好。说明你在努力。",
+      "keepThatHeadMoving": "头部保持移动 — 别当固定靶。",
+      "pushThePaceMake": "加快节奏 — 让每一秒都有价值。",
+      "returnYourHandsTo": "每套组合拳后双手回到防守位置。",
+      "stayBalancedThroughYour": "打组合拳时保持平衡。",
+      "myCircuitsAreOverheating": "光是看你，我的电路都要过热了。再加把劲。"
     },
     "merchSheet": {
       "linkCopiedSendIt": "链接已复制：发给家长",
@@ -2790,7 +2843,8 @@
       "goHome": "回到首页"
     },
     "welcomePage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "whatKindOfFighter": "你是哪种拳手？来做测试"
     },
     "leaderboardPage": {
       "statusOnlyGoesUp": "身份只升不降。排名每周一重置。",
@@ -2811,6 +2865,27 @@
     },
     "scorePage": {
       "failedToSaveSession": "保存训练失败，请重试。"
+    },
+    "languageSelector": {
+      "english": "English",
+      "espaOl": "Español",
+      "franAis": "Français",
+      "portuguS": "Português",
+      "deutsch": "Deutsch",
+      "polski": "Polski"
+    },
+    "howToPlay": {
+      "pick3Boxers": "选 3 名拳手",
+      "watchThemFight": "观看他们比赛",
+      "getPointsWhenThey": "他们赢了你就得分"
+    },
+    "fighterStyle": {
+      "youWalkThemDown": "你步步紧逼、封锁擂台，把每个回合都变成硬仗。对手整晚都能感受到你。",
+      "youControlDistanceLive": "你掌控距离，靠刺拳生存，逼对手在你的距离上作战。",
+      "youMakeThemMiss": "你让他们打空，再让他们付出代价。耐心就是你的武器。",
+      "explosiveAndDangerousFrom": "从第一声铃响就充满爆发力和威胁。一记干净的重拳就能改变一切。",
+      "speedAnglesAndVolume": "速度、角度和出拳量。你连珠炮般出拳，他们永远看不到最后一拳。",
+      "youCanBoxOr": "你能技术型打法也能硬碰硬，而且知道这个回合需要哪一种。"
     }
   },
   "feedback": {
@@ -2831,7 +2906,52 @@
   },
   "lib": {
     "pitch": {
-      "yourPartner": "你的搭档"
+      "yourPartner": "你的搭档",
+      "goal": {
+        "Get_fitter": "变得更健康",
+        "Get_better_overall": "提高拳击水平",
+        "Improve_my_defence": "加强防守",
+        "Sharpen_my_attack": "磨利进攻",
+        "Get_ready_to_spar": "为实战对练做准备",
+        "Compete_in_fights": "为比赛做准备",
+        "Just_for_fun": "更享受拳击"
+      },
+      "held": {
+        "no_feedback": "没人告诉你哪里做错了",
+        "bad_habits": "同样的坏习惯反复出现",
+        "defense_weak": "防守漏洞太多",
+        "no_power": "出拳没有你想要的力量",
+        "footwork": "步法变得松散"
+      },
+      "focus": {
+        "no_feedback": "技术",
+        "default": "技术",
+        "bad_habits": "你的习惯",
+        "defense_weak": "防守",
+        "no_power": "力量",
+        "footwork": "步法"
+      },
+      "reflectHeld": "听起来你想{{goal}}，而{{held}}一直在拖你后腿。是这样吗？",
+      "reflect": "听起来你想{{goal}}。是这样吗？",
+      "notYourFault1": "这不怪你。大多数人训练时都没有人看着他们的技术。这正是缺失的那一块。",
+      "notYourFault2": "这不怪你。没人在你练的时候指出问题，自然很难改正。这正是缺失的那一块。",
+      "headline": "你的计划：{{goal}}",
+      "thisWeek": "本周",
+      "step1Beginner": "简短简单的回合。{{partner}} 会带你练每一个回合，并留意你的{{focus}}。",
+      "step1": "适合你水平的回合。{{partner}} 会带你练每一个回合，并留意你的{{focus}}。",
+      "everyRound": "每个回合",
+      "step2": "打开视频，AI 会为你拳击的 16 个方面评分，让你清楚知道该练什么。",
+      "weekByWeek": "一周又一周"
+    },
+    "tips": {
+      "technique": "技术"
+    },
+    "why": {
+      "spot": {
+        "defense_weak": "防守",
+        "no_power": "力量",
+        "footwork": "步法"
+      }
     }
   }
 }

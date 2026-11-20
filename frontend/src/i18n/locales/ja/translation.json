@@ -2130,7 +2130,20 @@
       "goBack": "戻る",
       "viral": "バズり中",
       "couldnTUpdateLike": "いいねを更新できませんでした — もう一度お試しください。",
-      "noClipsYet": "まだクリップはありません"
+      "noClipsYet": "まだクリップはありません",
+      "reactionsAtOnce": "同時リアクション",
+      "playVideo": "動画を再生",
+      "pauseVideo": "動画を一時停止",
+      "fromStream": "配信から：",
+      "trendingClips": "トレンドクリップ",
+      "sharedClip": "シェアされたクリップ",
+      "noClipsInThe": "過去24時間のクリップはありません。上昇中か全期間をチェック。",
+      "beTheFirstTo": "ライブ配信を最初にクリップしよう！",
+      "loading": "読み込み中…",
+      "loadMoreClips": "もっとクリップを読み込む",
+      "hot": "人気 🔥",
+      "rising": "上昇中",
+      "allTime": "全期間"
     },
     "partnerCondition": {
       "rising": "上昇中",
@@ -2462,7 +2475,47 @@
       "callNumbers": "数字でコール",
       "callsLike12": "「1、2、3」のようなコール。",
       "todaySFocus": "今日の重点：",
-      "personalBestToBeat": "超えるべき自己ベスト："
+      "personalBestToBeat": "超えるべき自己ベスト：",
+      "turnOnVideoSo": "動画をオンにするとAIが採点します",
+      "sessionMode": "セッションモード",
+      "privateAiRoom": "プライベートAIルーム",
+      "trainWithYourAi": "AIパートナーとトレーニング — 集中してプライベートに",
+      "publicLivestream": "公開ライブ配信",
+      "goLiveLetThe": "ライブ配信 — コミュニティに見てもらおう",
+      "tappingStartWillOpen": "スタートをタップするとライブ配信画面が開きます。",
+      "yourAiPartnerWill": "AIパートナーがラウンドの合間にやる気を出させ、アドバイスし、軽口を叩きます。",
+      "goLive": "🔴 ライブ配信",
+      "faceTheBoss": "💀 ボスに挑む",
+      "riffOnIt": "アレンジしてみよう",
+      "last10FinishStrong": "：ラスト10 — 強く締めくくれ！",
+      "debrief": "振り返り",
+      "disableVoice": "音声をオフ",
+      "enableVoice": "音声をオン",
+      "ringCardGirl": "ラウンドガール",
+      "skip": "スキップ",
+      "endSession": "セッションを終了",
+      "backToSetup": "← 設定に戻る",
+      "normal": "ノーマル",
+      "scoredWhenVideoIs": "動画オンで採点",
+      "noScoreJustPlay": "スコアなし。楽しむだけ。",
+      "boss": "ボス",
+      "thisWeekSTough": "今週のきついラウンド",
+      "handsUpYouRe": "手を上げろ — また右が下がってるぞ！",
+      "youReSweatingLike": "俺のジャブを見たみたいに汗かいてるな。いいぞ。",
+      "breatheOutOnEach": "パンチごとに息を吐け — 体幹が締まる。",
+      "stayLightOnYour": "軽やかな足取りで — フットワークがラウンドを制す。",
+      "stayInYourStance": "構えを保て、前のめりになるな。",
+      "iVeSeenSlower": "もっと遅いフットワークを見たことがある…うちのばあちゃんでな。でも上達してるぞ。",
+      "doubleUpThatJab": "ジャブはダブルで — つつくだけじゃなく、打ち切れ。",
+      "trustYourShotsDon": "自分のパンチを信じろ — 焦るな。",
+      "championsDonTStop": "チャンピオンは痛いから止めるんじゃない — 終わったから止めるんだ。",
+      "turnYourHipOn": "クロスで腰を回せ — パワーを全部伝えろ。",
+      "youLookTiredGood": "疲れてるな。いいぞ。ちゃんと追い込めてる証拠だ。",
+      "keepThatHeadMoving": "頭を動かし続けろ — 止まった的になるな。",
+      "pushThePaceMake": "ペースを上げろ — 1秒も無駄にするな。",
+      "returnYourHandsTo": "コンビネーションの後は必ずガードに戻せ。",
+      "stayBalancedThroughYour": "コンビネーション中もバランスを保て。",
+      "myCircuitsAreOverheating": "見てるだけで俺の回路がオーバーヒートしそうだ。もっと攻めろ。"
     },
     "merchSheet": {
       "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",
@@ -2790,7 +2843,8 @@
       "goHome": "ホームへ"
     },
     "welcomePage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "whatKindOfFighter": "あなたはどんなファイター？クイズに挑戦"
     },
     "leaderboardPage": {
       "statusOnlyGoesUp": "ステータスは上がるだけ。ランキングは毎週月曜にリセット。",
@@ -2811,6 +2865,27 @@
     },
     "scorePage": {
       "failedToSaveSession": "セッションを保存できませんでした。もう一度お試しください。"
+    },
+    "languageSelector": {
+      "english": "English",
+      "espaOl": "Español",
+      "franAis": "Français",
+      "portuguS": "Português",
+      "deutsch": "Deutsch",
+      "polski": "Polski"
+    },
+    "howToPlay": {
+      "pick3Boxers": "ボクサーを3人選ぶ",
+      "watchThemFight": "試合を見る",
+      "getPointsWhenThey": "勝てばポイント獲得"
+    },
+    "fighterStyle": {
+      "youWalkThemDown": "前に出てリングを詰め、どのラウンドも打ち合いにする。相手は一晩中あなたを感じる。",
+      "youControlDistanceLive": "距離を支配し、ジャブを軸に、自分の間合いで戦わせる。",
+      "youMakeThemMiss": "空振りさせて代償を払わせる。忍耐があなたの武器。",
+      "explosiveAndDangerousFrom": "第1ゴングから爆発的で危険。クリーンな一発がすべてを変える。",
+      "speedAnglesAndVolume": "スピード、角度、手数。連打で攻め、最後の一発は見えない。",
+      "youCanBoxOr": "ボクシングも打ち合いもできて、ラウンドに必要な方がわかる。"
     }
   },
   "feedback": {
@@ -2831,7 +2906,52 @@
   },
   "lib": {
     "pitch": {
-      "yourPartner": "あなたのパートナー"
+      "yourPartner": "あなたのパートナー",
+      "goal": {
+        "Get_fitter": "体力をつけたい",
+        "Get_better_overall": "ボクシングが上手くなりたい",
+        "Improve_my_defence": "ディフェンスを固めたい",
+        "Sharpen_my_attack": "攻撃を磨きたい",
+        "Get_ready_to_spar": "スパーの準備をしたい",
+        "Compete_in_fights": "試合に向けて準備したい",
+        "Just_for_fun": "ボクシングをもっと楽しみたい"
+      },
+      "held": {
+        "no_feedback": "何が間違っているか誰も教えてくれないこと",
+        "bad_habits": "同じ悪い癖が戻ってくること",
+        "defense_weak": "もらいすぎるディフェンス",
+        "no_power": "思うようなパワーが出ないパンチ",
+        "footwork": "雑になるフットワーク"
+      },
+      "focus": {
+        "no_feedback": "テクニック",
+        "default": "テクニック",
+        "bad_habits": "癖",
+        "defense_weak": "ディフェンス",
+        "no_power": "パワー",
+        "footwork": "フットワーク"
+      },
+      "reflectHeld": "つまり「{{goal}}」と思っていて、{{held}}が邪魔をしてきた、ということですね。合っていますか？",
+      "reflect": "つまり「{{goal}}」と思っている、ということですね。合っていますか？",
+      "notYourFault1": "あなたのせいではありません。ほとんどの人は、誰にもテクニックを見てもらわずに練習しています。それが足りなかったピースです。",
+      "notYourFault2": "あなたのせいではありません。やっている最中に誰も指摘してくれないものを直すのは難しいんです。それが足りなかったピースです。",
+      "headline": "「{{goal}}」ためのプラン",
+      "thisWeek": "今週",
+      "step1Beginner": "短くシンプルなラウンド。{{partner}}が毎回ガイドし、あなたの{{focus}}をチェックします。",
+      "step1": "あなたのレベルに合ったラウンド。{{partner}}が毎回ガイドし、あなたの{{focus}}をチェックします。",
+      "everyRound": "毎ラウンド",
+      "step2": "動画をオンにするとAIがボクシングの16項目を採点。何に取り組むべきかがはっきりわかります。",
+      "weekByWeek": "週ごとに"
+    },
+    "tips": {
+      "technique": "テクニック"
+    },
+    "why": {
+      "spot": {
+        "defense_weak": "ディフェンス",
+        "no_power": "パワー",
+        "footwork": "フットワーク"
+      }
     }
   }
 }
