@@ -18,6 +18,7 @@ import { streakLine } from "@/lib/streakCard";
 import {
   buildTimeline, positionAt, cuesBetween, totalSeconds, clock, describe, spokenLine, allSpokenLines, newPreset,
 } from "@/lib/workoutTimer";
+import { tx } from "@/i18n/tx";
 
 // The workout timer (reasoning in backend/workouts.py): saved round and circuit workouts, with the
 // clock, bells, voice and camera all on one screen, so nobody has to swap between a timer app and
@@ -59,21 +60,21 @@ function Editor({ draft: initial, types, onSave, onDelete, onClose }) {
   const setStation = (i, patch) => setD((x) => ({ ...x, stations: x.stations.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
 
   return (
-    <BottomSheet onClose={onClose} label={d.id ? "Edit workout" : "New workout"} className="w-full max-w-lg mx-auto" testId="timer-editor">
+    <BottomSheet onClose={onClose} label={d.id ? tx("ui.timerPage.editWorkout", "Edit workout") : tx("ui.timerPage.newWorkout", "New workout")} className="w-full max-w-lg mx-auto" testId="timer-editor">
       {({ close }) => (
         <div className="overflow-y-auto min-h-0 flex-1 px-4 pb-6 space-y-4">
           <div className="flex items-center justify-between pt-2">
-            <h2 className="font-heading font-extrabold text-victory-text text-lg">{d.id ? "Edit workout" : "New workout"}</h2>
-            <button className="w-11 h-11 rounded-full flex items-center justify-center" onClick={() => close()} aria-label="Close">
+            <h2 className="font-heading font-extrabold text-victory-text text-lg">{d.id ? tx("ui.timerPage.editWorkout", "Edit workout") : tx("ui.timerPage.newWorkout", "New workout")}</h2>
+            <button className="w-11 h-11 rounded-full flex items-center justify-center" onClick={() => close()} aria-label={tx("ui.timerPage.close", "Close")}>
               <X className="w-5 h-5 text-victory-muted" />
             </button>
           </div>
           <div>
-            <label className="victory-label" htmlFor="workout-name">Name</label>
-            <input id="workout-name" className="victory-input" maxLength={40} placeholder="Monday bag session"
+            <label className="victory-label" htmlFor="workout-name">{tx("ui.timerPage.name", "Name")}</label>
+            <input id="workout-name" className="victory-input" maxLength={40} placeholder={tx("ui.timerPage.mondayBagSession", "Monday bag session")}
               value={d.name} onChange={(e) => set("name")(e.target.value)} />
           </div>
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Workout type">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label={tx("ui.timerPage.workoutType", "Workout type")}>
             {Object.entries(types).map(([k, label]) => (
               <button key={k} type="button" aria-pressed={d.type === k}
                 onClick={() => setD((x) => (k === "circuit" && !x.stations.length
@@ -84,15 +85,15 @@ function Editor({ draft: initial, types, onSave, onDelete, onClose }) {
           </div>
 
           <section className="victory-card p-4">
-            <Stepper label="Warm up" value={d.warmup_s} onChange={set("warmup_s")} min={0} max={600} step={5} format={secs} />
-            <Stepper label={stationsOn ? "Sets" : "Rounds"} value={d.rounds} onChange={set("rounds")} min={1} max={50} step={1} testId="timer-rounds" />
-            {!stationsOn && <Stepper label="Round time" value={d.round_s} onChange={set("round_s")} min={5} max={3600} step={durStep(d.round_s)} format={clock} />}
-            <Stepper label={stationsOn ? "Rest between sets" : "Rest"} value={d.rest_s} onChange={set("rest_s")} min={0} max={1800} step={durStep(d.rest_s)} format={secs} />
+            <Stepper label={tx("ui.timerPage.warmUp", "Warm up")} value={d.warmup_s} onChange={set("warmup_s")} min={0} max={600} step={5} format={secs} />
+            <Stepper label={stationsOn ? tx("ui.timerPage.sets", "Sets") : tx("ui.timerPage.rounds", "Rounds")} value={d.rounds} onChange={set("rounds")} min={1} max={50} step={1} testId="timer-rounds" />
+            {!stationsOn && <Stepper label={tx("ui.timerPage.roundTime", "Round time")} value={d.round_s} onChange={set("round_s")} min={5} max={3600} step={durStep(d.round_s)} format={clock} />}
+            <Stepper label={stationsOn ? tx("ui.timerPage.restBetweenSets", "Rest between sets") : tx("ui.timerPage.rest", "Rest")} value={d.rest_s} onChange={set("rest_s")} min={0} max={1800} step={durStep(d.rest_s)} format={secs} />
           </section>
 
           {stationsOn && (
             <section className="victory-card p-4 space-y-2" data-testid="timer-stations">
-              <p className="section-label">Exercises, in order</p>
+              <p className="section-label">{tx("ui.timerPage.exercisesInOrder", "Exercises, in order")}</p>
               {d.stations.map((s, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <input className="victory-input flex-1" maxLength={40} value={s.name} aria-label={`Exercise ${i + 1}`}
@@ -115,25 +116,25 @@ function Editor({ draft: initial, types, onSave, onDelete, onClose }) {
               {d.stations.length < 20 && (
                 <button type="button" className="victory-btn-ghost w-full flex items-center justify-center gap-2"
                   onClick={() => setD((x) => ({ ...x, stations: [...x.stations, { name: "Exercise", seconds: 40 }] }))}>
-                  <Plus className="w-4 h-4" /> Add exercise
+                  <Plus className="w-4 h-4" /> {tx("ui.timerPage.addExercise", "Add exercise")}
                 </button>
               )}
-              <Stepper label="Rest between exercises" value={d.station_rest_s} onChange={set("station_rest_s")} min={0} max={600} step={5} format={secs} />
+              <Stepper label={tx("ui.timerPage.restBetweenExercises", "Rest between exercises")} value={d.station_rest_s} onChange={set("station_rest_s")} min={0} max={600} step={5} format={secs} />
             </section>
           )}
 
           <section className="victory-card p-4">
-            <p className="section-label">Alerts</p>
-            <Stepper label="Round end warning" value={d.round_warning_s} onChange={set("round_warning_s")} min={0} max={60} step={5} format={secs} />
-            <Stepper label="Rest end warning" value={d.rest_warning_s} onChange={set("rest_warning_s")} min={0} max={60} step={5} format={secs} />
-            <Stepper label="Whistle every" value={d.inner_alert_s} onChange={set("inner_alert_s")} min={0} max={600} step={d.inner_alert_s >= 60 ? 30 : 5} format={secs} />
+            <p className="section-label">{tx("ui.timerPage.alerts", "Alerts")}</p>
+            <Stepper label={tx("ui.timerPage.roundEndWarning", "Round end warning")} value={d.round_warning_s} onChange={set("round_warning_s")} min={0} max={60} step={5} format={secs} />
+            <Stepper label={tx("ui.timerPage.restEndWarning", "Rest end warning")} value={d.rest_warning_s} onChange={set("rest_warning_s")} min={0} max={60} step={5} format={secs} />
+            <Stepper label={tx("ui.timerPage.whistleEvery", "Whistle every")} value={d.inner_alert_s} onChange={set("inner_alert_s")} min={0} max={600} step={d.inner_alert_s >= 60 ? 30 : 5} format={secs} />
           </section>
 
-          <p className="text-victory-muted text-xs">Total: {clock(totalSeconds(buildTimeline(d)))}</p>
+          <p className="text-victory-muted text-xs">{tx("ui.timerPage.total", "Total:")} {clock(totalSeconds(buildTimeline(d)))}</p>
           <button className="victory-btn-primary" disabled={!d.name.trim() || (stationsOn && !d.stations.length)}
-            onClick={async () => { if (await onSave(d)) close(); }}>Save workout</button>
+            onClick={async () => { if (await onSave(d)) close(); }}>{tx("ui.timerPage.saveWorkout", "Save workout")}</button>
           {d.id && !d.builtin && (
-            <button className="victory-btn-ghost w-full" onClick={async () => { if (await onDelete(d)) close(); }}>Delete workout</button>
+            <button className="victory-btn-ghost w-full" onClick={async () => { if (await onDelete(d)) close(); }}>{tx("ui.timerPage.deleteWorkout", "Delete workout")}</button>
           )}
         </div>
       )}
@@ -152,31 +153,31 @@ function StartSheet({ preset, onStart, onEdit, onClose }) {
           <div className="flex items-start justify-between pt-2">
             <div>
               <h2 className="font-heading font-extrabold text-victory-text text-lg">{preset.name}</h2>
-              <p className="text-victory-muted text-sm">{describe(preset)} · {clock(totalSeconds(buildTimeline(preset)))} total</p>
+              <p className="text-victory-muted text-sm">{describe(preset)} · {clock(totalSeconds(buildTimeline(preset)))} {tx("ui.timerPage.total2", "total")}</p>
             </div>
-            <button className="w-11 h-11 rounded-full flex items-center justify-center" onClick={() => { close(); onEdit(preset); }} aria-label="Edit workout">
+            <button className="w-11 h-11 rounded-full flex items-center justify-center" onClick={() => { close(); onEdit(preset); }} aria-label={tx("ui.timerPage.editWorkout", "Edit workout")}>
               <Pencil className="w-4 h-4 text-victory-muted" />
             </button>
           </div>
           <div className="victory-card p-4 space-y-2">
-            <ToggleRow on={film} iconOn={Video} iconOff={VideoOff} title="Film it"
+            <ToggleRow on={film} iconOn={Video} iconOff={VideoOff} title={tx("ui.timerPage.filmIt", "Film it")}
               onToggle={(v) => { setFilm(v); writePref(FILM_KEY, v ? "1" : "0"); }}
-              description="The timer runs over the camera, so you see and hear every bell while you record." />
+              description={tx("ui.timerPage.theTimerRunsOver", "The timer runs over the camera, so you see and hear every bell while you record.")} />
             {film && (
-              <div className="grid grid-cols-2 gap-2" role="group" aria-label="Camera">
+              <div className="grid grid-cols-2 gap-2" role="group" aria-label={tx("ui.timerPage.camera", "Camera")}>
                 {[["user", "Front camera"], ["environment", "Back camera"]].map(([k, label]) => (
                   <button key={k} type="button" aria-pressed={facing === k} onClick={() => { setFacing(k); writePref(FACING_KEY, k); }}
                     className={`filter-pill min-h-[44px] ${facing === k ? "filter-pill-active" : "filter-pill-inactive"}`}>{label}</button>
                 ))}
               </div>
             )}
-            <ToggleRow on={voice} iconOn={Volume2} iconOff={VolumeX} title="Coach's voice"
+            <ToggleRow on={voice} iconOn={Volume2} iconOff={VolumeX} title={tx("ui.timerPage.coachSVoice", "Coach's voice")}
               onToggle={(v) => { setVoice(v); writePref(VOICE_KEY, v ? "1" : "0"); }}
-              description="Calls each round, exercise and rest, as well as the bells." />
+              description={tx("ui.timerPage.callsEachRoundExercise", "Calls each round, exercise and rest, as well as the bells.")} />
           </div>
           <button className="victory-btn-primary flex items-center justify-center gap-2" data-testid="timer-go"
             onClick={() => { unlockTimerSounds(); unlockSpeech(); onStart({ preset, film, facing, voice }); }}>
-            <Play className="w-5 h-5" /> Start
+            <Play className="w-5 h-5" /> {tx("ui.timerPage.start", "Start")}
           </button>
         </div>
       )}
@@ -221,7 +222,7 @@ function Runner({ run, onExit }) {
       }
       if (cancelled || !stream) {
         stream?.getTracks().forEach((t) => t.stop());
-        if (!stream) toast.error("Couldn't open the camera. The timer still runs.");
+        if (!stream) toast.error(tx("ui.timerPage.couldnTOpenThe", "Couldn't open the camera. The timer still runs."));
         return;
       }
       streamRef.current = stream;
@@ -234,7 +235,7 @@ function Runner({ run, onExit }) {
         rec.start(1000);
         recorderRef.current = rec;
       } catch {
-        toast.error("This phone can't record here. The timer still runs.");
+        toast.error(tx("ui.timerPage.thisPhoneCanT", "This phone can't record here. The timer still runs."));
       }
     })();
     return () => {
@@ -360,21 +361,21 @@ function Runner({ run, onExit }) {
     const line = streakLine(result.streak);
     return (
       <div className="fixed inset-0 z-50 bg-victory-bg flex flex-col items-center justify-center p-6 text-center" data-testid="timer-done">
-        <p className="section-label">{result.complete ? "Workout done" : "Stopped early"}</p>
+        <p className="section-label">{result.complete ? tx("ui.timerPage.workoutDone", "Workout done") : tx("ui.timerPage.stoppedEarly", "Stopped early")}</p>
         <h1 className="font-heading font-extrabold text-victory-text text-3xl mt-2">{preset.name}</h1>
         <p className="font-mono text-victory-lime text-5xl mt-4">{clock(result.trained)}</p>
-        <p className="text-victory-muted text-sm mt-1">trained · {result.roundsDone} {preset.stations?.length ? "exercise" : "round"}{result.roundsDone === 1 ? "" : "s"}</p>
+        <p className="text-victory-muted text-sm mt-1">{tx("ui.timerPage.trained", "trained ·")} {result.roundsDone} {preset.stations?.length ? tx("ui.timerPage.exercise", "exercise") : tx("ui.timerPage.round", "round")}{result.roundsDone === 1 ? "" : "s"}</p>
         {result.logged && line && (
           <p className="text-victory-text text-sm mt-4 flex items-center gap-1.5"><Flame className="w-4 h-4 text-victory-orange" /> {line.text}</p>
         )}
-        {!result.logged && <p className="text-victory-muted text-xs mt-4">Under a minute, so it isn't saved to your week.</p>}
+        {!result.logged && <p className="text-victory-muted text-xs mt-4">{tx("ui.timerPage.underAMinuteSo", "Under a minute, so it isn't saved to your week.")}</p>}
         <div className="w-full max-w-sm space-y-2 mt-8">
           {result.blob && (
             <button className="victory-btn-secondary w-full flex items-center justify-center gap-2" onClick={saveVideo} data-testid="timer-save-video">
-              <Download className="w-4 h-4" /> Save the video
+              <Download className="w-4 h-4" /> {tx("ui.timerPage.saveTheVideo", "Save the video")}
             </button>
           )}
-          <button className="victory-btn-primary" onClick={onExit}>Done</button>
+          <button className="victory-btn-primary" onClick={onExit}>{tx("ui.timerPage.done", "Done")}</button>
         </div>
       </div>
     );
@@ -401,14 +402,14 @@ function Runner({ run, onExit }) {
       {filming && <div className="absolute inset-0 bg-black/45" aria-hidden="true" />}
 
       <div className="relative flex-1 flex flex-col items-center justify-center px-6 text-center" style={{ paddingTop: "env(safe-area-inset-top)" }}>
-        {filming && <p className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4 flex items-center gap-1.5 text-white text-xs font-semibold"><span className="w-2 h-2 rounded-full bg-victory-danger animate-pulse" /> REC</p>}
+        {filming && <p className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4 flex items-center gap-1.5 text-white text-xs font-semibold"><span className="w-2 h-2 rounded-full bg-victory-danger animate-pulse" /> {tx("ui.timerPage.rec", "REC")}</p>}
         <p className={`text-sm font-semibold uppercase tracking-wide ${sub}`}>{where}</p>
-        <p className={`font-heading font-extrabold text-2xl mt-1 ${fg}`}>{seg ? seg.label : "Done"}</p>
+        <p className={`font-heading font-extrabold text-2xl mt-1 ${fg}`}>{seg ? seg.label : tx("ui.timerPage.done", "Done")}</p>
         <p className={`font-mono font-bold leading-none mt-3 tabular-nums ${tone} ${warning ? "animate-pulse" : ""}`}
           style={{ fontSize: "min(34vw, 11rem)" }} aria-live="off" data-testid="timer-clock">{clock(pos.left)}</p>
-        {seg?.next && seg.kind !== "work" && <p className={`text-lg mt-3 ${fg}`}>Next: <span className="font-semibold">{seg.next}</span></p>}
-        {seg?.kind === "work" && seg.next && seg.station && <p className={`text-sm mt-3 ${sub}`}>Then: {seg.next}</p>}
-        {paused && <p className="text-victory-orange font-semibold mt-4">Paused</p>}
+        {seg?.next && seg.kind !== "work" && <p className={`text-lg mt-3 ${fg}`}>{tx("ui.timerPage.next", "Next:")} <span className="font-semibold">{seg.next}</span></p>}
+        {seg?.kind === "work" && seg.next && seg.station && <p className={`text-sm mt-3 ${sub}`}>{tx("ui.timerPage.then", "Then:")} {seg.next}</p>}
+        {paused && <p className="text-victory-orange font-semibold mt-4">{tx("ui.timerPage.paused", "Paused")}</p>}
       </div>
 
       <div className="relative px-6 pb-8 safe-bottom">
@@ -416,22 +417,22 @@ function Runner({ run, onExit }) {
           <div className="h-full bg-victory-lime" style={{ width: `${(elapsed / total) * 100}%` }} />
         </div>
         <div className="flex items-center justify-center gap-5">
-          <button className={`w-14 h-14 rounded-full border flex items-center justify-center ${ghost}`} aria-label="Stop workout"
+          <button className={`w-14 h-14 rounded-full border flex items-center justify-center ${ghost}`} aria-label={tx("ui.timerPage.stopWorkout", "Stop workout")}
             onClick={() => finish(elapsed)} data-testid="timer-stop">
             <Square className={`w-5 h-5 ${fg}`} />
           </button>
-          <button className="w-20 h-20 rounded-full bg-victory-lime flex items-center justify-center" aria-label={paused ? "Resume" : "Pause"}
+          <button className="w-20 h-20 rounded-full bg-victory-lime flex items-center justify-center" aria-label={paused ? tx("ui.timerPage.resume", "Resume") : tx("ui.timerPage.pause", "Pause")}
             onClick={togglePause} data-testid="timer-pause">
             {paused ? <Play className="w-8 h-8 text-victory-bg" /> : <Pause className="w-8 h-8 text-victory-bg" />}
           </button>
-          <button className={`w-14 h-14 rounded-full border flex items-center justify-center ${ghost}`} aria-label="Skip to next"
+          <button className={`w-14 h-14 rounded-full border flex items-center justify-center ${ghost}`} aria-label={tx("ui.timerPage.skipToNext", "Skip to next")}
             onClick={skip} data-testid="timer-skip">
             <SkipForward className={`w-5 h-5 ${fg}`} />
           </button>
         </div>
         <div className="flex justify-center mt-4">
           <button className={`min-h-[44px] px-3 text-xs flex items-center gap-1.5 ${sub}`} onClick={() => setVoiceOn((v) => !v)} aria-pressed={voiceOn}>
-            {voiceOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} Coach's voice {voiceOn ? "on" : "off"}
+            {voiceOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} {tx("ui.timerPage.coachSVoice", "Coach's voice")} {voiceOn ? tx("ui.timerPage.on", "on") : tx("ui.timerPage.off", "off")}
           </button>
         </div>
       </div>
@@ -459,7 +460,7 @@ export default function TimerPage() {
       setData(out);
       return out;
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Couldn't save that");
+      toast.error(e?.response?.data?.detail || tx("ui.timerPage.couldnTSaveThat", "Couldn't save that"));
       return null;
     }
   };
@@ -468,7 +469,7 @@ export default function TimerPage() {
     const clean = { ...d, name: d.name.trim(), stations: d.stations.filter((s) => s.name.trim()) };
     const list = d.id && !d.builtin ? mine.map((p) => (p.id === d.id ? clean : p)) : [{ ...clean, id: null }, ...mine];
     const out = await savePresets(list);
-    if (out) toast.success(`Saved ${clean.name}`);
+    if (out) toast.success(tx("ui.timerPage.saved", "Saved {{name}}", { name: clean.name }));
     return !!out;
   };
 
@@ -488,11 +489,11 @@ export default function TimerPage() {
       <div className="sticky top-0 z-20 material-header">
         <header className="p-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-heading font-extrabold text-victory-text">Timer</h1>
-            <p className="text-victory-muted text-sm">Bag, pads, circuits, HIIT. Film it on the same screen.</p>
+            <h1 className="text-xl font-heading font-extrabold text-victory-text">{tx("ui.timerPage.timer", "Timer")}</h1>
+            <p className="text-victory-muted text-sm">{tx("ui.timerPage.bagPadsCircuitsHiit", "Bag, pads, circuits, HIIT. Film it on the same screen.")}</p>
           </div>
           <button className="w-11 h-11 rounded-full bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center"
-            onClick={() => setEditing(newPreset("bag"))} aria-label="New workout" data-testid="timer-new">
+            onClick={() => setEditing(newPreset("bag"))} aria-label={tx("ui.timerPage.newWorkout", "New workout")} data-testid="timer-new">
             <Plus className="w-5 h-5 text-victory-lime" />
           </button>
         </header>
@@ -505,15 +506,15 @@ export default function TimerPage() {
             <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
               <Timer className="w-8 h-8 text-victory-lime/60" />
             </div>
-            <p className="text-victory-text font-bold text-lg mb-1">Couldn't load your workouts</p>
-            <button className="victory-btn-ghost mt-3" onClick={() => window.location.reload()}><RefreshCw className="w-4 h-4 inline mr-1" /> Try again</button>
+            <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.timerPage.couldnTLoadYour", "Couldn't load your workouts")}</p>
+            <button className="victory-btn-ghost mt-3" onClick={() => window.location.reload()}><RefreshCw className="w-4 h-4 inline mr-1" /> {tx("ui.timerPage.tryAgain", "Try again")}</button>
           </div>
         )}
         {data && (
           <>
-            {mine.length > 0 && <p className="section-label">Your workouts</p>}
+            {mine.length > 0 && <p className="section-label">{tx("ui.timerPage.yourWorkouts", "Your workouts")}</p>}
             {mine.map((p) => <PresetCard key={p.id} p={p} types={data.types} onOpen={() => setStarting(p)} />)}
-            <p className="section-label pt-2">Ready to go</p>
+            <p className="section-label pt-2">{tx("ui.timerPage.readyToGo", "Ready to go")}</p>
             {data.presets.filter((p) => p.builtin).map((p) => <PresetCard key={p.id} p={p} types={data.types} onOpen={() => setStarting(p)} />)}
           </>
         )}

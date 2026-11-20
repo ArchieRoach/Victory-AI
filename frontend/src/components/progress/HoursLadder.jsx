@@ -3,6 +3,7 @@ import axios from "axios";
 import { Hourglass } from "lucide-react";
 import { API } from "@/App";
 import { masteryLine, masteryPct } from "@/lib/progression";
+import { tx } from "@/i18n/tx";
 
 // Goal: visible progress that lasts a whole boxing life, apart from any one season's prize.
 // Psychology: goal gradient: people push harder the closer the next step looks, so the bar
@@ -22,19 +23,19 @@ export function HoursLadder() {
   return (
     <section className="victory-card p-4 space-y-2" data-testid="hours-ladder">
       <div className="flex items-center justify-between">
-        <p className="section-label flex items-center gap-1.5"><Hourglass className="w-3 h-3" /> Hours ladder</p>
+        <p className="section-label flex items-center gap-1.5"><Hourglass className="w-3 h-3" /> {tx("ui.hoursLadder.hoursLadder", "Hours ladder")}</p>
         <span className="text-[11px] text-victory-muted">
-          {m.tier ? <span className="font-heading font-bold text-victory-teal">{m.tier}</span> : "No badge yet"}
+          {m.tier ? <span className="font-heading font-bold text-victory-teal">{m.tier}</span> : tx("ui.hoursLadder.noBadgeYet", "No badge yet")}
           <span className="font-mono"> · {m.tiers_earned}/{m.tiers_total}</span>
         </span>
       </div>
-      <p className="text-victory-text text-sm font-semibold">{m.next_tier ? `Next badge: ${m.next_tier}` : "Top of the ladder"}</p>
+      <p className="text-victory-text text-sm font-semibold">{m.next_tier ? tx("ui.hoursLadder.nextBadge", "Next badge: {{next_tier}}", { next_tier: m.next_tier }) : tx("ui.hoursLadder.topOfTheLadder", "Top of the ladder")}</p>
       <div className="h-2 rounded-full bg-victory-card-highlight overflow-hidden" role="progressbar"
-        aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to your next hours badge">
+        aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={tx("ui.hoursLadder.progressToYourNext", "Progress to your next hours badge")}>
         <div className="h-full bg-victory-lime rounded-full transition-all" style={{ width: `${pct}%` }} />
       </div>
       <p className="text-[12px] text-victory-muted">{masteryLine(m)}</p>
-      <p className="text-[11px] text-victory-muted">Only rounds the AI has watched on video count. The ladder goes all the way to 10,000 hours, the mark of an expert.</p>
+      <p className="text-[11px] text-victory-muted">{tx("ui.hoursLadder.onlyRoundsTheAi", "Only rounds the AI has watched on video count. The ladder goes all the way to 10,000 hours, the mark of an expert.")}</p>
     </section>
   );
 }

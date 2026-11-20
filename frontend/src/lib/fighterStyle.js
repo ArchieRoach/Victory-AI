@@ -1,3 +1,5 @@
+import { tx } from "@/i18n/tx";
+
 // "What kind of fighter are you?": a 6-question style quiz anyone can take before signing up.
 // Goal: get people who've never opened the app to try it, and give them something to share.
 // Psychology: identity expression (people adopt and share labels that describe them) and
@@ -9,37 +11,37 @@
 export const STYLES = {
   pressure: {
     name: "Pressure Fighter", legend: "Joe Frazier",
-    blurb: "You walk them down, cut the ring and make every round a fight. Opponents feel you all night.",
+    get blurb() { return tx("ui.fighterStyle.youWalkThemDown", "You walk them down, cut the ring and make every round a fight. Opponents feel you all night."); },
     focus: ["Head Movement", "Body Movement", "Combination Flow"],
     gap: "Footwork: pressure only works if you cut off the ring instead of following them.",
   },
   outboxer: {
     name: "Outside Fighter", legend: "Muhammad Ali",
-    blurb: "You control distance, live behind the jab and make them fight at your range.",
+    get blurb() { return tx("ui.fighterStyle.youControlDistanceLive", "You control distance, live behind the jab and make them fight at your range."); },
     focus: ["Jab", "Footwork", "Ring Generalship"],
     gap: "Guard Position: long range is safe until they close it, so your hands must stay home.",
   },
   counter: {
     name: "Counter Puncher", legend: "Pernell Whitaker",
-    blurb: "You make them miss and make them pay. Patience is your weapon.",
+    get blurb() { return tx("ui.fighterStyle.youMakeThemMiss", "You make them miss and make them pay. Patience is your weapon."); },
     focus: ["Slip", "Parry", "Punch Accuracy"],
     gap: "Combination Flow: counters land harder when the second and third shots follow.",
   },
   power: {
     name: "Power Puncher", legend: "Mike Tyson",
-    blurb: "Explosive and dangerous from the first bell. One clean shot changes everything.",
+    get blurb() { return tx("ui.fighterStyle.explosiveAndDangerousFrom", "Explosive and dangerous from the first bell. One clean shot changes everything."); },
     focus: ["Left Hook", "Uppercut", "Roll"],
     gap: "Jab: power needs a way in, and the jab is the door.",
   },
   combo: {
     name: "Combination Artist", legend: "Manny Pacquiao",
-    blurb: "Speed, angles and volume. You punch in bunches and they never see the last one.",
+    get blurb() { return tx("ui.fighterStyle.speedAnglesAndVolume", "Speed, angles and volume. You punch in bunches and they never see the last one."); },
     focus: ["Combination Flow", "Footwork", "Punch Balance"],
     gap: "Guard Position: you're open at the end of combinations. Finish behind your hands.",
   },
   boxerpuncher: {
     name: "Boxer-Puncher", legend: "Sugar Ray Leonard",
-    blurb: "You can box or brawl, and you know which one the round needs.",
+    get blurb() { return tx("ui.fighterStyle.youCanBoxOr", "You can box or brawl, and you know which one the round needs."); },
     focus: ["Ring Generalship", "Cross", "Combination Flow"],
     gap: "Head Movement: versatility is dangerous when you're also hard to hit.",
   },

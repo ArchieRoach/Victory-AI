@@ -8,6 +8,7 @@ import { ArrowLeft, Building2, Copy, Users, Trophy, LogOut, Trash2, MessageSquar
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
 import { GymSeasonHours } from "@/components/progress/GymSeasonHours";
+import { tx } from "@/i18n/tx";
 
 const GYM_DEFAULT_CAP = 50;
 
@@ -111,7 +112,7 @@ export default function GymDetailPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="gym-detail-page">
       <header className="p-4 flex items-center gap-3 border-b border-victory-border">
-        <button onClick={() => navigate("/gyms")} aria-label="Go back" className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
+        <button onClick={() => navigate("/gyms")} aria-label={tx("ui.gymDetailPage.goBack", "Go back")} className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
         <div className="flex-1 min-w-0">
@@ -123,7 +124,7 @@ export default function GymDetailPage() {
           </p>
         </div>
         {isMember && !isOwner && (
-          <button onClick={handleLeave} disabled={leaving} aria-label="Leave gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger disabled:opacity-40">
+          <button onClick={handleLeave} disabled={leaving} aria-label={tx("ui.gymDetailPage.leaveGym", "Leave gym")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger disabled:opacity-40">
             {leaving ? (
               <span className="w-4 h-4 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
             ) : (
@@ -132,7 +133,7 @@ export default function GymDetailPage() {
           </button>
         )}
         {isOwner && (
-          <button onClick={handleDelete} disabled={deleting} aria-label="Delete gym" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger disabled:opacity-40">
+          <button onClick={handleDelete} disabled={deleting} aria-label={tx("ui.gymDetailPage.deleteGym", "Delete gym")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger disabled:opacity-40">
             {deleting ? (
               <span className="w-4 h-4 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
             ) : (
@@ -194,7 +195,7 @@ export default function GymDetailPage() {
 
         {(isOwner || (gym.coaches || []).includes(user?.user_id)) && (
           <button onClick={() => navigate(`/gyms/${gym.gym_id}/poster`)} className="victory-btn-secondary flex items-center justify-center gap-2" data-testid="poster-link">
-            <QrCode className="w-4 h-4" /> Print the check-in poster
+            <QrCode className="w-4 h-4" /> {tx("ui.gymDetailPage.printTheCheckIn", "Print the check-in poster")}
           </button>
         )}
 
@@ -272,7 +273,7 @@ export default function GymDetailPage() {
                         <span className="text-xs bg-victory-lime/20 text-victory-lime px-1.5 py-0.5 rounded-full">{t("gym.owner")}</span>
                       )}
                       {(gym.coaches || []).includes(member.user_id) && (
-                        <span className="text-xs bg-victory-teal/15 text-victory-teal px-1.5 py-0.5 rounded-full">Coach</span>
+                        <span className="text-xs bg-victory-teal/15 text-victory-teal px-1.5 py-0.5 rounded-full">{tx("ui.gymDetailPage.coach", "Coach")}</span>
                       )}
                     </div>
                     <p className="text-victory-muted text-xs">{member.total_sessions} {t("gym.sessions")}</p>
@@ -336,16 +337,16 @@ function CoachPicker({ gym, onChange }) {
   const toggle = async (member, coach) => {
     try {
       await axios.put(`${API}/gyms/${gym.gym_id}/coaches/${member.user_id}`, { coach });
-      toast.success(coach ? `${member.display_name || member.name} is a coach` : "Coach removed");
+      toast.success(coach ? `${member.display_name || member.name} is a coach` : tx("ui.gymDetailPage.coachRemoved", "Coach removed"));
       onChange();
     } catch {
-      toast.error("Couldn't update coaches");
+      toast.error(tx("ui.gymDetailPage.couldnTUpdateCoaches", "Couldn't update coaches"));
     }
   };
   return (
     <div className="mt-4">
-      <p className="section-label mb-1">Coaches</p>
-      <p className="text-victory-muted text-[11px] mb-2">Coaches (and you) can be asked to mentor members. They see a mentee's progress and leave short notes.</p>
+      <p className="section-label mb-1">{tx("ui.gymDetailPage.coaches", "Coaches")}</p>
+      <p className="text-victory-muted text-[11px] mb-2">{tx("ui.gymDetailPage.coachesAndYouCan", "Coaches (and you) can be asked to mentor members. They see a mentee's progress and leave short notes.")}</p>
       <div className="flex flex-wrap gap-1.5">
         {gym.members_detail.filter((m) => m.user_id !== gym.owner_id).map((m) => {
           const on = (gym.coaches || []).includes(m.user_id);

@@ -3,6 +3,7 @@ import { Send, Zap, Gift, Smile } from "lucide-react";
 import axios from "axios";
 import { API } from "@/App";
 import { useAuth as useClerkHook } from "@clerk/clerk-react";
+import { tx } from "@/i18n/tx";
 
 const _SAFE_IMG_PREFIXES = [
   "https://res.cloudinary.com/",
@@ -35,7 +36,7 @@ function TipMessage({ msg }) {
       <span className="text-lg flex-shrink-0">{msg.punch_emoji || "⚡"}</span>
       <div className="min-w-0">
         <span className="text-victory-lime text-xs font-extrabold">{msg.user_name}</span>
-        <span className="text-victory-muted text-xs ml-1.5 font-mono">+{msg.amount?.toLocaleString()} tokens</span>
+        <span className="text-victory-muted text-xs ml-1.5 font-mono">+{msg.amount?.toLocaleString()} {tx("ui.liveChat.tokens", "tokens")}</span>
         {msg.message && <p className="text-victory-text text-xs mt-0.5 break-words">"{msg.message}"</p>}
         {msg.punch_action && <p className="text-victory-lime text-[10px] mt-0.5 opacity-70">{msg.punch_action}</p>}
       </div>
@@ -48,7 +49,7 @@ function GiftSubMessage({ msg }) {
     <div className="flex gap-2 items-center px-2 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
       <span className="text-lg">🎁</span>
       <p className="text-yellow-300 text-xs font-bold">
-        {msg.user_name} gifted <strong>{msg.count}</strong> sub{msg.count > 1 ? "s" : ""} to the community!
+        {msg.user_name} {tx("ui.liveChat.gifted", "gifted")} <strong>{msg.count}</strong> {tx("ui.liveChat.sub", "sub")}{msg.count > 1 ? "s" : ""} {tx("ui.liveChat.toTheCommunity", "to the community!")}
       </p>
     </div>
   );
@@ -215,9 +216,9 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
     <div className={`flex flex-col bg-victory-card border border-victory-border rounded-xl overflow-hidden ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-victory-border">
-        <span className="text-victory-text text-sm font-semibold">Live Chat</span>
+        <span className="text-victory-text text-sm font-semibold">{tx("ui.liveChat.liveChat", "Live Chat")}</span>
         <div className="flex items-center gap-2">
-          <span className="text-victory-muted text-xs">{viewerCount} watching</span>
+          <span className="text-victory-muted text-xs">{viewerCount} {tx("ui.liveChat.watching", "watching")}</span>
           <span className={`w-2 h-2 rounded-full ${connected ? "bg-victory-lime" : "bg-victory-muted"}`} />
         </div>
       </div>
@@ -226,7 +227,7 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
       <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0" style={{ maxHeight: "320px" }}>
         {messages.length === 0 && (
           <p className="text-victory-muted text-xs text-center py-4">
-            {connected ? "No messages yet — say hi!" : "Connecting to chat..."}
+            {connected ? tx("ui.liveChat.noMessagesYetSay", "No messages yet — say hi!") : tx("ui.liveChat.connectingToChat", "Connecting to chat...")}
           </p>
         )}
         {messages.map((msg, i) => {
@@ -258,7 +259,7 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
       {showEmotes && (
         <div className="border-t border-victory-border bg-victory-bg p-2">
           {unlockedEmotes.length === 0 ? (
-            <p className="text-victory-muted text-xs text-center py-2">No emotes unlocked yet</p>
+            <p className="text-victory-muted text-xs text-center py-2">{tx("ui.liveChat.noEmotesUnlockedYet", "No emotes unlocked yet")}</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {unlockedEmotes.filter((e) => isSafeImageUrl(e.image_url)).map((e) => (
@@ -282,8 +283,8 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
         {/* Tip button */}
         <button
           onClick={onTipClick}
-          title="Send tokens"
-          aria-label="Send tokens"
+          title={tx("ui.liveChat.sendTokens", "Send tokens")}
+          aria-label={tx("ui.liveChat.sendTokens", "Send tokens")}
           className="w-11 h-11 touch-target flex items-center justify-center rounded-lg border border-victory-lime/40 text-victory-lime hover:bg-victory-lime/10 transition-colors flex-shrink-0"
         >
           <Zap className="w-4 h-4" />
@@ -292,8 +293,8 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
         {/* Gift sub button */}
         <button
           onClick={onGiftClick}
-          title="Gift a subscription"
-          aria-label="Gift a subscription"
+          title={tx("ui.liveChat.giftASubscription", "Gift a subscription")}
+          aria-label={tx("ui.liveChat.giftASubscription", "Gift a subscription")}
           className="w-11 h-11 touch-target flex items-center justify-center rounded-lg border border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-lime transition-colors flex-shrink-0"
         >
           <Gift className="w-4 h-4" />
@@ -303,8 +304,8 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
         {streamOwnerId && (
           <button
             onClick={() => setShowEmotes((v) => !v)}
-            title="Emotes"
-            aria-label="Toggle emote picker"
+            title={tx("ui.liveChat.emotes", "Emotes")}
+            aria-label={tx("ui.liveChat.toggleEmotePicker", "Toggle emote picker")}
             aria-pressed={showEmotes}
             className={`w-11 h-11 touch-target flex items-center justify-center rounded-lg border transition-colors flex-shrink-0 ${
               showEmotes ? "border-victory-lime text-victory-lime bg-victory-lime/10" : "border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-lime"
@@ -318,7 +319,7 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKey}
-          placeholder={connected ? "Send a message..." : "Connecting..."}
+          placeholder={connected ? tx("ui.liveChat.sendAMessage", "Send a message...") : tx("ui.liveChat.connecting", "Connecting...")}
           disabled={!connected}
           maxLength={500}
           className="flex-1 bg-victory-bg border border-victory-border rounded-lg px-3 py-2 text-victory-text text-sm placeholder:text-victory-muted focus:outline-none focus:border-victory-lime disabled:opacity-40"
@@ -326,7 +327,7 @@ export default function LiveChat({ streamId, streamOwnerId, user, className = ""
         <button
           onClick={() => send()}
           disabled={!connected || !input.trim()}
-          aria-label="Send message"
+          aria-label={tx("ui.liveChat.sendMessage", "Send message")}
           className="w-11 h-11 touch-target flex items-center justify-center rounded-lg bg-victory-lime text-victory-bg disabled:opacity-40 transition-opacity flex-shrink-0"
         >
           <Send className="w-4 h-4" />

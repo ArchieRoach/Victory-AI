@@ -8,6 +8,7 @@ import { Check, Zap, Trophy, Target, Shield, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { analytics } from "@/lib/analytics";
 import { goalPhrase } from "@/lib/onboardingPitch";
+import { tx } from "@/i18n/tx";
 
 const MOCK_DIMENSIONS = [
   { name: "Jab", value: 7.5 },
@@ -230,13 +231,13 @@ export default function PaywallPage() {
 
             {mine?.sessions > 0 && (
               <div className="victory-card p-4 mb-5 space-y-1" data-testid="paywall-your-progress">
-                <p className="section-label">Your training so far</p>
+                <p className="section-label">{tx("ui.paywallPage.yourTrainingSoFar", "Your training so far")}</p>
                 <p className="text-victory-text text-sm">
-                  {mine.sessions} session{mine.sessions === 1 ? "" : "s"}
-                  {typeof mine.best === "number" ? ` · best score ${mine.best}` : ""}
+                  {mine.sessions} {tx("ui.paywallPage.session", "session")}{mine.sessions === 1 ? "" : "s"}
+                  {typeof mine.best === "number" ? tx("ui.paywallPage.bestScore", " · best score {{best}}", { best: mine.best }) : ""}
                   {mine.limit ? ` · ${Math.round((100 * (mine.used || 0)) / mine.limit)}% of this month's free AI used` : ""}
                 </p>
-                <p className="text-victory-muted text-xs">Pro scores every round from here on, with no monthly cap.</p>
+                <p className="text-victory-muted text-xs">{tx("ui.paywallPage.proScoresEveryRound", "Pro scores every round from here on, with no monthly cap.")}</p>
               </div>
             )}
 
@@ -261,7 +262,7 @@ export default function PaywallPage() {
             {/* Reactance: a visible way out keeps the choice theirs, which makes yes more likely
                 and keeps it honest. */}
             <button onClick={() => navigate("/home")} className="text-victory-muted text-sm mt-3 min-h-[44px]" data-testid="paywall-not-now">
-              Not now, start free
+              {tx("ui.paywallPage.notNowStartFree", "Not now, start free")}
             </button>
           </div>
         )}
@@ -290,16 +291,16 @@ export default function PaywallPage() {
         {step === 3 && (
           <div className="flex flex-col animate-fade-in">
             <h1 className="text-2xl font-heading font-extrabold text-victory-text mt-2 mb-6">
-              {founder ? `Start your ${trialDays}-day free trial` : t("paywall.paymentHeadline")}
+              {founder ? tx("ui.paywallPage.startYourDayFree", "Start your {{trialDays}}-day free trial", { trialDays }) : t("paywall.paymentHeadline")}
             </h1>
 
             {founder && (
               <div className="victory-card p-3 mb-4 border-victory-lime/40 bg-victory-lime/5" data-testid="founder-offer">
                 <p className="text-victory-lime text-sm font-semibold">
-                  Founding member: {founder.percent_off}% off Pro{founder.lifetime ? ", locked in for life" : ""}
+                  {tx("ui.paywallPage.foundingMember", "Founding member:")} {founder.percent_off}{tx("ui.paywallPage.offPro", "% off Pro")}{founder.lifetime ? tx("ui.paywallPage.lockedInForLife", ", locked in for life") : ""}
                 </p>
                 {founder.lifetime && (
-                  <p className="text-victory-muted text-xs mt-0.5">Yours for as long as you stay subscribed. If you cancel, it's gone for good.</p>
+                  <p className="text-victory-muted text-xs mt-0.5">{tx("ui.paywallPage.yoursForAsLong", "Yours for as long as you stay subscribed. If you cancel, it's gone for good.")}</p>
                 )}
               </div>
             )}
@@ -370,7 +371,7 @@ export default function PaywallPage() {
 
             <p className="text-victory-muted text-xs mb-4 leading-relaxed">
               {founder
-                ? `${trialDays} days free, then your plan renews automatically. Cancel anytime before then and you pay nothing.`
+                ? tx("ui.paywallPage.daysFreeThenYour", "{{trialDays}} days free, then your plan renews automatically. Cancel anytime before then and you pay nothing.", { trialDays })
                 : t("paywall.paymentReassure")}
             </p>
 
@@ -383,7 +384,7 @@ export default function PaywallPage() {
               {loading ? (
                 <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
               ) : (
-                founder ? `Start ${trialDays}-Day Free Trial` : t("paywall.cta")
+                founder ? tx("ui.paywallPage.startDayFreeTrial", "Start {{trialDays}}-Day Free Trial", { trialDays }) : t("paywall.cta")
               )}
             </button>
 

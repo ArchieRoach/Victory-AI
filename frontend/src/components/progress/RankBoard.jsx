@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { API } from "@/App";
 import { rankHeadline, resetCountdown } from "@/lib/progression";
 import { BragButton } from "./BragButton";
+import { tx } from "@/i18n/tx";
 
 // Goal: a board that motivates the middle of the pack, not just the top ten.
 // Psychology: competition works with even matchups, rivals you care about and a fresh start;
@@ -23,7 +24,7 @@ export function RankBoard() {
     setData(null);
     axios.get(`${API}/ranks`, { params: { scope: scope || undefined, period } })
       .then((r) => { setData(r.data); if (!scope) setScope(r.data.scope); })
-      .catch(() => { setData({ rows: [] }); toast.error("Could not load ranks. Check your connection."); });
+      .catch(() => { setData({ rows: [] }); toast.error(tx("ui.rankBoard.couldNotLoadRanks", "Could not load ranks. Check your connection.")); });
   }, [scope, period]);
 
   const setLearning = async (on) => {
@@ -31,7 +32,7 @@ export function RankBoard() {
       await axios.put(`${API}/progression/competition`, { learning_mode: on });
       setData((d) => ({ ...d, learning_mode: on }));
     } catch {
-      toast.error("Couldn't change that, try again");
+      toast.error(tx("ui.rankBoard.couldnTChangeThat", "Couldn't change that, try again"));
     }
   };
 
@@ -41,9 +42,9 @@ export function RankBoard() {
         <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
           <GraduationCap className="w-8 h-8 text-victory-lime/60" />
         </div>
-        <p className="text-victory-text font-bold text-lg mb-1">Learning mode is on</p>
-        <p className="text-victory-muted text-sm">While you learn the basics, you only race your own numbers. Ranks are there when you want them.</p>
-        <button className="mt-4 victory-btn-primary w-auto px-6" onClick={() => setLearning(false)}>Show me the ranks</button>
+        <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.rankBoard.learningModeIsOn", "Learning mode is on")}</p>
+        <p className="text-victory-muted text-sm">{tx("ui.rankBoard.whileYouLearnThe", "While you learn the basics, you only race your own numbers. Ranks are there when you want them.")}</p>
+        <button className="mt-4 victory-btn-primary w-auto px-6" onClick={() => setLearning(false)}>{tx("ui.rankBoard.showMeTheRanks", "Show me the ranks")}</button>
       </div>
     );
   }
@@ -74,8 +75,8 @@ export function RankBoard() {
           <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
             <Users className="w-8 h-8 text-victory-lime/60" />
           </div>
-          <p className="text-victory-text font-bold text-lg mb-1">No rivals yet</p>
-          <p className="text-victory-muted text-sm">Follow fighters or join a squad, and they'll show up here. Beating people you know hits different.</p>
+          <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.rankBoard.noRivalsYet", "No rivals yet")}</p>
+          <p className="text-victory-muted text-sm">{tx("ui.rankBoard.followFightersOrJoin", "Follow fighters or join a squad, and they'll show up here. Beating people you know hits different.")}</p>
         </div>
       ) : (
         <>
@@ -91,9 +92,9 @@ export function RankBoard() {
               </li>
             ))}
           </ol>
-          <p className="text-[11px] text-victory-muted">{data.size} fighter{data.size === 1 ? "" : "s"} on this board{data.level ? ` · ${data.level}` : ""}</p>
-          {myTop && <BragButton win={{ kind: "rank", rank: data.me.rank, board: scope === "friends" ? "among my friends" : scope === "similar" ? "at my level" : "on Victory AI" }} label="Share your rank" />}
-          <button className="text-[11px] text-victory-muted underline min-h-[44px]" onClick={() => setLearning(true)}>Switch to learning mode (hide ranks)</button>
+          <p className="text-[11px] text-victory-muted">{data.size} {tx("ui.rankBoard.fighter", "fighter")}{data.size === 1 ? "" : "s"} {tx("ui.rankBoard.onThisBoard", "on this board")}{data.level ? ` · ${data.level}` : ""}</p>
+          {myTop && <BragButton win={{ kind: "rank", rank: data.me.rank, board: scope === "friends" ? "among my friends" : scope === "similar" ? "at my level" : "on Victory AI" }} label={tx("ui.rankBoard.shareYourRank", "Share your rank")} />}
+          <button className="text-[11px] text-victory-muted underline min-h-[44px]" onClick={() => setLearning(true)}>{tx("ui.rankBoard.switchToLearningMode", "Switch to learning mode (hide ranks)")}</button>
         </>
       )}
     </div>
@@ -114,25 +115,25 @@ export function GroupBoard() {
           <button key={key} onClick={() => setKind(key)} className={`filter-pill ${kind === key ? "filter-pill-active" : "filter-pill-inactive"}`}>{label}</button>
         ))}
       </div>
-      <p className="text-[11px] text-victory-muted">Every member's points this week, added together. {data?.resets_at && resetCountdown(data.resets_at)}</p>
+      <p className="text-[11px] text-victory-muted">{tx("ui.rankBoard.everyMemberSPoints", "Every member's points this week, added together.")} {data?.resets_at && resetCountdown(data.resets_at)}</p>
       {!data ? <div className="skeleton-shimmer h-40 rounded-lg" /> : !data.rows.length ? (
         <div className="flex flex-col items-center justify-center py-12 text-center px-6">
           <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
             <Users className="w-8 h-8 text-victory-lime/60" />
           </div>
-          <p className="text-victory-text font-bold text-lg mb-1">{kind === "squad" ? "No squad yet" : "No gym yet"}</p>
-          <p className="text-victory-muted text-sm">{kind === "squad" ? "Start a squad and climb together." : "Join a gym to fight for it on this board."}</p>
+          <p className="text-victory-text font-bold text-lg mb-1">{kind === "squad" ? tx("ui.rankBoard.noSquadYet", "No squad yet") : tx("ui.rankBoard.noGymYet", "No gym yet")}</p>
+          <p className="text-victory-muted text-sm">{kind === "squad" ? tx("ui.rankBoard.startASquadAnd", "Start a squad and climb together.") : tx("ui.rankBoard.joinAGymTo", "Join a gym to fight for it on this board.")}</p>
         </div>
       ) : (
         <>
-          {data.gap_up && <p className="text-[12px] text-victory-teal">{data.gap_up} points between your {kind} and the next one up.</p>}
+          {data.gap_up && <p className="text-[12px] text-victory-teal">{data.gap_up} {tx("ui.rankBoard.pointsBetweenYour", "points between your")} {kind} {tx("ui.rankBoard.andTheNextOne", "and the next one up.")}</p>}
           <ol className="victory-card divide-y divide-victory-border">
             {data.rows.map((r) => (
               <li key={`${r.rank}-${r.name}`} className={`flex items-center gap-3 px-3 py-2.5 ${r.is_me ? "bg-victory-lime/5" : ""}`}>
                 <span className={`font-mono font-bold w-8 text-center ${r.is_me ? "text-victory-lime" : "text-victory-muted"}`}>{r.rank}</span>
                 <span className="flex-1 min-w-0">
                   <span className={`block truncate text-sm ${r.is_me ? "font-bold text-victory-text" : "text-victory-text"}`}>{r.name}</span>
-                  <span className="text-[10px] text-victory-muted">{r.members} member{r.members === 1 ? "" : "s"}</span>
+                  <span className="text-[10px] text-victory-muted">{r.members} {tx("ui.rankBoard.member", "member")}{r.members === 1 ? "" : "s"}</span>
                 </span>
                 <span className={`font-mono font-bold ${r.is_me ? "text-victory-lime" : "text-victory-text"}`}>{r.points}</span>
               </li>

@@ -3,6 +3,7 @@ import axios from "axios";
 import { Mountain, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
+import { tx } from "@/i18n/tx";
 
 // My Epic Win (McGonigal). Asked after the first week, never at sign-up; private to the
 // fighter. Each "bad guy" comes with the move that beats it.
@@ -24,9 +25,9 @@ export function EpicWinCard() {
       const { data } = await axios.put(`${API}/users/me/epic-win`, { goal: custom.trim() ? null : goal, custom: custom.trim() || null, bad_guys: bad });
       setD(data);
       setEditing(false);
-      toast.success("Locked in. Only you can see this.");
+      toast.success(tx("ui.epicWinCard.lockedInOnlyYou", "Locked in. Only you can see this."));
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Couldn't save that");
+      toast.error(e?.response?.data?.detail || tx("ui.epicWinCard.couldnTSaveThat", "Couldn't save that"));
     }
   };
 
@@ -35,24 +36,24 @@ export function EpicWinCard() {
   if (!d.epic || editing) {
     return (
       <section className="victory-card p-4 space-y-3" data-testid="epic-win-pick">
-        <p className="section-label flex items-center gap-1.5"><Mountain className="w-3 h-3" /> Your big win</p>
-        <p className="text-victory-text text-sm">A week in. What are you really training for?</p>
+        <p className="section-label flex items-center gap-1.5"><Mountain className="w-3 h-3" /> {tx("ui.epicWinCard.yourBigWin", "Your big win")}</p>
+        <p className="text-victory-text text-sm">{tx("ui.epicWinCard.aWeekInWhat", "A week in. What are you really training for?")}</p>
         <div className="flex flex-wrap gap-1.5">
           {Object.entries(d.goals).map(([k, label]) => (
             <button key={k} onClick={() => { setGoal(k); setCustom(""); }} aria-pressed={goal === k && !custom}
               className={`filter-pill ${goal === k && !custom ? "filter-pill-active" : "filter-pill-inactive"}`}>{label}</button>
           ))}
         </div>
-        <input className="victory-input" maxLength={60} placeholder="Or write your own" value={custom} onChange={(e) => setCustom(e.target.value)} />
-        <p className="text-[12px] text-victory-muted">What gets in your way? Pick up to 3.</p>
+        <input className="victory-input" maxLength={60} placeholder={tx("ui.epicWinCard.orWriteYourOwn", "Or write your own")} value={custom} onChange={(e) => setCustom(e.target.value)} />
+        <p className="text-[12px] text-victory-muted">{tx("ui.epicWinCard.whatGetsInYour", "What gets in your way? Pick up to 3.")}</p>
         <div className="flex flex-wrap gap-1.5">
           {Object.entries(d.bad_guys).map(([k, label]) => (
             <button key={k} onClick={() => toggleBad(k)} aria-pressed={bad.includes(k)}
               className={`filter-pill ${bad.includes(k) ? "filter-pill-active" : "filter-pill-inactive"}`}>{label}</button>
           ))}
         </div>
-        <button className="victory-btn-primary" disabled={!goal && !custom.trim()} onClick={save}>Save my big win</button>
-        <p className="text-[11px] text-victory-muted">Private. Your coach mentions it only after a real win.</p>
+        <button className="victory-btn-primary" disabled={!goal && !custom.trim()} onClick={save}>{tx("ui.epicWinCard.saveMyBigWin", "Save my big win")}</button>
+        <p className="text-[11px] text-victory-muted">{tx("ui.epicWinCard.privateYourCoachMentions", "Private. Your coach mentions it only after a real win.")}</p>
       </section>
     );
   }
@@ -60,9 +61,9 @@ export function EpicWinCard() {
   return (
     <section className="victory-card p-4 space-y-2" data-testid="epic-win">
       <div className="flex items-center justify-between">
-        <p className="section-label flex items-center gap-1.5"><Mountain className="w-3 h-3" /> Your big win</p>
+        <p className="section-label flex items-center gap-1.5"><Mountain className="w-3 h-3" /> {tx("ui.epicWinCard.yourBigWin", "Your big win")}</p>
         <button className="text-[11px] text-victory-muted min-h-[44px] px-2 -mr-2"
-          onClick={() => { setGoal(d.epic.goal); setCustom(d.epic.custom || ""); setBad(d.epic.bad_guys.map((b) => b.key)); setEditing(true); }}>Change</button>
+          onClick={() => { setGoal(d.epic.goal); setCustom(d.epic.custom || ""); setBad(d.epic.bad_guys.map((b) => b.key)); setEditing(true); }}>{tx("ui.epicWinCard.change", "Change")}</button>
       </div>
       <p className="text-victory-text font-heading font-bold">{d.epic.text}</p>
       {d.epic.bad_guys.map((b) => (

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Flame, Scissors } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 const MAX_PARTICLES = 40;
 const PARTICLE_MS   = 1800;
@@ -106,10 +107,10 @@ export function HypeOverlay({ onHype, burst, highlight, onOpenHighlight, disable
             <Scissors className="w-4 h-4 text-victory-bg" strokeWidth={2.5} />
           </span>
           <span className="text-left leading-tight">
-            <span className="block text-victory-lime text-[11px] font-heading font-extrabold tracking-wide">HIGHLIGHT CLIPPED</span>
+            <span className="block text-victory-lime text-[11px] font-heading font-extrabold tracking-wide">{tx("ui.hypeOverlay.highlightClipped", "HIGHLIGHT CLIPPED")}</span>
             <span className="block text-victory-text text-xs">
-              <span className="font-mono font-bold">{banner.reactions}</span> reactions at once
-              {banner.wasPartOfIt && <span className="text-victory-teal"> · you were part of it</span>}
+              <span className="font-mono font-bold">{banner.reactions}</span> {tx("ui.hypeOverlay.reactionsAtOnce", "reactions at once")}
+              {banner.wasPartOfIt && <span className="text-victory-teal"> {tx("ui.hypeOverlay.youWerePartOf", "· you were part of it")}</span>}
             </span>
           </span>
         </button>
@@ -120,7 +121,7 @@ export function HypeOverlay({ onHype, burst, highlight, onOpenHighlight, disable
           {meter && meter.ratio > 0 && (
             <div className="animate-fade-in mb-1 w-40 bg-victory-bg/80 backdrop-blur border border-victory-border rounded-xl px-2.5 py-2" role="status" aria-live="polite">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-heading font-extrabold tracking-wide text-victory-lime">HYPE</span>
+                <span className="text-[10px] font-heading font-extrabold tracking-wide text-victory-lime">{tx("ui.hypeOverlay.hype", "HYPE")}</span>
                 <span className="font-mono text-[10px] text-victory-muted">{meter.reactors}/{meter.needed_reactors}</span>
               </div>
               <div className="h-1.5 rounded-full bg-victory-border overflow-hidden">
@@ -139,7 +140,7 @@ export function HypeOverlay({ onHype, burst, highlight, onOpenHighlight, disable
           )}
           <button
             onClick={tap}
-            aria-label="Send hype"
+            aria-label={tx("ui.hypeOverlay.sendHype", "Send hype")}
             className="w-14 h-14 rounded-full bg-victory-bg/70 backdrop-blur border border-victory-lime/50 flex items-center justify-center active:scale-90 transition-transform no-select"
           >
             <Flame className="w-7 h-7 text-victory-lime fill-victory-lime/30" strokeWidth={2.5} />

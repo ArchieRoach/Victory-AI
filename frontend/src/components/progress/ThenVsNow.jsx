@@ -3,6 +3,7 @@ import axios from "axios";
 import { History, Play, TrendingUp, TrendingDown } from "lucide-react";
 import { API } from "@/App";
 import { BragButton } from "./BragButton";
+import { tx } from "@/i18n/tx";
 
 // Goal: show fighters how far they've come, in their own footage.
 // Psychology: visible competence is the strongest intrinsic motivator, and comparing with
@@ -45,8 +46,8 @@ export function ThenVsNow() {
   return (
     <section className="victory-card p-4 space-y-3" data-testid="then-vs-now">
       <div className="flex items-center justify-between">
-        <p className="section-label flex items-center gap-1.5"><History className="w-3 h-3" /> Then vs now</p>
-        <span className="text-[11px] text-victory-muted">{t.days} days · {t.sessions_between + 2} scored sessions</span>
+        <p className="section-label flex items-center gap-1.5"><History className="w-3 h-3" /> {tx("ui.thenVsNow.thenVsNow", "Then vs now")}</p>
+        <span className="text-[11px] text-victory-muted">{t.days} {tx("ui.thenVsNow.days", "days ·")} {t.sessions_between + 2} {tx("ui.thenVsNow.scoredSessions", "scored sessions")}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -56,7 +57,7 @@ export function ThenVsNow() {
               {side.video ? (
                 <video ref={ref} src={side.video} muted playsInline loop preload="metadata" className="w-full h-full object-cover" />
               ) : (
-                <p className="absolute inset-0 flex items-center justify-center text-[11px] text-victory-muted p-2 text-center">No clip saved</p>
+                <p className="absolute inset-0 flex items-center justify-center text-[11px] text-victory-muted p-2 text-center">{tx("ui.thenVsNow.noClipSaved", "No clip saved")}</p>
               )}
               <span className="absolute top-1.5 left-1.5 text-[10px] font-heading font-bold uppercase px-2 py-0.5 rounded-full bg-victory-bg/80 text-victory-text">{label}</span>
             </div>
@@ -68,13 +69,13 @@ export function ThenVsNow() {
 
       {(t.then.video || t.now.video) && (
         <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={playBoth}>
-          <Play className="w-4 h-4" /> Play side by side
+          <Play className="w-4 h-4" /> {tx("ui.thenVsNow.playSideBySide", "Play side by side")}
         </button>
       )}
 
       {t.overall_change != null && (
         <p className={`text-sm font-semibold ${up ? "text-victory-lime" : "text-victory-text"}`}>
-          {up ? `Up ${t.overall_change} overall since your first session.` : t.overall_change === 0 ? "Level with your first session overall." : `Down ${-t.overall_change} overall: the next sessions are where it comes back.`}
+          {up ? tx("ui.thenVsNow.upOverallSinceYour", "Up {{overall_change}} overall since your first session.", { overall_change: t.overall_change }) : t.overall_change === 0 ? tx("ui.thenVsNow.levelWithYourFirst", "Level with your first session overall.") : `Down ${-t.overall_change} overall: the next sessions are where it comes back.`}
         </p>
       )}
 
@@ -92,13 +93,13 @@ export function ThenVsNow() {
         <ul className="space-y-1 pt-1 border-t border-victory-border">
           {t.slipped.map((g) => (
             <li key={g.dimension} className="flex items-center justify-between text-[12px]">
-              <span className="text-victory-muted flex items-center gap-1.5"><TrendingDown className="w-3.5 h-3.5 text-victory-orange" /> {g.dimension}: work on this next</span>
+              <span className="text-victory-muted flex items-center gap-1.5"><TrendingDown className="w-3.5 h-3.5 text-victory-orange" /> {g.dimension}{tx("ui.thenVsNow.workOnThisNext", ": work on this next")}</span>
               <span className="font-mono text-victory-muted">{g.then} → {g.now}</span>
             </li>
           ))}
         </ul>
       )}
-      {up && <BragButton win={{ kind: "progress", change: t.overall_change, days: t.days }} label="Share how far you've come" />}
+      {up && <BragButton win={{ kind: "progress", change: t.overall_change, days: t.days }} label={tx("ui.thenVsNow.shareHowFarYou", "Share how far you've come")} />}
     </section>
   );
 }

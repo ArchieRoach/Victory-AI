@@ -1,3 +1,5 @@
+import { tx } from "@/i18n/tx";
+
 export const DimensionSlider = ({
   dimension,
   rubric,
@@ -51,7 +53,7 @@ export const DimensionSlider = ({
           className="text-victory-muted text-sm hover:text-victory-text transition-colors touch-target flex items-center"
           data-testid={`skip-${dimension}`}
         >
-          Skip this dimension
+          {tx("ui.dimensionSlider.skipThisDimension", "Skip this dimension")}
         </button>
       )}
     </div>

@@ -4,6 +4,7 @@ import axios from "axios";
 import { API } from "@/App";
 import { Film, Eye, Plus } from "lucide-react";
 import { HighlightShareSheet } from "@/components/HighlightShareSheet";
+import { tx } from "@/i18n/tx";
 
 // A fighter's curated reel of their best rounds — content and reputation that grows with
 // every session and lives only here.
@@ -28,11 +29,11 @@ export function FightFilm({ userId, isOwn }) {
     <section className="victory-card p-4" data-testid="fight-film">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-heading font-bold text-victory-text flex items-center gap-2">
-          <Film className="w-5 h-5 text-victory-lime" /> Fight Film
+          <Film className="w-5 h-5 text-victory-lime" /> {tx("ui.fightFilm.fightFilm", "Fight Film")}
         </h2>
         {isOwn && film.views_7d != null && (
           <span className="text-victory-muted text-xs flex items-center gap-1">
-            <Eye className="w-3.5 h-3.5" /> <span className="font-mono">{film.views_7d}</span> this week
+            <Eye className="w-3.5 h-3.5" /> <span className="font-mono">{film.views_7d}</span> {tx("ui.fightFilm.thisWeek", "this week")}
           </span>
         )}
       </div>
@@ -46,8 +47,8 @@ export function FightFilm({ userId, isOwn }) {
             <Plus className="w-5 h-5 text-victory-lime" />
           </div>
           <div>
-            <p className="text-victory-text text-sm font-semibold">Start your Fight Film</p>
-            <p className="text-victory-muted text-xs">Pin up to {film.max || 6} of your best rounds here — it's what people see first.</p>
+            <p className="text-victory-text text-sm font-semibold">{tx("ui.fightFilm.startYourFightFilm", "Start your Fight Film")}</p>
+            <p className="text-victory-muted text-xs">{tx("ui.fightFilm.pinUpTo", "Pin up to")} {film.max || 6} {tx("ui.fightFilm.ofYourBestRounds", "of your best rounds here — it's what people see first.")}</p>
           </div>
         </button>
       ) : (
@@ -65,7 +66,7 @@ export function FightFilm({ userId, isOwn }) {
                 {hl.round_score != null ? (
                   <p className="font-mono font-bold text-victory-lime leading-none">{Number(hl.round_score).toFixed(1)}</p>
                 ) : hl.peak_reactions > 0 ? (
-                  <p className="font-mono font-bold text-victory-lime leading-none">{hl.peak_reactions}<span className="text-[9px] text-victory-muted font-body ml-1">hype</span></p>
+                  <p className="font-mono font-bold text-victory-lime leading-none">{hl.peak_reactions}<span className="text-[9px] text-victory-muted font-body ml-1">{tx("ui.fightFilm.hype", "hype")}</span></p>
                 ) : null}
                 <p className="text-victory-text text-[10px] truncate mt-0.5">{hl.stream_title}</p>
               </div>
@@ -101,7 +102,7 @@ export function FighterReputation({ profile }) {
       ))}
       {(won > 0 || defended > 0) && (
         <span className="bg-victory-card-highlight border border-victory-border rounded-full px-2.5 py-1 text-xs text-victory-muted">
-          Callouts: <span className="font-mono text-victory-text">{won}</span> won · <span className="font-mono text-victory-text">{defended}</span> defended
+          {tx("ui.fightFilm.callouts", "Callouts:")} <span className="font-mono text-victory-text">{won}</span> {tx("ui.fightFilm.won", "won ·")} <span className="font-mono text-victory-text">{defended}</span> {tx("ui.fightFilm.defended", "defended")}
         </span>
       )}
     </div>

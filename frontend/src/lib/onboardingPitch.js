@@ -1,4 +1,5 @@
 import { normaliseGoal } from "@/lib/goals";
+import { tx } from "@/i18n/tx";
 
 // Sign-up is the sales conversation (Hormozi's CLOSER): Clarify why they're here, Label it
 // back to them, Overview what held them back (and that it isn't their fault), Sell the
@@ -32,32 +33,35 @@ const FOCUS = {
   footwork: "footwork",
 };
 
-export const goalPhrase = (goal) => GOAL_PHRASE[normaliseGoal(goal)];
-export const focusOf = (frustration) => FOCUS[frustration] || "technique";
+const say = (group, table, id) => (table[id] ? tx(`lib.pitch.${group}.${id.replace(/\W+/g, "_")}`, table[id]) : undefined);
+export const goalPhrase = (goal) => say("goal", GOAL_PHRASE, normaliseGoal(goal));
+export const focusOf = (frustration) => say("focus", FOCUS, frustration) || tx("lib.pitch.focus.default", "technique");
 
 // L + O: reflect their answers as a question, then take the blame off them.
 export function labelLines(answers = {}) {
   const goal = goalPhrase(answers.primary_goal);
-  const held = HELD_BACK[answers.biggest_frustration];
+  const held = say("held", HELD_BACK, answers.biggest_frustration);
   const reflect = held
-    ? `So it sounds like you want to ${goal}, and ${held} has been getting in the way. Does that sound about right?`
-    : `So it sounds like you want to ${goal}. Does that sound about right?`;
+    ? tx("lib.pitch.reflectHeld", "So it sounds like you want to {{goal}}, and {{held}} has been getting in the way. Does that sound about right?", { goal, held })
+    : tx("lib.pitch.reflect", "So it sounds like you want to {{goal}}. Does that sound about right?", { goal });
   const notYourFault = answers.biggest_frustration === "no_feedback" || !held
-    ? "That's not on you. Most people train with nobody watching their technique. That's the missing piece."
-    : "That's not on you. It's hard to fix what nobody points out while you're doing it. That's the missing piece.";
+    ? tx("lib.pitch.notYourFault1", "That's not on you. Most people train with nobody watching their technique. That's the missing piece.")
+    : tx("lib.pitch.notYourFault2", "That's not on you. It's hard to fix what nobody points out while you're doing it. That's the missing piece.");
   return { reflect, notYourFault };
 }
 
 // S: the destination, as a plan made of things the app really does.
-export function planLines(answers = {}, partner = "Your partner") {
+export function planLines(answers = {}, partner = tx("lib.pitch.yourPartner", "Your partner")) {
   const focus = focusOf(answers.biggest_frustration);
   const beginner = answers.experience_level === "complete_beginner";
   return {
-    headline: `Your plan to ${goalPhrase(answers.primary_goal)}`,
+    headline: tx("lib.pitch.headline", "Your plan to {{goal}}", { goal: goalPhrase(answers.primary_goal) }),
     steps: [
-      { when: "This week", what: `${beginner ? "Short, simple rounds" : "Rounds at your level"}. ${partner} talks you through each one and watches your ${focus}.` },
-      { when: "Every round", what: "Turn on video and the AI scores 16 parts of your boxing, so you see exactly what to work on." },
-      { when: "Week by week", what: `Combos get harder as you land them, and your homework drills follow your ${focus}.` },
+      { when: tx("lib.pitch.thisWeek", "This week"), what: beginner
+        ? tx("lib.pitch.step1Beginner", "Short, simple rounds. {{partner}} talks you through each one and watches your {{focus}}.", { partner, focus })
+        : tx("lib.pitch.step1", "Rounds at your level. {{partner}} talks you through each one and watches your {{focus}}.", { partner, focus }) },
+      { when: tx("lib.pitch.everyRound", "Every round"), what: tx("lib.pitch.step2", "Turn on video and the AI scores 16 parts of your boxing, so you see exactly what to work on.") },
+      { when: tx("lib.pitch.weekByWeek", "Week by week"), what: tx("lib.pitch.step3", "Combos get harder as you land them, and your homework drills follow your {{focus}}.", { focus }) },
     ],
   };
 }

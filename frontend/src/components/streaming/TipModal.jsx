@@ -3,44 +3,45 @@ import { X, Zap, ChevronRight } from "lucide-react";
 import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
+import { tx } from "@/i18n/tx";
 
 // ── Menu data ─────────────────────────────────────────────────────────────────
 const MENU_CATEGORIES = [
   {
     id: "reactions",
-    label: "REACTIONS",
+    get label() { return tx("ui.tipModal.reactions", "REACTIONS"); },
     color: "text-amber-400",
     items: [
-      { key: "ooh",       label: "Ooh",            emoji: "😮", tokens: 25,  tier: "bronze"   },
-      { key: "heart",     label: "Heart",           emoji: "❤️", tokens: 25,  tier: "bronze"   },
-      { key: "glass_jaw", label: "Glass Jaw",       emoji: "😵", tokens: 50,  tier: "bronze"   },
-      { key: "gassed",    label: "They're Gassed",  emoji: "💨", tokens: 50,  tier: "bronze"   },
-      { key: "got_heart", label: "They Got Heart",  emoji: "🫀", tokens: 75,  tier: "silver"   },
+      { key: "ooh",       get label() { return tx("ui.tipModal.ooh", "Ooh"); },            emoji: "😮", tokens: 25,  tier: "bronze"   },
+      { key: "heart",     get label() { return tx("ui.tipModal.heart", "Heart"); },           emoji: "❤️", tokens: 25,  tier: "bronze"   },
+      { key: "glass_jaw", get label() { return tx("ui.tipModal.glassJaw", "Glass Jaw"); },       emoji: "😵", tokens: 50,  tier: "bronze"   },
+      { key: "gassed",    get label() { return tx("ui.tipModal.theyReGassed", "They're Gassed"); },  emoji: "💨", tokens: 50,  tier: "bronze"   },
+      { key: "got_heart", get label() { return tx("ui.tipModal.theyGotHeart", "They Got Heart"); },  emoji: "🫀", tokens: 75,  tier: "silver"   },
     ],
   },
   {
     id: "commands",
-    label: "COMMANDS",
+    get label() { return tx("ui.tipModal.commands", "COMMANDS"); },
     color: "text-cyan-400",
     items: [
-      { key: "pop_jab",  label: "Pop the Jab",    emoji: "👊", tokens: 100, tier: "silver"   },
-      { key: "hands_up", label: "Hands Up",        emoji: "🙌", tokens: 100, tier: "silver"   },
-      { key: "body",     label: "Work the Body",   emoji: "🥊", tokens: 150, tier: "silver"   },
-      { key: "towel",    label: "Throw the Towel", emoji: "🏳️",tokens: 200, tier: "gold"     },
+      { key: "pop_jab",  get label() { return tx("ui.tipModal.popTheJab", "Pop the Jab"); },    emoji: "👊", tokens: 100, tier: "silver"   },
+      { key: "hands_up", get label() { return tx("ui.tipModal.handsUp", "Hands Up"); },        emoji: "🙌", tokens: 100, tier: "silver"   },
+      { key: "body",     get label() { return tx("ui.tipModal.workTheBody", "Work the Body"); },   emoji: "🥊", tokens: 150, tier: "silver"   },
+      { key: "towel",    get label() { return tx("ui.tipModal.throwTheTowel", "Throw the Towel"); }, emoji: "🏳️",tokens: 200, tier: "gold"     },
     ],
   },
   {
     id: "status",
-    label: "STATUS",
+    get label() { return tx("ui.tipModal.status", "STATUS"); },
     color: "text-yellow-400",
     items: [
-      { key: "champ", label: "Champ",       emoji: "🏆", tokens: 300, tier: "gold"     },
-      { key: "goat",  label: "GOAT Status", emoji: "🐐", tokens: 500, tier: "platinum" },
+      { key: "champ", get label() { return tx("ui.tipModal.champ", "Champ"); },       emoji: "🏆", tokens: 300, tier: "gold"     },
+      { key: "goat",  get label() { return tx("ui.tipModal.goatStatus", "GOAT Status"); }, emoji: "🐐", tokens: 500, tier: "platinum" },
     ],
   },
   {
     id: "combos",
-    label: "COMBOS",
+    get label() { return tx("ui.tipModal.combos", "COMBOS"); },
     color: "text-violet-400",
     items: [
       { key: "combo_11",  label: "1-1",   emoji: "👊", tokens: 75,  tier: "silver", isCombo: true, sequence: ["👊", "👊"],        comboLabel: "1-1"   },
@@ -101,9 +102,9 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
     } catch (err) {
       const detail = err?.response?.data?.detail;
       if (detail === "insufficient_tokens") {
-        toast.error("Not enough tokens — top up your balance.");
+        toast.error(tx("ui.tipModal.notEnoughTokensTop", "Not enough tokens — top up your balance."));
       } else {
-        toast.error("Tip failed — please try again.");
+        toast.error(tx("ui.tipModal.tipFailedPleaseTry", "Tip failed — please try again."));
       }
     } finally {
       setSending(false);
@@ -118,14 +119,14 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-victory-border flex-shrink-0">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-victory-lime" />
-            <h2 className="font-heading font-extrabold text-victory-text text-lg">Send Tokens</h2>
+            <h2 className="font-heading font-extrabold text-victory-text text-lg">{tx("ui.tipModal.sendTokens", "Send Tokens")}</h2>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-victory-muted font-mono">
-              Balance:{" "}
+              {tx("ui.tipModal.balance", "Balance:")}{" "}
               <span className="text-victory-lime font-bold">{balance.toLocaleString()}</span>
             </span>
-            <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+            <button onClick={onClose} aria-label={tx("ui.tipModal.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -204,7 +205,7 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
                               </p>
                               {item.isCombo && (
                                 <p className="text-[10px] text-victory-muted mt-0.5 font-mono">
-                                  quick-fire · {item.sequence.length} punches
+                                  {tx("ui.tipModal.quickFire", "quick-fire ·")} {item.sequence.length} {tx("ui.tipModal.punches", "punches")}
                                 </p>
                               )}
                             </div>
@@ -216,7 +217,7 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
                               }`}>
                                 {item.tokens}
                               </span>
-                              <span className="text-[10px] text-victory-muted">tkn</span>
+                              <span className="text-[10px] text-victory-muted">{tx("ui.tipModal.tkn", "tkn")}</span>
                               {isSelected && (
                                 <ChevronRight className="w-3 h-3 text-victory-lime ml-0.5" />
                               )}
@@ -248,14 +249,14 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
                 ))}
               </div>
               <div>
-                <label className="victory-label">Token Amount (min 25)</label>
+                <label className="victory-label">{tx("ui.tipModal.tokenAmountMin25", "Token Amount (min 25)")}</label>
                 <input
                   type="number"
                   min={25}
                   max={balance}
                   value={custom}
                   onChange={(e) => setCustom(e.target.value)}
-                  placeholder="Enter amount..."
+                  placeholder={tx("ui.tipModal.enterAmount", "Enter amount...")}
                   className="victory-input font-mono"
                 />
               </div>
@@ -279,12 +280,12 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
                 </p>
                 {selectedItem.isCombo && (
                   <p className="text-victory-muted text-[10px]">
-                    Fires {selectedItem.sequence.length} overlays · 200ms apart
+                    {tx("ui.tipModal.fires", "Fires")} {selectedItem.sequence.length} {tx("ui.tipModal.overlays200msApart", "overlays · 200ms apart")}
                   </p>
                 )}
               </div>
               <span className="text-victory-lime font-mono text-xs font-bold flex-shrink-0">
-                {selectedItem.tokens} tkn
+                {selectedItem.tokens} {tx("ui.tipModal.tkn", "tkn")}
               </span>
             </div>
           )}
@@ -294,7 +295,7 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             maxLength={120}
-            placeholder="Add a message (optional)..."
+            placeholder={tx("ui.tipModal.addAMessageOptional", "Add a message (optional)...")}
             className="victory-input text-sm"
           />
 
@@ -309,16 +310,16 @@ export function TipModal({ streamId, balance, onClose, onSuccess, onTopUp }) {
             ) : (
               <>
                 <Zap className="w-5 h-5" />
-                Send {effectiveAmount > 0 ? effectiveAmount.toLocaleString() : "—"} Tokens
+                {tx("ui.tipModal.send", "Send")} {effectiveAmount > 0 ? effectiveAmount.toLocaleString() : "—"} {tx("ui.tipModal.tokens", "Tokens")}
               </>
             )}
           </button>
 
           {effectiveAmount > balance && (
             <p className="text-red-400 text-xs text-center">
-              Not enough tokens.{" "}
+              {tx("ui.tipModal.notEnoughTokens", "Not enough tokens.")}{" "}
               <button onClick={() => { onClose(); onTopUp?.(); }} className="underline">
-                Top up your balance
+                {tx("ui.tipModal.topUpYourBalance", "Top up your balance")}
               </button>
             </p>
           )}

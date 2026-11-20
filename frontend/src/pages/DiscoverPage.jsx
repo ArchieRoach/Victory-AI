@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { WEIGHT_CLASS_DATA, formatWeightClass, weightBadge, getWeightUnit } from "@/utils/weightClasses";
 import { contactsSupported, pickContactEmailHashes } from "@/utils/contacts";
+import { tx } from "@/i18n/tx";
 
 const WEIGHT_CLASS_NAMES = [
   "All",
@@ -18,10 +19,10 @@ const WEIGHT_CLASS_NAMES = [
 
 const STANCES  = ["All", "Orthodox", "Southpaw", "Switch"];
 const SORTS    = [
-  { value: "active",    label: "Most Active" },
-  { value: "followers", label: "Most Followed" },
-  { value: "record",    label: "Best Record" },
-  { value: "new",       label: "Newest" },
+  { value: "active",    get label() { return tx("ui.discoverPage.mostActive", "Most Active"); } },
+  { value: "followers", get label() { return tx("ui.discoverPage.mostFollowed", "Most Followed"); } },
+  { value: "record",    get label() { return tx("ui.discoverPage.bestRecord", "Best Record"); } },
+  { value: "new",       get label() { return tx("ui.discoverPage.newest", "Newest"); } },
 ];
 
 const STANCE_COLORS = {
@@ -52,7 +53,7 @@ function FighterCard({ fighter, onFollowChange, weightUnit }) {
       apply: () => set(!was),
       rollback: () => set(was),
       request: () => (was ? axios.delete(`${API}/follows/${fighter.user_id}`) : axios.post(`${API}/follows/${fighter.user_id}`)),
-      onError: (err) => toast.error(err?.response?.data?.detail || (was ? "Couldn't unfollow. Try again." : "Couldn't follow. Try again.")),
+      onError: (err) => toast.error(err?.response?.data?.detail || (was ? tx("ui.discoverPage.couldnTUnfollowTry", "Couldn't unfollow. Try again.") : tx("ui.discoverPage.couldnTFollowTry", "Couldn't follow. Try again."))),
     });
     setBusy(false);
   };
@@ -78,7 +79,7 @@ function FighterCard({ fighter, onFollowChange, weightUnit }) {
         )}
         {fighter.is_live && (
           <span className="absolute -bottom-1 -right-1 flex items-center gap-0.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none">
-            <Radio className="w-2 h-2" /> LIVE
+            <Radio className="w-2 h-2" /> {tx("ui.discoverPage.live", "LIVE")}
           </span>
         )}
       </div>
@@ -117,7 +118,7 @@ function FighterCard({ fighter, onFollowChange, weightUnit }) {
           )}
           <span className="flex items-center gap-1">
             <Dumbbell className="w-3 h-3" />
-            {fighter.total_sessions} sessions
+            {fighter.total_sessions} {tx("ui.discoverPage.sessions", "sessions")}
           </span>
           <span className="flex items-center gap-1">
             <Users className="w-3 h-3" />
@@ -139,7 +140,7 @@ function FighterCard({ fighter, onFollowChange, weightUnit }) {
             : "border-victory-lime text-victory-lime hover:bg-victory-lime/10"
         }`}
       >
-        {following ? "Following" : "Follow"}
+        {following ? tx("ui.discoverPage.following", "Following") : tx("ui.discoverPage.follow", "Follow")}
       </button>
     </div>
   );
@@ -172,9 +173,9 @@ export default function DiscoverPage() {
       if (hashes.length === 0) return; // user cancelled the picker, or picked none with an email
       const res = await axios.post(`${API}/contacts/find-matches`, { email_hashes: hashes });
       setContactMatches(res.data.fighters);
-      if (res.data.fighters.length === 0) toast.success("No matches yet — invite them to join Victory AI!");
+      if (res.data.fighters.length === 0) toast.success(tx("ui.discoverPage.noMatchesYetInvite", "No matches yet — invite them to join Victory AI!"));
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't check your contacts. Try again.");
+      toast.error(err?.response?.data?.detail || tx("ui.discoverPage.couldnTCheckYour", "Couldn't check your contacts. Try again."));
     }
     setContactSyncLoading(false);
   };
@@ -223,11 +224,11 @@ export default function DiscoverPage() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search fighters by name…"
+              placeholder={tx("ui.discoverPage.searchFightersByName", "Search fighters by name…")}
               className="w-full bg-victory-card border border-victory-border rounded-xl pl-9 pr-9 py-2.5 text-victory-text text-sm placeholder:text-victory-muted focus:outline-none focus:border-victory-lime"
             />
             {q && (
-              <button onClick={() => setQ("")} aria-label="Clear search" className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+              <button onClick={() => setQ("")} aria-label={tx("ui.discoverPage.clearSearch", "Clear search")} className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -240,7 +241,7 @@ export default function DiscoverPage() {
                 : "border-victory-border text-victory-muted hover:border-victory-lime/40"
             }`}
           >
-            Filters
+            {tx("ui.discoverPage.filters", "Filters")}
             {activeFilters.length > 0 && (
               <span className="w-4 h-4 rounded-full bg-victory-lime text-victory-bg text-[10px] font-black flex items-center justify-center">
                 {activeFilters.length}
@@ -272,7 +273,7 @@ export default function DiscoverPage() {
           <div className="px-4 pb-3 space-y-3 border-t border-victory-border pt-3">
             {/* Stance */}
             <div>
-              <p className="text-victory-muted text-xs mb-2">Stance</p>
+              <p className="text-victory-muted text-xs mb-2">{tx("ui.discoverPage.stance", "Stance")}</p>
               <div className="flex gap-2">
                 {STANCES.map((s) => (
                   <button
@@ -292,7 +293,7 @@ export default function DiscoverPage() {
 
             {/* Sort */}
             <div>
-              <p className="text-victory-muted text-xs mb-2">Sort by</p>
+              <p className="text-victory-muted text-xs mb-2">{tx("ui.discoverPage.sortBy", "Sort by")}</p>
               <div className="flex gap-2 flex-wrap">
                 {SORTS.map((s) => (
                   <button
@@ -316,7 +317,7 @@ export default function DiscoverPage() {
                 onClick={() => { setWeightClass("All"); setStance("All"); }}
                 className="text-red-400 text-xs touch-target flex items-center hover:text-red-300"
               >
-                Clear filters
+                {tx("ui.discoverPage.clearFilters", "Clear filters")}
               </button>
             )}
           </div>
@@ -328,8 +329,8 @@ export default function DiscoverPage() {
         <button onClick={() => navigate("/shop")} className="victory-card p-3 w-full flex items-center gap-3 text-left" data-testid="fighter-market-link">
           <Store className="w-5 h-5 text-victory-lime flex-shrink-0" />
           <span className="flex-1 min-w-0">
-            <span className="block text-victory-text text-sm font-semibold">Fighter Market</span>
-            <span className="block text-victory-muted text-xs">Verified pros, their Fighter Cards and merch</span>
+            <span className="block text-victory-text text-sm font-semibold">{tx("ui.discoverPage.fighterMarket", "Fighter Market")}</span>
+            <span className="block text-victory-muted text-xs">{tx("ui.discoverPage.verifiedProsTheirFighter", "Verified pros, their Fighter Cards and merch")}</span>
           </span>
           <ChevronRight className="w-4 h-4 text-victory-muted" />
         </button>
@@ -347,8 +348,8 @@ export default function DiscoverPage() {
               <Users className="w-5 h-5 text-victory-lime" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-victory-text text-sm font-semibold">Find friends from your contacts</p>
-              <p className="text-victory-muted text-xs">You pick who to check — nothing is uploaded automatically.</p>
+              <p className="text-victory-text text-sm font-semibold">{tx("ui.discoverPage.findFriendsFromYour", "Find friends from your contacts")}</p>
+              <p className="text-victory-muted text-xs">{tx("ui.discoverPage.youPickWhoTo", "You pick who to check — nothing is uploaded automatically.")}</p>
             </div>
             <button
               onClick={handleFindContacts}
@@ -357,11 +358,11 @@ export default function DiscoverPage() {
             >
               {contactSyncLoading
                 ? <span className="w-4 h-4 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
-                : "Find"}
+                : tx("ui.discoverPage.find", "Find")}
             </button>
             <button
               onClick={() => setContactSyncDismissed(true)}
-              aria-label="Dismiss"
+              aria-label={tx("ui.discoverPage.dismiss", "Dismiss")}
               className="w-8 h-8 flex items-center justify-center text-victory-muted hover:text-victory-text flex-shrink-0 touch-target"
             >
               <X className="w-4 h-4" />
@@ -371,7 +372,7 @@ export default function DiscoverPage() {
 
         {contactMatches !== null && contactMatches.length > 0 && (
           <div className="space-y-2">
-            <p className="text-victory-muted text-xs">From your contacts</p>
+            <p className="text-victory-muted text-xs">{tx("ui.discoverPage.fromYourContacts", "From your contacts")}</p>
             {contactMatches.map((f) => (
               <FighterCard
                 key={f.user_id}
@@ -391,8 +392,8 @@ export default function DiscoverPage() {
         {initialDone && (
           <p className="text-victory-muted text-xs">
             {weightClass !== "All"
-              ? `${weightClass} fighters`
-              : q ? `Results for "${q}"` : "All fighters"}
+              ? tx("ui.discoverPage.fighters", "{{weightClass}} fighters", { weightClass })
+              : q ? tx("ui.discoverPage.resultsFor", "Results for \"{{q}}\"", { q }) : tx("ui.discoverPage.allFighters", "All fighters")}
             {stance !== "All" ? ` · ${stance}` : ""}
           </p>
         )}
@@ -432,16 +433,16 @@ export default function DiscoverPage() {
             <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
               <Search className="w-8 h-8 text-victory-lime/60" />
             </div>
-            <p className="text-victory-text font-bold text-lg mb-1">No fighters found</p>
+            <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.discoverPage.noFightersFound", "No fighters found")}</p>
             <p className="text-victory-muted text-sm">
-              {q ? `No one matches "${q}"` : "Be the first to represent your weight class!"}
+              {q ? tx("ui.discoverPage.noOneMatches", "No one matches \"{{q}}\"", { q }) : tx("ui.discoverPage.beTheFirstTo", "Be the first to represent your weight class!")}
             </p>
             {(activeFilters.length > 0 || q) && (
               <button
                 onClick={() => { setWeightClass("All"); setStance("All"); setQ(""); }}
                 className="mt-4 touch-target flex items-center justify-center text-victory-lime text-sm font-semibold underline underline-offset-2"
               >
-                Clear all filters
+                {tx("ui.discoverPage.clearAllFilters", "Clear all filters")}
               </button>
             )}
           </div>
@@ -453,7 +454,7 @@ export default function DiscoverPage() {
             onClick={loadMore}
             className="w-full py-3 rounded-xl border border-victory-border text-victory-muted text-sm hover:border-victory-lime/40 hover:text-victory-text transition-colors"
           >
-            Load more fighters
+            {tx("ui.discoverPage.loadMoreFighters", "Load more fighters")}
           </button>
         )}
 

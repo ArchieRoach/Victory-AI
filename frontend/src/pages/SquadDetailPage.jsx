@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { ArrowLeft, Swords, Copy, LogOut, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { tx } from "@/i18n/tx";
 
 export default function SquadDetailPage() {
   const { t } = useTranslation();
@@ -79,7 +80,7 @@ export default function SquadDetailPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="squad-detail-page">
       <header className="p-4 flex items-center gap-3 border-b border-victory-border">
-        <button onClick={() => navigate("/squads")} aria-label="Go back" className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
+        <button onClick={() => navigate("/squads")} aria-label={tx("ui.squadDetailPage.goBack", "Go back")} className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
         <div className="flex-1 min-w-0">

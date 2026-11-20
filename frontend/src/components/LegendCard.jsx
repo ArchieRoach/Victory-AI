@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 export const LegendCard = ({ legend }) => {
   const getYouTubeSearchUrl = () => {
@@ -37,7 +38,7 @@ export const LegendCard = ({ legend }) => {
         data-testid={`watch-legend-${legend.name}`}
       >
         <ExternalLink className="w-4 h-4" />
-        Watch Breakdown
+        {tx("ui.legendCard.watchBreakdown", "Watch Breakdown")}
       </a>
     </div>
   );

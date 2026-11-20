@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Heart, MessageCircle, Plus, Globe, Users, Building2, ChevronDown, ChevronUp, Send, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
+import { tx } from "@/i18n/tx";
 
 const UNDO_MS = 5000;
 
@@ -294,7 +295,7 @@ export default function FeedPage() {
     toast(t("feed.postDeleted"), {
       duration: UNDO_MS,
       action: {
-        label: "Undo",
+        label: tx("ui.feedPage.undo", "Undo"),
         onClick: () => {
           const pending = pendingDeletes.current.get(postId);
           if (!pending) return;
@@ -317,7 +318,7 @@ export default function FeedPage() {
           <h1 className="text-xl font-heading font-extrabold text-victory-text">{t("feed.title")}</h1>
           <button
             onClick={() => navigate("/post/create")}
-            aria-label="Create post"
+            aria-label={tx("ui.feedPage.createPost", "Create post")}
             className="w-11 h-11 touch-target rounded-full bg-victory-lime flex items-center justify-center"
             data-testid="create-post-btn"
           >

@@ -6,6 +6,7 @@ import { API } from "@/App";
 import { BragButton } from "@/components/progress/BragButton";
 import { createSpring, createVelocityTracker, project, rubberband, prefersReducedMotion, SPRING } from "@/lib/motion";
 import { haptic } from "@/lib/haptics";
+import { tx } from "@/i18n/tx";
 
 // The cards move like a physical stack (Apple's fluid-interface rules): they follow the finger
 // 1:1, a flick lands on the card it was heading for, the ends resist, and a card can be grabbed
@@ -103,19 +104,19 @@ export default function SeasonWrappedPage() {
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col" data-testid="wrapped-page">
       <header className="p-4 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Go back"
+        <button onClick={() => navigate(-1)} aria-label={tx("ui.seasonWrappedPage.goBack", "Go back")}
           className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
-        <h1 className="flex-1 text-lg font-heading font-bold text-victory-text">{w?.name ? `${w.name} Wrapped` : "Season Wrapped"}</h1>
+        <h1 className="flex-1 text-lg font-heading font-bold text-victory-text">{w?.name ? tx("ui.seasonWrappedPage.wrapped", "{{name}} Wrapped", { name: w.name }) : tx("ui.seasonWrappedPage.seasonWrapped", "Season Wrapped")}</h1>
       </header>
       <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col">
         {!w && <div className="skeleton-shimmer h-96 rounded-2xl" />}
         {w && !w.ready && (
           <div className="victory-card p-6 text-center space-y-2">
             <Sparkles className="w-8 h-8 mx-auto text-victory-lime" />
-            <p className="text-victory-text font-heading font-bold">Your Wrapped arrives when the season ends</p>
-            {w.opens_in_days != null && <p className="text-victory-muted text-sm">{w.next || "Wrapped"} in {w.opens_in_days} days. Every session adds to the story.</p>}
+            <p className="text-victory-text font-heading font-bold">{tx("ui.seasonWrappedPage.yourWrappedArrivesWhen", "Your Wrapped arrives when the season ends")}</p>
+            {w.opens_in_days != null && <p className="text-victory-muted text-sm">{w.next || tx("ui.seasonWrappedPage.wrapped2", "Wrapped")} {tx("ui.seasonWrappedPage.in", "in")} {w.opens_in_days} {tx("ui.seasonWrappedPage.daysEverySessionAdds", "days. Every session adds to the story.")}</p>}
           </div>
         )}
         {card && (
@@ -132,7 +133,7 @@ export default function SeasonWrappedPage() {
                       <p className="section-label">{c.label}</p>
                       <p className="font-heading font-extrabold text-5xl text-victory-lime break-words">{c.big}</p>
                       <p className="text-victory-text text-base max-w-xs">{c.line}</p>
-                      {n < cards.length - 1 && <p className="text-[11px] text-victory-muted mt-4">Swipe or tap for the next one</p>}
+                      {n < cards.length - 1 && <p className="text-[11px] text-victory-muted mt-4">{tx("ui.seasonWrappedPage.swipeOrTapFor", "Swipe or tap for the next one")}</p>}
                     </div>
                   </div>
                 ))}
@@ -140,8 +141,8 @@ export default function SeasonWrappedPage() {
             </div>
             {last && (
               <div className="mt-4 space-y-2">
-                <BragButton win={{ kind: "wrapped", season: w.name, trait: card.big }} label="Share your season" />
-                <button className="victory-btn-ghost" onClick={() => goTo(0)}>Watch again</button>
+                <BragButton win={{ kind: "wrapped", season: w.name, trait: card.big }} label={tx("ui.seasonWrappedPage.shareYourSeason", "Share your season")} />
+                <button className="victory-btn-ghost" onClick={() => goTo(0)}>{tx("ui.seasonWrappedPage.watchAgain", "Watch again")}</button>
               </div>
             )}
           </>

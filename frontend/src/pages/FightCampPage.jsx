@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
+import { tx } from "@/i18n/tx";
 
 // Goal: one place for an amateur boxer's admin (record, next fight, camp, gym, training
 //   partners), so they never need a notes app or a spreadsheet.
@@ -26,7 +27,7 @@ export default function FightCampPage() {
   const [me, setMe] = useState(null);
   const [panel, setPanel] = useState(null); // null | "record" | "fight" | {checkin: id} | {result: id}
 
-  const load = useCallback(() => axios.get(`${API}/amateur/me`).then((r) => setMe(r.data)).catch(() => toast.error("Couldn't load your boxing page")), []);
+  const load = useCallback(() => axios.get(`${API}/amateur/me`).then((r) => setMe(r.data)).catch(() => toast.error(tx("ui.fightCampPage.couldnTLoadYour", "Couldn't load your boxing page"))), []);
   useEffect(() => { load(); }, [load]);
 
   const done = async (text) => {
@@ -50,12 +51,12 @@ export default function FightCampPage() {
     <div className="min-h-screen bg-victory-bg pb-nav">
       <div className="sticky top-0 z-20 material-header">
         <header className="p-4 flex items-center gap-2">
-          <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label="Back" onClick={() => navigate(-1)}>
+          <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label={tx("ui.fightCampPage.back", "Back")} onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5 text-victory-text" />
           </button>
           <div>
-            <h1 className="text-xl font-heading font-extrabold text-victory-text">My boxing</h1>
-            <p className="text-victory-muted text-sm">Record, fights, camp and gym in one place</p>
+            <h1 className="text-xl font-heading font-extrabold text-victory-text">{tx("ui.fightCampPage.myBoxing", "My boxing")}</h1>
+            <p className="text-victory-muted text-sm">{tx("ui.fightCampPage.recordFightsCampAnd", "Record, fights, camp and gym in one place")}</p>
           </div>
         </header>
       </div>
@@ -68,7 +69,7 @@ export default function FightCampPage() {
         <RecordCard record={me.record} editing={panel === "record"} onEdit={() => setPanel(panel === "record" ? null : "record")} onDone={done} />
 
         <section className="space-y-2">
-          <p className="section-label">Next fight</p>
+          <p className="section-label">{tx("ui.fightCampPage.nextFight", "Next fight")}</p>
           {fight ? (
             <NextFight fight={fight} isMinor={me.is_minor} onCheckin={() => setPanel({ checkin: fight.fight_id })} onDone={done} />
           ) : panel !== "fight" ? (
@@ -76,9 +77,9 @@ export default function FightCampPage() {
               <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
                 <CalendarDays className="w-8 h-8 text-victory-lime/60" />
               </div>
-              <p className="text-victory-text font-bold text-lg mb-1">No fight booked</p>
-              <p className="text-victory-muted text-sm">Tell {me.partner_name} when it is, and they'll help you through camp.</p>
-              <button className="mt-4 victory-btn-primary w-auto px-6" onClick={() => setPanel("fight")}>Add my next fight</button>
+              <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.fightCampPage.noFightBooked", "No fight booked")}</p>
+              <p className="text-victory-muted text-sm">{tx("ui.fightCampPage.tell", "Tell")} {me.partner_name} {tx("ui.fightCampPage.whenItIsAnd", "when it is, and they'll help you through camp.")}</p>
+              <button className="mt-4 victory-btn-primary w-auto px-6" onClick={() => setPanel("fight")}>{tx("ui.fightCampPage.addMyNextFight", "Add my next fight")}</button>
             </div>
           ) : null}
           {panel === "fight" && <FightForm isMinor={me.is_minor} onCancel={() => setPanel(null)} onDone={done} />}
@@ -86,7 +87,7 @@ export default function FightCampPage() {
             <CheckinForm fightId={fight.fight_id} onDone={done} />
           )}
           {fight && me.upcoming.length < 3 && panel !== "fight" && (
-            <button className="victory-btn-ghost w-full" onClick={() => setPanel("fight")}>Add another fight</button>
+            <button className="victory-btn-ghost w-full" onClick={() => setPanel("fight")}>{tx("ui.fightCampPage.addAnotherFight", "Add another fight")}</button>
           )}
         </section>
 
@@ -116,14 +117,14 @@ function BuddyPrompt({ msg, name, open, setOpen, fight, onDone }) {
           <p className="text-[11px] text-victory-lime font-bold">{name}</p>
           <p className="text-victory-text text-sm">{msg.text}</p>
         </div>
-        <button className="w-11 h-11 -mr-2 -mt-2 rounded-full flex items-center justify-center" aria-label="Dismiss" onClick={dismiss}>
+        <button className="w-11 h-11 -mr-2 -mt-2 rounded-full flex items-center justify-center" aria-label={tx("ui.fightCampPage.dismiss", "Dismiss")} onClick={dismiss}>
           <X className="w-4 h-4 text-victory-muted" />
         </button>
       </div>
       {!showForm && msg.action !== "none" && (
         <button className="victory-btn-primary w-full"
           onClick={() => setOpen(msg.action === "checkin" ? { checkin: msg.fight_id } : { result: msg.fight_id })}>
-          {msg.action === "checkin" ? "Tell them" : "Add my result"}
+          {msg.action === "checkin" ? tx("ui.fightCampPage.tellThem", "Tell them") : tx("ui.fightCampPage.addMyResult", "Add my result")}
         </button>
       )}
       {showForm && msg.action === "checkin" && <CheckinForm fightId={msg.fight_id} onDone={onDone} />}
@@ -144,8 +145,8 @@ function RecordCard({ record, editing, onEdit, onDone }) {
   return (
     <section className="victory-card p-4" data-testid="amateur-record">
       <div className="flex items-center justify-between mb-2">
-        <p className="section-label">Amateur record</p>
-        <button className="w-11 h-11 -mr-3 rounded-full flex items-center justify-center" aria-label="Edit record" onClick={onEdit}>
+        <p className="section-label">{tx("ui.fightCampPage.amateurRecord", "Amateur record")}</p>
+        <button className="w-11 h-11 -mr-3 rounded-full flex items-center justify-center" aria-label={tx("ui.fightCampPage.editRecord", "Edit record")} onClick={onEdit}>
           <Pencil className="w-4 h-4 text-victory-muted" />
         </button>
       </div>
@@ -158,7 +159,7 @@ function RecordCard({ record, editing, onEdit, onDone }) {
               </label>
             ))}
           </div>
-          <button className="victory-btn-primary w-full" onClick={save}>Save record</button>
+          <button className="victory-btn-primary w-full" onClick={save}>{tx("ui.fightCampPage.saveRecord", "Save record")}</button>
         </div>
       ) : (
         <>
@@ -171,7 +172,7 @@ function RecordCard({ record, editing, onEdit, onDone }) {
             ))}
           </div>
           <p className={`text-center text-[11px] mt-3 flex items-center justify-center gap-1 ${record.verified ? "text-victory-teal" : "text-victory-muted"}`}>
-            {record.verified ? <><ShieldCheck className="w-3.5 h-3.5" /> Verified by {record.verified_by}</> : "Self-reported — your gym owner can verify it"}
+            {record.verified ? <><ShieldCheck className="w-3.5 h-3.5" /> {tx("ui.fightCampPage.verifiedBy", "Verified by")} {record.verified_by}</> : tx("ui.fightCampPage.selfReportedYourGym", "Self-reported — your gym owner can verify it")}
           </p>
         </>
       )}
@@ -186,7 +187,7 @@ function NextFight({ fight, isMinor, onCheckin, onDone }) {
     const url = `${window.location.origin}/fantasy`;
     try {
       if (navigator.share) await navigator.share({ text, url });
-      else { await navigator.clipboard.writeText(`${text} ${url}`); toast.success("Copied — paste it anywhere"); }
+      else { await navigator.clipboard.writeText(`${text} ${url}`); toast.success(tx("ui.fightCampPage.copiedPasteItAnywhere", "Copied — paste it anywhere")); }
     } catch {}
   };
   const cancel = async () => {
@@ -200,13 +201,13 @@ function NextFight({ fight, isMinor, onCheckin, onDone }) {
       <div className="flex items-start gap-3">
         <div className="text-center flex-shrink-0 w-14">
           <p className="font-mono font-bold text-3xl text-victory-lime leading-none">{Math.max(fight.days_to_go, 0)}</p>
-          <p className="text-[10px] text-victory-muted mt-1">{fight.days_to_go === 1 ? "day to go" : "days to go"}</p>
+          <p className="text-[10px] text-victory-muted mt-1">{fight.days_to_go === 1 ? tx("ui.fightCampPage.dayToGo", "day to go") : tx("ui.fightCampPage.daysToGo", "days to go")}</p>
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-victory-text font-semibold truncate">{fight.event_name}</p>
-          <p className="text-victory-muted text-[12px]">vs {fight.opponent_name} ({opp.wins || 0}-{opp.losses || 0}-{opp.draws || 0}){fight.opponent_club ? ` · ${fight.opponent_club}` : ""}</p>
-          <p className="text-victory-muted text-[11px]">{fight.scheduled_rounds} rounds{fight.weight_class ? ` · ${fight.weight_class}` : ""}{fight.target_weight_kg ? ` · ${fight.target_weight_kg} kg` : ""}</p>
-          {fight.fantasy_opt_in && <p className="text-victory-teal text-[11px]">In Fantasy{isMinor ? " (your gym and squad only)" : ""}</p>}
+          <p className="text-victory-muted text-[12px]">{tx("ui.fightCampPage.vs", "vs")} {fight.opponent_name} ({opp.wins || 0}-{opp.losses || 0}-{opp.draws || 0}){fight.opponent_club ? ` · ${fight.opponent_club}` : ""}</p>
+          <p className="text-victory-muted text-[11px]">{fight.scheduled_rounds} {tx("ui.fightCampPage.rounds", "rounds")}{fight.weight_class ? ` · ${fight.weight_class}` : ""}{fight.target_weight_kg ? tx("ui.fightCampPage.kg", " · {{target_weight_kg}} kg", { target_weight_kg: fight.target_weight_kg }) : ""}</p>
+          {fight.fantasy_opt_in && <p className="text-victory-teal text-[11px]">{tx("ui.fightCampPage.inFantasy", "In Fantasy")}{isMinor ? tx("ui.fightCampPage.yourGymAndSquad", " (your gym and squad only)") : ""}</p>}
         </div>
       </div>
       {fight.camp_goals?.length > 0 && (
@@ -215,9 +216,9 @@ function NextFight({ fight, isMinor, onCheckin, onDone }) {
         </div>
       )}
       <div className="flex gap-2">
-        <button className="victory-btn-secondary flex-1" onClick={onCheckin}>Camp check-in</button>
-        <button className="victory-btn-ghost w-11 px-0 flex items-center justify-center" aria-label="Share" onClick={share}><Share2 className="w-4 h-4" /></button>
-        <button className="victory-btn-ghost w-11 px-0 flex items-center justify-center" aria-label="Remove fight" onClick={cancel}><X className="w-4 h-4" /></button>
+        <button className="victory-btn-secondary flex-1" onClick={onCheckin}>{tx("ui.fightCampPage.campCheckIn", "Camp check-in")}</button>
+        <button className="victory-btn-ghost w-11 px-0 flex items-center justify-center" aria-label={tx("ui.fightCampPage.share", "Share")} onClick={share}><Share2 className="w-4 h-4" /></button>
+        <button className="victory-btn-ghost w-11 px-0 flex items-center justify-center" aria-label={tx("ui.fightCampPage.removeFight", "Remove fight")} onClick={cancel}><X className="w-4 h-4" /></button>
       </div>
     </div>
   );
@@ -239,33 +240,33 @@ function FightForm({ isMinor, onCancel, onDone }) {
   };
   return (
     <div className="victory-card p-4 space-y-2" data-testid="fight-form">
-      <label className="victory-label" htmlFor="ff-date">Fight date</label>
+      <label className="victory-label" htmlFor="ff-date">{tx("ui.fightCampPage.fightDate", "Fight date")}</label>
       <input id="ff-date" type="date" className="victory-input" value={f.date} onChange={set("date")} />
-      <label className="victory-label" htmlFor="ff-event">Show name</label>
-      <input id="ff-event" className="victory-input" maxLength={100} placeholder="e.g. Rays ABC club show" value={f.event_name} onChange={set("event_name")} />
-      <label className="victory-label" htmlFor="ff-opp">Opponent</label>
+      <label className="victory-label" htmlFor="ff-event">{tx("ui.fightCampPage.showName", "Show name")}</label>
+      <input id="ff-event" className="victory-input" maxLength={100} placeholder={tx("ui.fightCampPage.eGRaysAbc", "e.g. Rays ABC club show")} value={f.event_name} onChange={set("event_name")} />
+      <label className="victory-label" htmlFor="ff-opp">{tx("ui.fightCampPage.opponent", "Opponent")}</label>
       <input id="ff-opp" className="victory-input" maxLength={60} value={f.opponent_name} onChange={set("opponent_name")} />
-      <input className="victory-input" maxLength={80} placeholder="Their club (optional)" aria-label="Opponent's club" value={f.opponent_club} onChange={set("opponent_club")} />
-      <p className="text-[11px] text-victory-muted">Their record, if you know it (it sets the fantasy prices)</p>
+      <input className="victory-input" maxLength={80} placeholder={tx("ui.fightCampPage.theirClubOptional", "Their club (optional)")} aria-label={tx("ui.fightCampPage.opponentSClub", "Opponent's club")} value={f.opponent_club} onChange={set("opponent_club")} />
+      <p className="text-[11px] text-victory-muted">{tx("ui.fightCampPage.theirRecordIfYou", "Their record, if you know it (it sets the fantasy prices)")}</p>
       <div className="grid grid-cols-3 gap-2">
         {[["ow", "Won"], ["ol", "Lost"], ["od", "Drew"]].map(([k, l]) => (
           <label key={k} className="text-[11px] text-victory-muted">{l}<input type="number" min={0} className="victory-input mt-1 text-base" value={f[k]} onChange={set(k)} /></label>
         ))}
       </div>
       <div className="grid grid-cols-3 gap-2">
-        <label className="text-[11px] text-victory-muted">Rounds<input type="number" min={1} max={12} className="victory-input mt-1 text-base" value={f.scheduled_rounds} onChange={set("scheduled_rounds")} /></label>
-        <label className="text-[11px] text-victory-muted col-span-2">Fight weight (kg)<input type="number" step="0.1" className="victory-input mt-1 text-base" value={f.target_weight_kg} onChange={set("target_weight_kg")} /></label>
+        <label className="text-[11px] text-victory-muted">{tx("ui.fightCampPage.rounds2", "Rounds")}<input type="number" min={1} max={12} className="victory-input mt-1 text-base" value={f.scheduled_rounds} onChange={set("scheduled_rounds")} /></label>
+        <label className="text-[11px] text-victory-muted col-span-2">{tx("ui.fightCampPage.fightWeightKg", "Fight weight (kg)")}<input type="number" step="0.1" className="victory-input mt-1 text-base" value={f.target_weight_kg} onChange={set("target_weight_kg")} /></label>
       </div>
-      <input className="victory-input" maxLength={40} placeholder="Weight class (optional)" aria-label="Weight class" value={f.weight_class} onChange={set("weight_class")} />
-      <label className="victory-label" htmlFor="ff-goals">Camp goals (up to 3, comma separated)</label>
-      <input id="ff-goals" className="victory-input" maxLength={180} placeholder="sharper jab, more sparring, make weight" value={f.goals} onChange={set("goals")} />
+      <input className="victory-input" maxLength={40} placeholder={tx("ui.fightCampPage.weightClassOptional", "Weight class (optional)")} aria-label={tx("ui.fightCampPage.weightClass", "Weight class")} value={f.weight_class} onChange={set("weight_class")} />
+      <label className="victory-label" htmlFor="ff-goals">{tx("ui.fightCampPage.campGoalsUpTo", "Camp goals (up to 3, comma separated)")}</label>
+      <input id="ff-goals" className="victory-input" maxLength={180} placeholder={tx("ui.fightCampPage.sharperJabMoreSparring", "sharper jab, more sparring, make weight")} value={f.goals} onChange={set("goals")} />
       <label className="flex items-start gap-2 text-[12px] text-victory-text min-h-[44px]">
         <input type="checkbox" className="mt-1 accent-victory-lime" checked={f.fantasy_opt_in} onChange={set("fantasy_opt_in")} />
-        <span>Put this fight in Fantasy so friends can pick me{isMinor ? " (only your gym and squad will see it)" : ""}. The venue is never shown.</span>
+        <span>{tx("ui.fightCampPage.putThisFightIn", "Put this fight in Fantasy so friends can pick me")}{isMinor ? tx("ui.fightCampPage.onlyYourGymAnd", " (only your gym and squad will see it)") : ""}{tx("ui.fightCampPage.theVenueIsNever", ". The venue is never shown.")}</span>
       </label>
       <div className="flex gap-2">
-        <button className="victory-btn-ghost flex-1" onClick={onCancel}>Cancel</button>
-        <button className="victory-btn-primary flex-1" disabled={!f.date || f.event_name.length < 2 || f.opponent_name.length < 2} onClick={save}>Save fight</button>
+        <button className="victory-btn-ghost flex-1" onClick={onCancel}>{tx("ui.fightCampPage.cancel", "Cancel")}</button>
+        <button className="victory-btn-primary flex-1" disabled={!f.date || f.event_name.length < 2 || f.opponent_name.length < 2} onClick={save}>{tx("ui.fightCampPage.saveFight", "Save fight")}</button>
       </div>
     </div>
   );
@@ -285,19 +286,19 @@ function CheckinForm({ fightId, onDone }) {
   return (
     <div className="space-y-2" data-testid="checkin-form">
       <div className="grid grid-cols-3 gap-2">
-        <label className="text-[11px] text-victory-muted">Sessions this week<input type="number" min={0} max={21} className="victory-input mt-1 text-base" value={c.sessions} onChange={set("sessions")} /></label>
-        <label className="text-[11px] text-victory-muted">Sparring rounds<input type="number" min={0} className="victory-input mt-1 text-base" value={c.sparring_rounds} onChange={set("sparring_rounds")} /></label>
-        <label className="text-[11px] text-victory-muted">Weight (kg)<input type="number" step="0.1" className="victory-input mt-1 text-base" value={c.weight_kg} onChange={set("weight_kg")} /></label>
+        <label className="text-[11px] text-victory-muted">{tx("ui.fightCampPage.sessionsThisWeek", "Sessions this week")}<input type="number" min={0} max={21} className="victory-input mt-1 text-base" value={c.sessions} onChange={set("sessions")} /></label>
+        <label className="text-[11px] text-victory-muted">{tx("ui.fightCampPage.sparringRounds", "Sparring rounds")}<input type="number" min={0} className="victory-input mt-1 text-base" value={c.sparring_rounds} onChange={set("sparring_rounds")} /></label>
+        <label className="text-[11px] text-victory-muted">{tx("ui.fightCampPage.weightKg", "Weight (kg)")}<input type="number" step="0.1" className="victory-input mt-1 text-base" value={c.weight_kg} onChange={set("weight_kg")} /></label>
       </div>
-      <p className="text-[11px] text-victory-muted">Energy</p>
+      <p className="text-[11px] text-victory-muted">{tx("ui.fightCampPage.energy", "Energy")}</p>
       <div className="flex gap-1.5">
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} onClick={() => setC({ ...c, energy: n })} aria-label={`Energy ${n} of 5`}
             className={`filter-pill flex-1 ${+c.energy === n ? "filter-pill-active" : "filter-pill-inactive"}`}>{n}</button>
         ))}
       </div>
-      <input className="victory-input" maxLength={300} placeholder="Anything else? (optional)" aria-label="Note" value={c.note} onChange={set("note")} />
-      <button className="victory-btn-primary w-full" onClick={save}>Send check-in</button>
+      <input className="victory-input" maxLength={300} placeholder={tx("ui.fightCampPage.anythingElseOptional", "Anything else? (optional)")} aria-label={tx("ui.fightCampPage.note", "Note")} value={c.note} onChange={set("note")} />
+      <button className="victory-btn-primary w-full" onClick={save}>{tx("ui.fightCampPage.sendCheckIn", "Send check-in")}</button>
     </div>
   );
 }
@@ -329,9 +330,9 @@ function ResultForm({ fight, onDone }) {
         </div>
       )}
       {needsMethod && ["KO", "TKO", "DQ"].includes(r.method) && (
-        <label className="text-[11px] text-victory-muted block">Round<input type="number" min={1} max={fight.scheduled_rounds} className="victory-input mt-1 text-base" value={r.round} onChange={(e) => setR({ ...r, round: e.target.value })} /></label>
+        <label className="text-[11px] text-victory-muted block">{tx("ui.fightCampPage.round", "Round")}<input type="number" min={1} max={fight.scheduled_rounds} className="victory-input mt-1 text-base" value={r.round} onChange={(e) => setR({ ...r, round: e.target.value })} /></label>
       )}
-      <button className="victory-btn-primary w-full" onClick={save}>Save result</button>
+      <button className="victory-btn-primary w-full" onClick={save}>{tx("ui.fightCampPage.saveResult", "Save result")}</button>
     </div>
   );
 }
@@ -339,12 +340,12 @@ function ResultForm({ fight, onDone }) {
 function CampLog({ checkins }) {
   return (
     <section className="space-y-2">
-      <p className="section-label flex items-center gap-1.5"><Dumbbell className="w-3 h-3" /> This camp</p>
+      <p className="section-label flex items-center gap-1.5"><Dumbbell className="w-3 h-3" /> {tx("ui.fightCampPage.thisCamp", "This camp")}</p>
       <div className="victory-card divide-y divide-victory-border">
         {checkins.map((c) => (
           <div key={c.created_at} className="px-3 py-2 flex items-center gap-3 text-[12px]">
             <span className="text-victory-muted w-14">{new Date(c.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}</span>
-            <span className="text-victory-text flex-1">{c.sessions} sessions · {c.sparring_rounds} sparring rds{c.weight_kg ? ` · ${c.weight_kg} kg` : ""}</span>
+            <span className="text-victory-text flex-1">{c.sessions} {tx("ui.fightCampPage.sessions", "sessions ·")} {c.sparring_rounds} {tx("ui.fightCampPage.sparringRds", "sparring rds")}{c.weight_kg ? tx("ui.fightCampPage.kg2", " · {{weight_kg}} kg", { weight_kg: c.weight_kg }) : ""}</span>
             <span className="font-mono text-victory-muted">{c.energy}/5</span>
           </div>
         ))}
@@ -362,27 +363,27 @@ function GymCard({ gym, isOwner }) {
     try {
       await axios.post(`${API}/amateur/verify/${m.user_id}`);
       setQueue((q) => q.filter((x) => x.user_id !== m.user_id));
-      toast.success(`${m.name}'s record verified`);
+      toast.success(tx("ui.fightCampPage.sRecordVerified", "{{name}}'s record verified", { name: m.name }));
     } catch (e) { toast.error(err(e)); }
   };
   return (
     <section className="space-y-2">
-      <p className="section-label flex items-center gap-1.5"><Building2 className="w-3 h-3" /> Gym</p>
+      <p className="section-label flex items-center gap-1.5"><Building2 className="w-3 h-3" /> {tx("ui.fightCampPage.gym", "Gym")}</p>
       {gym ? (
         <Link to={`/gyms/${gym.gym_id}`} className="victory-card p-3 flex items-center justify-between active:scale-[0.99] transition-transform">
           <span className="text-victory-text font-semibold">{gym.name}</span>
-          <span className="text-[11px] text-victory-muted">{isOwner ? "You run this gym" : "Member"}</span>
+          <span className="text-[11px] text-victory-muted">{isOwner ? tx("ui.fightCampPage.youRunThisGym", "You run this gym") : tx("ui.fightCampPage.member", "Member")}</span>
         </Link>
       ) : (
-        <Link to="/gyms" className="victory-card p-3 block text-sm text-victory-muted">Not in a gym yet — <span className="text-victory-lime font-semibold">find yours</span> so your coach can verify your record.</Link>
+        <Link to="/gyms" className="victory-card p-3 block text-sm text-victory-muted">{tx("ui.fightCampPage.notInAGym", "Not in a gym yet —")} <span className="text-victory-lime font-semibold">{tx("ui.fightCampPage.findYours", "find yours")}</span> {tx("ui.fightCampPage.soYourCoachCan", "so your coach can verify your record.")}</Link>
       )}
       {isOwner && queue.length > 0 && (
         <div className="victory-card p-3 space-y-2">
-          <p className="text-[12px] text-victory-text font-semibold">Records to check</p>
+          <p className="text-[12px] text-victory-text font-semibold">{tx("ui.fightCampPage.recordsToCheck", "Records to check")}</p>
           {queue.map((m) => (
             <div key={m.user_id} className="flex items-center justify-between text-[12px]">
               <span className="text-victory-text">{m.name} <span className="font-mono text-victory-muted">{m.record.wins}-{m.record.losses}-{m.record.draws}</span></span>
-              <button className="victory-btn-secondary w-auto px-3 min-h-[44px] text-xs flex items-center gap-1" onClick={() => verify(m)}><Check className="w-3.5 h-3.5" /> Correct</button>
+              <button className="victory-btn-secondary w-auto px-3 min-h-[44px] text-xs flex items-center gap-1" onClick={() => verify(m)}><Check className="w-3.5 h-3.5" /> {tx("ui.fightCampPage.correct", "Correct")}</button>
             </div>
           ))}
         </div>
@@ -396,7 +397,7 @@ function PartnersCard({ openTo, options, onChange }) {
   const [found, setFound] = useState([]);
   const toggle = async (key) => {
     const next = openTo.includes(key) ? openTo.filter((k) => k !== key) : [...openTo, key];
-    await axios.put(`${API}/amateur/open-to`, { open_to: next }).catch(() => toast.error("Couldn't save that"));
+    await axios.put(`${API}/amateur/open-to`, { open_to: next }).catch(() => toast.error(tx("ui.fightCampPage.couldnTSaveThat", "Couldn't save that")));
     onChange();
   };
   const search = async (key) => {
@@ -406,24 +407,24 @@ function PartnersCard({ openTo, options, onChange }) {
   };
   return (
     <section className="space-y-2">
-      <p className="section-label flex items-center gap-1.5"><Users className="w-3 h-3" /> Who I'll work with</p>
+      <p className="section-label flex items-center gap-1.5"><Users className="w-3 h-3" /> {tx("ui.fightCampPage.whoILlWork", "Who I'll work with")}</p>
       <div className="victory-card p-3 space-y-2">
-        <p className="text-[11px] text-victory-muted">Show others you're open to:</p>
+        <p className="text-[11px] text-victory-muted">{tx("ui.fightCampPage.showOthersYouRe", "Show others you're open to:")}</p>
         <div className="flex flex-wrap gap-1.5">
           {Object.entries(options).map(([k, label]) => (
             <button key={k} onClick={() => toggle(k)} className={`filter-pill ${openTo.includes(k) ? "filter-pill-active" : "filter-pill-inactive"}`}>{label}</button>
           ))}
         </div>
-        <p className="text-[11px] text-victory-muted pt-1">Find boxers open to:</p>
+        <p className="text-[11px] text-victory-muted pt-1">{tx("ui.fightCampPage.findBoxersOpenTo", "Find boxers open to:")}</p>
         <div className="flex flex-wrap gap-1.5">
           {Object.entries(options).map(([k, label]) => (
             <button key={k} onClick={() => search(k)} className={`filter-pill ${looking === k ? "filter-pill-active" : "filter-pill-inactive"}`}>{label}</button>
           ))}
         </div>
-        {looking && !found.length && <p className="text-[12px] text-victory-muted">No one yet. Your gym-mates show up first when they switch it on.</p>}
+        {looking && !found.length && <p className="text-[12px] text-victory-muted">{tx("ui.fightCampPage.noOneYetYour", "No one yet. Your gym-mates show up first when they switch it on.")}</p>}
         {found.map((p) => (
           <Link key={p.user_id} to={`/profile/${p.user_id}`} className="flex items-center justify-between text-[12px] min-h-[44px]">
-            <span className="text-victory-text">{p.display_name} {p.same_gym && <span className="text-victory-teal">· your gym</span>}</span>
+            <span className="text-victory-text">{p.display_name} {p.same_gym && <span className="text-victory-teal">{tx("ui.fightCampPage.yourGym", "· your gym")}</span>}</span>
             <span className="font-mono text-victory-muted">{p.record.wins}-{p.record.losses}-{p.record.draws}{p.weight_class ? ` · ${p.weight_class}` : ""}</span>
           </Link>
         ))}
@@ -436,12 +437,12 @@ function History({ fights }) {
   const label = { win: "W", loss: "L", draw: "D", nc: "NC" };
   return (
     <section className="space-y-2">
-      <p className="section-label flex items-center gap-1.5"><Swords className="w-3 h-3" /> Fights</p>
+      <p className="section-label flex items-center gap-1.5"><Swords className="w-3 h-3" /> {tx("ui.fightCampPage.fights", "Fights")}</p>
       <div className="victory-card divide-y divide-victory-border">
         {fights.map((f) => (
           <div key={f.fight_id} className="px-3 py-2 flex items-center gap-3 text-[12px]">
             <span className={`font-mono font-bold w-6 ${f.result?.outcome === "win" ? "text-victory-lime" : f.result?.outcome === "loss" ? "text-victory-danger" : "text-victory-muted"}`}>{label[f.result?.outcome] || "?"}</span>
-            <span className="text-victory-text flex-1 truncate">vs {f.opponent_name} · {f.event_name}</span>
+            <span className="text-victory-text flex-1 truncate">{tx("ui.fightCampPage.vs", "vs")} {f.opponent_name} · {f.event_name}</span>
             <span className="text-victory-muted">{f.result?.method || ""}{f.result?.round ? ` R${f.result.round}` : ""}</span>
           </div>
         ))}

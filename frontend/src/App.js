@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, createContext, useContext, useRef, Suspense } from "react";
+import { useState, useEffect, useCallback, createContext, useContext, useRef, Suspense, Fragment } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { noteEntry } from "@/lib/entrySource";
 import axios from "axios";
 import i18n from "@/i18n";
+import { useTranslation } from "react-i18next";
 
 // Apply RTL direction based on stored language on first load
 const storedLang = localStorage.getItem("i18nextLng") || "";
@@ -549,6 +550,14 @@ function AnalyticsTracker() {
   return null;
 }
 
+// Screen text uses tx(), which has no hook, so the screens are re-drawn when the language
+// changes or its file arrives. Changing language is rare, so a fresh draw is a fair price.
+function InLanguage({ children }) {
+  const { i18n: inst } = useTranslation();
+  const lng = inst.resolvedLanguage || inst.language;
+  return <Fragment key={`${lng}:${inst.hasResourceBundle(lng, "translation")}`}>{children}</Fragment>;
+}
+
 function App() {
   // Follows the phone's light/dark setting in real time. The colours themselves come from the
   // one theme file (src/theme/theme.js), so every screen updates at once.
@@ -564,8 +573,10 @@ function App() {
             <AuthProvider>
               <FeaturebaseRoot>
                 <AnalyticsTracker />
-                <AppRouter />
-                <FeedbackWidget />
+                <InLanguage>
+                  <AppRouter />
+                  <FeedbackWidget />
+                </InLanguage>
                 <Toaster position="top-center" toastOptions={{ style: { background: "rgb(var(--victory-card))", border: "1px solid rgb(var(--victory-border))", color: "rgb(var(--victory-text))" } }} />
               </FeaturebaseRoot>
             </AuthProvider>

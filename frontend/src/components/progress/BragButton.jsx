@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { brag } from "@/lib/progression";
+import { tx } from "@/i18n/tx";
 
 // Goal: permission to show off, at the moment it feels earned.
 // Psychology: peak-end; the high point right after a win is when sharing feels natural, not needy.
@@ -13,10 +14,10 @@ export function BragButton({ win, label = "Brag about it", className = "" }) {
     setBusy(true);
     try {
       const result = await brag(win);
-      if (result === "copied") toast.success("Copied. Paste it anywhere.");
-      if (result === "unavailable") toast.error("Sharing isn't available on this device");
+      if (result === "copied") toast.success(tx("ui.bragButton.copiedPasteItAnywhere", "Copied. Paste it anywhere."));
+      if (result === "unavailable") toast.error(tx("ui.bragButton.sharingIsnTAvailable", "Sharing isn't available on this device"));
     } catch {
-      toast.error("Couldn't share that one");
+      toast.error(tx("ui.bragButton.couldnTShareThat", "Couldn't share that one"));
     }
     setBusy(false);
   };

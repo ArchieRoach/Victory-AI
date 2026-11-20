@@ -6,6 +6,7 @@ import { CalendarClock, Check, X } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { bookingChips, isQuietHour, formatBooking } from "@/lib/booking";
 import { PushOptIn } from "@/components/PushOptIn";
+import { tx } from "@/i18n/tx";
 
 const toLocalInput = (d) => {
   const pad = (n) => String(n).padStart(2, "0");
@@ -34,7 +35,7 @@ export function BookNextRound({ focusOptions = [] }) {
   const book = async () => {
     if (!chosenDate) return;
     if (isQuietHour(chosenDate)) {
-      toast.error("Pick a time between 5am and 10pm");
+      toast.error(tx("ui.bookNextRound.pickATimeBetween", "Pick a time between 5am and 10pm"));
       return;
     }
     setSaving(true);
@@ -47,7 +48,7 @@ export function BookNextRound({ focusOptions = [] }) {
       setExisting(res.data);
       analytics.capture("next_round_booked", { chip, focus: !!focus });
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't book it — try again");
+      toast.error(err?.response?.data?.detail || tx("ui.bookNextRound.couldnTBookIt", "Couldn't book it — try again"));
     }
     setSaving(false);
   };
@@ -58,7 +59,7 @@ export function BookNextRound({ focusOptions = [] }) {
       setExisting(null);
       setChip(null);
     } catch {
-      toast.error("Couldn't cancel — try again");
+      toast.error(tx("ui.bookNextRound.couldnTCancelTry", "Couldn't cancel — try again"));
     }
   };
 
@@ -72,12 +73,12 @@ export function BookNextRound({ focusOptions = [] }) {
           <Check className="w-5 h-5 text-victory-bg" strokeWidth={2.5} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-victory-text font-heading font-bold text-sm">Booked: {formatBooking(existing.at)}</p>
+          <p className="text-victory-text font-heading font-bold text-sm">{tx("ui.bookNextRound.booked", "Booked:")} {formatBooking(existing.at)}</p>
           <p className="text-victory-muted text-xs truncate">
-            {existing.focus ? `${existing.focus}${existing.focus_pb != null ? ` · PB to beat ${existing.focus_pb}` : ""}` : "Full session"} · we'll remind you
+            {existing.focus ? `${existing.focus}${existing.focus_pb != null ? ` · PB to beat ${existing.focus_pb}` : ""}` : tx("ui.bookNextRound.fullSession", "Full session")} {tx("ui.bookNextRound.weLlRemindYou", "· we'll remind you")}
           </p>
         </div>
-        <button onClick={cancel} aria-label="Cancel booking" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger">
+        <button onClick={cancel} aria-label={tx("ui.bookNextRound.cancelBooking", "Cancel booking")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger">
           <X className="w-4 h-4" />
         </button>
       </section>
@@ -88,7 +89,7 @@ export function BookNextRound({ focusOptions = [] }) {
 
   return (
     <section className="victory-card p-4 space-y-3" data-testid="book-next-round">
-      <p className="section-label flex items-center gap-1.5"><CalendarClock className="w-3 h-3" /> Book your next round</p>
+      <p className="section-label flex items-center gap-1.5"><CalendarClock className="w-3 h-3" /> {tx("ui.bookNextRound.bookYourNextRound", "Book your next round")}</p>
 
       <div className="flex flex-wrap gap-2">
         {chips.map((c) => (
@@ -104,7 +105,7 @@ export function BookNextRound({ focusOptions = [] }) {
           onClick={() => { setChip("custom"); if (!custom) setCustom(toLocalInput(chips[0].date)); }}
           className={`filter-pill ${chip === "custom" ? "filter-pill-active" : "filter-pill-inactive"}`}
         >
-          Pick a time
+          {tx("ui.bookNextRound.pickATime", "Pick a time")}
         </button>
       </div>
 
@@ -115,13 +116,13 @@ export function BookNextRound({ focusOptions = [] }) {
           value={custom}
           min={toLocalInput(new Date())}
           onChange={(e) => setCustom(e.target.value)}
-          aria-label="Choose date and time"
+          aria-label={tx("ui.bookNextRound.chooseDateAndTime", "Choose date and time")}
         />
       )}
 
       {focusOptions.length > 0 && (
         <div>
-          <p className="text-victory-muted text-xs mb-1.5">Work on</p>
+          <p className="text-victory-muted text-xs mb-1.5">{tx("ui.bookNextRound.workOn", "Work on")}</p>
           <div className="flex flex-wrap gap-2">
             {focusOptions.map((f) => (
               <button
@@ -137,7 +138,7 @@ export function BookNextRound({ focusOptions = [] }) {
       )}
 
       <button onClick={book} disabled={!chosenDate || saving} className="victory-btn-secondary w-full disabled:opacity-50">
-        {saving ? "Booking…" : chosenDate ? `Book ${formatBooking(chosenDate.toISOString())}` : "Pick a time"}
+        {saving ? tx("ui.bookNextRound.booking", "Booking…") : chosenDate ? `Book ${formatBooking(chosenDate.toISOString())}` : tx("ui.bookNextRound.pickATime", "Pick a time")}
       </button>
     </section>
   );

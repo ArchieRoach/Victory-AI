@@ -4,39 +4,40 @@ import axios from "axios";
 import { toast } from "sonner";
 import { API, useAuth } from "@/App";
 import { ArrowLeft, Zap, Check, Shield, RefreshCw } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 const FALLBACK_PACKAGES = [
   {
-    id: "starter",  tokens: 200,  price: 1.99,  label: "Starter",
-    badge: null,           highlight: false, tagline: "Get in the ring",
+    id: "starter",  tokens: 200,  price: 1.99,  get label() { return tx("ui.tokensPage.starter", "Starter"); },
+    badge: null,           highlight: false, get tagline() { return tx("ui.tokensPage.getInTheRing", "Get in the ring"); },
     perks: ["2–3 tips", "4 emote unlocks", "Try punch alerts"],
     cents_per_token: 1.00, savings_pct: 0,
   },
   {
-    id: "fighter",  tokens: 500,  price: 4.99,  label: "Fighter",
-    badge: "Most Popular", highlight: true,  tagline: "Stay in the fight",
+    id: "fighter",  tokens: 500,  price: 4.99,  get label() { return tx("ui.tokensPage.fighter", "Fighter"); },
+    badge: "Most Popular", highlight: true,  get tagline() { return tx("ui.tokensPage.stayInTheFight", "Stay in the fight"); },
     perks: ["8–10 tips", "10 emote unlocks", "Full punch menu"],
     cents_per_token: 1.00, savings_pct: 0,
   },
   {
-    id: "champion", tokens: 1200, price: 9.99,  label: "Champion",
-    badge: "Best Value",   highlight: false, tagline: "Go hard",
+    id: "champion", tokens: 1200, price: 9.99,  get label() { return tx("ui.tokensPage.champion", "Champion"); },
+    badge: "Best Value",   highlight: false, get tagline() { return tx("ui.tokensPage.goHard", "Go hard"); },
     perks: ["20+ tips", "24 emote unlocks", "Title Shot alerts"],
     cents_per_token: 0.83, savings_pct: 17,
   },
   {
-    id: "legend",   tokens: 3000, price: 19.99, label: "Legend",
-    badge: "Go All Out",   highlight: false, tagline: "Dominate the feed",
+    id: "legend",   tokens: 3000, price: 19.99, get label() { return tx("ui.tokensPage.legend", "Legend"); },
+    badge: "Go All Out",   highlight: false, get tagline() { return tx("ui.tokensPage.dominateTheFeed", "Dominate the feed"); },
     perks: ["60+ tips", "60 emote unlocks", "All punch tiers"],
     cents_per_token: 0.67, savings_pct: 33,
   },
 ];
 
 const TOKEN_USES = [
-  { emoji: "⚡", label: "Tip streamers",  sub: "Show love, get on the leaderboard" },
-  { emoji: "🎭", label: "Unlock emotes",  sub: "Buy custom emotes from any streamer" },
-  { emoji: "💥", label: "Punch alerts",   sub: "Send explosive on-stream reactions" },
-  { emoji: "🎁", label: "Gift subs",      sub: "Give a subscription to the community" },
+  { emoji: "⚡", get label() { return tx("ui.tokensPage.tipStreamers", "Tip streamers"); },  get sub() { return tx("ui.tokensPage.showLoveGetOn", "Show love, get on the leaderboard"); } },
+  { emoji: "🎭", get label() { return tx("ui.tokensPage.unlockEmotes", "Unlock emotes"); },  get sub() { return tx("ui.tokensPage.buyCustomEmotesFrom", "Buy custom emotes from any streamer"); } },
+  { emoji: "💥", get label() { return tx("ui.tokensPage.punchAlerts", "Punch alerts"); },   get sub() { return tx("ui.tokensPage.sendExplosiveOnStream", "Send explosive on-stream reactions"); } },
+  { emoji: "🎁", get label() { return tx("ui.tokensPage.giftSubs", "Gift subs"); },      get sub() { return tx("ui.tokensPage.giveASubscriptionTo", "Give a subscription to the community"); } },
 ];
 
 function PackageCard({ pkg, selected, onSelect }) {
@@ -85,13 +86,13 @@ function PackageCard({ pkg, selected, onSelect }) {
           <p className={`font-mono font-black text-2xl leading-none ${isSelected ? "text-victory-lime" : "text-victory-text"}`}>
             {pkg.tokens >= 1000 ? `${pkg.tokens / 1000}K` : pkg.tokens}
           </p>
-          <p className={`text-xs mt-0.5 ${isSelected ? "text-victory-lime/70" : "text-victory-muted"}`}>tokens</p>
+          <p className={`text-xs mt-0.5 ${isSelected ? "text-victory-lime/70" : "text-victory-muted"}`}>{tx("ui.tokensPage.tokens", "tokens")}</p>
           <p className={`font-bold text-sm mt-2 ${isSelected ? "text-victory-lime" : "text-victory-text"}`}>
             £{pkg.price.toFixed(2)}
           </p>
           {pkg.savings_pct > 0 && (
             <p className="text-victory-lime text-[10px] font-semibold mt-0.5">
-              Save {pkg.savings_pct}%
+              {tx("ui.tokensPage.save", "Save")} {pkg.savings_pct}%
             </p>
           )}
         </div>
@@ -143,7 +144,7 @@ export default function TokensPage() {
       );
       window.location.href = res.data.checkout_url;
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not start checkout — please try again.");
+      toast.error(err?.response?.data?.detail || tx("ui.tokensPage.couldNotStartCheckout", "Could not start checkout — please try again."));
       setLoading(false);
     }
   };
@@ -155,12 +156,12 @@ export default function TokensPage() {
 
       {/* Header */}
       <div className="sticky top-0 z-20 material-header px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(returnPath)} aria-label="Go back" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+        <button onClick={() => navigate(returnPath)} aria-label={tx("ui.tokensPage.goBack", "Go back")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1">
-          <h1 className="text-victory-text font-bold text-base">Get Tokens</h1>
-          <p className="text-victory-muted text-xs">Fuel your fight</p>
+          <h1 className="text-victory-text font-bold text-base">{tx("ui.tokensPage.getTokens", "Get Tokens")}</h1>
+          <p className="text-victory-muted text-xs">{tx("ui.tokensPage.fuelYourFight", "Fuel your fight")}</p>
         </div>
         {balance !== null && (
           <div className="flex items-center gap-1.5 bg-victory-lime/10 border border-victory-lime/30 rounded-full px-3 py-1">
@@ -187,7 +188,7 @@ export default function TokensPage() {
 
         {/* Package cards */}
         <div className="space-y-3 pt-1">
-          <h2 className="text-victory-text font-semibold text-sm">Choose your pack</h2>
+          <h2 className="text-victory-text font-semibold text-sm">{tx("ui.tokensPage.chooseYourPack", "Choose your pack")}</h2>
           {packages.map((p) => (
             <PackageCard key={p.id} pkg={p} selected={selected} onSelect={setSelected} />
           ))}
@@ -196,12 +197,12 @@ export default function TokensPage() {
         {/* Trust row */}
         <div className="flex items-center justify-center gap-6 text-victory-muted text-xs">
           <span className="flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5" /> Secured by Stripe
+            <Shield className="w-3.5 h-3.5" /> {tx("ui.tokensPage.securedByStripe", "Secured by Stripe")}
           </span>
           <span>·</span>
-          <span>Instant delivery</span>
+          <span>{tx("ui.tokensPage.instantDelivery", "Instant delivery")}</span>
           <span>·</span>
-          <span>Non-refundable</span>
+          <span>{tx("ui.tokensPage.nonRefundable", "Non-refundable")}</span>
         </div>
 
       </div>
@@ -215,14 +216,14 @@ export default function TokensPage() {
             className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-victory-lime text-victory-bg font-extrabold text-base disabled:opacity-40 active:scale-[0.99] transition-all"
           >
             {loading ? (
-              <><RefreshCw className="w-5 h-5 animate-spin" /> Opening checkout…</>
+              <><RefreshCw className="w-5 h-5 animate-spin" /> {tx("ui.tokensPage.openingCheckout", "Opening checkout…")}</>
             ) : pkg ? (
-              <><Zap className="w-5 h-5" /> Buy {pkg.tokens.toLocaleString()} tokens — £{pkg.price.toFixed(2)}</>
+              <><Zap className="w-5 h-5" /> {tx("ui.tokensPage.buy", "Buy")} {pkg.tokens.toLocaleString()} {tx("ui.tokensPage.tokens2", "tokens — £")}{pkg.price.toFixed(2)}</>
             ) : null}
           </button>
           {pkg?.savings_pct > 0 && !loading && (
             <p className="text-center text-victory-lime text-xs mt-2 font-medium">
-              {pkg.savings_pct}% cheaper per token than the base rate
+              {pkg.savings_pct}{tx("ui.tokensPage.cheaperPerTokenThan", "% cheaper per token than the base rate")}
             </p>
           )}
         </div>

@@ -6,11 +6,12 @@ import { toast } from "sonner";
 import { ArrowLeft, Scissors, Flame, Share2, Trophy, Radio, Trash2, X, AlertCircle, Dumbbell } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { HighlightShareSheet } from "@/components/HighlightShareSheet";
+import { tx } from "@/i18n/tx";
 
 const PENDING = ["clipping", "processing"];
 const SORTS = [
-  { value: "recent", label: "Recent" },
-  { value: "top",    label: "Biggest pops" },
+  { value: "recent", get label() { return tx("ui.highlightsPage.recent", "Recent"); } },
+  { value: "top",    get label() { return tx("ui.highlightsPage.biggestPops", "Biggest pops"); } },
 ];
 
 function timeAgo(iso) {
@@ -45,24 +46,24 @@ function HighlightCard({ hl, isBest, onOpen, onDelete }) {
       <div className="absolute top-2 left-2 right-1 flex items-start justify-between gap-1">
         {isBest ? (
           <span className="flex items-center gap-1 bg-victory-lime text-victory-bg text-[10px] font-heading font-extrabold px-2 py-0.5 rounded-full">
-            <Trophy className="w-3 h-3" /> BEST
+            <Trophy className="w-3 h-3" /> {tx("ui.highlightsPage.best", "BEST")}
           </span>
         ) : hl.source === "auto" ? (
           <span className="flex items-center gap-1 bg-victory-bg/80 text-victory-lime text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-lime/30">
-            <Flame className="w-3 h-3" /> AUTO
+            <Flame className="w-3 h-3" /> {tx("ui.highlightsPage.auto", "AUTO")}
           </span>
         ) : hl.source === "training" ? (
           <span className="flex items-center gap-1 bg-victory-bg/80 text-victory-teal text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-teal/30">
-            <Dumbbell className="w-3 h-3" /> ROUND
+            <Dumbbell className="w-3 h-3" /> {tx("ui.highlightsPage.round", "ROUND")}
           </span>
         ) : (
           <span className="flex items-center gap-1 bg-victory-bg/80 text-victory-muted text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-border">
-            <Scissors className="w-3 h-3" /> CLIP
+            <Scissors className="w-3 h-3" /> {tx("ui.highlightsPage.clip", "CLIP")}
           </span>
         )}
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(hl); }}
-          aria-label="Delete highlight"
+          aria-label={tx("ui.highlightsPage.deleteHighlight", "Delete highlight")}
           className="w-11 h-11 -mt-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger"
         >
           <Trash2 className="w-4 h-4" />
@@ -72,28 +73,28 @@ function HighlightCard({ hl, isBest, onOpen, onDelete }) {
       {pending && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-3 text-center">
           <Scissors className="w-6 h-6 text-victory-lime animate-bounce-slow" />
-          <p className="text-victory-text text-xs font-heading font-bold">Rendering…</p>
+          <p className="text-victory-text text-xs font-heading font-bold">{tx("ui.highlightsPage.rendering", "Rendering…")}</p>
         </div>
       )}
       {failed && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-3 text-center">
           <AlertCircle className="w-6 h-6 text-victory-danger" />
-          <p className="text-victory-text text-xs font-heading font-bold">Tap to retry</p>
+          <p className="text-victory-text text-xs font-heading font-bold">{tx("ui.highlightsPage.tapToRetry", "Tap to retry")}</p>
         </div>
       )}
 
       <div className="absolute bottom-0 left-0 right-0 p-2.5">
         {hl.source === "training" && hl.round_score != null && (
           <p className="font-mono font-bold text-lg text-victory-lime leading-none">
-            {Number(hl.round_score).toFixed(1)}<span className="text-victory-muted text-[10px] font-body font-medium ml-1">AI score</span>
+            {Number(hl.round_score).toFixed(1)}<span className="text-victory-muted text-[10px] font-body font-medium ml-1">{tx("ui.highlightsPage.aiScore", "AI score")}</span>
           </p>
         )}
         {hl.peak_reactions > 0 && (
           <p className="font-mono font-bold text-lg text-victory-lime leading-none">
-            {hl.peak_reactions}<span className="text-victory-muted text-[10px] font-body font-medium ml-1">reactions</span>
+            {hl.peak_reactions}<span className="text-victory-muted text-[10px] font-body font-medium ml-1">{tx("ui.highlightsPage.reactions", "reactions")}</span>
           </p>
         )}
-        <p className="text-victory-text text-xs font-semibold truncate mt-1">{hl.stream_title || "Stream"}</p>
+        <p className="text-victory-text text-xs font-semibold truncate mt-1">{hl.stream_title || tx("ui.highlightsPage.stream", "Stream")}</p>
         <div className="flex items-center justify-between text-victory-muted text-[10px] mt-0.5">
           <span>{timeAgo(hl.created_at)}</span>
           {hl.share_count > 0 && (
@@ -125,7 +126,7 @@ export default function HighlightsPage() {
       setItems(res.data.highlights || []);
       setStats(res.data.stats || null);
     } catch {
-      toast.error("Couldn't load your highlights");
+      toast.error(tx("ui.highlightsPage.couldnTLoadYour", "Couldn't load your highlights"));
     } finally {
       setLoading(false);
     }
@@ -162,16 +163,16 @@ export default function HighlightsPage() {
   )?.highlight_id;
 
   const handleDelete = (hl) => {
-    toast("Delete this highlight?", {
-      description: "It'll be removed from Victory AI. Copies you already shared stay where you posted them.",
+    toast(tx("ui.highlightsPage.deleteThisHighlight", "Delete this highlight?"), {
+      description: tx("ui.highlightsPage.itLlBeRemoved", "It'll be removed from Victory AI. Copies you already shared stay where you posted them."),
       action: {
-        label: "Delete",
+        label: tx("ui.highlightsPage.delete", "Delete"),
         onClick: async () => {
           try {
             await axios.delete(`${API}/highlights/${hl.highlight_id}`);
             setItems((xs) => xs.filter((x) => x.highlight_id !== hl.highlight_id));
           } catch {
-            toast.error("Couldn't delete — try again");
+            toast.error(tx("ui.highlightsPage.couldnTDeleteTry", "Couldn't delete — try again"));
           }
         },
       },
@@ -186,12 +187,12 @@ export default function HighlightsPage() {
     <div className="min-h-screen bg-victory-bg pb-nav">
       <div className="sticky top-0 z-20 material-header">
         <header className="p-4 flex items-center gap-2 max-w-lg mx-auto">
-          <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 -ml-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={() => navigate(-1)} aria-label={tx("ui.highlightsPage.goBack", "Go back")} className="w-11 h-11 -ml-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-heading font-extrabold text-victory-text">Highlights</h1>
-            <p className="text-victory-muted text-sm">Your biggest moments, clipped when your chat went wild</p>
+            <h1 className="text-xl font-heading font-extrabold text-victory-text">{tx("ui.highlightsPage.highlights", "Highlights")}</h1>
+            <p className="text-victory-muted text-sm">{tx("ui.highlightsPage.yourBiggestMomentsClipped", "Your biggest moments, clipped when your chat went wild")}</p>
           </div>
         </header>
         <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar max-w-lg mx-auto">
@@ -206,7 +207,7 @@ export default function HighlightsPage() {
           ))}
           {streamFilter && (
             <button onClick={() => setParams({})} className="filter-pill filter-pill-inactive flex items-center gap-1">
-              Last stream <X className="w-3 h-3" />
+              {tx("ui.highlightsPage.lastStream", "Last stream")} <X className="w-3 h-3" />
             </button>
           )}
         </div>
@@ -217,15 +218,15 @@ export default function HighlightsPage() {
           <div className="grid grid-cols-3 gap-2">
             <div className="stat-pill">
               <span className="font-mono font-bold text-xl text-victory-lime">{stats.total}</span>
-              <span className="text-victory-muted text-xs mt-1">Highlights</span>
+              <span className="text-victory-muted text-xs mt-1">{tx("ui.highlightsPage.highlights", "Highlights")}</span>
             </div>
             <div className="stat-pill">
               <span className="font-mono font-bold text-xl text-victory-lime">{stats.best_reactions}</span>
-              <span className="text-victory-muted text-xs mt-1">Biggest pop</span>
+              <span className="text-victory-muted text-xs mt-1">{tx("ui.highlightsPage.biggestPop", "Biggest pop")}</span>
             </div>
             <div className="stat-pill">
               <span className="font-mono font-bold text-xl text-victory-lime">{stats.total_shares}</span>
-              <span className="text-victory-muted text-xs mt-1">Shares</span>
+              <span className="text-victory-muted text-xs mt-1">{tx("ui.highlightsPage.shares", "Shares")}</span>
             </div>
           </div>
         )}
@@ -241,12 +242,12 @@ export default function HighlightsPage() {
             <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
               <Scissors className="w-8 h-8 text-victory-lime/60" />
             </div>
-            <p className="text-victory-text font-bold text-lg mb-1">No highlights yet</p>
+            <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.highlightsPage.noHighlightsYet", "No highlights yet")}</p>
             <p className="text-victory-muted text-sm">
-              Go live. When your viewers smash the hype button at the same moment, we clip it and watermark it for you automatically.
+              {tx("ui.highlightsPage.goLiveWhenYour", "Go live. When your viewers smash the hype button at the same moment, we clip it and watermark it for you automatically.")}
             </p>
             <button onClick={() => navigate("/go-live")} className="mt-4 victory-btn-primary w-auto px-6 flex items-center gap-2">
-              <Radio className="w-4 h-4" /> Go Live
+              <Radio className="w-4 h-4" /> {tx("ui.highlightsPage.goLive", "Go Live")}
             </button>
           </div>
         )}

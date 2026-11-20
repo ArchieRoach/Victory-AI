@@ -1,4 +1,4 @@
-import { GOALS, normaliseGoal, recordInput, recordNumber } from "@/lib/goals";
+import { GOALS, goalLabel, normaliseGoal, recordInput, recordNumber } from "@/lib/goals";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { WEIGHT_CLASS_DATA } from "@/utils/weightClasses";
+import { tx } from "@/i18n/tx";
 
 const RECORD_FIELDS = ["amateur_wins", "amateur_losses", "amateur_draws", "pro_wins", "pro_losses", "pro_draws"];
 
@@ -66,7 +67,7 @@ export default function ProfilePage() {
       });
     } catch {
       setter(!on);
-      toast.error("Couldn't save — try again");
+      toast.error(tx("ui.profilePage.couldnTSaveTry", "Couldn't save — try again"));
     }
   };
   const { mode: pushMode, supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
@@ -127,7 +128,7 @@ export default function ProfilePage() {
       const response = await axios.get(`${API}/users/stats`, { withCredentials: true });
       setStats(response.data);
     } catch {
-      toast.error("Couldn't load your stats");
+      toast.error(tx("ui.profilePage.couldnTLoadYour", "Couldn't load your stats"));
     }
   };
 
@@ -161,7 +162,7 @@ export default function ProfilePage() {
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith("image/")) return;
-    if (file.size > 10 * 1024 * 1024) return toast.error("Image must be under 10 MB");
+    if (file.size > 10 * 1024 * 1024) return toast.error(tx("ui.profilePage.imageMustBeUnder", "Image must be under 10 MB"));
     setUploadingAvatar(true);
     try {
       const sigRes = await axios.get(`${API}/cloudinary/signature?resource_type=image`);
@@ -179,7 +180,7 @@ export default function ProfilePage() {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
       setExtendedForm((prev) => ({ ...prev, avatar_url: up.data.secure_url }));
-      toast.success("Photo updated — tap Save to keep it");
+      toast.success(tx("ui.profilePage.photoUpdatedTapSave", "Photo updated — tap Save to keep it"));
     } catch (err) {
       toast.error(`Photo upload failed: ${err?.response?.data?.error?.message || err.message}`);
     } finally {
@@ -204,7 +205,7 @@ export default function ProfilePage() {
       await withMinDuration(logout());
       navigate("/login", { replace: true });
     } catch {
-      toast.error("Couldn't log out — try again");
+      toast.error(tx("ui.profilePage.couldnTLogOut", "Couldn't log out — try again"));
       setLoggingOut(false);
     }
   };
@@ -265,7 +266,7 @@ export default function ProfilePage() {
           onClick={() => navigate("/home")}
           className="w-10 h-10 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-text touch-target"
           data-testid="back-btn"
-          aria-label="Go back"
+          aria-label={tx("ui.profilePage.goBack", "Go back")}
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -365,7 +366,7 @@ export default function ProfilePage() {
                 <SelectContent className="bg-victory-card border-victory-border">
                   {goalOptions.map((goal) => (
                     <SelectItem key={goal} value={goal} className="text-victory-text hover:bg-victory-card-highlight">
-                      {goal}
+                      {goalLabel(goal)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -475,7 +476,7 @@ export default function ProfilePage() {
             <div className="relative flex-shrink-0">
               <div className="w-20 h-20 rounded-full overflow-hidden bg-victory-lime/10 border-2 border-victory-border flex items-center justify-center">
                 {avatarSrc ? (
-                  <ProgressiveImage src={avatarSrc} alt="Profile" className="w-full h-full" />
+                  <ProgressiveImage src={avatarSrc} alt={tx("ui.profilePage.profile", "Profile")} className="w-full h-full" />
                 ) : (
                   <User className="w-8 h-8 text-victory-lime" />
                 )}
@@ -483,7 +484,7 @@ export default function ProfilePage() {
               <button
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={uploadingAvatar}
-                aria-label="Change photo"
+                aria-label={tx("ui.profilePage.changePhoto", "Change photo")}
                 className="absolute bottom-0 right-0 touch-target rounded-full bg-victory-lime flex items-center justify-center shadow-lg border-2 border-victory-bg"
               >
                 {uploadingAvatar
@@ -548,7 +549,7 @@ export default function ProfilePage() {
 
           {/* Weight unit preference toggle */}
           <div>
-            <label className="victory-label">Weight unit preference</label>
+            <label className="victory-label">{tx("ui.profilePage.weightUnitPreference", "Weight unit preference")}</label>
             <div className="flex gap-2 mt-1">
               {["kg", "lbs"].map((unit) => (
                 <button
@@ -565,7 +566,7 @@ export default function ProfilePage() {
                 </button>
               ))}
               <span className="self-center text-victory-muted text-xs ml-1">
-                Used everywhere weights are shown
+                {tx("ui.profilePage.usedEverywhereWeightsAre", "Used everywhere weights are shown")}
               </span>
             </div>
           </div>
@@ -628,7 +629,7 @@ export default function ProfilePage() {
           {/* Pro record — unlocks at 3–5 years+ */}
           {showProRecord && (
             <div>
-              <p className="victory-label mb-2">Pro Record</p>
+              <p className="victory-label mb-2">{tx("ui.profilePage.proRecord", "Pro Record")}</p>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { field: "pro_wins",   label: "Wins" },
@@ -653,14 +654,14 @@ export default function ProfilePage() {
           {/* Titles & Achievements — unlocks at 1–3 years+ or if they already have titles */}
           {showTitles && (
             <div>
-              <p className="victory-label mb-1">Titles & Achievements</p>
-              <p className="text-xs text-victory-muted mb-2">e.g. WBC Youth, WBO #3, 3× National Amateur Champion</p>
+              <p className="victory-label mb-1">{tx("ui.profilePage.titlesAchievements", "Titles & Achievements")}</p>
+              <p className="text-xs text-victory-muted mb-2">{tx("ui.profilePage.eGWbcYouth", "e.g. WBC Youth, WBO #3, 3× National Amateur Champion")}</p>
               {extendedForm.titles.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {extendedForm.titles.map((title, i) => (
                     <span key={i} className="flex items-center gap-1.5 bg-victory-lime/15 border border-victory-lime/30 text-victory-lime text-xs font-medium px-3 py-1 rounded-full">
                       {title}
-                      <button onClick={() => removeTitle(i)} className="p-2 -m-1 hover:text-red-400 transition-colors rounded-full" aria-label="Remove title">
+                      <button onClick={() => removeTitle(i)} className="p-2 -m-1 hover:text-red-400 transition-colors rounded-full" aria-label={tx("ui.profilePage.removeTitle", "Remove title")}>
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -673,7 +674,7 @@ export default function ProfilePage() {
                   onChange={(e) => setTitleInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addTitle()}
                   className="victory-input flex-1 text-sm"
-                  placeholder="Add a title or achievement..."
+                  placeholder={tx("ui.profilePage.addATitleOr", "Add a title or achievement...")}
                   maxLength={60}
                 />
                 <button
@@ -681,7 +682,7 @@ export default function ProfilePage() {
                   disabled={!titleInput.trim()}
                   className="touch-target px-4 flex items-center justify-center rounded-xl border border-victory-lime text-victory-lime text-sm font-semibold disabled:opacity-40 whitespace-nowrap"
                 >
-                  Add
+                  {tx("ui.profilePage.add", "Add")}
                 </button>
               </div>
             </div>
@@ -711,13 +712,13 @@ export default function ProfilePage() {
         {user?.user_id && <ThenVsNow />}
         {user?.user_id && (
           <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={() => navigate("/fight-story")} data-testid="fight-story-link">
-            Your Fight Story: everything you've built, yours to keep
+            {tx("ui.profilePage.yourFightStoryEverything", "Your Fight Story: everything you've built, yours to keep")}
           </button>
         )}
         {user?.user_id && (
           <div className="grid grid-cols-2 gap-2">
-            <button className="victory-btn-ghost text-sm min-h-[48px]" onClick={() => navigate("/pro/dashboard")} data-testid="pro-dashboard-link">Pro boxer? Fighter Card</button>
-            <button className="victory-btn-ghost text-sm min-h-[48px]" onClick={() => navigate("/orders")}>Your orders</button>
+            <button className="victory-btn-ghost text-sm min-h-[48px]" onClick={() => navigate("/pro/dashboard")} data-testid="pro-dashboard-link">{tx("ui.profilePage.proBoxerFighterCard", "Pro boxer? Fighter Card")}</button>
+            <button className="victory-btn-ghost text-sm min-h-[48px]" onClick={() => navigate("/orders")}>{tx("ui.profilePage.yourOrders", "Your orders")}</button>
           </div>
         )}
         {user?.user_id && <TrophyShelf userId={user.user_id} isMe />}
@@ -728,15 +729,15 @@ export default function ProfilePage() {
           <section className="victory-card p-4">
             <div className="flex items-center gap-2 mb-4">
               <Trophy className="w-5 h-5 text-victory-lime" />
-              <h2 className="font-heading font-bold text-victory-text">Belts &amp; Titles</h2>
+              <h2 className="font-heading font-bold text-victory-text">{tx("ui.profilePage.beltsTitles", "Belts & Titles")}</h2>
               <span className="ml-auto text-victory-muted text-xs">
-                {beltCatalogue.filter(b => b.earned).length}/{beltCatalogue.length} earned
+                {beltCatalogue.filter(b => b.earned).length}/{beltCatalogue.length} {tx("ui.profilePage.earned", "earned")}
               </span>
             </div>
             {/* Earned belts */}
             {beltCatalogue.some(b => b.earned) && (
               <div className="mb-4">
-                <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">Earned</p>
+                <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">{tx("ui.profilePage.earned2", "Earned")}</p>
                 <div className="flex flex-wrap gap-2">
                   {beltCatalogue.filter(b => b.earned).map(belt => (
                     <div key={belt.belt_id} title={belt.desc} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
@@ -755,7 +756,7 @@ export default function ProfilePage() {
             )}
             {/* In-progress belts */}
             <div>
-              <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">In Progress</p>
+              <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">{tx("ui.profilePage.inProgress", "In Progress")}</p>
               <div className="space-y-2">
                 {beltCatalogue.filter(b => !b.earned && b.progress).slice(0, 4).map(belt => (
                   <div key={belt.belt_id} className="flex items-center gap-3 p-2 rounded-xl bg-victory-bg/60 border border-victory-border/40">
@@ -813,9 +814,9 @@ export default function ProfilePage() {
                   ? <Bell className="w-4 h-4 text-victory-lime flex-shrink-0" />
                   : <BellOff className="w-4 h-4 text-victory-muted flex-shrink-0" />}
                 <div>
-                  <p className="text-victory-text text-sm">Push notifications</p>
+                  <p className="text-victory-text text-sm">{tx("ui.profilePage.pushNotifications", "Push notifications")}</p>
                   <p className="text-victory-muted text-xs">
-                    {pushSubscribed ? 'Tips, likes, streams & more' : 'Get notified on this device'}
+                    {pushSubscribed ? tx("ui.profilePage.tipsLikesStreamsMore", "Tips, likes, streams & more") : tx("ui.profilePage.getNotifiedOnThis", "Get notified on this device")}
                   </p>
                 </div>
               </div>
@@ -825,7 +826,7 @@ export default function ProfilePage() {
                 onCheckedChange={async (on) => {
                   if (on) {
                     if (await pushSubscribe() === 'denied') {
-                      toast.error('Notifications are blocked — turn them on in Settings.');
+                      toast.error(tx("ui.profilePage.notificationsAreBlockedTurn", "Notifications are blocked — turn them on in Settings."));
                     }
                   } else {
                     await pushUnsubscribe();
@@ -836,8 +837,8 @@ export default function ProfilePage() {
           )}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-victory-border">
             <div>
-              <p className="text-victory-text text-sm">Squad reactions</p>
-              <p className="text-victory-muted text-xs">"3 people reacted to your round" and verdict requests</p>
+              <p className="text-victory-text text-sm">{tx("ui.profilePage.squadReactions", "Squad reactions")}</p>
+              <p className="text-victory-muted text-xs">{tx("ui.profilePage.s3PeopleReactedTo", "\"3 people reacted to your round\" and verdict requests")}</p>
             </div>
             <Switch
               checked={teasers}
@@ -848,7 +849,7 @@ export default function ProfilePage() {
           </div>
           {pushPermission === 'denied' && (
             <p className="text-victory-muted text-xs mt-3 pt-3 border-t border-victory-border">
-              Push notifications are blocked in your browser settings.
+              {tx("ui.profilePage.pushNotificationsAreBlocked", "Push notifications are blocked in your browser settings.")}
             </p>
           )}
         </section>
@@ -867,7 +868,7 @@ export default function ProfilePage() {
             data-testid="billing-link"
           >
             <CreditCard className="w-5 h-5" />
-            Subscription
+            {tx("ui.profilePage.subscription", "Subscription")}
           </button>
         )}
 
@@ -877,7 +878,7 @@ export default function ProfilePage() {
             className="victory-btn-ghost w-full flex items-center justify-center gap-2 border-victory-lime/30 text-victory-lime hover:bg-victory-lime/10"
           >
             <Zap className="w-5 h-5" />
-            Buy Tokens
+            {tx("ui.profilePage.buyTokens", "Buy Tokens")}
           </button>
         )}
 
@@ -906,7 +907,7 @@ export default function ProfilePage() {
           className="victory-btn-ghost w-full flex items-center justify-center gap-2"
         >
           <CalendarDays className="w-5 h-5" />
-          My boxing: record, fights &amp; camp
+          {tx("ui.profilePage.myBoxingRecordFights", "My boxing: record, fights & camp")}
         </button>
 
         {/* Streamer tools */}
@@ -915,14 +916,14 @@ export default function ProfilePage() {
           className="victory-btn-ghost w-full flex items-center justify-center gap-2"
         >
           <TrendingUp className="w-5 h-5" />
-          Streamer Dashboard
+          {tx("ui.profilePage.streamerDashboard", "Streamer Dashboard")}
         </button>
         <button
           onClick={() => navigate("/emotes")}
           className="victory-btn-ghost w-full flex items-center justify-center gap-2"
         >
           <Swords className="w-5 h-5" />
-          Emote Studio
+          {tx("ui.profilePage.emoteStudio", "Emote Studio")}
         </button>
 
         {/* Blocked Accounts — the only way to undo a block from the UI, since a blocked
@@ -932,7 +933,7 @@ export default function ProfilePage() {
           className="victory-btn-ghost w-full flex items-center justify-center gap-2"
         >
           <Ban className="w-5 h-5" />
-          Blocked Accounts
+          {tx("ui.profilePage.blockedAccounts", "Blocked Accounts")}
         </button>
 
         {/* Sign Out — kept visually neutral, reversible in one tap. Danger styling

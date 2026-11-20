@@ -1,5 +1,6 @@
 import { Component } from "react";
 import { reportCrash } from "@/utils/crashReporter";
+import { tx } from "@/i18n/tx";
 
 // Catches render-time crashes anywhere below it — including a provider throwing during
 // its own first render (this app has hit exactly that: ClerkProvider crashing on a
@@ -33,9 +34,9 @@ export class ErrorBoundary extends Component {
         alignItems: "center", justifyContent: "center", gap: 16, padding: 24,
         background: "rgb(var(--victory-bg))", color: "rgb(var(--victory-text))", textAlign: "center", fontFamily: "sans-serif",
       }}>
-        <p style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Something went wrong.</p>
+        <p style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{tx("ui.errorBoundary.somethingWentWrong", "Something went wrong.")}</p>
         <p style={{ fontSize: 14, color: "rgb(var(--victory-muted))", margin: 0, maxWidth: 320 }}>
-          We've been notified. Reloading usually fixes it.
+          {tx("ui.errorBoundary.weVeBeenNotified", "We've been notified. Reloading usually fixes it.")}
         </p>
         <button
           onClick={() => window.location.reload()}
@@ -44,7 +45,7 @@ export class ErrorBoundary extends Component {
             background: "rgb(var(--victory-lime))", color: "rgb(var(--victory-bg))", fontWeight: 700, fontSize: 14, cursor: "pointer",
           }}
         >
-          Reload
+          {tx("ui.errorBoundary.reload", "Reload")}
         </button>
       </div>
     );

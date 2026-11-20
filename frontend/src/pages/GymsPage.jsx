@@ -8,6 +8,7 @@ import { Building2, Plus, Users, Star, Lock, ChevronRight, X, MapPin } from "luc
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
 import { isNativeShell } from "@/lib/nativeShell";
+import { tx } from "@/i18n/tx";
 
 const GYM_DEFAULT_CAP = 50;
 
@@ -47,7 +48,7 @@ function CreateGymModal({ onClose, onCreated, defaultCity }) {
       <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-heading font-bold text-victory-text">{t("gyms.createTitle")}</h2>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={onClose} aria-label={tx("ui.gymsPage.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -132,7 +133,7 @@ function JoinByCodeModal({ onClose, onJoined }) {
       <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-heading font-bold text-victory-text">{t("gyms.joinByCode")}</h2>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={onClose} aria-label={tx("ui.gymsPage.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -140,7 +141,7 @@ function JoinByCodeModal({ onClose, onJoined }) {
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           className="victory-input font-mono text-center tracking-widest text-xl uppercase"
-          placeholder="XXXXXXXX"
+          placeholder={tx("ui.gymsPage.xxxxxxxx", "XXXXXXXX")}
           maxLength={8}
         />
         <button onClick={submit} disabled={loading || !code.trim()} className="victory-btn-primary w-full">

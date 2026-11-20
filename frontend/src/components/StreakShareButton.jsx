@@ -5,6 +5,7 @@ import { useAuth } from "@/App";
 import { analytics } from "@/lib/analytics";
 import { streakCardContent } from "@/lib/streakCard";
 import { dark } from "@/theme/theme";
+import { tx } from "@/i18n/tx";
 
 const W = 1080, H = 1920;
 
@@ -92,7 +93,7 @@ export function StreakShareButton({ streak, squadName }) {
       }
       analytics.capture("streak_card_shared", { via, weeks: streak.current });
     } catch {
-      toast.error("Couldn't make your card. Try again.");
+      toast.error(tx("ui.streakShareButton.couldnTMakeYour", "Couldn't make your card. Try again."));
     }
     setBusy(false);
   };
@@ -100,7 +101,7 @@ export function StreakShareButton({ streak, squadName }) {
   return (
     <button onClick={share} disabled={busy} data-testid="streak-share"
       className="text-[12px] text-victory-lime min-h-[44px] px-2 -mr-2 flex items-center gap-1 disabled:opacity-50">
-      <Share2 className="w-3.5 h-3.5" /> {busy ? "Making it…" : "Share"}
+      <Share2 className="w-3.5 h-3.5" /> {busy ? tx("ui.streakShareButton.makingIt", "Making it…") : tx("ui.streakShareButton.share", "Share")}
     </button>
   );
 }

@@ -8,6 +8,7 @@ import { Swords, Plus, Clock, CheckCircle, Star, Lock, ChevronRight } from "luci
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { isNativeShell } from "@/lib/nativeShell";
+import { tx } from "@/i18n/tx";
 
 function CompetitionCard({ comp, onClick }) {
   const { t } = useTranslation();
@@ -39,7 +40,7 @@ function CompetitionCard({ comp, onClick }) {
         <div className="flex items-center gap-2 mb-0.5">
           <p className="font-semibold text-victory-text truncate">{comp.title}</p>
           {isAI && (
-            <span className="text-xs bg-victory-lime/20 text-victory-lime px-1.5 py-0.5 rounded-full flex-shrink-0">AI</span>
+            <span className="text-xs bg-victory-lime/20 text-victory-lime px-1.5 py-0.5 rounded-full flex-shrink-0">{tx("ui.competitionsPage.ai", "AI")}</span>
           )}
         </div>
         <p className="text-victory-muted text-xs truncate">{challenger}</p>
@@ -111,7 +112,7 @@ export default function CompetitionsPage() {
           <button
             onClick={() => navigate("/post/create?mode=compete")}
             className="w-11 h-11 rounded-full bg-victory-lime flex items-center justify-center touch-target"
-            aria-label="Create competition"
+            aria-label={tx("ui.competitionsPage.createCompetition", "Create competition")}
             data-testid="create-comp-btn"
           >
             <Plus className="w-5 h-5 text-victory-bg" />
@@ -165,7 +166,7 @@ export default function CompetitionsPage() {
             {!isNativeShell() && (
               <button onClick={() => navigate("/paywall")} className="flex items-center gap-1 touch-target text-xs text-victory-lime border border-victory-lime/40 rounded-full px-3 flex-shrink-0">
                 <Lock className="w-3 h-3" />
-                Pro
+                {tx("ui.competitionsPage.pro", "Pro")}
               </button>
             )}
           </div>

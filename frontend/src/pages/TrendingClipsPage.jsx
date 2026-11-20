@@ -8,6 +8,7 @@ import { ShareSheet } from "@/components/ShareSheet";
 import { ProgressiveImage } from "@/components/ProgressiveImage";
 import { toast } from "sonner";
 import { Flame, Heart, Share2, MessageCircle, Play, ArrowLeft } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 function timeAgo(str) {
   try { return formatDistanceToNow(new Date(str), { addSuffix: true }); }
@@ -15,9 +16,9 @@ function timeAgo(str) {
 }
 
 const PERIODS = [
-  { value: "24h", label: "Hot 🔥" },
-  { value: "7d",  label: "Rising" },
-  { value: "all", label: "All Time" },
+  { value: "24h", get label() { return tx("ui.trendingClipsPage.hot", "Hot 🔥"); } },
+  { value: "7d",  get label() { return tx("ui.trendingClipsPage.rising", "Rising"); } },
+  { value: "all", get label() { return tx("ui.trendingClipsPage.allTime", "All Time"); } },
 ];
 
 function ClipCard({ clip, onLike, onShare }) {
@@ -63,7 +64,7 @@ function ClipCard({ clip, onLike, onShare }) {
 
         {clip.is_viral && (
           <span className="flex items-center gap-1 bg-victory-orange/20 text-victory-orange text-[10px] font-bold px-2 py-0.5 rounded-full border border-victory-orange/30 flex-shrink-0">
-            <Flame className="w-3 h-3" /> VIRAL
+            <Flame className="w-3 h-3" /> {tx("ui.trendingClipsPage.viral", "VIRAL")}
           </span>
         )}
       </div>
@@ -78,7 +79,7 @@ function ClipCard({ clip, onLike, onShare }) {
         <div className={`relative bg-black ${clip.share_video_url ? "aspect-[9/16] max-h-[70vh] mx-auto" : "aspect-video"}`}>
           {clip.is_highlight && clip.peak_reactions > 0 && (
             <span className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-victory-bg/80 text-victory-lime text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-lime/30">
-              <Flame className="w-3 h-3" /> {clip.peak_reactions} REACTIONS AT ONCE
+              <Flame className="w-3 h-3" /> {clip.peak_reactions} {tx("ui.trendingClipsPage.reactionsAtOnce", "REACTIONS AT ONCE")}
             </span>
           )}
           <video
@@ -94,7 +95,7 @@ function ClipCard({ clip, onLike, onShare }) {
           {!playing && (
             <button
               onClick={togglePlay}
-              aria-label="Play video"
+              aria-label={tx("ui.trendingClipsPage.playVideo", "Play video")}
               className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/20 transition-colors"
             >
               <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -103,7 +104,7 @@ function ClipCard({ clip, onLike, onShare }) {
             </button>
           )}
           {playing && (
-            <button onClick={togglePlay} aria-label="Pause video" className="absolute inset-0" />
+            <button onClick={togglePlay} aria-label={tx("ui.trendingClipsPage.pauseVideo", "Pause video")} className="absolute inset-0" />
           )}
         </div>
       ) : clip.thumbnail_url ? (
@@ -115,7 +116,7 @@ function ClipCard({ clip, onLike, onShare }) {
       {/* Stream source tag */}
       {clip.stream_title && (
         <p className="px-4 pt-2 text-victory-muted text-xs">
-          From stream: <span className="text-victory-text">{clip.stream_title}</span>
+          {tx("ui.trendingClipsPage.fromStream", "From stream:")} <span className="text-victory-text">{clip.stream_title}</span>
         </p>
       )}
 
@@ -216,7 +217,7 @@ export default function TrendingClipsPage() {
     } catch {
       setClips((prev) => prev.map(toggle)); // revert the optimistic flip
       setFeatured((f) => (f && f.post_id === pid ? toggle(f) : f));
-      toast.error("Couldn't update like — try again.");
+      toast.error(tx("ui.trendingClipsPage.couldnTUpdateLike", "Couldn't update like — try again."));
     } finally {
       likingRef.current.delete(pid);
     }
@@ -243,12 +244,12 @@ export default function TrendingClipsPage() {
       {/* Header */}
       <header className="sticky top-0 z-20 material-header">
         <div className="flex items-center gap-3 px-4 py-3">
-          <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={() => navigate(-1)} aria-label={tx("ui.trendingClipsPage.goBack", "Go back")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 flex-1">
             <Flame className="w-5 h-5 text-victory-orange" />
-            <h1 className="text-lg font-heading font-extrabold text-victory-text">Trending Clips</h1>
+            <h1 className="text-lg font-heading font-extrabold text-victory-text">{tx("ui.trendingClipsPage.trendingClips", "Trending Clips")}</h1>
           </div>
         </div>
 
@@ -274,7 +275,7 @@ export default function TrendingClipsPage() {
       <main>
         {featured && (
           <div className="mb-1">
-            <p className="px-4 py-2 text-xs font-semibold text-victory-orange uppercase tracking-wide">Shared clip</p>
+            <p className="px-4 py-2 text-xs font-semibold text-victory-orange uppercase tracking-wide">{tx("ui.trendingClipsPage.sharedClip", "Shared clip")}</p>
             <ClipCard clip={featured} onLike={handleLike} onShare={setShareTarget} />
           </div>
         )}
@@ -297,11 +298,11 @@ export default function TrendingClipsPage() {
         ) : clips.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-8 text-center gap-4">
             <Flame className="w-12 h-12 text-victory-orange/30" />
-            <p className="text-victory-text font-bold">No clips yet</p>
+            <p className="text-victory-text font-bold">{tx("ui.trendingClipsPage.noClipsYet", "No clips yet")}</p>
             <p className="text-victory-muted text-sm">
               {period === "24h"
-                ? "No clips in the last 24 hours. Check Rising or All Time."
-                : "Be the first to clip a live stream!"}
+                ? tx("ui.trendingClipsPage.noClipsInThe", "No clips in the last 24 hours. Check Rising or All Time.")
+                : tx("ui.trendingClipsPage.beTheFirstTo", "Be the first to clip a live stream!")}
             </p>
           </div>
         ) : (
@@ -320,7 +321,7 @@ export default function TrendingClipsPage() {
                 disabled={loading}
                 className="w-full py-4 text-victory-muted text-sm hover:text-victory-text transition-colors border-t border-victory-border disabled:opacity-50"
               >
-                {loading ? "Loading…" : "Load more clips"}
+                {loading ? tx("ui.trendingClipsPage.loading", "Loading…") : tx("ui.trendingClipsPage.loadMoreClips", "Load more clips")}
               </button>
             )}
           </>

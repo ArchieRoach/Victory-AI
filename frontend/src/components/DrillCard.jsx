@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { API } from "@/App";
 import { ExternalLink } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 export const DrillCard = ({ dimension, score, id }) => {
   const [drill, setDrill] = useState(null);
@@ -37,7 +38,7 @@ export const DrillCard = ({ dimension, score, id }) => {
 
   if (error) return (
     <div className="victory-card p-4 text-center" data-testid={`drill-card-${dimension}-error`}>
-      <p className="text-victory-muted text-sm">Couldn't load this drill.</p>
+      <p className="text-victory-muted text-sm">{tx("ui.drillCard.couldnTLoadThis", "Couldn't load this drill.")}</p>
     </div>
   );
 
@@ -82,7 +83,7 @@ export const DrillCard = ({ dimension, score, id }) => {
         data-testid={`watch-drill-${dimension}`}
       >
         <ExternalLink className="w-4 h-4" />
-        Watch Drill
+        {tx("ui.drillCard.watchDrill", "Watch Drill")}
       </a>
     </div>
   );

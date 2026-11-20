@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { usePalette } from "@/hooks/useColorScheme";
 import { SIGNIN_ERROR_KEY } from "@/App";
+import { tx } from "@/i18n/tx";
 
 function takeSignInError() {
   try {
@@ -22,8 +23,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <img src="/victory-logo.png" alt="Victory AI" className="w-40 h-40 mx-auto mb-4 object-contain" />
-          <h1 className="text-3xl font-heading font-extrabold text-victory-text">Victory AI</h1>
+          <img src="/victory-logo.png" alt={tx("ui.loginPage.victoryAi", "Victory AI")} className="w-40 h-40 mx-auto mb-4 object-contain" />
+          <h1 className="text-3xl font-heading font-extrabold text-victory-text">{tx("ui.loginPage.victoryAi", "Victory AI")}</h1>
           <p className="text-victory-muted mt-2">{t("login.subtitle")}</p>
           {errorCode && (
             <p role="alert" data-testid="signin-error" className="text-victory-text mt-4">

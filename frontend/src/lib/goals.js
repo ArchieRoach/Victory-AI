@@ -1,3 +1,5 @@
+import { tx } from "@/i18n/tx";
+
 // Goal: people pick a goal in seconds and feel it fits them.
 // Psychology: choice overload. Seventeen options, many about fame or world titles, made the
 //   choice harder and told most fighters this app isn't for them. A short list everyone
@@ -26,6 +28,9 @@ const OLD_TO_NEW = {
   "Earn a title shot": "Compete in fights",
   "Win a world title": "Compete in fights",
 };
+
+// Goals are saved in English (they're data); this is only how one is shown.
+export const goalLabel = (goal) => tx(`lib.goals.${String(goal).replace(/\W+/g, "_")}`, goal);
 
 export function normaliseGoal(goal) {
   if (GOALS.includes(goal)) return goal;

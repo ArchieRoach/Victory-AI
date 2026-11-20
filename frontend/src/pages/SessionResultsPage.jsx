@@ -16,15 +16,16 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { usePalette } from "@/hooks/useColorScheme";
 import { dark as SHARE_CARD } from "@/theme/theme";
+import { tx } from "@/i18n/tx";
 
 // Real grouping already used server-side (see /dimensions) — reused here so the
 // scorecard's categories match the rest of the app, not an invented split.
 // `tone` indexes the active palette (usePalette) for on-screen UI; the shared
 // PNG scorecard is always rendered in the dark brand palette (SHARE_CARD).
 const CATEGORY_GROUPS = [
-  { key: "Offensive", label: "Offense",  icon: Swords,     tone: "lime",   dims: ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow", "Punch Balance", "Punch Accuracy"] },
-  { key: "Defensive", label: "Defense",  icon: Shield,     tone: "teal",   dims: ["Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement"] },
-  { key: "Movement",  label: "Movement", icon: Footprints, tone: "orange", dims: ["Footwork", "Ring Generalship"] },
+  { key: "Offensive", get label() { return tx("ui.sessionResultsPage.offense", "Offense"); },  icon: Swords,     tone: "lime",   dims: ["Jab", "Cross", "Left Hook", "Right Hook", "Uppercut", "Combination Flow", "Punch Balance", "Punch Accuracy"] },
+  { key: "Defensive", get label() { return tx("ui.sessionResultsPage.defense", "Defense"); },  icon: Shield,     tone: "teal",   dims: ["Guard Position", "Head Movement", "Slip", "Roll", "Parry", "Body Movement"] },
+  { key: "Movement",  get label() { return tx("ui.sessionResultsPage.movement", "Movement"); }, icon: Footprints, tone: "orange", dims: ["Footwork", "Ring Generalship"] },
 ];
 
 const POSITIVE_HIGHLIGHTS = {
@@ -356,7 +357,7 @@ export default function SessionResultsPage() {
     link.download = "victory-scorecard.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
-    toast.success("Scorecard saved!");
+    toast.success(tx("ui.sessionResultsPage.scorecardSaved", "Scorecard saved!"));
   };
 
   if (!session) return null;
@@ -390,7 +391,7 @@ export default function SessionResultsPage() {
               <p className={`font-heading font-extrabold text-4xl leading-none ${isScored ? "text-victory-lime" : "text-victory-muted"}`}>
                 {isScored ? session.overall_score.toFixed(1) : "—"}
               </p>
-              <p className="text-victory-muted text-[10px] text-center font-mono">{isScored ? "/10" : "logged"}</p>
+              <p className="text-victory-muted text-[10px] text-center font-mono">{isScored ? "/10" : tx("ui.sessionResultsPage.logged", "logged")}</p>
             </div>
           </div>
           {isFirstSession ? (
@@ -506,11 +507,11 @@ export default function SessionResultsPage() {
           </button>
           {showBreakdown && !session.dimension_scores?.some((d) => d.score !== null) && (
             <div className="victory-card p-4" data-testid="breakdown-empty">
-              <p className="text-victory-text text-sm font-semibold">No scores for this session</p>
+              <p className="text-victory-text text-sm font-semibold">{tx("ui.sessionResultsPage.noScoresForThis", "No scores for this session")}</p>
               <p className="text-victory-muted text-xs mt-1">
                 {session.record_video
-                  ? "Your video didn't get scored this time, so there's nothing honest to show. Your next filmed round will fill this in."
-                  : "The breakdown comes from your round videos. Turn on video next session and the AI scores 16 parts of your boxing."}
+                  ? tx("ui.sessionResultsPage.yourVideoDidnT", "Your video didn't get scored this time, so there's nothing honest to show. Your next filmed round will fill this in.")
+                  : tx("ui.sessionResultsPage.theBreakdownComesFrom", "The breakdown comes from your round videos. Turn on video next session and the AI scores 16 parts of your boxing.")}
               </p>
             </div>
           )}

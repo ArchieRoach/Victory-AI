@@ -26,6 +26,7 @@ import { ToggleRow } from "@/components/ToggleRow";
 import { TimerCard } from "@/components/home/TimerCard";
 import { withCue } from "@/lib/verbalCues";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
+import { tx } from "@/i18n/tx";
 
 const LIVE_COACH_KEY = "victory_live_coach";
 // On unless the fighter switched it off: it runs on the phone and uploads nothing, so it's
@@ -54,9 +55,9 @@ const readCalls = () => { try { return localStorage.getItem(CALLS_KEY) !== "0"; 
 // Round types. Freestyle is Easy Fun (no score, positive cues only); Boss is Hard Fun (one
 // tough round a week). Reasoning and rules: backend/gamification.py.
 const KINDS = [
-  { key: "standard", label: "Normal", icon: Target, desc: "Scored when video is on" },
-  { key: "freestyle", label: "Freestyle", icon: Music, desc: "No score. Just play." },
-  { key: "boss", label: "Boss", icon: Skull, desc: "This week's tough round" },
+  { key: "standard", get label() { return tx("ui.trainPage.normal", "Normal"); }, icon: Target, get desc() { return tx("ui.trainPage.scoredWhenVideoIs", "Scored when video is on"); } },
+  { key: "freestyle", get label() { return tx("ui.trainPage.freestyle", "Freestyle"); }, icon: Music, get desc() { return tx("ui.trainPage.noScoreJustPlay", "No score. Just play."); } },
+  { key: "boss", get label() { return tx("ui.trainPage.boss", "Boss"); }, icon: Skull, get desc() { return tx("ui.trainPage.thisWeekSTough", "This week's tough round"); } },
 ];
 const FREESTYLE_CUES = { combo: "Nice combination", head_move: "Clean" };
 
@@ -69,28 +70,28 @@ const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 // None of these reference a specific time remaining — the real countdown warning is
 // handled separately by showTenSecWarning, driven by the actual timer.
 const HYPE_LINES = [
-  { type: "motivate", text: "Hands UP — you're dropping the right again!" },
-  { type: "joke",     text: "You're sweating like you've seen my jab. Good." },
-  { type: "tip",      text: "Breathe out on each punch — keeps your core tight." },
-  { type: "validate", text: "Stay light on your feet — footwork wins rounds." },
-  { type: "motivate", text: "Stay in your stance, don't lean forward." },
-  { type: "joke",     text: "I've seen slower footwork… on my nan. You're improving though." },
-  { type: "tip",      text: "Double up that jab — don't just poke, commit." },
-  { type: "validate", text: "Trust your shots — don't rush them." },
-  { type: "motivate", text: "Champions don't stop when it hurts — they stop when it's done." },
-  { type: "tip",      text: "Turn your hip on the cross — get the full power transfer." },
-  { type: "joke",     text: "You look tired. Good. That means you're working." },
-  { type: "validate", text: "Keep that head moving — don't be a stationary target." },
-  { type: "motivate", text: "Push the pace — make every second count." },
-  { type: "tip",      text: "Return your hands to guard after every combination." },
-  { type: "validate", text: "Stay balanced through your combinations." },
-  { type: "joke",     text: "My circuits are overheating just watching you. Push harder." },
+  { type: "motivate", get text() { return tx("ui.trainPage.handsUpYouRe", "Hands UP — you're dropping the right again!"); } },
+  { type: "joke",     get text() { return tx("ui.trainPage.youReSweatingLike", "You're sweating like you've seen my jab. Good."); } },
+  { type: "tip",      get text() { return tx("ui.trainPage.breatheOutOnEach", "Breathe out on each punch — keeps your core tight."); } },
+  { type: "validate", get text() { return tx("ui.trainPage.stayLightOnYour", "Stay light on your feet — footwork wins rounds."); } },
+  { type: "motivate", get text() { return tx("ui.trainPage.stayInYourStance", "Stay in your stance, don't lean forward."); } },
+  { type: "joke",     get text() { return tx("ui.trainPage.iVeSeenSlower", "I've seen slower footwork… on my nan. You're improving though."); } },
+  { type: "tip",      get text() { return tx("ui.trainPage.doubleUpThatJab", "Double up that jab — don't just poke, commit."); } },
+  { type: "validate", get text() { return tx("ui.trainPage.trustYourShotsDon", "Trust your shots — don't rush them."); } },
+  { type: "motivate", get text() { return tx("ui.trainPage.championsDonTStop", "Champions don't stop when it hurts — they stop when it's done."); } },
+  { type: "tip",      get text() { return tx("ui.trainPage.turnYourHipOn", "Turn your hip on the cross — get the full power transfer."); } },
+  { type: "joke",     get text() { return tx("ui.trainPage.youLookTiredGood", "You look tired. Good. That means you're working."); } },
+  { type: "validate", get text() { return tx("ui.trainPage.keepThatHeadMoving", "Keep that head moving — don't be a stationary target."); } },
+  { type: "motivate", get text() { return tx("ui.trainPage.pushThePaceMake", "Push the pace — make every second count."); } },
+  { type: "tip",      get text() { return tx("ui.trainPage.returnYourHandsTo", "Return your hands to guard after every combination."); } },
+  { type: "validate", get text() { return tx("ui.trainPage.stayBalancedThroughYour", "Stay balanced through your combinations."); } },
+  { type: "joke",     get text() { return tx("ui.trainPage.myCircuitsAreOverheating", "My circuits are overheating just watching you. Push harder."); } },
 ];
 
 const HYPE_COLORS = {
   motivate: "text-victory-lime",
   joke:     "text-amber-400",
-  tip:      "text-sky-400",
+  get tip() { return tx("ui.trainPage.textSky400", "text-sky-400"); },
   validate: "text-violet-400",
 };
 
@@ -522,7 +523,7 @@ export default function TrainPage() {
     if (filming || watching) {
       const granted = await requestCamera();
       if (granted && filming) startRoundRecording();
-      if (!granted && kind === "boss") toast.error("Boss Rounds need the camera to count. This try won't count.");
+      if (!granted && kind === "boss") toast.error(tx("ui.trainPage.bossRoundsNeedThe", "Boss Rounds need the camera to count. This try won't count."));
     }
     callerRef.current = callsOn && canCall && kind !== "boss"
       ? createComboCaller({ level: startingLevel(user?.experience_level), floor: levelRange(user?.experience_level).floor, gapScale: kind === "freestyle" ? 1.6 : 1, weekly: weeklyCombo?.label || null })
@@ -698,8 +699,8 @@ export default function TrainPage() {
       {finishing && (
         <div className="fixed inset-0 z-50 bg-victory-bg/95 flex flex-col items-center justify-center gap-4 p-6 text-center" data-testid="finishing-session" aria-live="polite">
           <div className="w-10 h-10 rounded-full border-2 border-victory-border border-t-victory-lime animate-spin" />
-          <p className="text-victory-text font-heading font-bold">Scoring your last round</p>
-          <p className="text-victory-muted text-sm max-w-xs">Your video is being checked so your breakdown and scouting report are ready.</p>
+          <p className="text-victory-text font-heading font-bold">{tx("ui.trainPage.scoringYourLastRound", "Scoring your last round")}</p>
+          <p className="text-victory-muted text-sm max-w-xs">{tx("ui.trainPage.yourVideoIsBeing", "Your video is being checked so your breakdown and scouting report are ready.")}</p>
         </div>
       )}
 
@@ -707,19 +708,19 @@ export default function TrainPage() {
         /* ── Config screen ──────────────────────────────────────────────────── */
         <div className="flex-1 flex flex-col justify-center p-6">
           <div className="text-center mb-8">
-            <p className="text-victory-lime text-xs font-bold uppercase tracking-[0.2em] mb-2">Ready to work</p>
+            <p className="text-victory-lime text-xs font-bold uppercase tracking-[0.2em] mb-2">{tx("ui.trainPage.readyToWork", "Ready to work")}</p>
             <h1 className="text-3xl font-heading font-extrabold text-victory-text leading-tight">
               {t("train.title")}
             </h1>
-            <p className="text-victory-muted text-sm mt-2">Set your session, then step into the ring.</p>
+            <p className="text-victory-muted text-sm mt-2">{tx("ui.trainPage.setYourSessionThen", "Set your session, then step into the ring.")}</p>
           </div>
 
           <div className="space-y-6 max-w-md mx-auto w-full">
 
             {quick && kind === "standard" && (
               <div className="victory-card p-4 border-victory-lime/30 bg-victory-lime/5 text-center" data-testid="quick-round">
-                <p className="text-victory-text font-heading font-bold">One round. Three minutes. That's it.</p>
-                <p className="text-victory-muted text-xs mt-1">Small days still count for your week and your partner.</p>
+                <p className="text-victory-text font-heading font-bold">{tx("ui.trainPage.oneRoundThreeMinutes", "One round. Three minutes. That's it.")}</p>
+                <p className="text-victory-muted text-xs mt-1">{tx("ui.trainPage.smallDaysStillCount", "Small days still count for your week and your partner.")}</p>
               </div>
             )}
 
@@ -728,8 +729,8 @@ export default function TrainPage() {
             {canPickKind && (
             <CoachMark id="train_round_types" position="bottom" block>
             <div>
-              <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">Round type</p>
-              <div className={`grid gap-2 ${kindsOpen.length === 3 ? "grid-cols-3" : "grid-cols-2"}`} role="radiogroup" aria-label="Round type">
+              <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">{tx("ui.trainPage.roundType", "Round type")}</p>
+              <div className={`grid gap-2 ${kindsOpen.length === 3 ? "grid-cols-3" : "grid-cols-2"}`} role="radiogroup" aria-label={tx("ui.trainPage.roundType", "Round type")}>
                 {kindsOpen.map(({ key, label, icon: Icon, desc }) => (
                   <button key={key} role="radio" aria-checked={kind === key}
                     onClick={() => {
@@ -754,16 +755,16 @@ export default function TrainPage() {
               <div className="victory-card p-4 flex items-center gap-3" data-testid="weekly-combo">
                 <Swords className="w-5 h-5 text-victory-lime flex-shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-victory-text text-sm font-semibold">This week's combo: <span className="font-mono">{weeklyCombo.label}</span>{weeklyCombo.name ? ` (${weeklyCombo.name})` : ""}</p>
-                  <p className="text-victory-muted text-xs">{canCall && callsOn ? "Your coach calls it every third combo." : "Your partner watches for it in recorded rounds."}</p>
+                  <p className="text-victory-text text-sm font-semibold">{tx("ui.trainPage.thisWeekSCombo", "This week's combo:")} <span className="font-mono">{weeklyCombo.label}</span>{weeklyCombo.name ? ` (${weeklyCombo.name})` : ""}</p>
+                  <p className="text-victory-muted text-xs">{canCall && callsOn ? tx("ui.trainPage.yourCoachCallsIt", "Your coach calls it every third combo.") : tx("ui.trainPage.yourPartnerWatchesFor", "Your partner watches for it in recorded rounds.")}</p>
                 </div>
               </div>
             )}
 
             {kind === "freestyle" && (
               <div className="victory-card p-4" data-testid="freestyle-note">
-                <p className="text-victory-text text-sm font-semibold">Put your own music on and move.</p>
-                <p className="text-victory-muted text-xs mt-1">No score, no rank, nothing filmed. Your coach only points out the good bits. It still counts for your week and your partner.</p>
+                <p className="text-victory-text text-sm font-semibold">{tx("ui.trainPage.putYourOwnMusic", "Put your own music on and move.")}</p>
+                <p className="text-victory-muted text-xs mt-1">{tx("ui.trainPage.noScoreNoRank", "No score, no rank, nothing filmed. Your coach only points out the good bits. It still counts for your week and your partner.")}</p>
               </div>
             )}
 
@@ -771,12 +772,12 @@ export default function TrainPage() {
               <div className="victory-card p-4 space-y-2 border-victory-orange/40" data-testid="boss-card">
                 {boss ? (
                   <>
-                    <p className="section-label flex items-center gap-1.5"><Skull className="w-3 h-3" /> This week's boss</p>
+                    <p className="section-label flex items-center gap-1.5"><Skull className="w-3 h-3" /> {tx("ui.trainPage.thisWeekSBoss", "This week's boss")}</p>
                     <p className="text-victory-text font-heading font-extrabold text-lg">{boss.name}</p>
-                    <p className="text-victory-text text-sm">{boss.target.line} in one 3-minute round.</p>
+                    <p className="text-victory-text text-sm">{boss.target.line} {tx("ui.trainPage.inOne3Minute", "in one 3-minute round.")}</p>
                     <p className="text-victory-muted text-xs">
-                      {boss.beaten ? "Beaten this week. A new boss arrives on Monday."
-                        : `${boss.attempts_left} of ${boss.attempts} tries left this week. Live Coach counts it on your phone.`}
+                      {boss.beaten ? tx("ui.trainPage.beatenThisWeekA", "Beaten this week. A new boss arrives on Monday.")
+                        : tx("ui.trainPage.ofTriesLeftThis", "{{attempts_left}} of {{attempts}} tries left this week. Live Coach counts it on your phone.", { attempts_left: boss.attempts_left, attempts: boss.attempts })}
                     </p>
                   </>
                 ) : <div className="skeleton-shimmer h-16 rounded-lg" />}
@@ -786,13 +787,13 @@ export default function TrainPage() {
             {canCall && kind !== "boss" && sessionMode === "private" && (
               <CoachMark id="train_combo_calls" block>
               <div className="victory-card p-4" data-testid="combo-calls-toggle">
-                <ToggleRow on={callsOn} iconOn={Megaphone} title="Combo calls"
+                <ToggleRow on={callsOn} iconOn={Megaphone} title={tx("ui.trainPage.comboCalls", "Combo calls")}
                   onToggle={(next) => { setCallsOn(next); try { localStorage.setItem(CALLS_KEY, next ? "1" : "0"); } catch {} }}
-                  description={kind === "freestyle" ? "Loose calls to riff on." : "Your coach calls combos at your level. With Live Coach on, they get harder or easier to keep you in the zone."} />
+                  description={kind === "freestyle" ? tx("ui.trainPage.looseCallsToRiff", "Loose calls to riff on.") : tx("ui.trainPage.yourCoachCallsCombos", "Your coach calls combos at your level. With Live Coach on, they get harder or easier to keep you in the zone.")} />
                 {callsOn && (
-                  <ToggleRow on={numbersOn} iconOn={Hash} title="Call numbers"
+                  <ToggleRow on={numbersOn} iconOn={Hash} title={tx("ui.trainPage.callNumbers", "Call numbers")}
                     onToggle={(next) => { setNumbersOn(next); setCallsNumbers(next); }}
-                    description={numbersOn ? "Calls like \"1, 2, 3\"." : `Calls like "${comboSpeech("1-2-3", stance, false)}". Switch on if your coach taught you numbers.`} />
+                    description={numbersOn ? tx("ui.trainPage.callsLike12", "Calls like \"1, 2, 3\".") : `Calls like "${comboSpeech("1-2-3", stance, false)}". Switch on if your coach taught you numbers.`} />
                 )}
               </div>
               </CoachMark>
@@ -804,9 +805,9 @@ export default function TrainPage() {
                   <Target className="w-5 h-5 text-victory-lime" />
                 </div>
                 <div>
-                  <p className="text-victory-text font-heading font-bold text-sm">Today's focus: {focus}</p>
+                  <p className="text-victory-text font-heading font-bold text-sm">{tx("ui.trainPage.todaySFocus", "Today's focus:")} {focus}</p>
                   <p className="text-victory-muted text-xs">
-                    {focusPb != null ? <>Personal best to beat: <span className="font-mono text-victory-lime">{focusPb}</span></> : "Turn on video so the AI can score it"}
+                    {focusPb != null ? <>{tx("ui.trainPage.personalBestToBeat", "Personal best to beat:")} <span className="font-mono text-victory-lime">{focusPb}</span></> : tx("ui.trainPage.turnOnVideoSo", "Turn on video so the AI can score it")}
                   </p>
                 </div>
               </div>
@@ -893,7 +894,7 @@ export default function TrainPage() {
             {/* ── Mode toggle — replaces Record & Analyse ────────────────────── */}
             {kind === "standard" && canGoLive && (
             <div>
-              <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">Session Mode</p>
+              <p className="text-victory-muted text-sm font-semibold uppercase tracking-wider mb-3">{tx("ui.trainPage.sessionMode", "Session Mode")}</p>
               <div className="grid grid-cols-2 gap-3">
 
                 {/* Private AI Room */}
@@ -912,10 +913,10 @@ export default function TrainPage() {
                   </div>
                   <div>
                     <p className={`font-bold text-sm leading-tight ${sessionMode === "private" ? "text-victory-text" : "text-victory-text/70"}`}>
-                      Private AI Room
+                      {tx("ui.trainPage.privateAiRoom", "Private AI Room")}
                     </p>
                     <p className="text-victory-muted text-[11px] mt-0.5 leading-snug">
-                      Train with your AI partner — focused &amp; private
+                      {tx("ui.trainPage.trainWithYourAi", "Train with your AI partner — focused & private")}
                     </p>
                   </div>
                   {sessionMode === "private" && (
@@ -939,10 +940,10 @@ export default function TrainPage() {
                   </div>
                   <div>
                     <p className={`font-bold text-sm leading-tight ${sessionMode === "public" ? "text-victory-text" : "text-victory-text/70"}`}>
-                      Public Livestream
+                      {tx("ui.trainPage.publicLivestream", "Public Livestream")}
                     </p>
                     <p className="text-victory-muted text-[11px] mt-0.5 leading-snug">
-                      Go live — let the community watch
+                      {tx("ui.trainPage.goLiveLetThe", "Go live — let the community watch")}
                     </p>
                   </div>
                   {sessionMode === "public" && (
@@ -954,12 +955,12 @@ export default function TrainPage() {
               {/* Mode description */}
               {sessionMode === "public" && (
                 <p className="mt-3 text-sm text-red-400/80 text-center">
-                  Tapping Start will open the Go Live screen.
+                  {tx("ui.trainPage.tappingStartWillOpen", "Tapping Start will open the Go Live screen.")}
                 </p>
               )}
               {sessionMode === "private" && (
                 <p className="mt-3 text-sm text-victory-lime/70 text-center">
-                  Your AI partner will motivate, coach, and banter with you between rounds.
+                  {tx("ui.trainPage.yourAiPartnerWill", "Your AI partner will motivate, coach, and banter with you between rounds.")}
                 </p>
               )}
             </div>
@@ -1029,7 +1030,7 @@ export default function TrainPage() {
               {startingSession ? (
                 <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
               ) : (
-                sessionMode === "public" ? "🔴 Go Live" : kind === "boss" ? "💀 Face the boss" : `🥊 ${t("train.startBtn")}`
+                sessionMode === "public" ? tx("ui.trainPage.goLive", "🔴 Go Live") : kind === "boss" ? tx("ui.trainPage.faceTheBoss", "💀 Face the boss") : `🥊 ${t("train.startBtn")}`
               )}
             </button>
           </div>
@@ -1134,7 +1135,7 @@ export default function TrainPage() {
                   </>
                 )}
                 <p className="text-victory-muted text-[11px] mt-2">
-                  {kind === "freestyle" ? "Riff on it" : `${currentCall.levelName}${adaptiveCalls ? " · adapts to you" : ""}`}
+                  {kind === "freestyle" ? tx("ui.trainPage.riffOnIt", "Riff on it") : `${currentCall.levelName}${adaptiveCalls ? " · adapts to you" : ""}`}
                 </p>
               </div>
             )}
@@ -1159,7 +1160,7 @@ export default function TrainPage() {
                   )}
                   <div className="min-w-0">
                     <p className="text-victory-muted text-[11px] font-semibold mb-1">
-                      {partner?.name || "Coach"} · <span className={`${HYPE_COLORS[currentHype.type] || "text-victory-lime"}`}>
+                      {partner?.name || tx("ui.trainPage.coach", "Coach")} · <span className={`${HYPE_COLORS[currentHype.type] || "text-victory-lime"}`}>
                         {currentHype.type}
                       </span>
                     </p>
@@ -1176,7 +1177,7 @@ export default function TrainPage() {
             {showTenSecWarning && (
               <div className="victory-card px-4 py-2 mb-4 animate-pulse">
                 <p className="text-victory-lime text-sm font-semibold">
-                  💥 {partner?.name || "Coach"}: Last 10 — finish strong!
+                  💥 {partner?.name || tx("ui.trainPage.coach", "Coach")}{tx("ui.trainPage.last10FinishStrong", ": Last 10 — finish strong!")}
                 </p>
               </div>
             )}
@@ -1201,11 +1202,11 @@ export default function TrainPage() {
                       <p className="text-victory-lime font-semibold text-sm">
                         {partner?.name || t("common.champ")} {t("train.says")}
                       </p>
-                      <p className="text-victory-muted text-xs">Round {currentRound} debrief</p>
+                      <p className="text-victory-muted text-xs">{tx("ui.trainPage.round", "Round")} {currentRound} {tx("ui.trainPage.debrief", "debrief")}</p>
                     </div>
                     <FirstUseTip id="train_voice_toggle" position="top">
                       <button onClick={() => setVoiceEnabled((v) => !v)}
-                        aria-label={voiceEnabled ? "Disable voice" : "Enable voice"}
+                        aria-label={voiceEnabled ? tx("ui.trainPage.disableVoice", "Disable voice") : tx("ui.trainPage.enableVoice", "Enable voice")}
                         className="w-11 h-11 flex items-center justify-center text-victory-muted hover:text-victory-text">
                         {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                       </button>
@@ -1217,7 +1218,7 @@ export default function TrainPage() {
                       <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
                         <img
                           src="/images/ring-card-girl.jpg"
-                          alt="Ring card girl"
+                          alt={tx("ui.trainPage.ringCardGirl", "Ring card girl")}
                           className="absolute inset-0 w-full h-full object-cover animate-sway"
                           style={{ transformOrigin: "50% 92%" }}
                         />
@@ -1270,7 +1271,7 @@ export default function TrainPage() {
                 <button
                   onClick={skipToNext}
                   className="w-14 h-14 rounded-full bg-victory-card border border-victory-border flex items-center justify-center text-victory-muted hover:text-victory-text touch-target transition-all active:scale-90"
-                  aria-label="Skip"
+                  aria-label={tx("ui.trainPage.skip", "Skip")}
                 >
                   <SkipForward className="w-6 h-6" />
                 </button>
@@ -1284,7 +1285,7 @@ export default function TrainPage() {
                     ? "bg-victory-lime text-victory-bg shadow-victory-lime/25 hover:bg-[#D4E630]"
                     : "bg-victory-card border-2 border-victory-lime text-victory-lime hover:bg-victory-lime/10"
                 }`}
-                aria-label={isPaused ? "Resume" : "Pause"}
+                aria-label={isPaused ? tx("ui.trainPage.resume", "Resume") : tx("ui.trainPage.pause", "Pause")}
               >
                 {isPaused ? <Play className="w-9 h-9" /> : <Pause className="w-9 h-9" />}
               </button>
@@ -1294,7 +1295,7 @@ export default function TrainPage() {
                 <button
                   onClick={endTimer}
                   className="w-14 h-14 rounded-full bg-victory-card border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/10 touch-target transition-all active:scale-90"
-                  aria-label="End session"
+                  aria-label={tx("ui.trainPage.endSession", "End session")}
                 >
                   <Square className="w-6 h-6" />
                 </button>
@@ -1303,7 +1304,7 @@ export default function TrainPage() {
 
             {/* Reset */}
             <button onClick={resetTimer} className="mt-6 touch-target flex items-center justify-center text-victory-muted text-xs hover:text-victory-text transition-colors tracking-wide">
-              ← Back to setup
+              {tx("ui.trainPage.backToSetup", "← Back to setup")}
             </button>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Check, Lock, AlertTriangle, Coins, BadgeCheck } from "lucide-react";
 import { checkStable, formatCoins, isCardLocked, teamSize, coinCap } from "@/lib/fantasyScoring";
 import { HowToPlay } from "@/components/fantasy/HowToPlay";
+import { tx } from "@/i18n/tx";
 
 // Goal: anyone, even a 7-year-old, can pick a team first time, with no help.
 // Psychology: simplicity drives action. The biggest cost here is "brain cycles" (Fogg),
@@ -30,7 +31,7 @@ export function DraftPanel({ card, me, service }) {
     setPicks((p) => {
       if (p.includes(fighterId)) return p.filter((id) => id !== fighterId);
       if (p.length >= STABLE_SIZE) {
-        toast(`You already have ${STABLE_SIZE} boxers. Tap one to take them out first.`);
+        toast(tx("ui.draftPanel.youAlreadyHaveBoxers", "You already have {{STABLE_SIZE}} boxers. Tap one to take them out first.", { STABLE_SIZE }));
         return p;
       }
       return [...p, fighterId];
@@ -41,7 +42,7 @@ export function DraftPanel({ card, me, service }) {
     setSaving(true);
     try {
       await service.saveStable(picks);
-      toast.success("Your team is ready! Watch the fights to get points.");
+      toast.success(tx("ui.draftPanel.yourTeamIsReady", "Your team is ready! Watch the fights to get points."));
     } catch (err) {
       toast.error(err.message);
     }
@@ -55,15 +56,15 @@ export function DraftPanel({ card, me, service }) {
       {/* Coin purse: sticky, so it's always in view while picking */}
       <div className={`victory-card p-3 space-y-2 sticky top-0 z-10 ${check.overCap ? "border-victory-danger/60 bg-victory-danger/5" : ""}`}>
         <div className="flex items-center justify-between">
-          <p className="section-label flex items-center gap-1.5"><Coins className="w-3 h-3" /> Your coins</p>
-          <p className="text-[10px] text-victory-muted">Pretend coins — free, not real money</p>
+          <p className="section-label flex items-center gap-1.5"><Coins className="w-3 h-3" /> {tx("ui.draftPanel.yourCoins", "Your coins")}</p>
+          <p className="text-[10px] text-victory-muted">{tx("ui.draftPanel.pretendCoinsFreeNot", "Pretend coins — free, not real money")}</p>
         </div>
         <div className="flex items-baseline justify-between">
           <p className={`font-mono font-bold text-xl ${check.overCap ? "text-victory-danger" : "text-victory-text"}`}>
-            {check.overCap ? `${-check.remaining} too many` : `${check.remaining} left`}
+            {check.overCap ? `${-check.remaining} too many` : tx("ui.draftPanel.left", "{{remaining}} left", { remaining: check.remaining })}
           </p>
           <p className="text-xs text-victory-muted" data-testid="picked-count">
-            <span className="font-mono font-bold text-victory-text">{picks.length}</span> of {STABLE_SIZE} boxers picked
+            <span className="font-mono font-bold text-victory-text">{picks.length}</span> {tx("ui.draftPanel.of", "of")} {STABLE_SIZE} {tx("ui.draftPanel.boxersPicked", "boxers picked")}
           </p>
         </div>
         <div className="h-1.5 rounded-full bg-victory-border overflow-hidden" aria-hidden="true">
@@ -77,14 +78,14 @@ export function DraftPanel({ card, me, service }) {
       </div>
 
       {locked && (
-        <p className="text-victory-muted text-xs flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> The fights have started, so teams can't change now.</p>
+        <p className="text-victory-muted text-xs flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> {tx("ui.draftPanel.theFightsHaveStarted", "The fights have started, so teams can't change now.")}</p>
       )}
 
       {/* The fights: two boxers per fight, tap one to pick them */}
       <div className="space-y-2">
         {card.bouts.map((bout) => (
           <div key={bout.bout_id} className="victory-card p-2.5">
-            <p className="text-[10px] text-victory-muted uppercase tracking-wider mb-1.5">Fight {bout.order} · {bout.division}</p>
+            <p className="text-[10px] text-victory-muted uppercase tracking-wider mb-1.5">{tx("ui.draftPanel.fight", "Fight")} {bout.order} · {bout.division}</p>
             <div className="grid grid-cols-2 gap-2">
               {bout.fighters.map((f) => {
                 const picked = picks.includes(f.fighter_id);
@@ -108,7 +109,7 @@ export function DraftPanel({ card, me, service }) {
                     {f.victory_pro && (
                       <a href={`/pro/${f.victory_pro.user_id}`} onClick={(e) => e.stopPropagation()}
                         className="inline-flex items-center gap-1 text-[10px] font-bold text-victory-lime mt-0.5" data-testid="victory-pro-badge">
-                        <BadgeCheck className="w-3 h-3" /> Trains on Victory AI
+                        <BadgeCheck className="w-3 h-3" /> {tx("ui.draftPanel.trainsOnVictoryAi", "Trains on Victory AI")}
                       </a>
                     )}
                     <p className={`font-mono font-bold text-xs mt-1 flex items-center gap-1 ${tooDear ? "text-victory-orange" : "text-victory-teal"}`}>
@@ -124,7 +125,7 @@ export function DraftPanel({ card, me, service }) {
 
       {!locked && (
         <button onClick={save} disabled={!check.valid || saving || (!dirty && me.saved)} className="victory-btn-primary disabled:opacity-40" data-testid="lock-stable">
-          {saving ? "Saving…" : me.saved && !dirty ? "Your team is ready" : check.valid ? "This is my team!" : check.errors[0]}
+          {saving ? tx("ui.draftPanel.saving", "Saving…") : me.saved && !dirty ? tx("ui.draftPanel.yourTeamIsReady2", "Your team is ready") : check.valid ? tx("ui.draftPanel.thisIsMyTeam", "This is my team!") : check.errors[0]}
         </button>
       )}
     </div>

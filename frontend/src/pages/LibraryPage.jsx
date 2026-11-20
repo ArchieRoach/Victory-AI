@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { LegendCard } from "@/components/LegendCard";
 import { useTranslation } from "react-i18next";
 import { BookOpen } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 export default function LibraryPage() {
   const { t } = useTranslation();
@@ -39,7 +40,7 @@ export default function LibraryPage() {
       const response = await axios.get(`${API}/legends`, { withCredentials: true });
       setLegends(response.data);
     } catch {
-      toast.error("Failed to load techniques — try again");
+      toast.error(tx("ui.libraryPage.failedToLoadTechniques", "Failed to load techniques — try again"));
     } finally {
       setLoading(false);
     }
@@ -104,15 +105,15 @@ export default function LibraryPage() {
             </p>
             <p className="text-victory-muted text-sm">
               {activeFilter === "All"
-                ? "Techniques will appear here once available."
-                : `No techniques match the "${activeFilter}" filter — try All.`}
+                ? tx("ui.libraryPage.techniquesWillAppearHere", "Techniques will appear here once available.")
+                : tx("ui.libraryPage.noTechniquesMatchThe", "No techniques match the \"{{activeFilter}}\" filter — try All.", { activeFilter })}
             </p>
             {activeFilter !== "All" && (
               <button
                 onClick={() => setActiveFilter("All")}
                 className="mt-4 text-victory-lime text-sm font-semibold underline underline-offset-2"
               >
-                Show all techniques
+                {tx("ui.libraryPage.showAllTechniques", "Show all techniques")}
               </button>
             )}
           </div>

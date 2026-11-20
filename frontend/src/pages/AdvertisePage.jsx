@@ -4,24 +4,25 @@ import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
 import { ArrowLeft, Zap, Users, Radio, TrendingUp, CheckCircle2 } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 const PACKAGES = [
   {
     id: "starter",
-    label: "Starter",
+    get label() { return tx("ui.advertisePage.starter", "Starter"); },
     price: 49,
     days: 7,
-    description: "7-day campaign",
+    get description() { return tx("ui.advertisePage.s7DayCampaign", "7-day campaign"); },
     reach: "Up to 2,000 viewers",
     highlight: false,
     perks: ["Banner on all live streams", "Brand name + tagline", "Clickable link to your site"],
   },
   {
     id: "pro",
-    label: "Pro",
+    get label() { return tx("ui.advertisePage.pro", "Pro"); },
     price: 149,
     days: 30,
-    description: "30-day campaign",
+    get description() { return tx("ui.advertisePage.s30DayCampaign", "30-day campaign"); },
     reach: "Up to 10,000 viewers",
     highlight: true,
     badge: "Most Popular",
@@ -29,10 +30,10 @@ const PACKAGES = [
   },
   {
     id: "champion",
-    label: "Champion",
+    get label() { return tx("ui.advertisePage.champion", "Champion"); },
     price: 349,
     days: 90,
-    description: "90-day campaign",
+    get description() { return tx("ui.advertisePage.s90DayCampaign", "90-day campaign"); },
     reach: "Maximum exposure",
     highlight: false,
     badge: "Best Value",
@@ -41,10 +42,10 @@ const PACKAGES = [
 ];
 
 const STATS = [
-  { icon: Radio,      value: "50+",    label: "Live streams/week"  },
-  { icon: Users,      value: "5,000+", label: "Active boxers"      },
-  { icon: TrendingUp, value: "94%",    label: "Engagement rate"    },
-  { icon: Zap,        value: "3 min",  label: "Avg session time"   },
+  { icon: Radio,      value: "50+",    get label() { return tx("ui.advertisePage.liveStreamsWeek", "Live streams/week"); }  },
+  { icon: Users,      value: "5,000+", get label() { return tx("ui.advertisePage.activeBoxers", "Active boxers"); }      },
+  { icon: TrendingUp, value: "94%",    get label() { return tx("ui.advertisePage.engagementRate", "Engagement rate"); }    },
+  { icon: Zap,        value: "3 min",  get label() { return tx("ui.advertisePage.avgSessionTime", "Avg session time"); }   },
 ];
 
 export default function AdvertisePage({ success = false }) {
@@ -62,11 +63,11 @@ export default function AdvertisePage({ success = false }) {
           <CheckCircle2 className="w-10 h-10 text-victory-lime" />
         </div>
         <div className="space-y-2">
-          <h1 className="font-heading font-extrabold text-victory-text text-2xl">Campaign Live</h1>
-          <p className="text-victory-muted text-sm max-w-xs">Your banner is now appearing on Victory AI live streams. We've sent a receipt to your email.</p>
+          <h1 className="font-heading font-extrabold text-victory-text text-2xl">{tx("ui.advertisePage.campaignLive", "Campaign Live")}</h1>
+          <p className="text-victory-muted text-sm max-w-xs">{tx("ui.advertisePage.yourBannerIsNow", "Your banner is now appearing on Victory AI live streams. We've sent a receipt to your email.")}</p>
         </div>
         <button onClick={() => navigate("/live")} className="victory-btn-primary px-8 py-3 font-bold">
-          Watch Live Streams
+          {tx("ui.advertisePage.watchLiveStreams", "Watch Live Streams")}
         </button>
       </div>
     );
@@ -98,7 +99,7 @@ export default function AdvertisePage({ success = false }) {
       });
       window.location.href = res.data.checkout_url;
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not start checkout — please try again.");
+      toast.error(err?.response?.data?.detail || tx("ui.advertisePage.couldNotStartCheckout", "Could not start checkout — please try again."));
       setLoading(false);
     }
   };
@@ -117,12 +118,12 @@ export default function AdvertisePage({ success = false }) {
     <div className="min-h-screen bg-victory-bg">
       {/* Header */}
       <div className="sticky top-0 z-10 material-header px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+        <button onClick={() => navigate(-1)} aria-label={tx("ui.advertisePage.goBack", "Go back")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-victory-text font-heading font-extrabold text-base leading-tight">Advertise on Victory AI</h1>
-          <p className="text-victory-muted text-xs">Reach serious boxing fans mid-session</p>
+          <h1 className="text-victory-text font-heading font-extrabold text-base leading-tight">{tx("ui.advertisePage.advertiseOnVictoryAi", "Advertise on Victory AI")}</h1>
+          <p className="text-victory-muted text-xs">{tx("ui.advertisePage.reachSeriousBoxingFans", "Reach serious boxing fans mid-session")}</p>
         </div>
       </div>
 
@@ -131,13 +132,13 @@ export default function AdvertisePage({ success = false }) {
         {/* Hero */}
         <div className="text-center space-y-3">
           <span className="inline-block text-[11px] font-bold tracking-widest text-victory-lime uppercase bg-victory-lime/10 border border-victory-lime/20 px-3 py-1 rounded-full">
-            Sponsor Banner
+            {tx("ui.advertisePage.sponsorBanner", "Sponsor Banner")}
           </span>
           <h2 className="text-victory-text font-heading font-extrabold text-2xl leading-tight">
-            Your brand, live in the ring.
+            {tx("ui.advertisePage.yourBrandLiveIn", "Your brand, live in the ring.")}
           </h2>
           <p className="text-victory-muted text-sm leading-relaxed">
-            Victory AI streams reach dedicated boxers at their most engaged moment — mid-session, gloves on, phone up.
+            {tx("ui.advertisePage.victoryAiStreamsReach", "Victory AI streams reach dedicated boxers at their most engaged moment — mid-session, gloves on, phone up.")}
           </p>
         </div>
 
@@ -158,7 +159,7 @@ export default function AdvertisePage({ success = false }) {
 
         {/* Banner preview */}
         <div>
-          <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">Live Preview</p>
+          <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">{tx("ui.advertisePage.livePreview", "Live Preview")}</p>
           <div className="bg-[#0d0d14] border border-victory-border rounded-xl px-4 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-lg bg-victory-lime/20 border border-victory-lime/30 flex items-center justify-center flex-shrink-0">
@@ -166,24 +167,24 @@ export default function AdvertisePage({ success = false }) {
               </div>
               <div className="min-w-0">
                 <p className="text-white text-xs font-semibold truncate">
-                  Sponsored by <span className="text-victory-lime">{previewName}</span>
+                  {tx("ui.advertisePage.sponsoredBy", "Sponsored by")} <span className="text-victory-lime">{previewName}</span>
                 </p>
                 <p className="text-victory-muted text-[10px] truncate">{previewTag}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className="text-[10px] font-semibold text-victory-lime border border-victory-lime/40 rounded-lg px-2.5 py-1 whitespace-nowrap">
-                Learn More
+                {tx("ui.advertisePage.learnMore", "Learn More")}
               </span>
-              <span className="text-[9px] text-victory-muted/50">AD</span>
+              <span className="text-[9px] text-victory-muted/50">{tx("ui.advertisePage.ad", "AD")}</span>
             </div>
           </div>
-          <p className="text-victory-muted text-[11px] mt-1.5 text-center">Updates as you type below</p>
+          <p className="text-victory-muted text-[11px] mt-1.5 text-center">{tx("ui.advertisePage.updatesAsYouType", "Updates as you type below")}</p>
         </div>
 
         {/* Package selector */}
         <div>
-          <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-3">Choose a Package</p>
+          <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-3">{tx("ui.advertisePage.chooseAPackage", "Choose a Package")}</p>
           <div className="space-y-2">
             {PACKAGES.map((p) => (
               <button
@@ -228,7 +229,7 @@ export default function AdvertisePage({ success = false }) {
                   <p className={`font-mono font-extrabold text-lg ${selectedPkg === p.id ? "text-victory-lime" : "text-victory-text"}`}>
                     £{p.price}
                   </p>
-                  <p className="text-victory-muted text-[10px]">{p.days} days</p>
+                  <p className="text-victory-muted text-[10px]">{p.days} {tx("ui.advertisePage.days", "days")}</p>
                 </div>
               </button>
             ))}
@@ -237,35 +238,35 @@ export default function AdvertisePage({ success = false }) {
 
         {/* Campaign details form */}
         <div>
-          <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-3">Campaign Details</p>
+          <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-3">{tx("ui.advertisePage.campaignDetails", "Campaign Details")}</p>
           <form onSubmit={handleSubmit} className="space-y-4">
 
             <div>
-              <label className="victory-label">Brand Name</label>
+              <label className="victory-label">{tx("ui.advertisePage.brandName", "Brand Name")}</label>
               <input
                 value={form.brand_name}
                 onChange={(e) => setField("brand_name", e.target.value)}
                 maxLength={80}
-                placeholder="e.g. Everlast, Winning, Cleto Reyes"
+                placeholder={tx("ui.advertisePage.eGEverlastWinning", "e.g. Everlast, Winning, Cleto Reyes")}
                 className={`victory-input ${errors.brand_name ? "border-red-500" : ""}`}
               />
               {errors.brand_name && <p className="text-red-400 text-xs mt-1">{errors.brand_name}</p>}
             </div>
 
             <div>
-              <label className="victory-label">Tagline <span className="text-victory-muted font-normal">({form.tagline.length}/80)</span></label>
+              <label className="victory-label">{tx("ui.advertisePage.tagline", "Tagline")} <span className="text-victory-muted font-normal">({form.tagline.length}/80)</span></label>
               <input
                 value={form.tagline}
                 onChange={(e) => setField("tagline", e.target.value)}
                 maxLength={80}
-                placeholder="e.g. Premium boxing gloves for serious fighters"
+                placeholder={tx("ui.advertisePage.eGPremiumBoxing", "e.g. Premium boxing gloves for serious fighters")}
                 className={`victory-input ${errors.tagline ? "border-red-500" : ""}`}
               />
               {errors.tagline && <p className="text-red-400 text-xs mt-1">{errors.tagline}</p>}
             </div>
 
             <div>
-              <label className="victory-label">Website URL</label>
+              <label className="victory-label">{tx("ui.advertisePage.websiteUrl", "Website URL")}</label>
               <input
                 type="url"
                 value={form.website_url}
@@ -277,12 +278,12 @@ export default function AdvertisePage({ success = false }) {
             </div>
 
             <div>
-              <label className="victory-label">Your Email (for receipt + reporting)</label>
+              <label className="victory-label">{tx("ui.advertisePage.yourEmailForReceipt", "Your Email (for receipt + reporting)")}</label>
               <input
                 type="email"
                 value={form.advertiser_email}
                 onChange={(e) => setField("advertiser_email", e.target.value)}
-                placeholder="you@yourbrand.com"
+                placeholder={tx("ui.advertisePage.youYourbrandCom", "you@yourbrand.com")}
                 className={`victory-input ${errors.advertiser_email ? "border-red-500" : ""}`}
               />
               {errors.advertiser_email && <p className="text-red-400 text-xs mt-1">{errors.advertiser_email}</p>}
@@ -298,13 +299,13 @@ export default function AdvertisePage({ success = false }) {
                 <div className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  Start {pkg?.label} Campaign — £{pkg?.price}
+                  {tx("ui.advertisePage.start", "Start")} {pkg?.label} {tx("ui.advertisePage.campaign", "Campaign — £")}{pkg?.price}
                 </>
               )}
             </button>
 
             <p className="text-victory-muted text-xs text-center">
-              Secured by Stripe · Your campaign goes live within minutes of payment.
+              {tx("ui.advertisePage.securedByStripeYour", "Secured by Stripe · Your campaign goes live within minutes of payment.")}
             </p>
           </form>
         </div>

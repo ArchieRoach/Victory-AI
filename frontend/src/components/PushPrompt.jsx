@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell, X } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { toast } from 'sonner';
+import { tx } from "@/i18n/tx";
 
 const STORAGE_KEY = 'victory_push_prompt_dismissed';
 
@@ -28,10 +29,10 @@ export function PushPrompt() {
   const handleEnable = async () => {
     const result = await subscribe();
     if (result === 'subscribed') {
-      toast.success('Notifications enabled — we\'ll keep you in the fight.');
+      toast.success(tx("ui.pushPrompt.notificationsEnabledWeLl", "Notifications enabled — we'll keep you in the fight."));
       dismiss();
     } else if (result === 'denied') {
-      toast.error('Notifications blocked — turn them on in Settings.');
+      toast.error(tx("ui.pushPrompt.notificationsBlockedTurnThem", "Notifications blocked — turn them on in Settings."));
       dismiss();
     }
   };
@@ -45,9 +46,9 @@ export function PushPrompt() {
           <Bell className="w-5 h-5 text-victory-lime" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-victory-text text-sm font-bold">Stay in the fight</p>
+          <p className="text-victory-text text-sm font-bold">{tx("ui.pushPrompt.stayInTheFight", "Stay in the fight")}</p>
           <p className="text-victory-muted text-xs mt-0.5">
-            Get notified when someone tips you, goes live, or reacts to your posts.
+            {tx("ui.pushPrompt.getNotifiedWhenSomeone", "Get notified when someone tips you, goes live, or reacts to your posts.")}
           </p>
           <div className="flex gap-2 mt-3">
             <button
@@ -55,17 +56,17 @@ export function PushPrompt() {
               disabled={loading}
               className="flex-1 py-2 rounded-xl bg-victory-lime text-victory-bg text-xs font-bold disabled:opacity-50"
             >
-              {loading ? 'Enabling…' : 'Enable notifications'}
+              {loading ? tx("ui.pushPrompt.enabling", "Enabling…") : tx("ui.pushPrompt.enableNotifications", "Enable notifications")}
             </button>
             <button
               onClick={dismiss}
               className="py-2 px-3 rounded-xl border border-victory-border text-victory-muted text-xs hover:text-victory-text transition-colors"
             >
-              Not now
+              {tx("ui.pushPrompt.notNow", "Not now")}
             </button>
           </div>
         </div>
-        <button onClick={dismiss} aria-label="Dismiss" className="w-11 h-11 -m-2.5 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text flex-shrink-0">
+        <button onClick={dismiss} aria-label={tx("ui.pushPrompt.dismiss", "Dismiss")} className="w-11 h-11 -m-2.5 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text flex-shrink-0">
           <X className="w-4 h-4" />
         </button>
       </div>

@@ -1,5 +1,6 @@
 import { Trophy, Star, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { tx } from "@/i18n/tx";
 
 // Only ever fires after a real, verified win (see CompetitionDetailPage.jsx) — never on
 // a generic app-open or session count, per the standing rule that engagement prompts must
@@ -53,7 +54,7 @@ export function ReviewPromptModal({ onClose }) {
         <div className="w-10 h-1 rounded-full bg-victory-border mx-auto mt-3 mb-1" />
 
         <div className="flex items-center justify-end px-4 pt-2">
-          <button onClick={handleDecline} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={handleDecline} aria-label={tx("ui.reviewPromptModal.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>

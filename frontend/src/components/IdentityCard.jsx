@@ -1,5 +1,6 @@
 import { Flame } from "lucide-react";
 import { ordinal } from "@/lib/identity";
+import { tx } from "@/i18n/tx";
 
 // Goal: fighters keep coming back because they see themselves as boxers.
 // Psychology: an earned, specific label ("Iron Guard") changes how people see themselves,
@@ -12,12 +13,12 @@ export function IdentityCard({ identity }) {
   return (
     <section className="victory-card p-4 space-y-3 border-victory-lime/40 bg-gradient-to-br from-victory-lime/10 to-transparent animate-scale-in" data-testid="identity-card">
       <p className="section-label flex items-center gap-1.5">
-        <Flame className="w-3 h-3" /> {first ? "New trait unlocked" : "Who you're becoming"}
+        <Flame className="w-3 h-3" /> {first ? tx("ui.identityCard.newTraitUnlocked", "New trait unlocked") : tx("ui.identityCard.whoYouReBecoming", "Who you're becoming")}
       </p>
       <div>
         <p className="font-heading font-extrabold text-2xl text-victory-text leading-tight">{identity.name}</p>
         <p className="text-victory-muted text-xs mt-0.5">
-          {first ? "First time" : `${ordinal(identity.count)} time`} · {identity.evidence}
+          {first ? tx("ui.identityCard.firstTime", "First time") : `${ordinal(identity.count)} time`} · {identity.evidence}
         </p>
       </div>
       <p className="text-victory-text text-sm">{identity.statement}</p>
