@@ -22,7 +22,8 @@
     "feed": "Лента",
     "discover": "Поиск",
     "compete": "Соревнования",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "live": "Эфир"
   },
   "welcome": {
     "headline": "Ваш ИИ-партнёр по тренировкам ждёт вас.",
@@ -33,7 +34,9 @@
     "alreadyAccount": "Уже есть аккаунт?"
   },
   "login": {
-    "subtitle": "Войдите, чтобы продолжить тренировки"
+    "subtitle": "Войдите, чтобы продолжить тренировки",
+    "errorRefused": "Не удалось завершить вход. Попробуй ещё раз.",
+    "errorBusy": "Вход сейчас перегружен. Попробуй через минуту."
   },
   "paywall": {
     "headline": "Тренируйтесь бесплатно. Апгрейд — только если нужен безлимитный ИИ.",
@@ -188,7 +191,10 @@
     "favorite_fighter": {
       "question": "Кого из этих боксёров ты хотел бы видеть своим тренером?",
       "subtitle": "Образ вашего партнёра будет вдохновлён им",
-      "other": "Кто-то другой"
+      "other": "Кто-то другой",
+      "otherPlaceholder": "Имя боксёра",
+      "otherInvalid": "Введи имя боксёра, например Насим Хамед.",
+      "backToList": "Выбрать из списка"
     },
     "personalized": {
       "title": "Вот что мы услышали",
@@ -323,7 +329,13 @@
     "scoreLow": "Начальная точка. Вот как строить.",
     "sessionLogged": "{{rounds}} раундов зафиксировано. Это реальная работа в активе.",
     "streakLine": "🔥 Серия {{count}} дн. подряд",
-    "sessionExpired": "Не удалось найти эту сессию — возможно, срок её действия истёк."
+    "sessionExpired": "Не удалось найти эту сессию — возможно, срок её действия истёк.",
+    "roundClipTitle": "Опубликуй свой лучший раунд",
+    "unscoredNote": "На этот раз без оценки ИИ — в этой тренировке ничего не снималось. Включи видео в разделе «Тренировка», и ИИ оценит каждый раунд.",
+    "roundClipBody": "Вертикальный 30-секундный клип с оценкой ИИ, готов для TikTok и Reels",
+    "roundClipStarting": "Нарезаем твой клип…",
+    "roundClipFailed": "Не удалось сделать клип — попробуй ещё раз",
+    "sessionLogged_one": "Записано раундов: {{count}}. Это настоящая работа."
   },
   "profile": {
     "title": "Профиль и настройки",
@@ -426,7 +438,17 @@
     "cameraDenied": "Доступ к камере запрещён — тренировка продолжится без видеоанализа.",
     "cameraUnsupported": "Запись с камеры не поддерживается на этом устройстве или в браузере.",
     "recording": "Идёт запись",
-    "finalRound": "Финальный раунд — выложись на полную!"
+    "finalRound": "Финальный раунд — выложись на полную!",
+    "videoAskTitle": "Получить оценку ИИ?",
+    "videoAskBody": "По записи ИИ оценивает тебя, находит твои рекорды и пишет разбор. Клипы остаются приватными, пока ты ими не поделишься.",
+    "videoAskYes": "Включить",
+    "videoAskNo": "Не сейчас",
+    "videoOffNote": "Видео выключено — у этой тренировки не будет оценки ИИ, рекордов и разбора.",
+    "feedbackFailed": "Не удалось подготовить разбор этого раунда.",
+    "startOffline": "Нет связи с сервером — эта тренировка не сохранится.",
+    "liveCoach": "Живой тренер",
+    "liveCoachDesc": "Считает удары, комбинации и опускания защиты во время тренировки и соревнуется с твоим лучшим раундом. Работает на телефоне — ничего не загружается.",
+    "liveCoachOnly": "Живой тренер · ничего не записывается"
   },
   "timer": {
     "title": "Настройка раундов",
@@ -665,7 +687,13 @@
     "unknownFighter": "Боец",
     "streakActive": "🔥 Серия {{count}} дн. подряд",
     "cheer": "Поддержать",
-    "cheered": "Поддержано"
+    "cheered": "Поддержано",
+    "blockConfirm": "Заблокировать этого бойца? Он не сможет подписаться, комментировать или писать тебе, а ваши подписки друг на друга отменятся.",
+    "blocked": "Заблокирован — он больше не может подписаться, писать или комментировать.",
+    "notFound": "Не удалось загрузить профиль этого бойца.",
+    "browseFighters": "Смотреть бойцов",
+    "report": "Пожаловаться",
+    "block": "Заблокировать"
   },
   "belt": {
     "andTheNew": "И новый чемпион...",
@@ -713,5 +741,390 @@
     "body": "Рады, что вы с нами. Быстрая оценка поможет другим бойцам найти Victory AI.",
     "rateBtn": "Оценить Victory AI",
     "notNow": "Не сейчас"
+  },
+  "streaming": {
+    "nav": "Эфир",
+    "discoverTitle": "Эфир",
+    "goLive": "Выйти в эфир",
+    "endStream": "Завершить эфир",
+    "iAmLive": "Я в эфире",
+    "liveNow": "ЭФИР",
+    "offline": "Не в сети",
+    "idle": "Готово",
+    "createStream": "Создать эфир",
+    "noStreams": "Эфиров пока нет. Нажми «Новый эфир», чтобы начать.",
+    "noLiveStreams": "Сейчас никто не в эфире.",
+    "myStreams": "Мои эфиры",
+    "viewerCount": "Смотрят: {{count}}",
+    "streamTitle": "Название эфира",
+    "streamDescription": "Описание (необязательно)",
+    "streamType": "Тип эфира",
+    "types": {
+      "training": "Тренировка",
+      "sparring": "Спарринг",
+      "smoker": "Любительский вечер",
+      "bout": "Бой"
+    },
+    "privateStream": "Приватный эфир (видишь только ты)",
+    "streamKey": "Ключ трансляции",
+    "rtmpUrl": "Сервер RTMP",
+    "copyKey": "Копировать ключ",
+    "keyCopied": "Скопировано!",
+    "obsInstructions": "Вставь в OBS → Настройки → Трансляция → Настраиваемый…",
+    "watchMyStream": "Смотреть мой эфир",
+    "chatPlaceholder": "Напиши сообщение...",
+    "clipBtn": "Клип 30 с",
+    "clipCreated": "Клип сохранён!",
+    "clipError": "Клип не получился — попробуй ещё раз.",
+    "streamEnded": "Эфир завершён",
+    "loadingStream": "Подключаемся к эфиру...",
+    "connectingChat": "Подключаемся к чату...",
+    "filterAll": "Все",
+    "filterLive": "Сейчас в эфире",
+    "filterRecent": "Недавние",
+    "beFirst": "Выйди в эфир первым",
+    "obsCredentials": "Данные OBS",
+    "deleteStream": "Удалить",
+    "confirmDelete": "Удалить этот эфир?",
+    "streamCreated": "Эфир создан! Вставь данные в OBS и выходи в эфир."
+  },
+  "ui": {
+    "pushOptIn": {
+      "turnOn": "Включить"
+    },
+    "pushPrompt": {
+      "notNow": "Не сейчас"
+    },
+    "liveCoachPanel": {
+      "liveCoach": "Живой тренер"
+    },
+    "reportModal": {
+      "report": "Пожаловаться",
+      "close": "Закрыть"
+    },
+    "goLivePage": {
+      "goLive": "Выйти в эфир",
+      "endStream": "Завершить эфир",
+      "live": "ЭФИР",
+      "squads": "Команды"
+    },
+    "highlightsPage": {
+      "goLive": "Выйти в эфир",
+      "recent": "Недавние",
+      "delete": "Удалить",
+      "clip": "КЛИП",
+      "aiScore": "Оценка ИИ",
+      "rendering": "Создаём…"
+    },
+    "homePage": {
+      "goLive": "Выйти в эфир",
+      "live": "ЭФИР",
+      "recent": "Недавние"
+    },
+    "liveFeedPage": {
+      "goLive": "Выйти в эфир",
+      "live": "ЭФИР",
+      "all": "Все",
+      "recent": "Недавние"
+    },
+    "streamerDashboardPage": {
+      "goLive": "Выйти в эфир",
+      "tokens": "токенов",
+      "emotes2": "Эмодзи"
+    },
+    "streamCard": {
+      "live": "ЭФИР"
+    },
+    "discoverPage": {
+      "live": "ЭФИР"
+    },
+    "streamViewPage": {
+      "live": "ЭФИР",
+      "clip30s": "Клип 30 с",
+      "clipSaved": "Клип сохранён!",
+      "clipFailedTryAgain": "Клип не получился — попробуй ещё раз.",
+      "emotes": "Эмодзи"
+    },
+    "onboardingFlow": {
+      "ready": "Готово"
+    },
+    "publicProfilePage": {
+      "streamTitle": "Название эфира",
+      "training": "Тренировка",
+      "sparring": "Спарринг",
+      "close": "Закрыть"
+    },
+    "highlightShareSheet": {
+      "copied": "Скопировано!",
+      "close": "Закрыть",
+      "savedPostItFrom": "Сохранено — опубликуй из галереи",
+      "couldnTOpenThe": "Не удалось открыть меню «Поделиться» — попробуй «Сохранить видео»",
+      "videoSaved": "Видео сохранено",
+      "postedToYourProfile": "Опубликовано в профиле",
+      "couldnTPostTry": "Не удалось опубликовать — попробуй ещё раз",
+      "couldNotCopyLink": "Не удалось скопировать ссылку",
+      "addedToYourFight": "Добавлено в Фильм боя",
+      "couldnTUpdateYour": "Не удалось обновить Фильм боя",
+      "retryFailed": "Повторная попытка не удалась",
+      "shareHighlight": "Поделиться моментом",
+      "autoHighlight": "АВТО-МОМЕНТ",
+      "yourRound": "ТВОЙ РАУНД",
+      "clip": "КЛИП",
+      "thisOneDidnT": "Этот не получился",
+      "retrying": "Повторяем…",
+      "tryAgain": "Попробовать снова",
+      "capturingTheMoment": "Ловим момент…",
+      "addingYourWatermark": "Добавляем водяной знак…",
+      "usuallyUnderAMinute": "Обычно меньше минуты. Можно закрыть — клип появится в «Моментах».",
+      "aiScore": "Оценка ИИ",
+      "sinceLastSession": "с прошлой тренировки",
+      "shares": "репостов",
+      "reactionsAtOnce": "реакций разом",
+      "peopleHyped": "человек в восторге",
+      "rendering": "Создаём…",
+      "preparingVideo": "Готовим видео…",
+      "couldnTLoadThe": "Не удалось загрузить видео. Проверь соединение и открой снова.",
+      "opensYourShareSheet": "Открывает меню «Поделиться»: TikTok, Instagram, Snapchat, YouTube Shorts и другие",
+      "saveVideo": "Сохранить видео",
+      "copyLink": "Копировать ссылку",
+      "posting": "Публикуем…",
+      "postToFeed": "Опубликовать в ленте",
+      "onYourFightFilm": "В твоём Фильме боя",
+      "addToYourFight": "Добавить в Фильм боя"
+    },
+    "shareSheet": {
+      "copied": "Скопировано!",
+      "close": "Закрыть",
+      "savedPostItFrom": "Сохранено — опубликуй из галереи",
+      "couldNotCopyLink": "Не удалось скопировать ссылку",
+      "shares": "репостов",
+      "preparingVideo": "Готовим видео…",
+      "copyLink": "Копировать ссылку"
+    },
+    "liveChat": {
+      "sendAMessage": "Напиши сообщение...",
+      "connectingToChat": "Подключаемся к чату...",
+      "tokens": "токенов",
+      "gifted": "подарил",
+      "sub": "подписку",
+      "toTheCommunity": "сообществу!",
+      "liveChat": "Чат эфира",
+      "watching": "смотрят",
+      "noMessagesYetSay": "Сообщений пока нет — поздоровайся!",
+      "noEmotesUnlockedYet": "Пока нет открытых эмодзи",
+      "sendTokens": "Отправить токены",
+      "giftASubscription": "Подарить подписку",
+      "emotes": "Эмодзи",
+      "toggleEmotePicker": "Показать/скрыть эмодзи"
+    },
+    "livePlayer": {
+      "connectingToStream": "Подключаемся к эфиру..."
+    },
+    "deepTaggingMatrix": {
+      "all": "Все",
+      "liveNow": "Сейчас в эфире",
+      "recent": "Недавние"
+    },
+    "emoteStudioPage": {
+      "delete": "Удалить",
+      "close": "Закрыть"
+    },
+    "birthDateCard": {
+      "enterYourDateOf": "Укажи дату рождения",
+      "couldnTSaveThat": "Не удалось сохранить. Попробуй ещё раз.",
+      "yourDateOfBirth": "Твоя дата рождения",
+      "dateOfBirth": "Дата рождения",
+      "youCanOnlySet": "Это можно указать только один раз.",
+      "save": "Сохранить"
+    },
+    "cosmeticsSheet": {
+      "save": "Сохранить"
+    },
+    "tokenPurchaseModal": {
+      "save": "Сохранить",
+      "close": "Закрыть"
+    },
+    "comboBuilderPage": {
+      "save": "Сохранить"
+    },
+    "tokensPage": {
+      "save": "Сохранить",
+      "tokens": "токенов"
+    },
+    "bookNextRound": {
+      "pickATimeBetween": "Выбери время с 5:00 до 22:00",
+      "couldnTBookIt": "Не удалось записаться — попробуй ещё раз",
+      "couldnTCancelTry": "Не удалось отменить — попробуй ещё раз",
+      "booked": "Записано:",
+      "fullSession": "Полная тренировка",
+      "weLlRemindYou": "· мы напомним",
+      "cancelBooking": "Отменить запись",
+      "bookYourNextRound": "Запланируй следующий раунд",
+      "pickATime": "Выбери время",
+      "chooseDateAndTime": "Выбери дату и время",
+      "workOn": "Отработать",
+      "booking": "Записываем…"
+    },
+    "coachMark": {
+      "gotIt": "Понятно"
+    },
+    "dimensionSlider": {
+      "skipThisDimension": "Пропустить этот показатель"
+    },
+    "drillCard": {
+      "couldnTLoadThis": "Не удалось загрузить упражнение.",
+      "watchDrill": "Смотреть упражнение"
+    },
+    "errorBoundary": {
+      "somethingWentWrong": "Что-то пошло не так.",
+      "weVeBeenNotified": "Мы уже знаем. Обычно помогает перезагрузка.",
+      "reload": "Перезагрузить"
+    },
+    "feedbackWidget": {
+      "close": "Закрыть"
+    },
+    "nativePurchaseNotice": {
+      "close": "Закрыть"
+    },
+    "reviewPromptModal": {
+      "close": "Закрыть"
+    },
+    "emoteShop": {
+      "close": "Закрыть",
+      "tokens": "токенов"
+    },
+    "giftSubModal": {
+      "close": "Закрыть"
+    },
+    "tipModal": {
+      "close": "Закрыть",
+      "send": "Отправить"
+    },
+    "gymsPage": {
+      "close": "Закрыть"
+    },
+    "squadsPage": {
+      "close": "Закрыть"
+    },
+    "timerPage": {
+      "close": "Закрыть",
+      "tryAgain": "Попробовать снова"
+    },
+    "fightFilm": {
+      "fightFilm": "Фильм боя",
+      "thisWeek": "на этой неделе",
+      "startYourFightFilm": "Начни свой Фильм боя",
+      "pinUpTo": "Закрепи до",
+      "ofYourBestRounds": "лучших раундов здесь — их увидят первыми.",
+      "hype": "хайп",
+      "callouts": "Вызовы:",
+      "won": "выиграно ·",
+      "defended": "защищено"
+    },
+    "sessionRewards": {
+      "thisWeek": "на этой неделе",
+      "squads": "Команды"
+    },
+    "fighterCard": {
+      "couldnTMakeYour": "Не удалось сделать карточку — попробуй ещё раз",
+      "makingYourCard": "Делаем карточку…",
+      "shareYourFighterCard": "Поделись карточкой бойца"
+    },
+    "founderPrice": {
+      "founderPriceLockedIn": "Цена основателя закреплена",
+      "thisPriceIsYours": "Эта цена твоя навсегда, пока у тебя активна подписка.",
+      "ifYouCancelIt": "Если отменишь, она пропадёт навсегда: вернуться будет стоить",
+      "about": ", примерно на",
+      "moreAYear": "больше в год."
+    },
+    "billingPage": {
+      "about": ", примерно на",
+      "moreAYear": "больше в год."
+    },
+    "helpChat": {
+      "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
+      "askVictory": "Спроси Victory",
+      "sendToTheTeam": "Отправить команде",
+      "askAQuestion": "Задай вопрос",
+      "yourQuestion": "Твой вопрос",
+      "send": "Отправить",
+      "iCanTAnswer": "Сейчас не могу ответить. Нажми «Отправить команде», и тебе ответят по почте."
+    },
+    "ordersPage": {
+      "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
+      "send": "Отправить"
+    },
+    "proApplyPage": {
+      "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз."
+    },
+    "mentorPanel": {
+      "send": "Отправить"
+    },
+    "tokenSuccessPage": {
+      "tryAgain": "Попробовать снова",
+      "tokens": "токенов"
+    },
+    "hypeOverlay": {
+      "reactionsAtOnce": "реакций разом"
+    },
+    "identityCard": {
+      "newTraitUnlocked": "Открыта новая черта",
+      "whoYouReBecoming": "Кем ты становишься",
+      "firstTime": "Впервые"
+    },
+    "journeyCard": {
+      "isYoursPlusStatus": "{{granted}} теперь твоё, плюс статус {{status}}. Найди в Fantasy → Вид команды.",
+      "couldnTClaimThat": "Сейчас не удалось получить",
+      "starterChallenge": "Стартовый вызов",
+      "threeSessionsInYour": "Три тренировки за первую неделю. Отличная работа.",
+      "theStarterKitFree": "Стартовый набор (бесплатные цвета угла для команды в Fantasy) — для участников Pro. Оформи Pro и забирай.",
+      "seePro": "Смотреть Pro",
+      "threeSessionsInYour2": "Три тренировки за первую неделю. Выбери свой угол:",
+      "teamColoursForFantasy": "Цвета команды для Fantasy, обычно £",
+      "yoursToKeep": ". Остаются у тебя.",
+      "train": "Тренируйся",
+      "timesInYourFirst": "раз в первую неделю",
+      "andEarnYourCorner": " и получи цвета угла бесплатно.",
+      "proMembersAlsoEarn": ". Участники Pro тоже получают бесплатные цвета угла.",
+      "day": "день",
+      "left": "остался",
+      "squads": "Команды",
+      "youLoved": "Тебе понравились",
+      "ofYourLast": "из последних",
+      "sessions": "тренировок."
+    },
+    "fantasyPage": {
+      "seePro": "Смотреть Pro"
+    },
+    "goldenGloves": {
+      "day": "день"
+    },
+    "proDashboardPage": {
+      "left": "остался"
+    },
+    "legendCard": {
+      "watchBreakdown": "Смотреть разбор"
+    },
+    "punchAlert": {
+      "tokens": "токенов",
+      "gifted": "подарил",
+      "sub": "подписку"
+    }
+  },
+  "feedback": {
+    "title": "Отправить отзыв",
+    "send": "Отправить отзыв",
+    "typeBug": "Ошибка",
+    "typeFeature": "Идея",
+    "typeGeneral": "Общее",
+    "ratingLabel": "Оцени впечатления (необязательно)",
+    "messageLabel": "Сообщение",
+    "messagePlaceholder": "Расскажи, что думаешь...",
+    "messageRequired": "Добавь сообщение",
+    "sending": "Отправка...",
+    "thanks": "Спасибо за отзыв!",
+    "chat": "Написать команде",
+    "thanksDesc": "Твоё сообщение помогает нам делать Victory AI лучше для каждого бойца.",
+    "ask": "Спроси Victory: быстрые ответы"
   }
 }

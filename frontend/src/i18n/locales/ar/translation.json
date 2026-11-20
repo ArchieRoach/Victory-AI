@@ -22,7 +22,8 @@
     "feed": "التغذية",
     "discover": "اكتشاف",
     "compete": "منافسة",
-    "profile": "الملف"
+    "profile": "الملف",
+    "live": "مباشر"
   },
   "welcome": {
     "headline": "شريكك التدريبي بالذكاء الاصطناعي ينتظرك.",
@@ -33,7 +34,9 @@
     "alreadyAccount": "هل لديك حساب بالفعل؟"
   },
   "login": {
-    "subtitle": "سجّل دخولك لمتابعة تدريبك"
+    "subtitle": "سجّل دخولك لمتابعة تدريبك",
+    "errorRefused": "لم نتمكن من إكمال تسجيل دخولك. حاول مرة أخرى.",
+    "errorBusy": "تسجيل الدخول مزدحم الآن. حاول مرة أخرى بعد دقيقة."
   },
   "paywall": {
     "headline": "تدريب مجاني. الترقية فقط إذا أردت ذكاءً اصطناعياً غير محدود.",
@@ -188,7 +191,10 @@
     "favorite_fighter": {
       "question": "أيّ من هؤلاء الملاكمين تريده مدربًا لك؟",
       "subtitle": "صورة شريكك التدريبي ستستلهم منه",
-      "other": "شخص آخر"
+      "other": "شخص آخر",
+      "otherPlaceholder": "اسم الملاكم",
+      "otherInvalid": "اكتب اسم ملاكم، مثل نسيم حميد.",
+      "backToList": "اختر من القائمة بدلاً من ذلك"
     },
     "personalized": {
       "title": "إليك ما سمعناه",
@@ -323,7 +329,13 @@
     "scoreLow": "نقطة البداية. إليك كيفية البناء.",
     "sessionLogged": "تم تسجيل {{rounds}} جولة. عمل حقيقي في السجل.",
     "streakLine": "🔥 سلسلة {{count}} يوم",
-    "sessionExpired": "تعذر العثور على هذه الجلسة — ربما تكون قد انتهت صلاحيتها."
+    "sessionExpired": "تعذر العثور على هذه الجلسة — ربما تكون قد انتهت صلاحيتها.",
+    "roundClipTitle": "انشر أفضل جولة لك",
+    "unscoredNote": "لا يوجد تقييم من الذكاء الاصطناعي هذه المرة — لم يُشاهَد شيء في هذه الجلسة. شغّل الفيديو في التدريب وسيقيّم الذكاء الاصطناعي كل جولة.",
+    "roundClipBody": "مقطع عمودي مدته 30 ثانية مع تقييمك، جاهز لتيك توك وريلز",
+    "roundClipStarting": "جارٍ قص مقطعك…",
+    "roundClipFailed": "تعذّر إنشاء مقطعك — حاول مرة أخرى",
+    "sessionLogged_one": "تم تسجيل {{count}} جولة. هذا عمل حقيقي."
   },
   "profile": {
     "title": "الملف الشخصي والإعدادات",
@@ -426,7 +438,17 @@
     "cameraDenied": "تم رفض الوصول إلى الكاميرا — سيستمر التدريب دون ملاحظات الفيديو.",
     "cameraUnsupported": "تسجيل الكاميرا غير مدعوم على هذا الجهاز أو المتصفح.",
     "recording": "جارٍ التسجيل",
-    "finalRound": "الجولة الأخيرة — اترك كل شيء هناك!"
+    "finalRound": "الجولة الأخيرة — اترك كل شيء هناك!",
+    "videoAskTitle": "هل تريد تقييمًا من الذكاء الاصطناعي؟",
+    "videoAskBody": "التسجيل هو ما يتيح للذكاء الاصطناعي تقييمك وإيجاد أرقامك القياسية وكتابة تقرير الاستكشاف. تبقى المقاطع خاصة ما لم تشاركها.",
+    "videoAskYes": "تشغيل",
+    "videoAskNo": "ليس الآن",
+    "videoOffNote": "الفيديو متوقف — لن تحصل هذه الجلسة على تقييم أو أرقام قياسية أو تقرير.",
+    "feedbackFailed": "تعذّر إنشاء ملاحظات لهذه الجولة.",
+    "startOffline": "تعذّر الوصول إلى الخادم — لن تُحفظ هذه الجلسة.",
+    "liveCoach": "المدرب المباشر",
+    "liveCoachDesc": "يعدّ اللكمات والتركيبات وسقوط الحماية أثناء تدريبك، ويتسابق مع أفضل جولة لك. يعمل على هاتفك — لا يُرفع أي شيء.",
+    "liveCoachOnly": "المدرب المباشر · لا يُسجَّل شيء"
   },
   "timer": {
     "title": "إعداد الجولات",
@@ -665,7 +687,13 @@
     "unknownFighter": "مقاتل",
     "streakActive": "🔥 سلسلة {{count}} يوم",
     "cheer": "شجّع",
-    "cheered": "تم التشجيع"
+    "cheered": "تم التشجيع",
+    "blockConfirm": "هل تريد حظر هذا الملاكم؟ لن يتمكن من متابعتك أو التعليق أو مراسلتك، وستلغيان متابعة بعضكما.",
+    "blocked": "تم الحظر — لم يعد بإمكانه متابعتك أو مراسلتك أو التعليق.",
+    "notFound": "تعذّر تحميل ملف هذا الملاكم.",
+    "browseFighters": "تصفّح الملاكمين",
+    "report": "إبلاغ",
+    "block": "حظر"
   },
   "belt": {
     "andTheNew": "والبطل الجديد...",
@@ -713,5 +741,390 @@
     "body": "يسعدنا وجودك معنا. تقييم سريع يساعد مقاتلين آخرين على اكتشاف Victory AI.",
     "rateBtn": "قيّم Victory AI",
     "notNow": "ليس الآن"
+  },
+  "streaming": {
+    "nav": "مباشر",
+    "discoverTitle": "مباشر",
+    "goLive": "ابدأ البث",
+    "endStream": "إنهاء البث",
+    "iAmLive": "أنا مباشر الآن",
+    "liveNow": "مباشر",
+    "offline": "غير متصل",
+    "idle": "جاهز",
+    "createStream": "إنشاء بث",
+    "noStreams": "لا توجد عمليات بث بعد. اضغط \"بث جديد\" للبدء.",
+    "noLiveStreams": "لا أحد في بث مباشر الآن.",
+    "myStreams": "عمليات البث الخاصة بي",
+    "viewerCount": "{{count}} يشاهدون",
+    "streamTitle": "عنوان البث",
+    "streamDescription": "الوصف (اختياري)",
+    "streamType": "نوع البث",
+    "types": {
+      "training": "تدريب",
+      "sparring": "سبارينغ",
+      "smoker": "أمسية هواة",
+      "bout": "نزال"
+    },
+    "privateStream": "بث خاص (أنت فقط من يراه)",
+    "streamKey": "مفتاح البث",
+    "rtmpUrl": "خادم RTMP",
+    "copyKey": "نسخ المفتاح",
+    "keyCopied": "تم النسخ!",
+    "obsInstructions": "الصقه في OBS ← الإعدادات ← البث ← مخصص…",
+    "watchMyStream": "شاهد بثي",
+    "chatPlaceholder": "أرسل رسالة...",
+    "clipBtn": "مقطع 30 ث",
+    "clipCreated": "تم حفظ المقطع!",
+    "clipError": "فشل المقطع — حاول مرة أخرى.",
+    "streamEnded": "انتهى البث",
+    "loadingStream": "جارٍ الاتصال بالبث...",
+    "connectingChat": "جارٍ الاتصال بالدردشة...",
+    "filterAll": "الكل",
+    "filterLive": "مباشر الآن",
+    "filterRecent": "الأحدث",
+    "beFirst": "كن أول من يبث مباشرة",
+    "obsCredentials": "بيانات اعتماد OBS",
+    "deleteStream": "حذف",
+    "confirmDelete": "حذف هذا البث؟",
+    "streamCreated": "تم إنشاء البث! الصق بيانات الاعتماد في OBS وابدأ البث."
+  },
+  "ui": {
+    "pushOptIn": {
+      "turnOn": "تشغيل"
+    },
+    "pushPrompt": {
+      "notNow": "ليس الآن"
+    },
+    "liveCoachPanel": {
+      "liveCoach": "المدرب المباشر"
+    },
+    "reportModal": {
+      "report": "إبلاغ",
+      "close": "إغلاق"
+    },
+    "goLivePage": {
+      "goLive": "ابدأ البث",
+      "endStream": "إنهاء البث",
+      "live": "مباشر",
+      "squads": "الفرق"
+    },
+    "highlightsPage": {
+      "goLive": "ابدأ البث",
+      "recent": "الأحدث",
+      "delete": "حذف",
+      "clip": "مقطع",
+      "aiScore": "تقييم الذكاء الاصطناعي",
+      "rendering": "جارٍ الإنشاء…"
+    },
+    "homePage": {
+      "goLive": "ابدأ البث",
+      "live": "مباشر",
+      "recent": "الأحدث"
+    },
+    "liveFeedPage": {
+      "goLive": "ابدأ البث",
+      "live": "مباشر",
+      "all": "الكل",
+      "recent": "الأحدث"
+    },
+    "streamerDashboardPage": {
+      "goLive": "ابدأ البث",
+      "tokens": "رموز",
+      "emotes2": "رموز تعبيرية"
+    },
+    "streamCard": {
+      "live": "مباشر"
+    },
+    "discoverPage": {
+      "live": "مباشر"
+    },
+    "streamViewPage": {
+      "live": "مباشر",
+      "clip30s": "مقطع 30 ث",
+      "clipSaved": "تم حفظ المقطع!",
+      "clipFailedTryAgain": "فشل المقطع — حاول مرة أخرى.",
+      "emotes": "رموز تعبيرية"
+    },
+    "onboardingFlow": {
+      "ready": "جاهز"
+    },
+    "publicProfilePage": {
+      "streamTitle": "عنوان البث",
+      "training": "تدريب",
+      "sparring": "سبارينغ",
+      "close": "إغلاق"
+    },
+    "highlightShareSheet": {
+      "copied": "تم النسخ!",
+      "close": "إغلاق",
+      "savedPostItFrom": "تم الحفظ — انشره من معرض الصور",
+      "couldnTOpenThe": "تعذّر فتح المشاركة — جرّب حفظ الفيديو",
+      "videoSaved": "تم حفظ الفيديو",
+      "postedToYourProfile": "تم النشر في ملفك",
+      "couldnTPostTry": "تعذّر النشر — حاول مرة أخرى",
+      "couldNotCopyLink": "تعذّر نسخ الرابط",
+      "addedToYourFight": "أُضيف إلى فيلم القتال",
+      "couldnTUpdateYour": "تعذّر تحديث فيلم القتال",
+      "retryFailed": "فشلت إعادة المحاولة",
+      "shareHighlight": "شارك اللقطة",
+      "autoHighlight": "لقطة تلقائية",
+      "yourRound": "جولتك",
+      "clip": "مقطع",
+      "thisOneDidnT": "لم يتم إنشاء هذا المقطع",
+      "retrying": "جارٍ إعادة المحاولة…",
+      "tryAgain": "حاول مرة أخرى",
+      "capturingTheMoment": "جارٍ التقاط اللحظة…",
+      "addingYourWatermark": "جارٍ إضافة علامتك المائية…",
+      "usuallyUnderAMinute": "عادةً أقل من دقيقة. يمكنك الإغلاق — سيكون في اللقطات.",
+      "aiScore": "تقييم الذكاء الاصطناعي",
+      "sinceLastSession": "منذ الجلسة الماضية",
+      "shares": "مشاركات",
+      "reactionsAtOnce": "تفاعلات دفعة واحدة",
+      "peopleHyped": "أشخاص متحمسون",
+      "rendering": "جارٍ الإنشاء…",
+      "preparingVideo": "جارٍ تجهيز الفيديو…",
+      "couldnTLoadThe": "تعذّر تحميل الفيديو. تحقق من اتصالك وأعد الفتح.",
+      "opensYourShareSheet": "يفتح قائمة المشاركة: تيك توك وإنستغرام وسناب شات ويوتيوب شورتس والمزيد",
+      "saveVideo": "حفظ الفيديو",
+      "copyLink": "نسخ الرابط",
+      "posting": "جارٍ النشر…",
+      "postToFeed": "انشر في الخلاصة",
+      "onYourFightFilm": "في فيلم القتال",
+      "addToYourFight": "أضف إلى فيلم القتال"
+    },
+    "shareSheet": {
+      "copied": "تم النسخ!",
+      "close": "إغلاق",
+      "savedPostItFrom": "تم الحفظ — انشره من معرض الصور",
+      "couldNotCopyLink": "تعذّر نسخ الرابط",
+      "shares": "مشاركات",
+      "preparingVideo": "جارٍ تجهيز الفيديو…",
+      "copyLink": "نسخ الرابط"
+    },
+    "liveChat": {
+      "sendAMessage": "أرسل رسالة...",
+      "connectingToChat": "جارٍ الاتصال بالدردشة...",
+      "tokens": "رموز",
+      "gifted": "أهدى",
+      "sub": "اشتراك",
+      "toTheCommunity": "للمجتمع!",
+      "liveChat": "دردشة مباشرة",
+      "watching": "يشاهدون",
+      "noMessagesYetSay": "لا توجد رسائل بعد — قل مرحبًا!",
+      "noEmotesUnlockedYet": "لا توجد رموز تعبيرية مفتوحة بعد",
+      "sendTokens": "إرسال رموز",
+      "giftASubscription": "أهدِ اشتراكًا",
+      "emotes": "رموز تعبيرية",
+      "toggleEmotePicker": "إظهار/إخفاء الرموز التعبيرية"
+    },
+    "livePlayer": {
+      "connectingToStream": "جارٍ الاتصال بالبث..."
+    },
+    "deepTaggingMatrix": {
+      "all": "الكل",
+      "liveNow": "مباشر الآن",
+      "recent": "الأحدث"
+    },
+    "emoteStudioPage": {
+      "delete": "حذف",
+      "close": "إغلاق"
+    },
+    "birthDateCard": {
+      "enterYourDateOf": "أدخل تاريخ ميلادك",
+      "couldnTSaveThat": "تعذّر الحفظ. حاول مرة أخرى.",
+      "yourDateOfBirth": "تاريخ ميلادك",
+      "dateOfBirth": "تاريخ الميلاد",
+      "youCanOnlySet": "يمكنك تعيين هذا مرة واحدة فقط.",
+      "save": "حفظ"
+    },
+    "cosmeticsSheet": {
+      "save": "حفظ"
+    },
+    "tokenPurchaseModal": {
+      "save": "حفظ",
+      "close": "إغلاق"
+    },
+    "comboBuilderPage": {
+      "save": "حفظ"
+    },
+    "tokensPage": {
+      "save": "حفظ",
+      "tokens": "رموز"
+    },
+    "bookNextRound": {
+      "pickATimeBetween": "اختر وقتًا بين 5 صباحًا و10 مساءً",
+      "couldnTBookIt": "تعذّر الحجز — حاول مرة أخرى",
+      "couldnTCancelTry": "تعذّر الإلغاء — حاول مرة أخرى",
+      "booked": "تم الحجز:",
+      "fullSession": "جلسة كاملة",
+      "weLlRemindYou": "· سنذكّرك",
+      "cancelBooking": "إلغاء الحجز",
+      "bookYourNextRound": "احجز جولتك القادمة",
+      "pickATime": "اختر وقتًا",
+      "chooseDateAndTime": "اختر التاريخ والوقت",
+      "workOn": "اعمل على",
+      "booking": "جارٍ الحجز…"
+    },
+    "coachMark": {
+      "gotIt": "فهمت"
+    },
+    "dimensionSlider": {
+      "skipThisDimension": "تخطَّ هذا البُعد"
+    },
+    "drillCard": {
+      "couldnTLoadThis": "تعذّر تحميل هذا التمرين.",
+      "watchDrill": "شاهد التمرين"
+    },
+    "errorBoundary": {
+      "somethingWentWrong": "حدث خطأ ما.",
+      "weVeBeenNotified": "تم إبلاغنا. إعادة التحميل تحل المشكلة عادةً.",
+      "reload": "إعادة التحميل"
+    },
+    "feedbackWidget": {
+      "close": "إغلاق"
+    },
+    "nativePurchaseNotice": {
+      "close": "إغلاق"
+    },
+    "reviewPromptModal": {
+      "close": "إغلاق"
+    },
+    "emoteShop": {
+      "close": "إغلاق",
+      "tokens": "رموز"
+    },
+    "giftSubModal": {
+      "close": "إغلاق"
+    },
+    "tipModal": {
+      "close": "إغلاق",
+      "send": "إرسال"
+    },
+    "gymsPage": {
+      "close": "إغلاق"
+    },
+    "squadsPage": {
+      "close": "إغلاق"
+    },
+    "timerPage": {
+      "close": "إغلاق",
+      "tryAgain": "حاول مرة أخرى"
+    },
+    "fightFilm": {
+      "fightFilm": "فيلم القتال",
+      "thisWeek": "هذا الأسبوع",
+      "startYourFightFilm": "ابدأ فيلم القتال الخاص بك",
+      "pinUpTo": "ثبّت حتى",
+      "ofYourBestRounds": "من أفضل جولاتك هنا — هذا أول ما يراه الناس.",
+      "hype": "حماس",
+      "callouts": "التحديات:",
+      "won": "فاز ·",
+      "defended": "دافع"
+    },
+    "sessionRewards": {
+      "thisWeek": "هذا الأسبوع",
+      "squads": "الفرق"
+    },
+    "fighterCard": {
+      "couldnTMakeYour": "تعذّر إنشاء بطاقتك — حاول مرة أخرى",
+      "makingYourCard": "جارٍ إنشاء بطاقتك…",
+      "shareYourFighterCard": "شارك بطاقة الملاكم الخاصة بك"
+    },
+    "founderPrice": {
+      "founderPriceLockedIn": "سعر المؤسس مثبّت",
+      "thisPriceIsYours": "هذا السعر لك مدى الحياة، طالما بقيت مشتركًا.",
+      "ifYouCancelIt": "إذا ألغيت، يضيع للأبد: العودة ستكلف",
+      "about": "، أي حوالي",
+      "moreAYear": "إضافية سنويًا."
+    },
+    "billingPage": {
+      "about": "، أي حوالي",
+      "moreAYear": "إضافية سنويًا."
+    },
+    "helpChat": {
+      "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
+      "askVictory": "اسأل Victory",
+      "sendToTheTeam": "أرسل إلى الفريق",
+      "askAQuestion": "اطرح سؤالاً",
+      "yourQuestion": "سؤالك",
+      "send": "إرسال",
+      "iCanTAnswer": "لا أستطيع الإجابة الآن. اضغط \"أرسل إلى الفريق\" وسيرد عليك أحدهم عبر البريد."
+    },
+    "ordersPage": {
+      "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
+      "send": "إرسال"
+    },
+    "proApplyPage": {
+      "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى."
+    },
+    "mentorPanel": {
+      "send": "إرسال"
+    },
+    "tokenSuccessPage": {
+      "tryAgain": "حاول مرة أخرى",
+      "tokens": "رموز"
+    },
+    "hypeOverlay": {
+      "reactionsAtOnce": "تفاعلات دفعة واحدة"
+    },
+    "identityCard": {
+      "newTraitUnlocked": "صفة جديدة مفتوحة",
+      "whoYouReBecoming": "من تصبح",
+      "firstTime": "المرة الأولى"
+    },
+    "journeyCard": {
+      "isYoursPlusStatus": "{{granted}} أصبح لك، مع حالة {{status}}. تجده في Fantasy ← مظهر الفريق.",
+      "couldnTClaimThat": "تعذّر الاستلام الآن",
+      "starterChallenge": "تحدي البداية",
+      "threeSessionsInYour": "ثلاث جلسات في أسبوعك الأول. عمل رائع.",
+      "theStarterKitFree": "حزمة البداية (ألوان زاوية مجانية لفريقك في Fantasy) لأعضاء Pro. اشترك في Pro واستلمها.",
+      "seePro": "اعرض Pro",
+      "threeSessionsInYour2": "ثلاث جلسات في أسبوعك الأول. اختر زاويتك:",
+      "teamColoursForFantasy": "ألوان الفريق في Fantasy، عادةً £",
+      "yoursToKeep": ". لك للأبد.",
+      "train": "تدرّب",
+      "timesInYourFirst": "مرات في أسبوعك الأول",
+      "andEarnYourCorner": " واربح ألوان زاويتك مجانًا.",
+      "proMembersAlsoEarn": ". أعضاء Pro يربحون أيضًا ألوان زاوية مجانية.",
+      "day": "يوم",
+      "left": "متبقٍ",
+      "squads": "الفرق",
+      "youLoved": "أحببت",
+      "ofYourLast": "من آخر",
+      "sessions": "جلسات."
+    },
+    "fantasyPage": {
+      "seePro": "اعرض Pro"
+    },
+    "goldenGloves": {
+      "day": "يوم"
+    },
+    "proDashboardPage": {
+      "left": "متبقٍ"
+    },
+    "legendCard": {
+      "watchBreakdown": "شاهد التحليل"
+    },
+    "punchAlert": {
+      "tokens": "رموز",
+      "gifted": "أهدى",
+      "sub": "اشتراك"
+    }
+  },
+  "feedback": {
+    "title": "إرسال ملاحظات",
+    "send": "إرسال ملاحظات",
+    "typeBug": "خطأ",
+    "typeFeature": "فكرة",
+    "typeGeneral": "عام",
+    "ratingLabel": "قيّم تجربتك (اختياري)",
+    "messageLabel": "الرسالة",
+    "messagePlaceholder": "أخبرنا بما يدور في ذهنك...",
+    "messageRequired": "يرجى كتابة رسالة",
+    "sending": "جارٍ الإرسال...",
+    "thanks": "شكرًا على ملاحظاتك!",
+    "chat": "تحدّث مع الفريق",
+    "thanksDesc": "رسالتك تساعدنا على تحسين Victory AI لكل ملاكم.",
+    "ask": "اسأل Victory: إجابات سريعة"
   }
 }

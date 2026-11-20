@@ -22,7 +22,8 @@
     "feed": "动态",
     "discover": "发现",
     "compete": "竞赛",
-    "profile": "我的"
+    "profile": "我的",
+    "live": "直播"
   },
   "welcome": {
     "headline": "你的AI训练伙伴正在等你。",
@@ -33,7 +34,9 @@
     "alreadyAccount": "已有账户？"
   },
   "login": {
-    "subtitle": "登录以继续你的训练"
+    "subtitle": "登录以继续你的训练",
+    "errorRefused": "无法完成登录，请重试。",
+    "errorBusy": "登录繁忙，请一分钟后再试。"
   },
   "paywall": {
     "headline": "免费训练。仅当你需要无限AI时才需升级。",
@@ -188,7 +191,10 @@
     "favorite_fighter": {
       "question": "你希望哪位拳手当你的教练？",
       "subtitle": "你的训练伙伴形象将从他身上获得灵感",
-      "other": "其他人"
+      "other": "其他人",
+      "otherPlaceholder": "拳手名字",
+      "otherInvalid": "输入一位拳手的名字，例如纳西姆·哈米德。",
+      "backToList": "改为从列表中选择"
     },
     "personalized": {
       "title": "这是我们听到的",
@@ -323,7 +329,13 @@
     "scoreLow": "起点。以下是如何进步。",
     "sessionLogged": "已记录{{rounds}}回合。这是实实在在的训练成果。",
     "streakLine": "🔥 连续{{count}}天",
-    "sessionExpired": "找不到该会话——可能已过期。"
+    "sessionExpired": "找不到该会话——可能已过期。",
+    "roundClipTitle": "发布你最好的回合",
+    "unscoredNote": "这次没有 AI 评分 — 本次训练没有录像。在训练中打开视频，AI 会为每个回合评分。",
+    "roundClipBody": "带有 AI 评分的 30 秒竖屏短片，可直接发到 TikTok 和 Reels",
+    "roundClipStarting": "正在剪辑你的短片…",
+    "roundClipFailed": "无法生成短片 — 请重试",
+    "sessionLogged_one": "已记录 {{count}} 个回合。实打实的训练。"
   },
   "profile": {
     "title": "个人资料与设置",
@@ -426,7 +438,17 @@
     "cameraDenied": "摄像头访问被拒绝——训练将在没有视频反馈的情况下继续。",
     "cameraUnsupported": "此设备或浏览器不支持摄像头录制。",
     "recording": "录制中",
-    "finalRound": "最后一回合——把一切都留在这里！"
+    "finalRound": "最后一回合——把一切都留在这里！",
+    "videoAskTitle": "让 AI 给你评分？",
+    "videoAskBody": "AI 通过录像为你评分、找出你的个人最佳并写出球探报告。除非你分享，短片都是私密的。",
+    "videoAskYes": "打开",
+    "videoAskNo": "以后再说",
+    "videoOffNote": "视频已关闭 — 本次训练不会有 AI 评分、个人最佳或球探报告。",
+    "feedbackFailed": "无法为这个回合生成反馈。",
+    "startOffline": "无法连接服务器 — 本次训练不会被保存。",
+    "liveCoach": "实时教练",
+    "liveCoachDesc": "训练时实时统计出拳、组合拳和护架下垂，并与你的最佳回合比拼。在手机上运行 — 不会上传任何内容。",
+    "liveCoachOnly": "实时教练 · 不录制任何内容"
   },
   "timer": {
     "title": "设置回合",
@@ -665,7 +687,13 @@
     "unknownFighter": "拳手",
     "streakActive": "🔥 连续{{count}}天",
     "cheer": "加油",
-    "cheered": "已加油"
+    "cheered": "已加油",
+    "blockConfirm": "屏蔽这位拳手？对方将无法关注你、评论或给你发消息，你们也会互相取消关注。",
+    "blocked": "已屏蔽 — 对方无法再关注你、给你发消息或评论。",
+    "notFound": "无法加载这位拳手的资料。",
+    "browseFighters": "浏览拳手",
+    "report": "举报",
+    "block": "屏蔽"
   },
   "belt": {
     "andTheNew": "新的冠军诞生...",
@@ -713,5 +741,390 @@
     "body": "很高兴你在这里。快速评分能帮助更多拳手发现 Victory AI。",
     "rateBtn": "评价 Victory AI",
     "notNow": "暂不"
+  },
+  "streaming": {
+    "nav": "直播",
+    "discoverTitle": "直播",
+    "goLive": "开始直播",
+    "endStream": "结束直播",
+    "iAmLive": "我正在直播",
+    "liveNow": "直播中",
+    "offline": "离线",
+    "idle": "就绪",
+    "createStream": "创建直播",
+    "noStreams": "还没有直播。点击“新建直播”开始。",
+    "noLiveStreams": "现在没有人在直播。",
+    "myStreams": "我的直播",
+    "viewerCount": "{{count}} 人观看",
+    "streamTitle": "直播标题",
+    "streamDescription": "描述（可选）",
+    "streamType": "直播类型",
+    "types": {
+      "training": "训练",
+      "sparring": "实战对练",
+      "smoker": "业余赛",
+      "bout": "比赛"
+    },
+    "privateStream": "私密直播（只有你能看到）",
+    "streamKey": "推流密钥",
+    "rtmpUrl": "RTMP 服务器",
+    "copyKey": "复制密钥",
+    "keyCopied": "已复制！",
+    "obsInstructions": "粘贴到 OBS → 设置 → 推流 → 自定义…",
+    "watchMyStream": "观看我的直播",
+    "chatPlaceholder": "发送消息...",
+    "clipBtn": "剪辑 30 秒",
+    "clipCreated": "短片已保存！",
+    "clipError": "剪辑失败 — 请重试。",
+    "streamEnded": "直播已结束",
+    "loadingStream": "正在连接直播...",
+    "connectingChat": "正在连接聊天...",
+    "filterAll": "全部",
+    "filterLive": "正在直播",
+    "filterRecent": "最近",
+    "beFirst": "第一个开播吧",
+    "obsCredentials": "OBS 凭据",
+    "deleteStream": "删除",
+    "confirmDelete": "删除这个直播？",
+    "streamCreated": "直播已创建！把凭据粘贴到 OBS 即可开播。"
+  },
+  "ui": {
+    "pushOptIn": {
+      "turnOn": "打开"
+    },
+    "pushPrompt": {
+      "notNow": "以后再说"
+    },
+    "liveCoachPanel": {
+      "liveCoach": "实时教练"
+    },
+    "reportModal": {
+      "report": "举报",
+      "close": "关闭"
+    },
+    "goLivePage": {
+      "goLive": "开始直播",
+      "endStream": "结束直播",
+      "live": "直播中",
+      "squads": "小队"
+    },
+    "highlightsPage": {
+      "goLive": "开始直播",
+      "recent": "最近",
+      "delete": "删除",
+      "clip": "短片",
+      "aiScore": "AI 评分",
+      "rendering": "生成中…"
+    },
+    "homePage": {
+      "goLive": "开始直播",
+      "live": "直播中",
+      "recent": "最近"
+    },
+    "liveFeedPage": {
+      "goLive": "开始直播",
+      "live": "直播中",
+      "all": "全部",
+      "recent": "最近"
+    },
+    "streamerDashboardPage": {
+      "goLive": "开始直播",
+      "tokens": "代币",
+      "emotes2": "表情"
+    },
+    "streamCard": {
+      "live": "直播中"
+    },
+    "discoverPage": {
+      "live": "直播中"
+    },
+    "streamViewPage": {
+      "live": "直播中",
+      "clip30s": "剪辑 30 秒",
+      "clipSaved": "短片已保存！",
+      "clipFailedTryAgain": "剪辑失败 — 请重试。",
+      "emotes": "表情"
+    },
+    "onboardingFlow": {
+      "ready": "就绪"
+    },
+    "publicProfilePage": {
+      "streamTitle": "直播标题",
+      "training": "训练",
+      "sparring": "实战对练",
+      "close": "关闭"
+    },
+    "highlightShareSheet": {
+      "copied": "已复制！",
+      "close": "关闭",
+      "savedPostItFrom": "已保存 — 从相册发布",
+      "couldnTOpenThe": "无法打开分享 — 试试保存视频",
+      "videoSaved": "视频已保存",
+      "postedToYourProfile": "已发布到你的主页",
+      "couldnTPostTry": "发布失败 — 请重试",
+      "couldNotCopyLink": "无法复制链接",
+      "addedToYourFight": "已加入你的战斗影集",
+      "couldnTUpdateYour": "无法更新你的战斗影集",
+      "retryFailed": "重试失败",
+      "shareHighlight": "分享精彩瞬间",
+      "autoHighlight": "自动精彩瞬间",
+      "yourRound": "你的回合",
+      "clip": "短片",
+      "thisOneDidnT": "这个没有生成成功",
+      "retrying": "正在重试…",
+      "tryAgain": "重试",
+      "capturingTheMoment": "正在捕捉瞬间…",
+      "addingYourWatermark": "正在添加你的水印…",
+      "usuallyUnderAMinute": "通常不到一分钟。可以先关闭 — 它会出现在精彩瞬间里。",
+      "aiScore": "AI 评分",
+      "sinceLastSession": "较上次训练",
+      "shares": "次分享",
+      "reactionsAtOnce": "个同时反应",
+      "peopleHyped": "人点赞助威",
+      "rendering": "生成中…",
+      "preparingVideo": "正在准备视频…",
+      "couldnTLoadThe": "无法加载视频。请检查网络后重新打开。",
+      "opensYourShareSheet": "打开分享：TikTok、Instagram、Snapchat、YouTube Shorts 等",
+      "saveVideo": "保存视频",
+      "copyLink": "复制链接",
+      "posting": "发布中…",
+      "postToFeed": "发布到动态",
+      "onYourFightFilm": "已在战斗影集中",
+      "addToYourFight": "加入战斗影集"
+    },
+    "shareSheet": {
+      "copied": "已复制！",
+      "close": "关闭",
+      "savedPostItFrom": "已保存 — 从相册发布",
+      "couldNotCopyLink": "无法复制链接",
+      "shares": "次分享",
+      "preparingVideo": "正在准备视频…",
+      "copyLink": "复制链接"
+    },
+    "liveChat": {
+      "sendAMessage": "发送消息...",
+      "connectingToChat": "正在连接聊天...",
+      "tokens": "代币",
+      "gifted": "赠送了",
+      "sub": "订阅",
+      "toTheCommunity": "给社区！",
+      "liveChat": "直播聊天",
+      "watching": "人观看",
+      "noMessagesYetSay": "还没有消息 — 打个招呼吧！",
+      "noEmotesUnlockedYet": "还没有解锁表情",
+      "sendTokens": "发送代币",
+      "giftASubscription": "赠送订阅",
+      "emotes": "表情",
+      "toggleEmotePicker": "切换表情选择"
+    },
+    "livePlayer": {
+      "connectingToStream": "正在连接直播..."
+    },
+    "deepTaggingMatrix": {
+      "all": "全部",
+      "liveNow": "正在直播",
+      "recent": "最近"
+    },
+    "emoteStudioPage": {
+      "delete": "删除",
+      "close": "关闭"
+    },
+    "birthDateCard": {
+      "enterYourDateOf": "输入你的出生日期",
+      "couldnTSaveThat": "无法保存，请重试。",
+      "yourDateOfBirth": "你的出生日期",
+      "dateOfBirth": "出生日期",
+      "youCanOnlySet": "这只能设置一次。",
+      "save": "保存"
+    },
+    "cosmeticsSheet": {
+      "save": "保存"
+    },
+    "tokenPurchaseModal": {
+      "save": "保存",
+      "close": "关闭"
+    },
+    "comboBuilderPage": {
+      "save": "保存"
+    },
+    "tokensPage": {
+      "save": "保存",
+      "tokens": "代币"
+    },
+    "bookNextRound": {
+      "pickATimeBetween": "请选择早上 5 点到晚上 10 点之间的时间",
+      "couldnTBookIt": "预约失败 — 请重试",
+      "couldnTCancelTry": "取消失败 — 请重试",
+      "booked": "已预约：",
+      "fullSession": "完整训练",
+      "weLlRemindYou": "· 我们会提醒你",
+      "cancelBooking": "取消预约",
+      "bookYourNextRound": "预约你的下一个回合",
+      "pickATime": "选择时间",
+      "chooseDateAndTime": "选择日期和时间",
+      "workOn": "练习",
+      "booking": "预约中…"
+    },
+    "coachMark": {
+      "gotIt": "知道了"
+    },
+    "dimensionSlider": {
+      "skipThisDimension": "跳过此项"
+    },
+    "drillCard": {
+      "couldnTLoadThis": "无法加载这个训练。",
+      "watchDrill": "观看训练"
+    },
+    "errorBoundary": {
+      "somethingWentWrong": "出了点问题。",
+      "weVeBeenNotified": "我们已收到通知。重新加载通常就能解决。",
+      "reload": "重新加载"
+    },
+    "feedbackWidget": {
+      "close": "关闭"
+    },
+    "nativePurchaseNotice": {
+      "close": "关闭"
+    },
+    "reviewPromptModal": {
+      "close": "关闭"
+    },
+    "emoteShop": {
+      "close": "关闭",
+      "tokens": "代币"
+    },
+    "giftSubModal": {
+      "close": "关闭"
+    },
+    "tipModal": {
+      "close": "关闭",
+      "send": "发送"
+    },
+    "gymsPage": {
+      "close": "关闭"
+    },
+    "squadsPage": {
+      "close": "关闭"
+    },
+    "timerPage": {
+      "close": "关闭",
+      "tryAgain": "重试"
+    },
+    "fightFilm": {
+      "fightFilm": "战斗影集",
+      "thisWeek": "本周",
+      "startYourFightFilm": "开始你的战斗影集",
+      "pinUpTo": "最多置顶",
+      "ofYourBestRounds": "个你的最佳回合 — 这是别人最先看到的。",
+      "hype": "热度",
+      "callouts": "挑战：",
+      "won": "胜 ·",
+      "defended": "守住"
+    },
+    "sessionRewards": {
+      "thisWeek": "本周",
+      "squads": "小队"
+    },
+    "fighterCard": {
+      "couldnTMakeYour": "无法生成你的卡片 — 请重试",
+      "makingYourCard": "正在生成你的卡片…",
+      "shareYourFighterCard": "分享你的拳手卡"
+    },
+    "founderPrice": {
+      "founderPriceLockedIn": "创始价已锁定",
+      "thisPriceIsYours": "只要你持续订阅，这个价格终身属于你。",
+      "ifYouCancelIt": "如果取消，就永远失去了：再回来需要",
+      "about": "，大约",
+      "moreAYear": "每年多付。"
+    },
+    "billingPage": {
+      "about": "，大约",
+      "moreAYear": "每年多付。"
+    },
+    "helpChat": {
+      "couldnTSendThat": "无法发送，请重试。",
+      "askVictory": "问问 Victory",
+      "sendToTheTeam": "发送给团队",
+      "askAQuestion": "提个问题",
+      "yourQuestion": "你的问题",
+      "send": "发送",
+      "iCanTAnswer": "我现在无法回答。点“发送给团队”，会有人通过邮件回复你。"
+    },
+    "ordersPage": {
+      "couldnTSendThat": "无法发送，请重试。",
+      "send": "发送"
+    },
+    "proApplyPage": {
+      "couldnTSendThat": "无法发送，请重试。"
+    },
+    "mentorPanel": {
+      "send": "发送"
+    },
+    "tokenSuccessPage": {
+      "tryAgain": "重试",
+      "tokens": "代币"
+    },
+    "hypeOverlay": {
+      "reactionsAtOnce": "个同时反应"
+    },
+    "identityCard": {
+      "newTraitUnlocked": "解锁新特质",
+      "whoYouReBecoming": "你正在成为的人",
+      "firstTime": "第一次"
+    },
+    "journeyCard": {
+      "isYoursPlusStatus": "{{granted}} 归你了，外加 {{status}} 身份。在 Fantasy → 队伍外观 中查看。",
+      "couldnTClaimThat": "现在无法领取",
+      "starterChallenge": "新手挑战",
+      "threeSessionsInYour": "第一周完成三次训练。干得好。",
+      "theStarterKitFree": "新手礼包（Fantasy 队伍的免费角落配色）仅限 Pro 会员。升级 Pro 即可领取。",
+      "seePro": "查看 Pro",
+      "threeSessionsInYour2": "第一周完成三次训练。选择你的角落：",
+      "teamColoursForFantasy": "Fantasy 队伍配色，通常 £",
+      "yoursToKeep": "。永久归你。",
+      "train": "在第一周训练",
+      "timesInYourFirst": "次",
+      "andEarnYourCorner": "，免费获得角落配色。",
+      "proMembersAlsoEarn": "。Pro 会员也能获得免费角落配色。",
+      "day": "天",
+      "left": "剩余",
+      "squads": "小队",
+      "youLoved": "你喜欢",
+      "ofYourLast": "在最近",
+      "sessions": "次训练中。"
+    },
+    "fantasyPage": {
+      "seePro": "查看 Pro"
+    },
+    "goldenGloves": {
+      "day": "天"
+    },
+    "proDashboardPage": {
+      "left": "剩余"
+    },
+    "legendCard": {
+      "watchBreakdown": "观看分析"
+    },
+    "punchAlert": {
+      "tokens": "代币",
+      "gifted": "赠送了",
+      "sub": "订阅"
+    }
+  },
+  "feedback": {
+    "title": "发送反馈",
+    "send": "发送反馈",
+    "typeBug": "问题",
+    "typeFeature": "建议",
+    "typeGeneral": "一般",
+    "ratingLabel": "为你的体验打分（可选）",
+    "messageLabel": "消息",
+    "messagePlaceholder": "说说你的想法...",
+    "messageRequired": "请填写消息",
+    "sending": "发送中...",
+    "thanks": "感谢你的反馈！",
+    "chat": "与团队聊天",
+    "thanksDesc": "你的消息帮助我们为每位拳手改进 Victory AI。",
+    "ask": "问问 Victory：快速解答"
   }
 }

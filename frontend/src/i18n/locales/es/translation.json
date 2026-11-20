@@ -22,7 +22,8 @@
     "feed": "Feed",
     "discover": "Descubrir",
     "compete": "Competir",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "live": "En vivo"
   },
   "welcome": {
     "headline": "Tu compañero de entrenamiento con IA te espera.",
@@ -33,7 +34,9 @@
     "alreadyAccount": "¿Ya tienes una cuenta?"
   },
   "login": {
-    "subtitle": "Inicia sesión para continuar tu entrenamiento"
+    "subtitle": "Inicia sesión para continuar tu entrenamiento",
+    "errorRefused": "No pudimos terminar de iniciar tu sesión. Inténtalo de nuevo.",
+    "errorBusy": "El inicio de sesión está ocupado. Inténtalo de nuevo en un minuto."
   },
   "paywall": {
     "headline": "Entrena gratis. Mejora solo si quieres IA ilimitada.",
@@ -188,7 +191,10 @@
     "favorite_fighter": {
       "question": "¿Cuál de estos boxeadores te gustaría como entrenador?",
       "subtitle": "La imagen de tu compañero de entrenamiento se inspirará en ellos",
-      "other": "Otro"
+      "other": "Otro",
+      "otherPlaceholder": "Nombre del boxeador",
+      "otherInvalid": "Escribe el nombre de un boxeador, como Naseem Hamed.",
+      "backToList": "Elegir de la lista"
     },
     "personalized": {
       "title": "Esto es lo que escuchamos",
@@ -323,7 +329,13 @@
     "scoreLow": "Punto de partida. Aquí te mostramos cómo mejorar.",
     "sessionLogged": "{{rounds}} asaltos registrados. Trabajo real en el marcador.",
     "streakLine": "🔥 Racha de {{count}} días",
-    "sessionExpired": "No se pudo encontrar esa sesión — puede que haya caducado."
+    "sessionExpired": "No se pudo encontrar esa sesión — puede que haya caducado.",
+    "roundClipTitle": "Publica tu mejor asalto",
+    "unscoredNote": "Sin puntuación de la IA esta vez — no se vio nada en esta sesión. Activa el vídeo en Entrenar y la IA puntuará cada asalto.",
+    "roundClipBody": "Clip vertical de 30 s con tu puntuación de la IA, listo para TikTok y Reels",
+    "roundClipStarting": "Cortando tu clip…",
+    "roundClipFailed": "No se pudo crear tu clip — inténtalo de nuevo",
+    "sessionLogged_one": "{{count}} asalto registrado. Eso es trabajo de verdad."
   },
   "profile": {
     "title": "Perfil y configuración",
@@ -426,7 +438,17 @@
     "cameraDenied": "Se denegó el acceso a la cámara — el entrenamiento continuará sin feedback de video.",
     "cameraUnsupported": "La grabación por cámara no es compatible con este dispositivo o navegador.",
     "recording": "Grabando",
-    "finalRound": "Último asalto — ¡déjalo todo ahí!"
+    "finalRound": "Último asalto — ¡déjalo todo ahí!",
+    "videoAskTitle": "¿Quieres que la IA te puntúe?",
+    "videoAskBody": "Grabar es como la IA te puntúa, encuentra tus mejores marcas y escribe tu informe. Los clips son privados salvo que los compartas.",
+    "videoAskYes": "Activar",
+    "videoAskNo": "Ahora no",
+    "videoOffNote": "Vídeo apagado — esta sesión no tendrá puntuación de la IA, mejores marcas ni informe.",
+    "feedbackFailed": "No se pudo generar el análisis de este asalto.",
+    "startOffline": "No se pudo conectar con el servidor — esta sesión no se guardará.",
+    "liveCoach": "Coach en vivo",
+    "liveCoachDesc": "Cuenta golpes, combinaciones y bajadas de guardia mientras entrenas, y compite con tu mejor asalto. Funciona en tu móvil — no se sube nada.",
+    "liveCoachOnly": "Coach en vivo · no se graba nada"
   },
   "timer": {
     "title": "Configura tus asaltos",
@@ -665,7 +687,13 @@
     "unknownFighter": "Luchador",
     "streakActive": "🔥 Racha de {{count}} días",
     "cheer": "Animar",
-    "cheered": "Animado"
+    "cheered": "Animado",
+    "blockConfirm": "¿Bloquear a este luchador? No podrá seguirte, comentar ni escribirte, y dejaréis de seguiros.",
+    "blocked": "Bloqueado — ya no puede seguirte, escribirte ni comentar.",
+    "notFound": "No se pudo cargar el perfil de este luchador.",
+    "browseFighters": "Ver luchadores",
+    "report": "Denunciar",
+    "block": "Bloquear"
   },
   "belt": {
     "andTheNew": "Y el nuevo...",
@@ -713,5 +741,390 @@
     "body": "Nos alegra tenerte aquí. Una valoración rápida ayuda a que otros boxeadores encuentren Victory AI.",
     "rateBtn": "Valorar Victory AI",
     "notNow": "Ahora no"
+  },
+  "streaming": {
+    "nav": "En vivo",
+    "discoverTitle": "En vivo",
+    "goLive": "Emitir en vivo",
+    "endStream": "Terminar emisión",
+    "iAmLive": "Estoy en vivo",
+    "liveNow": "EN VIVO",
+    "offline": "Desconectado",
+    "idle": "Listo",
+    "createStream": "Crear emisión",
+    "noStreams": "Aún no hay emisiones. Toca \"Nueva emisión\" para empezar.",
+    "noLiveStreams": "Nadie está en vivo ahora.",
+    "myStreams": "Mis emisiones",
+    "viewerCount": "{{count}} viendo",
+    "streamTitle": "Título de la emisión",
+    "streamDescription": "Descripción (opcional)",
+    "streamType": "Tipo de emisión",
+    "types": {
+      "training": "Entrenamiento",
+      "sparring": "Sparring",
+      "smoker": "Velada",
+      "bout": "Combate"
+    },
+    "privateStream": "Emisión privada (solo tú puedes verla)",
+    "streamKey": "Clave de emisión",
+    "rtmpUrl": "Servidor RTMP",
+    "copyKey": "Copiar clave",
+    "keyCopied": "¡Copiado!",
+    "obsInstructions": "Pégalo en OBS → Ajustes → Emisión → Personalizado…",
+    "watchMyStream": "Ver mi emisión",
+    "chatPlaceholder": "Escribe un mensaje...",
+    "clipBtn": "Clip 30 s",
+    "clipCreated": "¡Clip guardado!",
+    "clipError": "El clip falló — inténtalo de nuevo.",
+    "streamEnded": "La emisión ha terminado",
+    "loadingStream": "Conectando con la emisión...",
+    "connectingChat": "Conectando al chat...",
+    "filterAll": "Todos",
+    "filterLive": "En vivo ahora",
+    "filterRecent": "Recientes",
+    "beFirst": "Sé el primero en emitir en vivo",
+    "obsCredentials": "Credenciales de OBS",
+    "deleteStream": "Eliminar",
+    "confirmDelete": "¿Eliminar esta emisión?",
+    "streamCreated": "¡Emisión creada! Pega las credenciales en OBS y sal en vivo."
+  },
+  "ui": {
+    "pushOptIn": {
+      "turnOn": "Activar"
+    },
+    "pushPrompt": {
+      "notNow": "Ahora no"
+    },
+    "liveCoachPanel": {
+      "liveCoach": "Coach en vivo"
+    },
+    "reportModal": {
+      "report": "Denunciar",
+      "close": "Cerrar"
+    },
+    "goLivePage": {
+      "goLive": "Emitir en vivo",
+      "endStream": "Terminar emisión",
+      "live": "EN VIVO",
+      "squads": "Squads"
+    },
+    "highlightsPage": {
+      "goLive": "Emitir en vivo",
+      "recent": "Recientes",
+      "delete": "Eliminar",
+      "clip": "CLIP",
+      "aiScore": "Puntuación IA",
+      "rendering": "Generando…"
+    },
+    "homePage": {
+      "goLive": "Emitir en vivo",
+      "live": "EN VIVO",
+      "recent": "Recientes"
+    },
+    "liveFeedPage": {
+      "goLive": "Emitir en vivo",
+      "live": "EN VIVO",
+      "all": "Todos",
+      "recent": "Recientes"
+    },
+    "streamerDashboardPage": {
+      "goLive": "Emitir en vivo",
+      "tokens": "tokens",
+      "emotes2": "Emotes"
+    },
+    "streamCard": {
+      "live": "EN VIVO"
+    },
+    "discoverPage": {
+      "live": "EN VIVO"
+    },
+    "streamViewPage": {
+      "live": "EN VIVO",
+      "clip30s": "Clip 30 s",
+      "clipSaved": "¡Clip guardado!",
+      "clipFailedTryAgain": "El clip falló — inténtalo de nuevo.",
+      "emotes": "Emotes"
+    },
+    "onboardingFlow": {
+      "ready": "Listo"
+    },
+    "publicProfilePage": {
+      "streamTitle": "Título de la emisión",
+      "training": "Entrenamiento",
+      "sparring": "Sparring",
+      "close": "Cerrar"
+    },
+    "highlightShareSheet": {
+      "copied": "¡Copiado!",
+      "close": "Cerrar",
+      "savedPostItFrom": "Guardado — publícalo desde tu galería",
+      "couldnTOpenThe": "No se pudo abrir el menú de compartir — prueba Guardar vídeo",
+      "videoSaved": "Vídeo guardado",
+      "postedToYourProfile": "Publicado en tu perfil",
+      "couldnTPostTry": "No se pudo publicar — inténtalo de nuevo",
+      "couldNotCopyLink": "No se pudo copiar el enlace",
+      "addedToYourFight": "Añadido a tu Película de Combate",
+      "couldnTUpdateYour": "No se pudo actualizar tu Película de Combate",
+      "retryFailed": "El reintento falló",
+      "shareHighlight": "Compartir momento",
+      "autoHighlight": "MOMENTO AUTOMÁTICO",
+      "yourRound": "TU ASALTO",
+      "clip": "CLIP",
+      "thisOneDidnT": "Este no se generó",
+      "retrying": "Reintentando…",
+      "tryAgain": "Reintentar",
+      "capturingTheMoment": "Capturando el momento…",
+      "addingYourWatermark": "Añadiendo tu marca de agua…",
+      "usuallyUnderAMinute": "Suele tardar menos de un minuto. Puedes cerrar esto — estará en Momentos.",
+      "aiScore": "Puntuación IA",
+      "sinceLastSession": "desde la última sesión",
+      "shares": "compartidos",
+      "reactionsAtOnce": "reacciones a la vez",
+      "peopleHyped": "personas dieron hype",
+      "rendering": "Generando…",
+      "preparingVideo": "Preparando vídeo…",
+      "couldnTLoadThe": "No se pudo cargar el vídeo. Revisa tu conexión y vuelve a abrir esto.",
+      "opensYourShareSheet": "Abre el menú de compartir: TikTok, Instagram, Snapchat, YouTube Shorts y más",
+      "saveVideo": "Guardar vídeo",
+      "copyLink": "Copiar enlace",
+      "posting": "Publicando…",
+      "postToFeed": "Publicar en el feed",
+      "onYourFightFilm": "En tu Película de Combate",
+      "addToYourFight": "Añadir a tu Película de Combate"
+    },
+    "shareSheet": {
+      "copied": "¡Copiado!",
+      "close": "Cerrar",
+      "savedPostItFrom": "Guardado — publícalo desde tu galería",
+      "couldNotCopyLink": "No se pudo copiar el enlace",
+      "shares": "compartidos",
+      "preparingVideo": "Preparando vídeo…",
+      "copyLink": "Copiar enlace"
+    },
+    "liveChat": {
+      "sendAMessage": "Escribe un mensaje...",
+      "connectingToChat": "Conectando al chat...",
+      "tokens": "tokens",
+      "gifted": "regaló",
+      "sub": "suscripción",
+      "toTheCommunity": "a la comunidad!",
+      "liveChat": "Chat en vivo",
+      "watching": "viendo",
+      "noMessagesYetSay": "Aún no hay mensajes — ¡saluda!",
+      "noEmotesUnlockedYet": "Aún no tienes emotes desbloqueados",
+      "sendTokens": "Enviar tokens",
+      "giftASubscription": "Regalar una suscripción",
+      "emotes": "Emotes",
+      "toggleEmotePicker": "Mostrar/ocultar emotes"
+    },
+    "livePlayer": {
+      "connectingToStream": "Conectando con la emisión..."
+    },
+    "deepTaggingMatrix": {
+      "all": "Todos",
+      "liveNow": "En vivo ahora",
+      "recent": "Recientes"
+    },
+    "emoteStudioPage": {
+      "delete": "Eliminar",
+      "close": "Cerrar"
+    },
+    "birthDateCard": {
+      "enterYourDateOf": "Introduce tu fecha de nacimiento",
+      "couldnTSaveThat": "No se pudo guardar. Inténtalo de nuevo.",
+      "yourDateOfBirth": "Tu fecha de nacimiento",
+      "dateOfBirth": "Fecha de nacimiento",
+      "youCanOnlySet": "Solo puedes establecerlo una vez.",
+      "save": "Guardar"
+    },
+    "cosmeticsSheet": {
+      "save": "Guardar"
+    },
+    "tokenPurchaseModal": {
+      "save": "Guardar",
+      "close": "Cerrar"
+    },
+    "comboBuilderPage": {
+      "save": "Guardar"
+    },
+    "tokensPage": {
+      "save": "Guardar",
+      "tokens": "tokens"
+    },
+    "bookNextRound": {
+      "pickATimeBetween": "Elige una hora entre las 5:00 y las 22:00",
+      "couldnTBookIt": "No se pudo reservar — inténtalo de nuevo",
+      "couldnTCancelTry": "No se pudo cancelar — inténtalo de nuevo",
+      "booked": "Reservado:",
+      "fullSession": "Sesión completa",
+      "weLlRemindYou": "· te lo recordaremos",
+      "cancelBooking": "Cancelar reserva",
+      "bookYourNextRound": "Reserva tu próximo asalto",
+      "pickATime": "Elige una hora",
+      "chooseDateAndTime": "Elige fecha y hora",
+      "workOn": "Trabajar en",
+      "booking": "Reservando…"
+    },
+    "coachMark": {
+      "gotIt": "Entendido"
+    },
+    "dimensionSlider": {
+      "skipThisDimension": "Saltar esta dimensión"
+    },
+    "drillCard": {
+      "couldnTLoadThis": "No se pudo cargar este ejercicio.",
+      "watchDrill": "Ver ejercicio"
+    },
+    "errorBoundary": {
+      "somethingWentWrong": "Algo salió mal.",
+      "weVeBeenNotified": "Ya nos han avisado. Recargar suele arreglarlo.",
+      "reload": "Recargar"
+    },
+    "feedbackWidget": {
+      "close": "Cerrar"
+    },
+    "nativePurchaseNotice": {
+      "close": "Cerrar"
+    },
+    "reviewPromptModal": {
+      "close": "Cerrar"
+    },
+    "emoteShop": {
+      "close": "Cerrar",
+      "tokens": "tokens"
+    },
+    "giftSubModal": {
+      "close": "Cerrar"
+    },
+    "tipModal": {
+      "close": "Cerrar",
+      "send": "Enviar"
+    },
+    "gymsPage": {
+      "close": "Cerrar"
+    },
+    "squadsPage": {
+      "close": "Cerrar"
+    },
+    "timerPage": {
+      "close": "Cerrar",
+      "tryAgain": "Reintentar"
+    },
+    "fightFilm": {
+      "fightFilm": "Película de Combate",
+      "thisWeek": "esta semana",
+      "startYourFightFilm": "Empieza tu Película de Combate",
+      "pinUpTo": "Fija hasta",
+      "ofYourBestRounds": "de tus mejores asaltos aquí — es lo primero que ve la gente.",
+      "hype": "hype",
+      "callouts": "Retos:",
+      "won": "ganados ·",
+      "defended": "defendidos"
+    },
+    "sessionRewards": {
+      "thisWeek": "esta semana",
+      "squads": "Squads"
+    },
+    "fighterCard": {
+      "couldnTMakeYour": "No se pudo crear tu tarjeta — inténtalo de nuevo",
+      "makingYourCard": "Creando tu tarjeta…",
+      "shareYourFighterCard": "Comparte tu tarjeta de luchador"
+    },
+    "founderPrice": {
+      "founderPriceLockedIn": "Precio de fundador asegurado",
+      "thisPriceIsYours": "Este precio es tuyo de por vida, mientras sigas suscrito.",
+      "ifYouCancelIt": "Si cancelas, se pierde para siempre: volver costaría",
+      "about": ", unos",
+      "moreAYear": "más al año."
+    },
+    "billingPage": {
+      "about": ", unos",
+      "moreAYear": "más al año."
+    },
+    "helpChat": {
+      "couldnTSendThat": "No se pudo enviar. Inténtalo de nuevo.",
+      "askVictory": "Pregunta a Victory",
+      "sendToTheTeam": "Enviar al equipo",
+      "askAQuestion": "Haz una pregunta",
+      "yourQuestion": "Tu pregunta",
+      "send": "Enviar",
+      "iCanTAnswer": "Ahora no puedo responder. Toca \"Enviar al equipo\" y alguien te responderá por email."
+    },
+    "ordersPage": {
+      "couldnTSendThat": "No se pudo enviar. Inténtalo de nuevo.",
+      "send": "Enviar"
+    },
+    "proApplyPage": {
+      "couldnTSendThat": "No se pudo enviar. Inténtalo de nuevo."
+    },
+    "mentorPanel": {
+      "send": "Enviar"
+    },
+    "tokenSuccessPage": {
+      "tryAgain": "Reintentar",
+      "tokens": "tokens"
+    },
+    "hypeOverlay": {
+      "reactionsAtOnce": "reacciones a la vez"
+    },
+    "identityCard": {
+      "newTraitUnlocked": "Nuevo rasgo desbloqueado",
+      "whoYouReBecoming": "En quién te estás convirtiendo",
+      "firstTime": "Primera vez"
+    },
+    "journeyCard": {
+      "isYoursPlusStatus": "{{granted}} es tuyo, más el estatus {{status}}. Búscalo en Fantasy → Estilo del equipo.",
+      "couldnTClaimThat": "No se pudo reclamar ahora",
+      "starterChallenge": "Reto inicial",
+      "threeSessionsInYour": "Tres sesiones en tu primera semana. Buen trabajo.",
+      "theStarterKitFree": "El kit inicial (colores de esquina gratis para tu equipo de Fantasy) es para miembros Pro. Hazte Pro y reclámalo.",
+      "seePro": "Ver Pro",
+      "threeSessionsInYour2": "Tres sesiones en tu primera semana. Elige tu esquina:",
+      "teamColoursForFantasy": "Colores de equipo para Fantasy, normalmente £",
+      "yoursToKeep": ". Tuyos para siempre.",
+      "train": "Entrena",
+      "timesInYourFirst": "veces en tu primera semana",
+      "andEarnYourCorner": " y gana tus colores de esquina, gratis.",
+      "proMembersAlsoEarn": ". Los miembros Pro también ganan colores de esquina gratis.",
+      "day": "día",
+      "left": "restante",
+      "squads": "Squads",
+      "youLoved": "Te encantaron",
+      "ofYourLast": "de tus últimas",
+      "sessions": "sesiones."
+    },
+    "fantasyPage": {
+      "seePro": "Ver Pro"
+    },
+    "goldenGloves": {
+      "day": "día"
+    },
+    "proDashboardPage": {
+      "left": "restante"
+    },
+    "legendCard": {
+      "watchBreakdown": "Ver análisis"
+    },
+    "punchAlert": {
+      "tokens": "tokens",
+      "gifted": "regaló",
+      "sub": "suscripción"
+    }
+  },
+  "feedback": {
+    "title": "Enviar comentarios",
+    "send": "Enviar comentarios",
+    "typeBug": "Error",
+    "typeFeature": "Idea",
+    "typeGeneral": "General",
+    "ratingLabel": "Valora tu experiencia (opcional)",
+    "messageLabel": "Mensaje",
+    "messagePlaceholder": "Cuéntanos qué piensas...",
+    "messageRequired": "Escribe un mensaje",
+    "sending": "Enviando...",
+    "thanks": "¡Gracias por tus comentarios!",
+    "chat": "Hablar con el equipo",
+    "thanksDesc": "Tu mensaje nos ayuda a mejorar Victory AI para cada luchador.",
+    "ask": "Pregunta a Victory: respuestas rápidas"
   }
 }
