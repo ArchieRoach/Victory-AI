@@ -5,7 +5,7 @@ import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { RadarChart } from "@/components/RadarChart";
 import { DrillCard } from "@/components/DrillCard";
-import { ArrowLeft, Edit, ExternalLink, Play, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import { ArrowLeft, Columns2, Edit, ExternalLink, Play, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { tx } from "@/i18n/tx";
@@ -280,6 +280,13 @@ export default function SessionDetailPage() {
                             <ExternalLink className="w-4 h-4" />
                             {t("sessionDetail.watchRound")}
                           </a>
+                        )}
+                        {round.video_url && (
+                          <button type="button" onClick={() => navigate(`/compare?video=${encodeURIComponent(round.video_url)}`)}
+                            className="flex items-center gap-2 touch-target text-victory-lime text-sm" data-testid="compare-round">
+                            <Columns2 className="w-4 h-4" />
+                            {tx("ui.sessionDetailPage.compareWithFighter", "Compare with a fighter you look up to")}
+                          </button>
                         )}
 
                         {/* AI Commentary */}

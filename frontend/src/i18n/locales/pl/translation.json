@@ -2136,7 +2136,8 @@
     "sessionDetailPage": {
       "goBack": "Wróć",
       "couldnTLoadThis": "Nie udało się wczytać tej sesji",
-      "couldnTLoadReplay": "Nie udało się wczytać powtórki"
+      "couldnTLoadReplay": "Nie udało się wczytać powtórki",
+      "compareWithFighter": "Porównaj się z zawodnikiem, którego podziwiasz"
     },
     "squadDetailPage": {
       "goBack": "Wróć"
@@ -2757,7 +2758,8 @@
       "upOverallSinceYour": "Ogólnie +{{overall_change}} od pierwszej sesji.",
       "levelWithYourFirst": "Ogólnie na poziomie pierwszej sesji.",
       "workOnThisNext": ": nad tym popracuj dalej",
-      "shareHowFarYou": "Pokaż, jak daleko zaszedłeś"
+      "shareHowFarYou": "Pokaż, jak daleko zaszedłeś",
+      "compareFighter": "Teraz postaw to obok zawodnika, którego podziwiasz"
     },
     "earningsCard": {
       "couldnTOpenPayout": "Nie udało się otworzyć konfiguracji wypłat. Spróbuj ponownie.",
@@ -2969,6 +2971,34 @@
       "progress": "Krok {{n}} z {{total}}",
       "done": "Lecimy",
       "next": "Dalej"
+    },
+    "comparePage": {
+      "couldntAdd": "Nie udało się dodać klipu. Spróbuj ponownie.",
+      "pasteLink": "Wklej link z YouTube, TikToka lub Instagrama",
+      "fighterName": "Imię zawodnika, np. Łomaczenko",
+      "howToLink": "W aplikacji dotknij Udostępnij, a potem Kopiuj link. Klip odtwarza się z oryginalnego posta, więc wyświetlenia zostają u autora.",
+      "adding": "Dodawanie…",
+      "addClip": "Dodaj klip",
+      "thisRound": "Ta runda",
+      "couldntDelete": "Nie udało się usunąć klipu",
+      "goBack": "Wstecz",
+      "title": "Obok siebie",
+      "subtitle": "Twoja runda obok zawodnika, którego podziwiasz",
+      "theirClip": "Jego klip",
+      "watchOn": "Obejrzyj na {{site}}",
+      "instagramNote": "Instagram nie pozwala aplikacjom uruchamiać swojego odtwarzacza, więc sam dotknij odtwarzania na jego klipie.",
+      "deleteClip": "Usuń klip",
+      "you": "Ty",
+      "pickYours": "Wybierz jedną z nagranych rund lub wideo z telefonu.",
+      "roundOn": "Runda {{n}}, {{date}}",
+      "fromPhone": "Użyj wideo z telefonu",
+      "staysOnPhone": "Wideo z telefonu zostaje na telefonie. Nie jest przesyłane.",
+      "pauseBoth": "Wstrzymaj oba",
+      "playBoth": "Odtwórz oba",
+      "restart": "Od początku",
+      "speed": "Prędkość",
+      "flipMe": "Odbij mnie",
+      "flipNote": "Mańkut kontra praworęczny? Odbij swoje wideo, żebyście stali w tę samą stronę."
     }
   },
   "feedback": {

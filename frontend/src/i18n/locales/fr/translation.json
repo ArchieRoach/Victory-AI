@@ -2136,7 +2136,8 @@
     "sessionDetailPage": {
       "goBack": "Retour",
       "couldnTLoadThis": "Impossible de charger cette séance",
-      "couldnTLoadReplay": "Impossible de charger la rediffusion"
+      "couldnTLoadReplay": "Impossible de charger la rediffusion",
+      "compareWithFighter": "Compare-toi à un boxeur que tu admires"
     },
     "squadDetailPage": {
       "goBack": "Retour"
@@ -2757,7 +2758,8 @@
       "upOverallSinceYour": "+{{overall_change}} au global depuis ta première séance.",
       "levelWithYourFirst": "Au même niveau global que ta première séance.",
       "workOnThisNext": " : à travailler ensuite",
-      "shareHowFarYou": "Montre ton chemin parcouru"
+      "shareHowFarYou": "Montre ton chemin parcouru",
+      "compareFighter": "Mets-le maintenant à côté d'un boxeur que tu admires"
     },
     "earningsCard": {
       "couldnTOpenPayout": "Impossible d'ouvrir la configuration des versements. Réessaie.",
@@ -2969,6 +2971,34 @@
       "progress": "Étape {{n}} sur {{total}}",
       "done": "C'est parti",
       "next": "Suivant"
+    },
+    "comparePage": {
+      "couldntAdd": "Impossible d'ajouter ce clip. Réessaie.",
+      "pasteLink": "Colle un lien YouTube, TikTok ou Instagram",
+      "fighterName": "Nom du boxeur, ex. Lomachenko",
+      "howToLink": "Dans l'app, touche Partager puis Copier le lien. Le clip se lit depuis la publication d'origine, donc son auteur garde les vues.",
+      "adding": "Ajout…",
+      "addClip": "Ajouter le clip",
+      "thisRound": "Ce round",
+      "couldntDelete": "Impossible de supprimer ce clip",
+      "goBack": "Retour",
+      "title": "Côte à côte",
+      "subtitle": "Ton round à côté d'un boxeur que tu admires",
+      "theirClip": "Son clip",
+      "watchOn": "Voir sur {{site}}",
+      "instagramNote": "Instagram ne laisse pas les apps lancer son lecteur, donc appuie toi-même sur lecture sur son clip.",
+      "deleteClip": "Supprimer le clip",
+      "you": "Toi",
+      "pickYours": "Choisis un de tes rounds filmés, ou une vidéo de ton téléphone.",
+      "roundOn": "Round {{n}}, {{date}}",
+      "fromPhone": "Utiliser une vidéo de mon téléphone",
+      "staysOnPhone": "Une vidéo de ton téléphone reste sur ton téléphone. Elle n'est pas envoyée.",
+      "pauseBoth": "Pause pour les deux",
+      "playBoth": "Lire les deux",
+      "restart": "Recommencer",
+      "speed": "Vitesse",
+      "flipMe": "Me retourner",
+      "flipNote": "Gaucher contre droitier ? Retourne ta vidéo pour être tournés du même côté."
     }
   },
   "feedback": {

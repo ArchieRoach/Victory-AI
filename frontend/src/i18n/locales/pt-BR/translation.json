@@ -2136,7 +2136,8 @@
     "sessionDetailPage": {
       "goBack": "Voltar",
       "couldnTLoadThis": "Não foi possível carregar esta sessão",
-      "couldnTLoadReplay": "Não foi possível carregar o replay"
+      "couldnTLoadReplay": "Não foi possível carregar o replay",
+      "compareWithFighter": "Comparar com um lutador que você admira"
     },
     "squadDetailPage": {
       "goBack": "Voltar"
@@ -2757,7 +2758,8 @@
       "upOverallSinceYour": "Subiu {{overall_change}} no geral desde sua primeira sessão.",
       "levelWithYourFirst": "Igual à sua primeira sessão no geral.",
       "workOnThisNext": ": trabalhe nisso agora",
-      "shareHowFarYou": "Mostre o quanto você evoluiu"
+      "shareHowFarYou": "Mostre o quanto você evoluiu",
+      "compareFighter": "Agora coloque ao lado de um lutador que você admira"
     },
     "earningsCard": {
       "couldnTOpenPayout": "Não foi possível abrir a configuração de pagamentos. Tente de novo.",
@@ -2969,6 +2971,34 @@
       "progress": "Passo {{n}} de {{total}}",
       "done": "Bora",
       "next": "Próximo"
+    },
+    "comparePage": {
+      "couldntAdd": "Não foi possível adicionar esse clipe. Tente de novo.",
+      "pasteLink": "Cole um link do YouTube, TikTok ou Instagram",
+      "fighterName": "Nome do lutador, ex.: Lomachenko",
+      "howToLink": "No app, toque em Compartilhar e depois em Copiar link. O clipe toca do post original, então quem postou fica com as visualizações.",
+      "adding": "Adicionando…",
+      "addClip": "Adicionar clipe",
+      "thisRound": "Este round",
+      "couldntDelete": "Não foi possível excluir esse clipe",
+      "goBack": "Voltar",
+      "title": "Lado a lado",
+      "subtitle": "Seu round ao lado de um lutador que você admira",
+      "theirClip": "O clipe dele",
+      "watchOn": "Ver no {{site}}",
+      "instagramNote": "O Instagram não deixa apps iniciarem o player, então toque em play no clipe dele você mesmo.",
+      "deleteClip": "Excluir clipe",
+      "you": "Você",
+      "pickYours": "Escolha um dos seus rounds gravados ou um vídeo do seu celular.",
+      "roundOn": "Round {{n}}, {{date}}",
+      "fromPhone": "Usar um vídeo do meu celular",
+      "staysOnPhone": "Um vídeo do seu celular fica no seu celular. Ele não é enviado.",
+      "pauseBoth": "Pausar os dois",
+      "playBoth": "Tocar os dois",
+      "restart": "Recomeçar",
+      "speed": "Velocidade",
+      "flipMe": "Espelhar",
+      "flipNote": "Canhoto contra destro? Espelhe seu vídeo para ficarem virados para o mesmo lado."
     }
   },
   "feedback": {

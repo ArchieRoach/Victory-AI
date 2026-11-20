@@ -2136,7 +2136,8 @@
     "sessionDetailPage": {
       "goBack": "رجوع",
       "couldnTLoadThis": "تعذّر تحميل هذه الجلسة",
-      "couldnTLoadReplay": "تعذّر تحميل الإعادة"
+      "couldnTLoadReplay": "تعذّر تحميل الإعادة",
+      "compareWithFighter": "قارن نفسك بملاكم تحبه"
     },
     "squadDetailPage": {
       "goBack": "رجوع"
@@ -2757,7 +2758,8 @@
       "upOverallSinceYour": "تحسنت {{overall_change}} إجمالاً منذ جلستك الأولى.",
       "levelWithYourFirst": "مساوٍ لجلستك الأولى إجمالاً.",
       "workOnThisNext": ": اعمل على هذا بعد ذلك",
-      "shareHowFarYou": "شارك كم تقدمت"
+      "shareHowFarYou": "شارك كم تقدمت",
+      "compareFighter": "الآن ضعها بجانب ملاكم تحبه"
     },
     "earningsCard": {
       "couldnTOpenPayout": "تعذّر فتح إعداد المدفوعات. حاول مرة أخرى.",
@@ -2969,6 +2971,34 @@
       "progress": "الخطوة {{n}} من {{total}}",
       "done": "هيا بنا",
       "next": "التالي"
+    },
+    "comparePage": {
+      "couldntAdd": "تعذّر إضافة هذا المقطع. حاول مرة أخرى.",
+      "pasteLink": "الصق رابطًا من يوتيوب أو تيك توك أو إنستغرام",
+      "fighterName": "اسم الملاكم، مثل لوماتشينكو",
+      "howToLink": "في التطبيق، اضغط مشاركة ثم نسخ الرابط. يُعرض المقطع من المنشور الأصلي، فتبقى المشاهدات لمن نشره.",
+      "adding": "جارٍ الإضافة…",
+      "addClip": "أضف المقطع",
+      "thisRound": "هذه الجولة",
+      "couldntDelete": "تعذّر حذف هذا المقطع",
+      "goBack": "رجوع",
+      "title": "جنبًا إلى جنب",
+      "subtitle": "جولتك بجانب ملاكم تحبه",
+      "theirClip": "مقطعه",
+      "watchOn": "شاهد على {{site}}",
+      "instagramNote": "إنستغرام لا يسمح للتطبيقات بتشغيل مشغّله، فاضغط تشغيل على مقطعه بنفسك.",
+      "deleteClip": "حذف المقطع",
+      "you": "أنت",
+      "pickYours": "اختر إحدى جولاتك المسجلة، أو فيديو من هاتفك.",
+      "roundOn": "الجولة {{n}}، {{date}}",
+      "fromPhone": "استخدم فيديو من هاتفي",
+      "staysOnPhone": "الفيديو من هاتفك يبقى على هاتفك. لا يتم رفعه.",
+      "pauseBoth": "أوقف الاثنين",
+      "playBoth": "شغّل الاثنين",
+      "restart": "من البداية",
+      "speed": "السرعة",
+      "flipMe": "اعكسني",
+      "flipNote": "أعسر ضد أيمن؟ اعكس فيديوك لتكونا في الاتجاه نفسه."
     }
   },
   "feedback": {

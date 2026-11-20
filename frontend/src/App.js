@@ -48,6 +48,7 @@ const CheckinPage = lazyPage(() => import("@/pages/CheckinPage"));
 const SeasonWrappedPage = lazyPage(() => import("@/pages/SeasonWrappedPage"));
 const GymPosterPage = lazyPage(() => import("@/pages/GymPosterPage"));
 const RunClubPage = lazyPage(() => import("@/pages/RunClubPage"));
+const ComparePage = lazyPage(() => import("@/pages/ComparePage"));
 const ComboBuilderPage = lazyPage(() => import("@/pages/ComboBuilderPage"));
 const OnboardingFlow = lazyPage(() => import("@/pages/OnboardingFlow"));
 const PaywallPage = lazyPage(() => import("@/pages/PaywallPage"));
@@ -449,6 +450,7 @@ const AppRouter = () => {
         <Route path="/gyms/:gymId/poster" element={<ProtectedRoute><GymPosterPage /></ProtectedRoute>} />
         <Route path="/run-clubs/join/:code" element={<ProtectedRoute><RunClubPage /></ProtectedRoute>} />
         <Route path="/run-clubs/:clubId" element={<ProtectedRoute><RunClubPage /></ProtectedRoute>} />
+        <Route path="/compare" element={<ProtectedRoute><ComparePage /></ProtectedRoute>} />
         <Route path="/checkin/:code" element={<ProtectedRoute><CheckinPage /></ProtectedRoute>} />
         <Route path="/wrapped" element={<ProtectedRoute><SeasonWrappedPage /></ProtectedRoute>} />
         <Route path="/compete" element={<ProtectedRoute><CompetitionsPage /></ProtectedRoute>} />
