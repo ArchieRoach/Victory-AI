@@ -3011,6 +3011,29 @@
     },
     "mascotIntro": {
       "tapHim": "Victory AI. Touche-le pour un une-deux"
+    },
+    "partnerBuddy": {
+      "askPlaceholder": "Demande ce que tu veux à {{name}}",
+      "send": "Envoyer",
+      "yourPartner": "ton partenaire",
+      "offline": "Je ne peux pas répondre pour l'instant. Redemande-moi dans une minute.",
+      "greetingNamed": "Salut {{first}}. On travaille quoi ?",
+      "greeting": "Salut. On travaille quoi ?",
+      "wake": "Réveiller {{name}}",
+      "goodUseIt": "Bien. Maintenant, mets-le en pratique.",
+      "askAnotherWay": "D'accord. Pose-moi la question autrement.",
+      "trainNow": "S'entraîner",
+      "diggingDeeper": "{{name}} creuse plus loin…",
+      "thinking": "{{name}} regarde tes derniers rounds…",
+      "didThatHelp": "Ça t'a aidé ?",
+      "noDeeper": "Non, va plus loin",
+      "no": "Non",
+      "yes": "Oui",
+      "sleepTitle": "Réveille-moi quand tu as besoin de moi",
+      "tapMe": "Touche-moi",
+      "starterWork": "Sur quoi je dois travailler ?",
+      "starterDrill": "Donne-moi un exercice de 10 minutes",
+      "starterHands": "Comment arrêter de baisser les mains ?"
     }
   },
   "feedback": {

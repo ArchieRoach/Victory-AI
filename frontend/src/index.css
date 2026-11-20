@@ -459,3 +459,14 @@ img[src*="image.pollinations.ai/prompt"]:not([src*="transparent=true"]) {
 .mascot-stage { transform-origin: 50% 100%; }
 .mascot-idle { animation: mascot-guard 2.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .mascot-idle { animation: none; } }
+
+/* Partner buddy (lib/partnerBuddy.js): floats, blinks, pulses while thinking, snores when asleep */
+@keyframes buddy-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes buddy-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+@keyframes buddy-ring { 0% { transform: scale(0.85); opacity: 0.9; } 100% { transform: scale(1.35); opacity: 0; } }
+@keyframes buddy-zzz { 0% { transform: translate(0, 4px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(6px, -10px); opacity: 0; } }
+.buddy-float { animation: buddy-float 3s ease-in-out infinite; }
+.buddy-blink rect { transform-box: fill-box; transform-origin: center; animation: buddy-blink 4s infinite; }
+.buddy-ring { animation: buddy-ring 1.2s ease-out infinite; }
+.buddy-zzz { animation: buddy-zzz 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .buddy-float, .buddy-blink rect, .buddy-ring, .buddy-zzz { animation: none; } }

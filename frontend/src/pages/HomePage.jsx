@@ -15,6 +15,7 @@ import { Walkthrough } from "@/components/Walkthrough";
 import { StreakFlame } from "@/components/StreakFlame";
 import { ReportModal } from "@/components/ReportModal";
 import { PartnerCondition } from "@/components/PartnerCondition";
+import { PartnerBuddy } from "@/components/PartnerBuddy";
 import { JourneyCard } from "@/components/JourneyCard";
 import { OneRoundButton } from "@/components/home/OneRoundButton";
 import { TimerCard } from "@/components/home/TimerCard";
@@ -640,6 +641,7 @@ export default function HomePage() {
           <CoachMark id="home_partner" position="bottom" block hold={!unlocks?.newcomer}>
             <PartnerCondition />
           </CoachMark>
+          {unlocks && !unlocks.newcomer && <PartnerBuddy />}
           <OracleCard />
           {isUnlocked(unlocks, "week_plan") && <CoachMark id="home_week_plan" position="bottom" block><WeekPlanCard /></CoachMark>}
           <JourneyCard />

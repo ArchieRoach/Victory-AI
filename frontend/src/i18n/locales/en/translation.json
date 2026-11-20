@@ -3027,6 +3027,29 @@
     },
     "mascotIntro": {
       "tapHim": "Victory AI. Tap him for a one-two"
+    },
+    "partnerBuddy": {
+      "askPlaceholder": "Ask {{name}} anything",
+      "send": "Send",
+      "yourPartner": "your partner",
+      "offline": "I can't answer that right now. Ask me again in a minute.",
+      "greetingNamed": "Hey {{first}}. What are we working on?",
+      "greeting": "Hey. What are we working on?",
+      "wake": "Wake {{name}} up",
+      "goodUseIt": "Good. Now go and use it.",
+      "askAnotherWay": "Fair enough. Try asking me another way.",
+      "trainNow": "Train now",
+      "diggingDeeper": "{{name}} is digging deeper…",
+      "thinking": "{{name}} is looking at your last rounds…",
+      "didThatHelp": "Did that help?",
+      "noDeeper": "No, go deeper",
+      "no": "No",
+      "yes": "Yes",
+      "sleepTitle": "Wake me when you need me",
+      "tapMe": "Tap me",
+      "starterWork": "What should I work on?",
+      "starterDrill": "Give me a 10-minute drill",
+      "starterHands": "How do I stop dropping my hands?"
     }
   },
   "lib": {

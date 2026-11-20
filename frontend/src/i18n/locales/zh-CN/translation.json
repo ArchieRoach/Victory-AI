@@ -3011,6 +3011,29 @@
     },
     "mascotIntro": {
       "tapHim": "Victory AI。点他，打出一记一二连击"
+    },
+    "partnerBuddy": {
+      "askPlaceholder": "有问题尽管问{{name}}",
+      "send": "发送",
+      "yourPartner": "你的搭档",
+      "offline": "我现在答不上来。过一分钟再问我吧。",
+      "greetingNamed": "嘿，{{first}}。今天练什么？",
+      "greeting": "嘿。今天练什么？",
+      "wake": "叫醒{{name}}",
+      "goodUseIt": "很好。现在去用上它。",
+      "askAnotherWay": "好吧。换个方式问我试试。",
+      "trainNow": "马上训练",
+      "diggingDeeper": "{{name}}正在深入分析…",
+      "thinking": "{{name}}正在看你最近的回合…",
+      "didThatHelp": "有帮助吗？",
+      "noDeeper": "没有，再深入点",
+      "no": "没有",
+      "yes": "有",
+      "sleepTitle": "需要我的时候叫醒我",
+      "tapMe": "点我",
+      "starterWork": "我该练什么？",
+      "starterDrill": "给我一个10分钟的练习",
+      "starterHands": "怎样才能不掉手？"
     }
   },
   "feedback": {

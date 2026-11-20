@@ -3011,6 +3011,29 @@
     },
     "mascotIntro": {
       "tapHim": "Victory AI. Tócalo para un uno-dos"
+    },
+    "partnerBuddy": {
+      "askPlaceholder": "Pregúntale a {{name}} lo que quieras",
+      "send": "Enviar",
+      "yourPartner": "tu compañero",
+      "offline": "Ahora mismo no puedo responder. Pregúntame otra vez en un minuto.",
+      "greetingNamed": "Hola {{first}}. ¿En qué trabajamos?",
+      "greeting": "Hola. ¿En qué trabajamos?",
+      "wake": "Despertar a {{name}}",
+      "goodUseIt": "Bien. Ahora ponlo en práctica.",
+      "askAnotherWay": "Vale. Pregúntamelo de otra forma.",
+      "trainNow": "Entrenar ahora",
+      "diggingDeeper": "{{name}} está profundizando…",
+      "thinking": "{{name}} está mirando tus últimos asaltos…",
+      "didThatHelp": "¿Te ha ayudado?",
+      "noDeeper": "No, profundiza",
+      "no": "No",
+      "yes": "Sí",
+      "sleepTitle": "Despiértame cuando me necesites",
+      "tapMe": "Tócame",
+      "starterWork": "¿En qué debería trabajar?",
+      "starterDrill": "Dame un ejercicio de 10 minutos",
+      "starterHands": "¿Cómo dejo de bajar las manos?"
     }
   },
   "feedback": {
