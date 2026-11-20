@@ -790,17 +790,66 @@
   },
   "ui": {
     "pushOptIn": {
-      "turnOn": "Ativar"
+      "turnOn": "Ativar",
+      "getRemindersOnYour": "Receba lembretes no seu iPhone",
+      "dismiss": "Dispensar",
+      "iphoneOnlySendsNotifications": "O iPhone só envia notificações para apps na Tela de Início. Leva 10 segundos:",
+      "tap": "Toque em",
+      "share": "Compartilhar",
+      "inSafariSToolbar": "na barra do Safari",
+      "choose": "Escolha",
+      "addToHomeScreen": "Adicionar à Tela de Início",
+      "openVictoryAiFrom": "Abra o Victory AI pela Tela de Início e ative os lembretes",
+      "remindersOnWeLl": "Lembretes ativados — vamos te avisar na hora certa.",
+      "notificationsAreOffTurn": "As notificações estão desativadas — ative nos Ajustes.",
+      "wantTheReminder": "Quer o lembrete?",
+      "notificationsAreOffOn": "As notificações estão desativadas neste aparelho."
     },
     "pushPrompt": {
-      "notNow": "Agora não"
+      "notNow": "Agora não",
+      "dismiss": "Dispensar",
+      "notificationsEnabledWeLl": "Notificações ativadas — vamos te manter na luta.",
+      "notificationsBlockedTurnThem": "Notificações bloqueadas — ative nos Ajustes.",
+      "stayInTheFight": "Fique na luta",
+      "getNotifiedWhenSomeone": "Seja avisado quando alguém te der gorjeta, entrar ao vivo ou reagir aos seus posts.",
+      "enabling": "Ativando…",
+      "enableNotifications": "Ativar notificações"
     },
     "liveCoachPanel": {
-      "liveCoach": "Treinador ao vivo"
+      "liveCoach": "Treinador ao vivo",
+      "liveCoachWarmingUp": "Treinador ao vivo aquecendo…",
+      "liveCoachUnavailableOn": "Treinador ao vivo indisponível neste aparelho",
+      "stepBackSoYour": "Afaste-se para que seus ombros e mãos apareçam",
+      "punches": "socos",
+      "vsBest": "vs melhor",
+      "combo": "Combo",
+      "guard": "Guarda",
+      "head": "Cabeça",
+      "bestCombo": "melhor combo",
+      "guard2": "guarda",
+      "headMoves": "movimentos de cabeça",
+      "best": "Melhor:",
+      "countedOnYourPhone": "contados no seu celular",
+      "airpods": " + AirPods",
+      "newRecord": "Novo recorde:"
     },
     "reportModal": {
       "report": "Denunciar",
-      "close": "Fechar"
+      "close": "Fechar",
+      "pickAReason": "Escolha um motivo",
+      "couldNotSubmitReport": "Não foi possível enviar a denúncia",
+      "thanksWeLlReview": "Obrigado — vamos analisar.",
+      "reportsHelpKeepVictory": "As denúncias ajudam a manter o Victory AI seguro para todos.",
+      "done": "Concluído",
+      "additionalDetailsOptional": "Detalhes adicionais (opcional)",
+      "submitting": "Enviando…",
+      "submitReport": "Enviar denúncia",
+      "spamOrScam": "Spam ou golpe",
+      "harassmentOrBullying": "Assédio ou bullying",
+      "nudityOrSexualContent": "Nudez ou conteúdo sexual",
+      "violenceOrDangerousContent": "Violência ou conteúdo perigoso",
+      "hateSpeech": "Discurso de ódio",
+      "somethingElse": "Outra coisa"
     },
     "goLivePage": {
       "goLive": "Ao vivo",
@@ -814,7 +863,8 @@
       "delete": "Excluir",
       "clip": "CLIPE",
       "aiScore": "Nota da IA",
-      "rendering": "Renderizando…"
+      "rendering": "Renderizando…",
+      "goBack": "Voltar"
     },
     "homePage": {
       "goLive": "Ao vivo",
@@ -830,20 +880,24 @@
     "streamerDashboardPage": {
       "goLive": "Ao vivo",
       "tokens": "tokens",
-      "emotes2": "Emotes"
+      "emotes2": "Emotes",
+      "goBack": "Voltar"
     },
     "streamCard": {
       "live": "AO VIVO"
     },
     "discoverPage": {
-      "live": "AO VIVO"
+      "live": "AO VIVO",
+      "dismiss": "Dispensar"
     },
     "streamViewPage": {
       "live": "AO VIVO",
       "clip30s": "Clipe 30s",
       "clipSaved": "Clipe salvo!",
       "clipFailedTryAgain": "O clipe falhou — tente de novo.",
-      "emotes": "Emotes"
+      "emotes": "Emotes",
+      "goBack": "Voltar",
+      "dismiss": "Dispensar"
     },
     "onboardingFlow": {
       "ready": "Pronto"
@@ -852,7 +906,9 @@
       "streamTitle": "Título da transmissão",
       "training": "Treino",
       "sparring": "Sparring",
-      "close": "Fechar"
+      "close": "Fechar",
+      "goBack": "Voltar",
+      "share": "Compartilhar"
     },
     "highlightShareSheet": {
       "copied": "Copiado!",
@@ -899,7 +955,8 @@
       "couldNotCopyLink": "Não foi possível copiar o link",
       "shares": "compartilhamentos",
       "preparingVideo": "Preparando vídeo…",
-      "copyLink": "Copiar link"
+      "copyLink": "Copiar link",
+      "share": "Compartilhar"
     },
     "liveChat": {
       "sendAMessage": "Envie uma mensagem...",
@@ -915,10 +972,13 @@
       "sendTokens": "Enviar tokens",
       "giftASubscription": "Presentear assinatura",
       "emotes": "Emotes",
-      "toggleEmotePicker": "Abrir/fechar emotes"
+      "toggleEmotePicker": "Abrir/fechar emotes",
+      "connecting": "Conectando...",
+      "sendMessage": "Enviar mensagem"
     },
     "livePlayer": {
-      "connectingToStream": "Conectando à transmissão..."
+      "connectingToStream": "Conectando à transmissão...",
+      "streamNotStarted": "A transmissão não começou"
     },
     "deepTaggingMatrix": {
       "all": "Todos",
@@ -927,7 +987,9 @@
     },
     "emoteStudioPage": {
       "delete": "Excluir",
-      "close": "Fechar"
+      "close": "Fechar",
+      "combo": "Combo",
+      "goBack": "Voltar"
     },
     "birthDateCard": {
       "enterYourDateOf": "Informe sua data de nascimento",
@@ -949,7 +1011,9 @@
     },
     "tokensPage": {
       "save": "Salvar",
-      "tokens": "tokens"
+      "tokens": "tokens",
+      "goBack": "Voltar",
+      "stayInTheFight": "Fique na luta"
     },
     "bookNextRound": {
       "pickATimeBetween": "Escolha um horário entre 5h e 22h",
@@ -984,7 +1048,10 @@
       "close": "Fechar"
     },
     "nativePurchaseNotice": {
-      "close": "Fechar"
+      "close": "Fechar",
+      "goBack": "Voltar",
+      "notAvailableInThe": "Indisponível no app",
+      "thisIsnTAvailable": "Isto não está disponível no app Victory AI para iOS. Tudo o que já está na sua conta funciona normalmente aqui."
     },
     "reviewPromptModal": {
       "close": "Fechar"
@@ -998,7 +1065,8 @@
     },
     "tipModal": {
       "close": "Fechar",
-      "send": "Enviar"
+      "send": "Enviar",
+      "punches": "socos"
     },
     "gymsPage": {
       "close": "Fechar"
@@ -1008,7 +1076,8 @@
     },
     "timerPage": {
       "close": "Fechar",
-      "tryAgain": "Tentar de novo"
+      "tryAgain": "Tentar de novo",
+      "done": "Concluído"
     },
     "fightFilm": {
       "fightFilm": "Filme de Luta",
@@ -1023,7 +1092,42 @@
     },
     "sessionRewards": {
       "thisWeek": "esta semana",
-      "squads": "Squads"
+      "squads": "Squads",
+      "newPersonalBest": "Novo recorde pessoal",
+      "newPersonalBests": "{{length}} novos recordes pessoais",
+      "soClose": "Quase lá",
+      "offYourBest": "abaixo do seu melhor (",
+      "personalBestsSetFor": "Recordes pessoais definidos para",
+      "skills": "habilidades",
+      "everyOneOfThem": "Todos eles podem ser quebrados na próxima sessão.",
+      "turnOnVideoNext": "Ative o vídeo na próxima sessão",
+      "reportTypesFound": "tipos de relatório encontrados",
+      "yourNextReportUnlocks": "Seu próximo relatório é liberado depois da próxima sessão.",
+      "season": "Temporada {{number}}",
+      "preseason": "Pré-temporada",
+      "daysLeft": "dias restantes",
+      "rankedUp": "SUBIU DE RANK",
+      "thisSession": "nesta sessão ·",
+      "couldnTSendThe": "Não foi possível enviar o desafio",
+      "calloutSentYourSquad": "Desafio enviado — seu squad tem 7 dias para bater",
+      "sending": "Enviando…",
+      "callOutYourSquad": "Desafie seu squad: batam meu {{name}} {{score}}",
+      "youBeat": "Você bateu o desafio de",
+      "sCallout": "",
+      "vs": "vs",
+      "titleTaken": "· título conquistado:",
+      "inviteLinkCopied": "Link de convite copiado",
+      "couldnTMakeThe": "Não foi possível criar o convite — tente de novo",
+      "inviteSent": "Convite enviado",
+      "youLlGetA": "Você vai receber um aviso quando ele entrar no seu squad.",
+      "sendAMateThe": "Mande o link para um amigo. Ele cai direto no seu squad.",
+      "invite": "Convidar",
+      "status": "Status",
+      "doubledIt": "dobrou",
+      "level": "Nível",
+      "statusPointsAndThey": "pontos de status, e eles nunca diminuem.",
+      "justCompletedTheMission": "acabou de completar a missão! Escolha seu bônus.",
+      "thisOneDidnT": "Este não contou para"
     },
     "fighterCard": {
       "couldnTMakeYour": "Não deu para criar seu card — tente de novo",
@@ -1039,7 +1143,8 @@
     },
     "billingPage": {
       "about": ", cerca de",
-      "moreAYear": "a mais por ano."
+      "moreAYear": "a mais por ano.",
+      "goBack": "Voltar"
     },
     "helpChat": {
       "couldnTSendThat": "Não foi possível enviar. Tente de novo.",
@@ -1055,7 +1160,8 @@
       "send": "Enviar"
     },
     "proApplyPage": {
-      "couldnTSendThat": "Não foi possível enviar. Tente de novo."
+      "couldnTSendThat": "Não foi possível enviar. Tente de novo.",
+      "sending": "Enviando…"
     },
     "mentorPanel": {
       "send": "Enviar"
@@ -1109,6 +1215,108 @@
       "tokens": "tokens",
       "gifted": "presenteou",
       "sub": "assinatura"
+    },
+    "subscriptionGate": {
+      "goBack": "Voltar"
+    },
+    "advertisePage": {
+      "goBack": "Voltar"
+    },
+    "blockedAccountsPage": {
+      "goBack": "Voltar"
+    },
+    "calloutsPage": {
+      "goBack": "Voltar",
+      "daysLeft": "dias restantes"
+    },
+    "competitionDetailPage": {
+      "goBack": "Voltar"
+    },
+    "createPostPage": {
+      "goBack": "Voltar"
+    },
+    "gymDetailPage": {
+      "goBack": "Voltar"
+    },
+    "gymPosterPage": {
+      "goBack": "Voltar"
+    },
+    "profilePage": {
+      "goBack": "Voltar"
+    },
+    "rateRoundPage": {
+      "goBack": "Voltar",
+      "sending": "Enviando…"
+    },
+    "schoolLeaderboardPage": {
+      "goBack": "Voltar"
+    },
+    "seasonWrappedPage": {
+      "goBack": "Voltar"
+    },
+    "sessionDetailPage": {
+      "goBack": "Voltar"
+    },
+    "squadDetailPage": {
+      "goBack": "Voltar"
+    },
+    "trendingClipsPage": {
+      "goBack": "Voltar"
+    },
+    "partnerCondition": {
+      "rising": "subindo",
+      "getThemOffThe": "Tire eles do sofá",
+      "backToTheGym": "De volta à academia",
+      "trainTogether": "Treinem juntos",
+      "howTheseNumbersWork": "Como esses números funcionam",
+      "sessionsAWeekThe": "sessões por semana (o número que você escolheu) mantêm seu parceiro em forma máxima. Dias de descanso não tem problema: seu parceiro só cai depois de",
+      "daysWithoutTraining": "dias sem treinar."
+    },
+    "progressChart": {
+      "session1YourBaseline": "Sessão 1 — sua base"
+    },
+    "fightCampPage": {
+      "dismiss": "Dispensar",
+      "share": "Compartilhar",
+      "vs": "vs"
+    },
+    "streakShareButton": {
+      "share": "Compartilhar"
+    },
+    "styleQuizPage": {
+      "share": "Compartilhar"
+    },
+    "fighterBuddyCreator": {
+      "choose": "Escolha"
+    },
+    "radarChart": {
+      "thisSession": "Esta sessão",
+      "lastSession": "Última sessão"
+    },
+    "questCard": {
+      "done": "Concluído"
+    },
+    "sessionCard": {
+      "logged": "registrado"
+    },
+    "sessionResultsPage": {
+      "logged": "registrado"
+    },
+    "gymSeasonHours": {
+      "preseason": "Pré-temporada"
+    },
+    "squadVerdict": {
+      "sending": "Enviando…"
+    },
+    "fantasyPartnersPage": {
+      "sending": "Enviando…"
+    },
+    "levelCard": {
+      "status": "Status",
+      "level": "Nível"
+    },
+    "trophyShelf": {
+      "level": "Nível"
     }
   },
   "feedback": {

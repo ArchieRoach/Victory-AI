@@ -790,17 +790,66 @@
   },
   "ui": {
     "pushOptIn": {
-      "turnOn": "オンにする"
+      "turnOn": "オンにする",
+      "getRemindersOnYour": "iPhoneでリマインダーを受け取る",
+      "dismiss": "閉じる",
+      "iphoneOnlySendsNotifications": "iPhoneはホーム画面のアプリにだけ通知を送ります。10秒で完了：",
+      "tap": "タップ",
+      "share": "共有",
+      "inSafariSToolbar": "（Safariのツールバー）",
+      "choose": "選択",
+      "addToHomeScreen": "ホーム画面に追加",
+      "openVictoryAiFrom": "ホーム画面からVictory AIを開き、リマインダーをオンに",
+      "remindersOnWeLl": "リマインダーがオンになりました — 時間になったらお知らせします。",
+      "notificationsAreOffTurn": "通知がオフです — 設定でオンにしてください。",
+      "wantTheReminder": "リマインダーを受け取る？",
+      "notificationsAreOffOn": "このデバイスでは通知がオフです。"
     },
     "pushPrompt": {
-      "notNow": "今はしない"
+      "notNow": "今はしない",
+      "dismiss": "閉じる",
+      "notificationsEnabledWeLl": "通知をオンにしました — 戦い続けられるようにします。",
+      "notificationsBlockedTurnThem": "通知がブロックされています — 設定でオンにしてください。",
+      "stayInTheFight": "戦い続けよう",
+      "getNotifiedWhenSomeone": "チップ、ライブ開始、投稿へのリアクションがあったら通知を受け取れます。",
+      "enabling": "有効化中…",
+      "enableNotifications": "通知を有効にする"
     },
     "liveCoachPanel": {
-      "liveCoach": "ライブコーチ"
+      "liveCoach": "ライブコーチ",
+      "liveCoachWarmingUp": "ライブコーチ準備中…",
+      "liveCoachUnavailableOn": "このデバイスではライブコーチを使えません",
+      "stepBackSoYour": "肩と手が画面に入るように下がってください",
+      "punches": "パンチ",
+      "vsBest": "ベスト比",
+      "combo": "コンボ",
+      "guard": "ガード",
+      "head": "頭",
+      "bestCombo": "ベストコンボ",
+      "guard2": "ガード",
+      "headMoves": "ヘッドムーブ",
+      "best": "ベスト：",
+      "countedOnYourPhone": "スマホでカウント",
+      "airpods": " + AirPods",
+      "newRecord": "新記録："
     },
     "reportModal": {
       "report": "報告",
-      "close": "閉じる"
+      "close": "閉じる",
+      "pickAReason": "理由を選択",
+      "couldNotSubmitReport": "報告を送信できませんでした",
+      "thanksWeLlReview": "ありがとうございます — 確認します。",
+      "reportsHelpKeepVictory": "報告はVictory AIを皆にとって安全に保つのに役立ちます。",
+      "done": "完了",
+      "additionalDetailsOptional": "追加の詳細（任意）",
+      "submitting": "送信中…",
+      "submitReport": "報告を送信",
+      "spamOrScam": "スパムや詐欺",
+      "harassmentOrBullying": "嫌がらせやいじめ",
+      "nudityOrSexualContent": "ヌードや性的なコンテンツ",
+      "violenceOrDangerousContent": "暴力や危険なコンテンツ",
+      "hateSpeech": "ヘイトスピーチ",
+      "somethingElse": "その他"
     },
     "goLivePage": {
       "goLive": "ライブ配信",
@@ -814,7 +863,8 @@
       "delete": "削除",
       "clip": "クリップ",
       "aiScore": "AIスコア",
-      "rendering": "生成中…"
+      "rendering": "生成中…",
+      "goBack": "戻る"
     },
     "homePage": {
       "goLive": "ライブ配信",
@@ -830,20 +880,24 @@
     "streamerDashboardPage": {
       "goLive": "ライブ配信",
       "tokens": "トークン",
-      "emotes2": "エモート"
+      "emotes2": "エモート",
+      "goBack": "戻る"
     },
     "streamCard": {
       "live": "ライブ"
     },
     "discoverPage": {
-      "live": "ライブ"
+      "live": "ライブ",
+      "dismiss": "閉じる"
     },
     "streamViewPage": {
       "live": "ライブ",
       "clip30s": "30秒クリップ",
       "clipSaved": "クリップを保存しました！",
       "clipFailedTryAgain": "クリップに失敗しました — もう一度お試しください。",
-      "emotes": "エモート"
+      "emotes": "エモート",
+      "goBack": "戻る",
+      "dismiss": "閉じる"
     },
     "onboardingFlow": {
       "ready": "準備完了"
@@ -852,7 +906,9 @@
       "streamTitle": "配信タイトル",
       "training": "トレーニング",
       "sparring": "スパーリング",
-      "close": "閉じる"
+      "close": "閉じる",
+      "goBack": "戻る",
+      "share": "共有"
     },
     "highlightShareSheet": {
       "copied": "コピーしました！",
@@ -899,7 +955,8 @@
       "couldNotCopyLink": "リンクをコピーできませんでした",
       "shares": "シェア",
       "preparingVideo": "動画を準備中…",
-      "copyLink": "リンクをコピー"
+      "copyLink": "リンクをコピー",
+      "share": "共有"
     },
     "liveChat": {
       "sendAMessage": "メッセージを送る...",
@@ -915,10 +972,13 @@
       "sendTokens": "トークンを送る",
       "giftASubscription": "サブスクを贈る",
       "emotes": "エモート",
-      "toggleEmotePicker": "エモート選択を切り替え"
+      "toggleEmotePicker": "エモート選択を切り替え",
+      "connecting": "接続中...",
+      "sendMessage": "メッセージを送信"
     },
     "livePlayer": {
-      "connectingToStream": "配信に接続中..."
+      "connectingToStream": "配信に接続中...",
+      "streamNotStarted": "配信はまだ始まっていません"
     },
     "deepTaggingMatrix": {
       "all": "すべて",
@@ -927,7 +987,9 @@
     },
     "emoteStudioPage": {
       "delete": "削除",
-      "close": "閉じる"
+      "close": "閉じる",
+      "combo": "コンボ",
+      "goBack": "戻る"
     },
     "birthDateCard": {
       "enterYourDateOf": "生年月日を入力",
@@ -949,7 +1011,9 @@
     },
     "tokensPage": {
       "save": "保存",
-      "tokens": "トークン"
+      "tokens": "トークン",
+      "goBack": "戻る",
+      "stayInTheFight": "戦い続けよう"
     },
     "bookNextRound": {
       "pickATimeBetween": "午前5時から午後10時の間で選んでください",
@@ -984,7 +1048,10 @@
       "close": "閉じる"
     },
     "nativePurchaseNotice": {
-      "close": "閉じる"
+      "close": "閉じる",
+      "goBack": "戻る",
+      "notAvailableInThe": "アプリでは利用できません",
+      "thisIsnTAvailable": "これはVictory AIのiOSアプリでは利用できません。アカウントにあるものはここで通常どおり使えます。"
     },
     "reviewPromptModal": {
       "close": "閉じる"
@@ -998,7 +1065,8 @@
     },
     "tipModal": {
       "close": "閉じる",
-      "send": "送信"
+      "send": "送信",
+      "punches": "パンチ"
     },
     "gymsPage": {
       "close": "閉じる"
@@ -1008,7 +1076,8 @@
     },
     "timerPage": {
       "close": "閉じる",
-      "tryAgain": "もう一度試す"
+      "tryAgain": "もう一度試す",
+      "done": "完了"
     },
     "fightFilm": {
       "fightFilm": "ファイトフィルム",
@@ -1023,7 +1092,42 @@
     },
     "sessionRewards": {
       "thisWeek": "今週",
-      "squads": "スクワッド"
+      "squads": "スクワッド",
+      "newPersonalBest": "自己ベスト更新",
+      "newPersonalBests": "{{length}}件の自己ベスト更新",
+      "soClose": "あと少し",
+      "offYourBest": "ベストまで（",
+      "personalBestsSetFor": "自己ベストを設定：",
+      "skills": "スキル",
+      "everyOneOfThem": "どれも次のセッションで更新できます。",
+      "turnOnVideoNext": "次のセッションでは動画をオンに",
+      "reportTypesFound": "種類のレポートを発見",
+      "yourNextReportUnlocks": "次のレポートは次のセッション後に解除されます。",
+      "season": "シーズン{{number}}",
+      "preseason": "プレシーズン",
+      "daysLeft": "日残り",
+      "rankedUp": "ランクアップ",
+      "thisSession": "今回のセッション ·",
+      "couldnTSendThe": "挑戦を送れませんでした",
+      "calloutSentYourSquad": "挑戦を送りました — スクワッドは7日以内に超えてください：",
+      "sending": "送信中…",
+      "callOutYourSquad": "スクワッドに挑戦：私の{{name}} {{score}}を超えてみろ",
+      "youBeat": "挑戦をクリア：",
+      "sCallout": "",
+      "vs": "vs",
+      "titleTaken": "· 獲得タイトル：",
+      "inviteLinkCopied": "招待リンクをコピーしました",
+      "couldnTMakeThe": "招待を作成できませんでした — もう一度お試しください",
+      "inviteSent": "招待を送りました",
+      "youLlGetA": "スクワッドに参加したらお知らせします。",
+      "sendAMateThe": "友達にリンクを送ろう。そのままスクワッドに入れます。",
+      "invite": "招待",
+      "status": "ステータス",
+      "doubledIt": "倍増",
+      "level": "レベル",
+      "statusPointsAndThey": "ステータスポイント。減ることはありません。",
+      "justCompletedTheMission": "がミッションを達成！ブースターを選ぼう。",
+      "thisOneDidnT": "これはカウントされませんでした："
     },
     "fighterCard": {
       "couldnTMakeYour": "カードを作れませんでした — もう一度お試しください",
@@ -1039,7 +1143,8 @@
     },
     "billingPage": {
       "about": "、約",
-      "moreAYear": "年間で多くかかります。"
+      "moreAYear": "年間で多くかかります。",
+      "goBack": "戻る"
     },
     "helpChat": {
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
@@ -1055,7 +1160,8 @@
       "send": "送信"
     },
     "proApplyPage": {
-      "couldnTSendThat": "送信できませんでした。もう一度お試しください。"
+      "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
+      "sending": "送信中…"
     },
     "mentorPanel": {
       "send": "送信"
@@ -1109,6 +1215,108 @@
       "tokens": "トークン",
       "gifted": "がプレゼント",
       "sub": "サブスク"
+    },
+    "subscriptionGate": {
+      "goBack": "戻る"
+    },
+    "advertisePage": {
+      "goBack": "戻る"
+    },
+    "blockedAccountsPage": {
+      "goBack": "戻る"
+    },
+    "calloutsPage": {
+      "goBack": "戻る",
+      "daysLeft": "日残り"
+    },
+    "competitionDetailPage": {
+      "goBack": "戻る"
+    },
+    "createPostPage": {
+      "goBack": "戻る"
+    },
+    "gymDetailPage": {
+      "goBack": "戻る"
+    },
+    "gymPosterPage": {
+      "goBack": "戻る"
+    },
+    "profilePage": {
+      "goBack": "戻る"
+    },
+    "rateRoundPage": {
+      "goBack": "戻る",
+      "sending": "送信中…"
+    },
+    "schoolLeaderboardPage": {
+      "goBack": "戻る"
+    },
+    "seasonWrappedPage": {
+      "goBack": "戻る"
+    },
+    "sessionDetailPage": {
+      "goBack": "戻る"
+    },
+    "squadDetailPage": {
+      "goBack": "戻る"
+    },
+    "trendingClipsPage": {
+      "goBack": "戻る"
+    },
+    "partnerCondition": {
+      "rising": "上昇中",
+      "getThemOffThe": "ソファから引っ張り出そう",
+      "backToTheGym": "ジムに戻ろう",
+      "trainTogether": "一緒にトレーニング",
+      "howTheseNumbersWork": "この数字の仕組み",
+      "sessionsAWeekThe": "回/週（あなたが選んだ回数）でパートナーは絶好調を保ちます。休みの日は大丈夫：パートナーが落ちるのは",
+      "daysWithoutTraining": "日トレーニングしなかった後だけです。"
+    },
+    "progressChart": {
+      "session1YourBaseline": "セッション1 — あなたの基準"
+    },
+    "fightCampPage": {
+      "dismiss": "閉じる",
+      "share": "共有",
+      "vs": "vs"
+    },
+    "streakShareButton": {
+      "share": "共有"
+    },
+    "styleQuizPage": {
+      "share": "共有"
+    },
+    "fighterBuddyCreator": {
+      "choose": "選択"
+    },
+    "radarChart": {
+      "thisSession": "今回のセッション",
+      "lastSession": "前回のセッション"
+    },
+    "questCard": {
+      "done": "完了"
+    },
+    "sessionCard": {
+      "logged": "記録"
+    },
+    "sessionResultsPage": {
+      "logged": "記録"
+    },
+    "gymSeasonHours": {
+      "preseason": "プレシーズン"
+    },
+    "squadVerdict": {
+      "sending": "送信中…"
+    },
+    "fantasyPartnersPage": {
+      "sending": "送信中…"
+    },
+    "levelCard": {
+      "status": "ステータス",
+      "level": "レベル"
+    },
+    "trophyShelf": {
+      "level": "レベル"
     }
   },
   "feedback": {

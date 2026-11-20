@@ -790,17 +790,66 @@
   },
   "ui": {
     "pushOptIn": {
-      "turnOn": "Включить"
+      "turnOn": "Включить",
+      "getRemindersOnYour": "Получай напоминания на iPhone",
+      "dismiss": "Скрыть",
+      "iphoneOnlySendsNotifications": "iPhone присылает уведомления только приложениям на экране «Домой». Это займёт 10 секунд:",
+      "tap": "Нажми",
+      "share": "Поделиться",
+      "inSafariSToolbar": "на панели Safari",
+      "choose": "Выбери",
+      "addToHomeScreen": "На экран «Домой»",
+      "openVictoryAiFrom": "Открой Victory AI с экрана «Домой» и включи напоминания",
+      "remindersOnWeLl": "Напоминания включены — напомним, когда придёт время.",
+      "notificationsAreOffTurn": "Уведомления выключены — включи их в Настройках.",
+      "wantTheReminder": "Нужно напоминание?",
+      "notificationsAreOffOn": "Уведомления на этом устройстве выключены."
     },
     "pushPrompt": {
-      "notNow": "Не сейчас"
+      "notNow": "Не сейчас",
+      "dismiss": "Скрыть",
+      "notificationsEnabledWeLl": "Уведомления включены — не дадим тебе выпасть из боя.",
+      "notificationsBlockedTurnThem": "Уведомления заблокированы — включи их в Настройках.",
+      "stayInTheFight": "Оставайся в бою",
+      "getNotifiedWhenSomeone": "Получай уведомления, когда тебе дают чаевые, кто-то выходит в эфир или реагирует на твои посты.",
+      "enabling": "Включаем…",
+      "enableNotifications": "Включить уведомления"
     },
     "liveCoachPanel": {
-      "liveCoach": "Живой тренер"
+      "liveCoach": "Живой тренер",
+      "liveCoachWarmingUp": "Живой тренер разминается…",
+      "liveCoachUnavailableOn": "Живой тренер недоступен на этом устройстве",
+      "stepBackSoYour": "Отойди, чтобы плечи и руки были в кадре",
+      "punches": "ударов",
+      "vsBest": "vs рекорд",
+      "combo": "Комбо",
+      "guard": "Защита",
+      "head": "Голова",
+      "bestCombo": "лучшая комбинация",
+      "guard2": "защита",
+      "headMoves": "движения головой",
+      "best": "Рекорд:",
+      "countedOnYourPhone": "посчитано на телефоне",
+      "airpods": " + AirPods",
+      "newRecord": "Новый рекорд:"
     },
     "reportModal": {
       "report": "Пожаловаться",
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "pickAReason": "Выбери причину",
+      "couldNotSubmitReport": "Не удалось отправить жалобу",
+      "thanksWeLlReview": "Спасибо — мы проверим.",
+      "reportsHelpKeepVictory": "Жалобы помогают сделать Victory AI безопасным для всех.",
+      "done": "Готово",
+      "additionalDetailsOptional": "Подробности (необязательно)",
+      "submitting": "Отправка…",
+      "submitReport": "Отправить жалобу",
+      "spamOrScam": "Спам или мошенничество",
+      "harassmentOrBullying": "Травля или оскорбления",
+      "nudityOrSexualContent": "Нагота или сексуальный контент",
+      "violenceOrDangerousContent": "Насилие или опасный контент",
+      "hateSpeech": "Язык вражды",
+      "somethingElse": "Другое"
     },
     "goLivePage": {
       "goLive": "Выйти в эфир",
@@ -814,7 +863,8 @@
       "delete": "Удалить",
       "clip": "КЛИП",
       "aiScore": "Оценка ИИ",
-      "rendering": "Создаём…"
+      "rendering": "Создаём…",
+      "goBack": "Назад"
     },
     "homePage": {
       "goLive": "Выйти в эфир",
@@ -830,20 +880,24 @@
     "streamerDashboardPage": {
       "goLive": "Выйти в эфир",
       "tokens": "токенов",
-      "emotes2": "Эмодзи"
+      "emotes2": "Эмодзи",
+      "goBack": "Назад"
     },
     "streamCard": {
       "live": "ЭФИР"
     },
     "discoverPage": {
-      "live": "ЭФИР"
+      "live": "ЭФИР",
+      "dismiss": "Скрыть"
     },
     "streamViewPage": {
       "live": "ЭФИР",
       "clip30s": "Клип 30 с",
       "clipSaved": "Клип сохранён!",
       "clipFailedTryAgain": "Клип не получился — попробуй ещё раз.",
-      "emotes": "Эмодзи"
+      "emotes": "Эмодзи",
+      "goBack": "Назад",
+      "dismiss": "Скрыть"
     },
     "onboardingFlow": {
       "ready": "Готово"
@@ -852,7 +906,9 @@
       "streamTitle": "Название эфира",
       "training": "Тренировка",
       "sparring": "Спарринг",
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "goBack": "Назад",
+      "share": "Поделиться"
     },
     "highlightShareSheet": {
       "copied": "Скопировано!",
@@ -899,7 +955,8 @@
       "couldNotCopyLink": "Не удалось скопировать ссылку",
       "shares": "репостов",
       "preparingVideo": "Готовим видео…",
-      "copyLink": "Копировать ссылку"
+      "copyLink": "Копировать ссылку",
+      "share": "Поделиться"
     },
     "liveChat": {
       "sendAMessage": "Напиши сообщение...",
@@ -915,10 +972,13 @@
       "sendTokens": "Отправить токены",
       "giftASubscription": "Подарить подписку",
       "emotes": "Эмодзи",
-      "toggleEmotePicker": "Показать/скрыть эмодзи"
+      "toggleEmotePicker": "Показать/скрыть эмодзи",
+      "connecting": "Подключение...",
+      "sendMessage": "Отправить сообщение"
     },
     "livePlayer": {
-      "connectingToStream": "Подключаемся к эфиру..."
+      "connectingToStream": "Подключаемся к эфиру...",
+      "streamNotStarted": "Эфир ещё не начался"
     },
     "deepTaggingMatrix": {
       "all": "Все",
@@ -927,7 +987,9 @@
     },
     "emoteStudioPage": {
       "delete": "Удалить",
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "combo": "Комбо",
+      "goBack": "Назад"
     },
     "birthDateCard": {
       "enterYourDateOf": "Укажи дату рождения",
@@ -949,7 +1011,9 @@
     },
     "tokensPage": {
       "save": "Сохранить",
-      "tokens": "токенов"
+      "tokens": "токенов",
+      "goBack": "Назад",
+      "stayInTheFight": "Оставайся в бою"
     },
     "bookNextRound": {
       "pickATimeBetween": "Выбери время с 5:00 до 22:00",
@@ -984,7 +1048,10 @@
       "close": "Закрыть"
     },
     "nativePurchaseNotice": {
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "goBack": "Назад",
+      "notAvailableInThe": "Недоступно в приложении",
+      "thisIsnTAvailable": "Это недоступно в iOS-приложении Victory AI. Всё, что уже есть в твоём аккаунте, работает здесь как обычно."
     },
     "reviewPromptModal": {
       "close": "Закрыть"
@@ -998,7 +1065,8 @@
     },
     "tipModal": {
       "close": "Закрыть",
-      "send": "Отправить"
+      "send": "Отправить",
+      "punches": "ударов"
     },
     "gymsPage": {
       "close": "Закрыть"
@@ -1008,7 +1076,8 @@
     },
     "timerPage": {
       "close": "Закрыть",
-      "tryAgain": "Попробовать снова"
+      "tryAgain": "Попробовать снова",
+      "done": "Готово"
     },
     "fightFilm": {
       "fightFilm": "Фильм боя",
@@ -1023,7 +1092,42 @@
     },
     "sessionRewards": {
       "thisWeek": "на этой неделе",
-      "squads": "Команды"
+      "squads": "Команды",
+      "newPersonalBest": "Новый личный рекорд",
+      "newPersonalBests": "Новых личных рекордов: {{length}}",
+      "soClose": "Совсем близко",
+      "offYourBest": "до твоего рекорда (",
+      "personalBestsSetFor": "Личные рекорды установлены в",
+      "skills": "навыках",
+      "everyOneOfThem": "Каждый из них можно побить на следующей тренировке.",
+      "turnOnVideoNext": "Включи видео в следующий раз",
+      "reportTypesFound": "типов разборов найдено",
+      "yourNextReportUnlocks": "Следующий разбор откроется после следующей тренировки.",
+      "season": "Сезон {{number}}",
+      "preseason": "Предсезонка",
+      "daysLeft": "дней осталось",
+      "rankedUp": "НОВЫЙ РАНГ",
+      "thisSession": "за эту тренировку ·",
+      "couldnTSendThe": "Не удалось отправить вызов",
+      "calloutSentYourSquad": "Вызов отправлен — у команды 7 дней, чтобы побить",
+      "sending": "Отправка…",
+      "callOutYourSquad": "Брось вызов команде: побейте мой {{name}} {{score}}",
+      "youBeat": "Ты побил вызов от",
+      "sCallout": "",
+      "vs": "против",
+      "titleTaken": "· титул взят:",
+      "inviteLinkCopied": "Ссылка-приглашение скопирована",
+      "couldnTMakeThe": "Не удалось создать приглашение — попробуй ещё раз",
+      "inviteSent": "Приглашение отправлено",
+      "youLlGetA": "Мы сообщим, когда он вступит в твою команду.",
+      "sendAMateThe": "Отправь ссылку другу. Он сразу попадёт в твою команду.",
+      "invite": "Пригласить",
+      "status": "Статус",
+      "doubledIt": "удвоил",
+      "level": "Уровень",
+      "statusPointsAndThey": "очков статуса, и они никогда не убывают.",
+      "justCompletedTheMission": "только что выполнил миссию! Выбери бустер.",
+      "thisOneDidnT": "Это не засчиталось в"
     },
     "fighterCard": {
       "couldnTMakeYour": "Не удалось сделать карточку — попробуй ещё раз",
@@ -1039,7 +1143,8 @@
     },
     "billingPage": {
       "about": ", примерно на",
-      "moreAYear": "больше в год."
+      "moreAYear": "больше в год.",
+      "goBack": "Назад"
     },
     "helpChat": {
       "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
@@ -1055,7 +1160,8 @@
       "send": "Отправить"
     },
     "proApplyPage": {
-      "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз."
+      "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
+      "sending": "Отправка…"
     },
     "mentorPanel": {
       "send": "Отправить"
@@ -1109,6 +1215,108 @@
       "tokens": "токенов",
       "gifted": "подарил",
       "sub": "подписку"
+    },
+    "subscriptionGate": {
+      "goBack": "Назад"
+    },
+    "advertisePage": {
+      "goBack": "Назад"
+    },
+    "blockedAccountsPage": {
+      "goBack": "Назад"
+    },
+    "calloutsPage": {
+      "goBack": "Назад",
+      "daysLeft": "дней осталось"
+    },
+    "competitionDetailPage": {
+      "goBack": "Назад"
+    },
+    "createPostPage": {
+      "goBack": "Назад"
+    },
+    "gymDetailPage": {
+      "goBack": "Назад"
+    },
+    "gymPosterPage": {
+      "goBack": "Назад"
+    },
+    "profilePage": {
+      "goBack": "Назад"
+    },
+    "rateRoundPage": {
+      "goBack": "Назад",
+      "sending": "Отправка…"
+    },
+    "schoolLeaderboardPage": {
+      "goBack": "Назад"
+    },
+    "seasonWrappedPage": {
+      "goBack": "Назад"
+    },
+    "sessionDetailPage": {
+      "goBack": "Назад"
+    },
+    "squadDetailPage": {
+      "goBack": "Назад"
+    },
+    "trendingClipsPage": {
+      "goBack": "Назад"
+    },
+    "partnerCondition": {
+      "rising": "растёт",
+      "getThemOffThe": "Подними их с дивана",
+      "backToTheGym": "Назад в зал",
+      "trainTogether": "Тренируйтесь вместе",
+      "howTheseNumbersWork": "Как работают эти цифры",
+      "sessionsAWeekThe": "тренировок в неделю (число, которое ты выбрал) держат партнёра в пиковой форме. Дни отдыха — это нормально: партнёр сдаёт только после",
+      "daysWithoutTraining": "дней без тренировок."
+    },
+    "progressChart": {
+      "session1YourBaseline": "Тренировка 1 — твоя точка отсчёта"
+    },
+    "fightCampPage": {
+      "dismiss": "Скрыть",
+      "share": "Поделиться",
+      "vs": "против"
+    },
+    "streakShareButton": {
+      "share": "Поделиться"
+    },
+    "styleQuizPage": {
+      "share": "Поделиться"
+    },
+    "fighterBuddyCreator": {
+      "choose": "Выбери"
+    },
+    "radarChart": {
+      "thisSession": "Эта тренировка",
+      "lastSession": "Прошлая тренировка"
+    },
+    "questCard": {
+      "done": "Готово"
+    },
+    "sessionCard": {
+      "logged": "записано"
+    },
+    "sessionResultsPage": {
+      "logged": "записано"
+    },
+    "gymSeasonHours": {
+      "preseason": "Предсезонка"
+    },
+    "squadVerdict": {
+      "sending": "Отправка…"
+    },
+    "fantasyPartnersPage": {
+      "sending": "Отправка…"
+    },
+    "levelCard": {
+      "status": "Статус",
+      "level": "Уровень"
+    },
+    "trophyShelf": {
+      "level": "Уровень"
     }
   },
   "feedback": {

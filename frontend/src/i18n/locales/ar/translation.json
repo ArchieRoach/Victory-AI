@@ -790,17 +790,66 @@
   },
   "ui": {
     "pushOptIn": {
-      "turnOn": "تشغيل"
+      "turnOn": "تشغيل",
+      "getRemindersOnYour": "احصل على تذكيرات على iPhone",
+      "dismiss": "تجاهل",
+      "iphoneOnlySendsNotifications": "يرسل iPhone الإشعارات فقط للتطبيقات على الشاشة الرئيسية. يستغرق 10 ثوانٍ:",
+      "tap": "اضغط",
+      "share": "مشاركة",
+      "inSafariSToolbar": "في شريط Safari",
+      "choose": "اختر",
+      "addToHomeScreen": "إضافة إلى الشاشة الرئيسية",
+      "openVictoryAiFrom": "افتح Victory AI من الشاشة الرئيسية وفعّل التذكيرات",
+      "remindersOnWeLl": "التذكيرات مفعّلة — سننبهك عندما يحين الوقت.",
+      "notificationsAreOffTurn": "الإشعارات متوقفة — فعّلها من الإعدادات.",
+      "wantTheReminder": "هل تريد التذكير؟",
+      "notificationsAreOffOn": "الإشعارات متوقفة على هذا الجهاز."
     },
     "pushPrompt": {
-      "notNow": "ليس الآن"
+      "notNow": "ليس الآن",
+      "dismiss": "تجاهل",
+      "notificationsEnabledWeLl": "تم تفعيل الإشعارات — سنبقيك في المعركة.",
+      "notificationsBlockedTurnThem": "الإشعارات محظورة — فعّلها من الإعدادات.",
+      "stayInTheFight": "ابقَ في المعركة",
+      "getNotifiedWhenSomeone": "احصل على إشعار عندما يمنحك أحد إكرامية أو يبدأ بثًا أو يتفاعل مع منشوراتك.",
+      "enabling": "جارٍ التفعيل…",
+      "enableNotifications": "تفعيل الإشعارات"
     },
     "liveCoachPanel": {
-      "liveCoach": "المدرب المباشر"
+      "liveCoach": "المدرب المباشر",
+      "liveCoachWarmingUp": "المدرب المباشر يستعد…",
+      "liveCoachUnavailableOn": "المدرب المباشر غير متاح على هذا الجهاز",
+      "stepBackSoYour": "ابتعد قليلاً لتظهر كتفاك ويداك في الإطار",
+      "punches": "لكمات",
+      "vsBest": "مقابل الأفضل",
+      "combo": "تركيبة",
+      "guard": "الحماية",
+      "head": "الرأس",
+      "bestCombo": "أفضل تركيبة",
+      "guard2": "الحماية",
+      "headMoves": "حركات الرأس",
+      "best": "الأفضل:",
+      "countedOnYourPhone": "محسوبة على هاتفك",
+      "airpods": " + AirPods",
+      "newRecord": "رقم قياسي جديد:"
     },
     "reportModal": {
       "report": "إبلاغ",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "pickAReason": "اختر سببًا",
+      "couldNotSubmitReport": "تعذّر إرسال البلاغ",
+      "thanksWeLlReview": "شكرًا — سنراجع ذلك.",
+      "reportsHelpKeepVictory": "البلاغات تساعد في إبقاء Victory AI آمنًا للجميع.",
+      "done": "تم",
+      "additionalDetailsOptional": "تفاصيل إضافية (اختياري)",
+      "submitting": "جارٍ الإرسال…",
+      "submitReport": "إرسال البلاغ",
+      "spamOrScam": "رسائل مزعجة أو احتيال",
+      "harassmentOrBullying": "تحرش أو تنمر",
+      "nudityOrSexualContent": "عُري أو محتوى جنسي",
+      "violenceOrDangerousContent": "عنف أو محتوى خطير",
+      "hateSpeech": "خطاب كراهية",
+      "somethingElse": "شيء آخر"
     },
     "goLivePage": {
       "goLive": "ابدأ البث",
@@ -814,7 +863,8 @@
       "delete": "حذف",
       "clip": "مقطع",
       "aiScore": "تقييم الذكاء الاصطناعي",
-      "rendering": "جارٍ الإنشاء…"
+      "rendering": "جارٍ الإنشاء…",
+      "goBack": "رجوع"
     },
     "homePage": {
       "goLive": "ابدأ البث",
@@ -830,20 +880,24 @@
     "streamerDashboardPage": {
       "goLive": "ابدأ البث",
       "tokens": "رموز",
-      "emotes2": "رموز تعبيرية"
+      "emotes2": "رموز تعبيرية",
+      "goBack": "رجوع"
     },
     "streamCard": {
       "live": "مباشر"
     },
     "discoverPage": {
-      "live": "مباشر"
+      "live": "مباشر",
+      "dismiss": "تجاهل"
     },
     "streamViewPage": {
       "live": "مباشر",
       "clip30s": "مقطع 30 ث",
       "clipSaved": "تم حفظ المقطع!",
       "clipFailedTryAgain": "فشل المقطع — حاول مرة أخرى.",
-      "emotes": "رموز تعبيرية"
+      "emotes": "رموز تعبيرية",
+      "goBack": "رجوع",
+      "dismiss": "تجاهل"
     },
     "onboardingFlow": {
       "ready": "جاهز"
@@ -852,7 +906,9 @@
       "streamTitle": "عنوان البث",
       "training": "تدريب",
       "sparring": "سبارينغ",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "goBack": "رجوع",
+      "share": "مشاركة"
     },
     "highlightShareSheet": {
       "copied": "تم النسخ!",
@@ -899,7 +955,8 @@
       "couldNotCopyLink": "تعذّر نسخ الرابط",
       "shares": "مشاركات",
       "preparingVideo": "جارٍ تجهيز الفيديو…",
-      "copyLink": "نسخ الرابط"
+      "copyLink": "نسخ الرابط",
+      "share": "مشاركة"
     },
     "liveChat": {
       "sendAMessage": "أرسل رسالة...",
@@ -915,10 +972,13 @@
       "sendTokens": "إرسال رموز",
       "giftASubscription": "أهدِ اشتراكًا",
       "emotes": "رموز تعبيرية",
-      "toggleEmotePicker": "إظهار/إخفاء الرموز التعبيرية"
+      "toggleEmotePicker": "إظهار/إخفاء الرموز التعبيرية",
+      "connecting": "جارٍ الاتصال...",
+      "sendMessage": "إرسال رسالة"
     },
     "livePlayer": {
-      "connectingToStream": "جارٍ الاتصال بالبث..."
+      "connectingToStream": "جارٍ الاتصال بالبث...",
+      "streamNotStarted": "لم يبدأ البث"
     },
     "deepTaggingMatrix": {
       "all": "الكل",
@@ -927,7 +987,9 @@
     },
     "emoteStudioPage": {
       "delete": "حذف",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "combo": "تركيبة",
+      "goBack": "رجوع"
     },
     "birthDateCard": {
       "enterYourDateOf": "أدخل تاريخ ميلادك",
@@ -949,7 +1011,9 @@
     },
     "tokensPage": {
       "save": "حفظ",
-      "tokens": "رموز"
+      "tokens": "رموز",
+      "goBack": "رجوع",
+      "stayInTheFight": "ابقَ في المعركة"
     },
     "bookNextRound": {
       "pickATimeBetween": "اختر وقتًا بين 5 صباحًا و10 مساءً",
@@ -984,7 +1048,10 @@
       "close": "إغلاق"
     },
     "nativePurchaseNotice": {
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "goBack": "رجوع",
+      "notAvailableInThe": "غير متاح في التطبيق",
+      "thisIsnTAvailable": "هذا غير متاح في تطبيق Victory AI على iOS. كل ما في حسابك يعمل هنا كالمعتاد."
     },
     "reviewPromptModal": {
       "close": "إغلاق"
@@ -998,7 +1065,8 @@
     },
     "tipModal": {
       "close": "إغلاق",
-      "send": "إرسال"
+      "send": "إرسال",
+      "punches": "لكمات"
     },
     "gymsPage": {
       "close": "إغلاق"
@@ -1008,7 +1076,8 @@
     },
     "timerPage": {
       "close": "إغلاق",
-      "tryAgain": "حاول مرة أخرى"
+      "tryAgain": "حاول مرة أخرى",
+      "done": "تم"
     },
     "fightFilm": {
       "fightFilm": "فيلم القتال",
@@ -1023,7 +1092,42 @@
     },
     "sessionRewards": {
       "thisWeek": "هذا الأسبوع",
-      "squads": "الفرق"
+      "squads": "الفرق",
+      "newPersonalBest": "رقم شخصي جديد",
+      "newPersonalBests": "{{length}} أرقام شخصية جديدة",
+      "soClose": "قريب جدًا",
+      "offYourBest": "أقل من أفضل نتيجة لك (",
+      "personalBestsSetFor": "أرقام شخصية مسجّلة في",
+      "skills": "مهارات",
+      "everyOneOfThem": "يمكن كسر كل واحد منها في الجلسة القادمة.",
+      "turnOnVideoNext": "شغّل الفيديو في الجلسة القادمة",
+      "reportTypesFound": "أنواع تقارير وُجدت",
+      "yourNextReportUnlocks": "يُفتح تقريرك التالي بعد جلستك القادمة.",
+      "season": "الموسم {{number}}",
+      "preseason": "ما قبل الموسم",
+      "daysLeft": "أيام متبقية",
+      "rankedUp": "ارتقيت في التصنيف",
+      "thisSession": "هذه الجلسة ·",
+      "couldnTSendThe": "تعذّر إرسال التحدي",
+      "calloutSentYourSquad": "تم إرسال التحدي — أمام فريقك 7 أيام للتغلب على",
+      "sending": "جارٍ الإرسال…",
+      "callOutYourSquad": "تحدَّ فريقك: تغلّبوا على {{name}} {{score}} الخاص بي",
+      "youBeat": "تغلبت على تحدي",
+      "sCallout": "",
+      "vs": "ضد",
+      "titleTaken": "· اللقب المنتزع:",
+      "inviteLinkCopied": "تم نسخ رابط الدعوة",
+      "couldnTMakeThe": "تعذّر إنشاء الدعوة — حاول مرة أخرى",
+      "inviteSent": "تم إرسال الدعوة",
+      "youLlGetA": "سيصلك إشعار عندما ينضم إلى فريقك.",
+      "sendAMateThe": "أرسل الرابط لصديق. سينضم مباشرة إلى فريقك.",
+      "invite": "دعوة",
+      "status": "الحالة",
+      "doubledIt": "ضاعفها",
+      "level": "المستوى",
+      "statusPointsAndThey": "نقاط حالة، ولا تنخفض أبدًا.",
+      "justCompletedTheMission": "أكمل المهمة للتو! اختر معزّزك.",
+      "thisOneDidnT": "هذا لم يُحتسب لـ"
     },
     "fighterCard": {
       "couldnTMakeYour": "تعذّر إنشاء بطاقتك — حاول مرة أخرى",
@@ -1039,7 +1143,8 @@
     },
     "billingPage": {
       "about": "، أي حوالي",
-      "moreAYear": "إضافية سنويًا."
+      "moreAYear": "إضافية سنويًا.",
+      "goBack": "رجوع"
     },
     "helpChat": {
       "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
@@ -1055,7 +1160,8 @@
       "send": "إرسال"
     },
     "proApplyPage": {
-      "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى."
+      "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
+      "sending": "جارٍ الإرسال…"
     },
     "mentorPanel": {
       "send": "إرسال"
@@ -1109,6 +1215,108 @@
       "tokens": "رموز",
       "gifted": "أهدى",
       "sub": "اشتراك"
+    },
+    "subscriptionGate": {
+      "goBack": "رجوع"
+    },
+    "advertisePage": {
+      "goBack": "رجوع"
+    },
+    "blockedAccountsPage": {
+      "goBack": "رجوع"
+    },
+    "calloutsPage": {
+      "goBack": "رجوع",
+      "daysLeft": "أيام متبقية"
+    },
+    "competitionDetailPage": {
+      "goBack": "رجوع"
+    },
+    "createPostPage": {
+      "goBack": "رجوع"
+    },
+    "gymDetailPage": {
+      "goBack": "رجوع"
+    },
+    "gymPosterPage": {
+      "goBack": "رجوع"
+    },
+    "profilePage": {
+      "goBack": "رجوع"
+    },
+    "rateRoundPage": {
+      "goBack": "رجوع",
+      "sending": "جارٍ الإرسال…"
+    },
+    "schoolLeaderboardPage": {
+      "goBack": "رجوع"
+    },
+    "seasonWrappedPage": {
+      "goBack": "رجوع"
+    },
+    "sessionDetailPage": {
+      "goBack": "رجوع"
+    },
+    "squadDetailPage": {
+      "goBack": "رجوع"
+    },
+    "trendingClipsPage": {
+      "goBack": "رجوع"
+    },
+    "partnerCondition": {
+      "rising": "في صعود",
+      "getThemOffThe": "أخرجهم من الأريكة",
+      "backToTheGym": "العودة إلى النادي",
+      "trainTogether": "تدرّبوا معًا",
+      "howTheseNumbersWork": "كيف تعمل هذه الأرقام",
+      "sessionsAWeekThe": "جلسات أسبوعيًا (العدد الذي اخترته) تحافظ على شريكك في أفضل حالاته. أيام الراحة لا بأس بها: شريكك يتراجع فقط بعد",
+      "daysWithoutTraining": "أيام بلا تدريب."
+    },
+    "progressChart": {
+      "session1YourBaseline": "الجلسة 1 — نقطة البداية"
+    },
+    "fightCampPage": {
+      "dismiss": "تجاهل",
+      "share": "مشاركة",
+      "vs": "ضد"
+    },
+    "streakShareButton": {
+      "share": "مشاركة"
+    },
+    "styleQuizPage": {
+      "share": "مشاركة"
+    },
+    "fighterBuddyCreator": {
+      "choose": "اختر"
+    },
+    "radarChart": {
+      "thisSession": "هذه الجلسة",
+      "lastSession": "الجلسة الماضية"
+    },
+    "questCard": {
+      "done": "تم"
+    },
+    "sessionCard": {
+      "logged": "مسجّلة"
+    },
+    "sessionResultsPage": {
+      "logged": "مسجّلة"
+    },
+    "gymSeasonHours": {
+      "preseason": "ما قبل الموسم"
+    },
+    "squadVerdict": {
+      "sending": "جارٍ الإرسال…"
+    },
+    "fantasyPartnersPage": {
+      "sending": "جارٍ الإرسال…"
+    },
+    "levelCard": {
+      "status": "الحالة",
+      "level": "المستوى"
+    },
+    "trophyShelf": {
+      "level": "المستوى"
     }
   },
   "feedback": {

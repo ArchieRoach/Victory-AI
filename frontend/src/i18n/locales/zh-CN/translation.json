@@ -790,17 +790,66 @@
   },
   "ui": {
     "pushOptIn": {
-      "turnOn": "打开"
+      "turnOn": "打开",
+      "getRemindersOnYour": "在 iPhone 上接收提醒",
+      "dismiss": "关闭",
+      "iphoneOnlySendsNotifications": "iPhone 只给主屏幕上的应用发送通知。只需 10 秒：",
+      "tap": "点击",
+      "share": "分享",
+      "inSafariSToolbar": "（在 Safari 工具栏中）",
+      "choose": "选择",
+      "addToHomeScreen": "添加到主屏幕",
+      "openVictoryAiFrom": "从主屏幕打开 Victory AI 并开启提醒",
+      "remindersOnWeLl": "提醒已开启 — 到时间我们会提醒你。",
+      "notificationsAreOffTurn": "通知已关闭 — 请在设置中开启。",
+      "wantTheReminder": "需要提醒吗？",
+      "notificationsAreOffOn": "此设备的通知已关闭。"
     },
     "pushPrompt": {
-      "notNow": "以后再说"
+      "notNow": "以后再说",
+      "dismiss": "关闭",
+      "notificationsEnabledWeLl": "通知已开启 — 我们会让你保持战斗状态。",
+      "notificationsBlockedTurnThem": "通知被阻止 — 请在设置中开启。",
+      "stayInTheFight": "保持战斗状态",
+      "getNotifiedWhenSomeone": "有人打赏你、开播或回应你的帖子时收到通知。",
+      "enabling": "开启中…",
+      "enableNotifications": "开启通知"
     },
     "liveCoachPanel": {
-      "liveCoach": "实时教练"
+      "liveCoach": "实时教练",
+      "liveCoachWarmingUp": "实时教练准备中…",
+      "liveCoachUnavailableOn": "此设备不支持实时教练",
+      "stepBackSoYour": "往后站一点，让肩膀和双手都在画面里",
+      "punches": "拳",
+      "vsBest": "对比最佳",
+      "combo": "组合拳",
+      "guard": "护架",
+      "head": "头部",
+      "bestCombo": "最佳组合拳",
+      "guard2": "护架",
+      "headMoves": "头部移动",
+      "best": "最佳：",
+      "countedOnYourPhone": "在你的手机上计数",
+      "airpods": " + AirPods",
+      "newRecord": "新纪录："
     },
     "reportModal": {
       "report": "举报",
-      "close": "关闭"
+      "close": "关闭",
+      "pickAReason": "选择原因",
+      "couldNotSubmitReport": "无法提交举报",
+      "thanksWeLlReview": "谢谢 — 我们会审核。",
+      "reportsHelpKeepVictory": "举报有助于让 Victory AI 对所有人都安全。",
+      "done": "完成",
+      "additionalDetailsOptional": "补充说明（可选）",
+      "submitting": "提交中…",
+      "submitReport": "提交举报",
+      "spamOrScam": "垃圾信息或诈骗",
+      "harassmentOrBullying": "骚扰或霸凌",
+      "nudityOrSexualContent": "裸露或色情内容",
+      "violenceOrDangerousContent": "暴力或危险内容",
+      "hateSpeech": "仇恨言论",
+      "somethingElse": "其他"
     },
     "goLivePage": {
       "goLive": "开始直播",
@@ -814,7 +863,8 @@
       "delete": "删除",
       "clip": "短片",
       "aiScore": "AI 评分",
-      "rendering": "生成中…"
+      "rendering": "生成中…",
+      "goBack": "返回"
     },
     "homePage": {
       "goLive": "开始直播",
@@ -830,20 +880,24 @@
     "streamerDashboardPage": {
       "goLive": "开始直播",
       "tokens": "代币",
-      "emotes2": "表情"
+      "emotes2": "表情",
+      "goBack": "返回"
     },
     "streamCard": {
       "live": "直播中"
     },
     "discoverPage": {
-      "live": "直播中"
+      "live": "直播中",
+      "dismiss": "关闭"
     },
     "streamViewPage": {
       "live": "直播中",
       "clip30s": "剪辑 30 秒",
       "clipSaved": "短片已保存！",
       "clipFailedTryAgain": "剪辑失败 — 请重试。",
-      "emotes": "表情"
+      "emotes": "表情",
+      "goBack": "返回",
+      "dismiss": "关闭"
     },
     "onboardingFlow": {
       "ready": "就绪"
@@ -852,7 +906,9 @@
       "streamTitle": "直播标题",
       "training": "训练",
       "sparring": "实战对练",
-      "close": "关闭"
+      "close": "关闭",
+      "goBack": "返回",
+      "share": "分享"
     },
     "highlightShareSheet": {
       "copied": "已复制！",
@@ -899,7 +955,8 @@
       "couldNotCopyLink": "无法复制链接",
       "shares": "次分享",
       "preparingVideo": "正在准备视频…",
-      "copyLink": "复制链接"
+      "copyLink": "复制链接",
+      "share": "分享"
     },
     "liveChat": {
       "sendAMessage": "发送消息...",
@@ -915,10 +972,13 @@
       "sendTokens": "发送代币",
       "giftASubscription": "赠送订阅",
       "emotes": "表情",
-      "toggleEmotePicker": "切换表情选择"
+      "toggleEmotePicker": "切换表情选择",
+      "connecting": "连接中...",
+      "sendMessage": "发送消息"
     },
     "livePlayer": {
-      "connectingToStream": "正在连接直播..."
+      "connectingToStream": "正在连接直播...",
+      "streamNotStarted": "直播尚未开始"
     },
     "deepTaggingMatrix": {
       "all": "全部",
@@ -927,7 +987,9 @@
     },
     "emoteStudioPage": {
       "delete": "删除",
-      "close": "关闭"
+      "close": "关闭",
+      "combo": "组合拳",
+      "goBack": "返回"
     },
     "birthDateCard": {
       "enterYourDateOf": "输入你的出生日期",
@@ -949,7 +1011,9 @@
     },
     "tokensPage": {
       "save": "保存",
-      "tokens": "代币"
+      "tokens": "代币",
+      "goBack": "返回",
+      "stayInTheFight": "保持战斗状态"
     },
     "bookNextRound": {
       "pickATimeBetween": "请选择早上 5 点到晚上 10 点之间的时间",
@@ -984,7 +1048,10 @@
       "close": "关闭"
     },
     "nativePurchaseNotice": {
-      "close": "关闭"
+      "close": "关闭",
+      "goBack": "返回",
+      "notAvailableInThe": "应用内不可用",
+      "thisIsnTAvailable": "此功能在 Victory AI iOS 应用中不可用。你账户里已有的内容在这里照常可用。"
     },
     "reviewPromptModal": {
       "close": "关闭"
@@ -998,7 +1065,8 @@
     },
     "tipModal": {
       "close": "关闭",
-      "send": "发送"
+      "send": "发送",
+      "punches": "拳"
     },
     "gymsPage": {
       "close": "关闭"
@@ -1008,7 +1076,8 @@
     },
     "timerPage": {
       "close": "关闭",
-      "tryAgain": "重试"
+      "tryAgain": "重试",
+      "done": "完成"
     },
     "fightFilm": {
       "fightFilm": "战斗影集",
@@ -1023,7 +1092,42 @@
     },
     "sessionRewards": {
       "thisWeek": "本周",
-      "squads": "小队"
+      "squads": "小队",
+      "newPersonalBest": "新的个人最佳",
+      "newPersonalBests": "{{length}} 项新的个人最佳",
+      "soClose": "就差一点",
+      "offYourBest": "低于你的最佳（",
+      "personalBestsSetFor": "已设定个人最佳的",
+      "skills": "项技能",
+      "everyOneOfThem": "每一项都可以在下次训练中打破。",
+      "turnOnVideoNext": "下次训练打开视频",
+      "reportTypesFound": "种报告已找到",
+      "yourNextReportUnlocks": "下次训练后解锁你的下一份报告。",
+      "season": "第 {{number}} 赛季",
+      "preseason": "季前赛",
+      "daysLeft": "天剩余",
+      "rankedUp": "段位提升",
+      "thisSession": "本次训练 ·",
+      "couldnTSendThe": "无法发出挑战",
+      "calloutSentYourSquad": "挑战已发出 — 你的小队有 7 天时间超越",
+      "sending": "发送中…",
+      "callOutYourSquad": "挑战你的小队：超越我的 {{name}} {{score}}",
+      "youBeat": "你完成了",
+      "sCallout": "的挑战",
+      "vs": "对",
+      "titleTaken": "· 夺得头衔：",
+      "inviteLinkCopied": "邀请链接已复制",
+      "couldnTMakeThe": "无法创建邀请 — 请重试",
+      "inviteSent": "邀请已发送",
+      "youLlGetA": "对方加入你的小队时你会收到通知。",
+      "sendAMateThe": "把链接发给朋友，他们会直接加入你的小队。",
+      "invite": "邀请",
+      "status": "身份",
+      "doubledIt": "翻倍了",
+      "level": "等级",
+      "statusPointsAndThey": "身份积分，而且永不下降。",
+      "justCompletedTheMission": "刚完成了任务！选择你的加成。",
+      "thisOneDidnT": "这次没有计入"
     },
     "fighterCard": {
       "couldnTMakeYour": "无法生成你的卡片 — 请重试",
@@ -1039,7 +1143,8 @@
     },
     "billingPage": {
       "about": "，大约",
-      "moreAYear": "每年多付。"
+      "moreAYear": "每年多付。",
+      "goBack": "返回"
     },
     "helpChat": {
       "couldnTSendThat": "无法发送，请重试。",
@@ -1055,7 +1160,8 @@
       "send": "发送"
     },
     "proApplyPage": {
-      "couldnTSendThat": "无法发送，请重试。"
+      "couldnTSendThat": "无法发送，请重试。",
+      "sending": "发送中…"
     },
     "mentorPanel": {
       "send": "发送"
@@ -1109,6 +1215,108 @@
       "tokens": "代币",
       "gifted": "赠送了",
       "sub": "订阅"
+    },
+    "subscriptionGate": {
+      "goBack": "返回"
+    },
+    "advertisePage": {
+      "goBack": "返回"
+    },
+    "blockedAccountsPage": {
+      "goBack": "返回"
+    },
+    "calloutsPage": {
+      "goBack": "返回",
+      "daysLeft": "天剩余"
+    },
+    "competitionDetailPage": {
+      "goBack": "返回"
+    },
+    "createPostPage": {
+      "goBack": "返回"
+    },
+    "gymDetailPage": {
+      "goBack": "返回"
+    },
+    "gymPosterPage": {
+      "goBack": "返回"
+    },
+    "profilePage": {
+      "goBack": "返回"
+    },
+    "rateRoundPage": {
+      "goBack": "返回",
+      "sending": "发送中…"
+    },
+    "schoolLeaderboardPage": {
+      "goBack": "返回"
+    },
+    "seasonWrappedPage": {
+      "goBack": "返回"
+    },
+    "sessionDetailPage": {
+      "goBack": "返回"
+    },
+    "squadDetailPage": {
+      "goBack": "返回"
+    },
+    "trendingClipsPage": {
+      "goBack": "返回"
+    },
+    "partnerCondition": {
+      "rising": "上升中",
+      "getThemOffThe": "让他们离开沙发",
+      "backToTheGym": "回到拳馆",
+      "trainTogether": "一起训练",
+      "howTheseNumbersWork": "这些数字怎么算",
+      "sessionsAWeekThe": "次每周训练（你选的次数）能让你的搭档保持巅峰状态。休息日没关系：只有在连续",
+      "daysWithoutTraining": "天不训练后，搭档才会下滑。"
+    },
+    "progressChart": {
+      "session1YourBaseline": "第 1 次训练 — 你的基线"
+    },
+    "fightCampPage": {
+      "dismiss": "关闭",
+      "share": "分享",
+      "vs": "对"
+    },
+    "streakShareButton": {
+      "share": "分享"
+    },
+    "styleQuizPage": {
+      "share": "分享"
+    },
+    "fighterBuddyCreator": {
+      "choose": "选择"
+    },
+    "radarChart": {
+      "thisSession": "本次训练",
+      "lastSession": "上次训练"
+    },
+    "questCard": {
+      "done": "完成"
+    },
+    "sessionCard": {
+      "logged": "已记录"
+    },
+    "sessionResultsPage": {
+      "logged": "已记录"
+    },
+    "gymSeasonHours": {
+      "preseason": "季前赛"
+    },
+    "squadVerdict": {
+      "sending": "发送中…"
+    },
+    "fantasyPartnersPage": {
+      "sending": "发送中…"
+    },
+    "levelCard": {
+      "status": "身份",
+      "level": "等级"
+    },
+    "trophyShelf": {
+      "level": "等级"
     }
   },
   "feedback": {
