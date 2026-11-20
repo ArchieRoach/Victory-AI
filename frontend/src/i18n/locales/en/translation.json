@@ -3015,6 +3015,15 @@
       "speed": "Speed",
       "flipMe": "Flip me",
       "flipNote": "Southpaw against orthodox? Flip your video so you're facing the same way."
+    },
+    "streakFlame": {
+      "dayStreakOne": "day streak",
+      "dayStreak": "day streak",
+      "keepAlive": "Keep the fire alive. Train today!",
+      "light": "Light the fire. Train today!",
+      "current": "{{count}}-day streak so far. One rest day never breaks it.",
+      "trainedToday": "Trained today ✓",
+      "trainToday": "Train today"
     }
   },
   "lib": {

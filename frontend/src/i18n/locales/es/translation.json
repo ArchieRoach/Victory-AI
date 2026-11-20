@@ -2999,6 +2999,15 @@
       "speed": "Velocidad",
       "flipMe": "Voltearme",
       "flipNote": "¿Zurdo contra diestro? Voltea tu vídeo para mirar hacia el mismo lado."
+    },
+    "streakFlame": {
+      "dayStreakOne": "día de racha",
+      "dayStreak": "días de racha",
+      "keepAlive": "Mantén vivo el fuego. ¡Entrena hoy!",
+      "light": "Enciende el fuego. ¡Entrena hoy!",
+      "current": "Racha de {{count}} días hasta ahora. Un día de descanso nunca la rompe.",
+      "trainedToday": "Entrenaste hoy ✓",
+      "trainToday": "Entrenar hoy"
     }
   },
   "feedback": {

@@ -2999,6 +2999,15 @@
       "speed": "Vitesse",
       "flipMe": "Me retourner",
       "flipNote": "Gaucher contre droitier ? Retourne ta vidéo pour être tournés du même côté."
+    },
+    "streakFlame": {
+      "dayStreakOne": "jour de série",
+      "dayStreak": "jours de série",
+      "keepAlive": "Garde la flamme allumée. Entraîne-toi aujourd'hui !",
+      "light": "Allume la flamme. Entraîne-toi aujourd'hui !",
+      "current": "Série de {{count}} jours pour l'instant. Un jour de repos ne la casse jamais.",
+      "trainedToday": "Entraîné aujourd'hui ✓",
+      "trainToday": "S'entraîner aujourd'hui"
     }
   },
   "feedback": {

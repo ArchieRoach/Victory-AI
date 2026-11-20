@@ -2999,6 +2999,15 @@
       "speed": "Tempo",
       "flipMe": "Spiegeln",
       "flipNote": "Rechtsausleger gegen Linksausleger? Spiegle dein Video, damit ihr in dieselbe Richtung schaut."
+    },
+    "streakFlame": {
+      "dayStreakOne": "Tag in Folge",
+      "dayStreak": "Tage in Folge",
+      "keepAlive": "Halte das Feuer am Leben. Trainiere heute!",
+      "light": "Entfache das Feuer. Trainiere heute!",
+      "current": "Bisher {{count}} Tage in Folge. Ein Ruhetag bricht die Serie nie.",
+      "trainedToday": "Heute trainiert ✓",
+      "trainToday": "Heute trainieren"
     }
   },
   "feedback": {

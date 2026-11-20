@@ -2999,6 +2999,15 @@
       "speed": "Prędkość",
       "flipMe": "Odbij mnie",
       "flipNote": "Mańkut kontra praworęczny? Odbij swoje wideo, żebyście stali w tę samą stronę."
+    },
+    "streakFlame": {
+      "dayStreakOne": "dzień z rzędu",
+      "dayStreak": "dni z rzędu",
+      "keepAlive": "Podtrzymaj ogień. Trenuj dziś!",
+      "light": "Rozpal ogień. Trenuj dziś!",
+      "current": "Na razie {{count}} dni z rzędu. Jeden dzień odpoczynku nigdy jej nie przerywa.",
+      "trainedToday": "Dziś trenowałeś ✓",
+      "trainToday": "Trenuj dziś"
     }
   },
   "feedback": {

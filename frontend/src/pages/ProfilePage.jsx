@@ -7,9 +7,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { ProgressiveImage } from "@/components/ProgressiveImage";
 import { Progress } from "@/components/ui/progress";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import { StreakHeatmap } from "@/components/StreakHeatmap";
+import { StreakFlame } from "@/components/StreakFlame";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Flame, Ban, Users, GraduationCap, CreditCard } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Ban, Users, GraduationCap, CreditCard } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FightFilm } from "@/components/FightFilm";
 import { TrophyShelf } from "@/components/progress/TrophyShelf";
@@ -391,14 +391,8 @@ export default function ProfilePage() {
             {t("profile.statsTitle")}
           </h2>
           {stats.current_streak > 0 && (
-            <div className="bg-orange-500/10 border border-orange-400/30 rounded-lg px-3 py-3 mb-3 space-y-3">
-              <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                <p className="text-victory-text text-sm">
-                  {t("profile.streakActive", { count: stats.current_streak })}
-                </p>
-              </div>
-              <StreakHeatmap days={stats.week_activity} />
+            <div className="mb-3 space-y-3">
+              <StreakFlame stats={stats} showButton />
               {/* Distance to the next real streak-belt threshold — goal gradient effect */}
               {(() => {
                 const nextMilestone = [7, 30].find((m) => m > stats.current_streak);
@@ -410,7 +404,7 @@ export default function ProfilePage() {
                   <div>
                     <div className="flex items-center justify-between mb-1.5 text-xs">
                       <span className="text-victory-muted">{t("profile.nextMilestone", { days: nextMilestone })}</span>
-                      <span className={daysLeft === 1 ? "text-orange-400 font-bold" : "text-victory-muted"}>
+                      <span className={daysLeft === 1 ? "text-victory-orange font-bold" : "text-victory-muted"}>
                         {daysLeft === 1 ? t("profile.oneDayLeft") : t("profile.daysLeft", { count: daysLeft })}
                       </span>
                     </div>
