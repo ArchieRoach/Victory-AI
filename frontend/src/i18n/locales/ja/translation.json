@@ -977,7 +977,30 @@
       "noEmotesYet": "エモートはまだありません",
       "tokens2": "{{token_price}}トークン",
       "highlights": "ハイライト",
-      "streamerDashboard": "配信者ダッシュボード"
+      "streamerDashboard": "配信者ダッシュボード",
+      "tips": "チップ：",
+      "emotes": "エモート：",
+      "totalUnlocks": "合計解除数",
+      "earningsViewersEmotes": "収益 · 視聴者 · エモート",
+      "failedToLoadAnalytics": "分析を読み込めませんでした。",
+      "allTimeTokensFrom": "ファンからの累計トークン",
+      "totalStreams": "配信の合計",
+      "totalViewersAllStreams": "視聴者の合計（全配信）",
+      "earningsOverTime": "収益の推移",
+      "tokensThisPeriod": "この期間のトークン",
+      "noEarningsYet": "まだ収益はありません",
+      "goLiveToStart": "ライブ配信してチップやギフトでトークンを稼ごう。",
+      "autoClippedMomentsWatermarked": "自動でクリップ、ウォーターマーク付きですぐ投稿できる瞬間",
+      "streamHistory": "配信履歴",
+      "noStreamsYet": "まだ配信はありません",
+      "yourPastStreamsWill": "ライブ配信すると、過去の配信がここに表示されます。",
+      "emotePerformance": "エモートの成績",
+      "studio": "スタジオ",
+      "createEmotesForYour": "視聴者がチャットで使えるエモートを作ろう。",
+      "createYourFirstEmote": "最初のエモートを作る",
+      "s7Days": "7日間",
+      "s30Days": "30日間",
+      "allTime": "全期間"
     },
     "streamCard": {
       "live": "ライブ"
@@ -1028,7 +1051,19 @@
       "couldnTUnfollowTry": "フォロー解除できませんでした。もう一度お試しください。",
       "couldnTFollowTry": "フォローできませんでした。もう一度お試しください。",
       "following": "フォロー中",
-      "follow": "フォロー"
+      "follow": "フォロー",
+      "streamNotFound": "配信が見つかりません。",
+      "clipSavedToYour": "クリップをプロフィールに保存しました！",
+      "streamUnavailable": "配信は利用できません。",
+      "backToLive": "ライブに戻る",
+      "shareItToStart": "シェアしてトレンド入りを狙おう",
+      "shareNow": "今すぐシェア",
+      "later": "あとで",
+      "clipShared": "クリップをシェアしました！",
+      "reportStream": "配信を報告",
+      "saving": "保存中...",
+      "sidePanel": "サイドパネル",
+      "topUpTokensTo": "トークンをチャージして配信者にチップを"
     },
     "onboardingFlow": {
       "ready": "準備完了",
@@ -1087,7 +1122,24 @@
       "couldNotRemoveScheduled": "予約した配信を削除できませんでした",
       "scheduleAStream": "配信を予約",
       "newScheduledStream": "新しい予約配信",
-      "eGSaturdayMorning": "例：土曜朝のスパーリングセッション"
+      "eGSaturdayMorning": "例：土曜朝のスパーリングセッション",
+      "dateTime": "日時",
+      "any": "すべて",
+      "amateur": "アマチュア",
+      "professional": "プロ",
+      "optional": "（任意）",
+      "whatSThisSession": "このセッションの内容は？",
+      "schedule": "予約",
+      "noScheduledStreams": "予約された配信はありません",
+      "scheduleYourNextSession": "上で次のセッションを予約しよう。",
+      "thisChannelHasNo": "このチャンネルには予定された配信がありません。",
+      "soon": "まもなく",
+      "glovesGiftedTheyLl": "グローブを贈りました。相手の棚に表示されます。",
+      "paymentStillProcessingThe": "支払い処理中：グローブはまもなく表示されます。",
+      "moreOptions": "その他のオプション",
+      "verifiedBy": "{{amateur_verified_by}}が認証",
+      "selfReported": "自己申告",
+      "home": "ホーム"
     },
     "highlightShareSheet": {
       "copied": "コピーしました！",
@@ -1424,7 +1476,10 @@
       "close": "閉じる",
       "callouts": "挑戦",
       "beatASquadMate": "7日以内にスクワッド仲間のベストを超えてタイトルを奪おう",
-      "xxxxxxxx": "XXXXXXXX"
+      "xxxxxxxx": "XXXXXXXX",
+      "roundsToRate": "評価するラウンド",
+      "squadMate": "スクワッド仲間",
+      "rateIt": "評価する"
     },
     "timerPage": {
       "close": "閉じる",
@@ -1433,7 +1488,11 @@
       "couldnTSaveThat": "保存できませんでした",
       "bagPadsCircuitsHiit": "サンドバッグ、ミット、サーキット、HIIT。同じ画面で撮影。",
       "start": "開始",
-      "rounds": "ラウンド数"
+      "rounds": "ラウンド数",
+      "editWorkout": "ワークアウトを編集",
+      "newWorkout": "新しいワークアウト",
+      "name": "名前",
+      "mondayBagSession": "月曜のサンドバッグ"
     },
     "fightFilm": {
       "fightFilm": "ファイトフィルム",
@@ -1949,17 +2008,43 @@
     "rateRoundPage": {
       "goBack": "戻る",
       "sending": "送信中…",
-      "of": "/"
+      "of": "/",
+      "couldnTSendYour": "判定を送れませんでした",
+      "rateTheRound": "ラウンドを評価",
+      "yourSquadWantsA": "スクワッドが判定を待っています",
+      "thisRoundIsnT": "このラウンドは利用できません",
+      "itMayHaveBeen": "削除されたか、スクワッドに送られていない可能性があります。",
+      "yourVerdict": "あなたの判定",
+      "pickAStamp": "スタンプを選ぶ",
+      "addALineOptional": "ひと言追加（任意）",
+      "updateVerdict": "判定を更新",
+      "sendVerdict": "判定を送る",
+      "squad": "スクワッド",
+      "mateHas": "人の仲間が判定",
+      "matesHave": "人の仲間が判定",
+      "weighedIn": "",
+      "moreForTheVerdict": " · 判定まであと{{verdict_in}}",
+      "verdictRevealed": " · 判定公開"
     },
     "schoolLeaderboardPage": {
       "goBack": "戻る"
     },
     "seasonWrappedPage": {
       "goBack": "戻る",
-      "seasonWrapped": "シーズンまとめ"
+      "seasonWrapped": "シーズンまとめ",
+      "wrapped": "{{name}}まとめ",
+      "yourWrappedArrivesWhen": "まとめはシーズン終了時に届きます",
+      "wrapped2": "まとめ",
+      "in": "あと",
+      "daysEverySessionAdds": "日。セッションごとに物語が増えていきます。",
+      "swipeOrTapFor": "スワイプまたはタップで次へ",
+      "shareYourSeason": "シーズンをシェア",
+      "watchAgain": "もう一度見る"
     },
     "sessionDetailPage": {
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "couldnTLoadThis": "このセッションを読み込めませんでした",
+      "couldnTLoadReplay": "リプレイを読み込めませんでした"
     },
     "squadDetailPage": {
       "goBack": "戻る"
@@ -2069,7 +2154,14 @@
       "share": "共有",
       "copiedPasteItAnywhere": "コピーしました。どこにでも貼り付けられます。",
       "couldnTShareThat": "シェアできませんでした",
-      "back": "戻る"
+      "back": "戻る",
+      "whatKindOfFighter": "あなたはどんなファイター？",
+      "yourStyle": "あなたのスタイル",
+      "youFightLike": "あなたの戦い方は",
+      "whatWouldMakeYou": "あなたを危険にするもの",
+      "trainLike": "こう鍛えよう：",
+      "yourAiPartnerBuilds": "AIパートナーがあなたのスタイルに合わせて毎回のセッションを組み、動画からラウンドを採点します。",
+      "retake": "もう一度"
     },
     "fighterBuddyCreator": {
       "choose": "選択",
@@ -2127,7 +2219,14 @@
       "logged": "記録"
     },
     "sessionResultsPage": {
-      "logged": "記録"
+      "logged": "記録",
+      "scorecardSaved": "スコアカードを保存しました！",
+      "noScoresForThis": "このセッションのスコアはありません",
+      "yourVideoDidnT": "今回は動画が採点されなかったので、正直に見せられるものがありません。次に撮影したラウンドで埋まります。",
+      "theBreakdownComesFrom": "分析はラウンドの動画から作られます。次のセッションで動画をオンにすると、AIがボクシングの16項目を採点します。",
+      "offense": "オフェンス",
+      "defense": "ディフェンス",
+      "movement": "ムーブメント"
     },
     "gymSeasonHours": {
       "preseason": "プレシーズン",
@@ -2606,6 +2705,9 @@
       "yourPartner": "あなたのパートナー",
       "greatCall": "いい選択です。",
       "isReadyAndYour": "の準備ができました。最初のラウンドはワンタップで始められます。"
+    },
+    "scorePage": {
+      "failedToSaveSession": "セッションを保存できませんでした。もう一度お試しください。"
     }
   },
   "feedback": {

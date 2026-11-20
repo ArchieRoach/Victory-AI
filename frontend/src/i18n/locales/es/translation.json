@@ -977,7 +977,30 @@
       "noEmotesYet": "Aún no hay emotes",
       "tokens2": "{{token_price}} tokens",
       "highlights": "Momentos",
-      "streamerDashboard": "Panel de streamer"
+      "streamerDashboard": "Panel de streamer",
+      "tips": "Propinas:",
+      "emotes": "Emotes:",
+      "totalUnlocks": "desbloqueos en total",
+      "earningsViewersEmotes": "Ganancias · Espectadores · Emotes",
+      "failedToLoadAnalytics": "No se pudieron cargar las estadísticas.",
+      "allTimeTokensFrom": "Tokens de fans desde siempre",
+      "totalStreams": "Emisiones totales",
+      "totalViewersAllStreams": "Espectadores totales (todas las emisiones)",
+      "earningsOverTime": "Ganancias en el tiempo",
+      "tokensThisPeriod": "tokens en este periodo",
+      "noEarningsYet": "Aún no hay ganancias",
+      "goLiveToStart": "Emite en vivo para empezar a ganar tokens con propinas y regalos.",
+      "autoClippedMomentsWatermarked": "Momentos recortados automáticamente, con marca de agua y listos para publicar",
+      "streamHistory": "Historial de emisiones",
+      "noStreamsYet": "Aún no hay emisiones",
+      "yourPastStreamsWill": "Tus emisiones pasadas aparecerán aquí cuando emitas en vivo.",
+      "emotePerformance": "Rendimiento de emotes",
+      "studio": "Estudio",
+      "createEmotesForYour": "Crea emotes para que tus espectadores los usen en el chat.",
+      "createYourFirstEmote": "Crea tu primer emote",
+      "s7Days": "7 días",
+      "s30Days": "30 días",
+      "allTime": "Desde siempre"
     },
     "streamCard": {
       "live": "EN VIVO"
@@ -1028,7 +1051,19 @@
       "couldnTUnfollowTry": "No se pudo dejar de seguir. Inténtalo de nuevo.",
       "couldnTFollowTry": "No se pudo seguir. Inténtalo de nuevo.",
       "following": "Siguiendo",
-      "follow": "Seguir"
+      "follow": "Seguir",
+      "streamNotFound": "Emisión no encontrada.",
+      "clipSavedToYour": "¡Clip guardado en tu perfil!",
+      "streamUnavailable": "Emisión no disponible.",
+      "backToLive": "Volver al directo",
+      "shareItToStart": "Compártelo para que sea tendencia",
+      "shareNow": "Compartir ahora",
+      "later": "Luego",
+      "clipShared": "¡Clip compartido!",
+      "reportStream": "Denunciar emisión",
+      "saving": "Guardando...",
+      "sidePanel": "Panel lateral",
+      "topUpTokensTo": "Recarga tokens para dar propina al streamer"
     },
     "onboardingFlow": {
       "ready": "Listo",
@@ -1087,7 +1122,24 @@
       "couldNotRemoveScheduled": "No se pudo quitar la emisión programada",
       "scheduleAStream": "Programar una emisión",
       "newScheduledStream": "Nueva emisión programada",
-      "eGSaturdayMorning": "p. ej. Sparring del sábado por la mañana"
+      "eGSaturdayMorning": "p. ej. Sparring del sábado por la mañana",
+      "dateTime": "Fecha y hora",
+      "any": "Cualquiera",
+      "amateur": "Amateur",
+      "professional": "Profesional",
+      "optional": "(opcional)",
+      "whatSThisSession": "¿De qué trata esta sesión?",
+      "schedule": "Programar",
+      "noScheduledStreams": "No hay emisiones programadas",
+      "scheduleYourNextSession": "Programa tu próxima sesión arriba.",
+      "thisChannelHasNo": "Este canal no tiene emisiones próximas.",
+      "soon": "Pronto",
+      "glovesGiftedTheyLl": "Guantes regalados. Los verá en su vitrina.",
+      "paymentStillProcessingThe": "El pago aún se está procesando: los guantes aparecerán en breve.",
+      "moreOptions": "Más opciones",
+      "verifiedBy": "Verificado por {{amateur_verified_by}}",
+      "selfReported": "Declarado por el usuario",
+      "home": "Inicio"
     },
     "highlightShareSheet": {
       "copied": "¡Copiado!",
@@ -1424,7 +1476,10 @@
       "close": "Cerrar",
       "callouts": "Retos",
       "beatASquadMate": "Supera la mejor marca de un compañero de squad en 7 días y quítale el título",
-      "xxxxxxxx": "XXXXXXXX"
+      "xxxxxxxx": "XXXXXXXX",
+      "roundsToRate": "Asaltos por valorar",
+      "squadMate": "Compañero de squad",
+      "rateIt": "Valorar"
     },
     "timerPage": {
       "close": "Cerrar",
@@ -1433,7 +1488,11 @@
       "couldnTSaveThat": "No se pudo guardar",
       "bagPadsCircuitsHiit": "Saco, manoplas, circuitos, HIIT. Grábalo en la misma pantalla.",
       "start": "Empezar",
-      "rounds": "Asaltos"
+      "rounds": "Asaltos",
+      "editWorkout": "Editar entrenamiento",
+      "newWorkout": "Nuevo entrenamiento",
+      "name": "Nombre",
+      "mondayBagSession": "Sesión de saco del lunes"
     },
     "fightFilm": {
       "fightFilm": "Película de Combate",
@@ -1949,17 +2008,43 @@
     "rateRoundPage": {
       "goBack": "Volver",
       "sending": "Enviando…",
-      "of": "de"
+      "of": "de",
+      "couldnTSendYour": "No se pudo enviar tu veredicto",
+      "rateTheRound": "Valora el asalto",
+      "yourSquadWantsA": "Tu squad quiere un veredicto",
+      "thisRoundIsnT": "Este asalto no está disponible",
+      "itMayHaveBeen": "Puede que se haya eliminado, o no se envió a tu squad.",
+      "yourVerdict": "Tu veredicto",
+      "pickAStamp": "Elige un sello",
+      "addALineOptional": "Añade una frase (opcional)",
+      "updateVerdict": "Actualizar veredicto",
+      "sendVerdict": "Enviar veredicto",
+      "squad": "squad",
+      "mateHas": "compañero ha opinado",
+      "matesHave": "compañeros han opinado",
+      "weighedIn": "",
+      "moreForTheVerdict": " · faltan {{verdict_in}} para el veredicto",
+      "verdictRevealed": " · veredicto revelado"
     },
     "schoolLeaderboardPage": {
       "goBack": "Volver"
     },
     "seasonWrappedPage": {
       "goBack": "Volver",
-      "seasonWrapped": "Resumen de temporada"
+      "seasonWrapped": "Resumen de temporada",
+      "wrapped": "Resumen {{name}}",
+      "yourWrappedArrivesWhen": "Tu Resumen llega cuando termine la temporada",
+      "wrapped2": "Resumen",
+      "in": "en",
+      "daysEverySessionAdds": "días. Cada sesión suma a la historia.",
+      "swipeOrTapFor": "Desliza o toca para la siguiente",
+      "shareYourSeason": "Comparte tu temporada",
+      "watchAgain": "Ver otra vez"
     },
     "sessionDetailPage": {
-      "goBack": "Volver"
+      "goBack": "Volver",
+      "couldnTLoadThis": "No se pudo cargar esta sesión",
+      "couldnTLoadReplay": "No se pudo cargar la repetición"
     },
     "squadDetailPage": {
       "goBack": "Volver"
@@ -2069,7 +2154,14 @@
       "share": "Compartir",
       "copiedPasteItAnywhere": "Copiado. Pégalo donde quieras.",
       "couldnTShareThat": "No se pudo compartir",
-      "back": "Atrás"
+      "back": "Atrás",
+      "whatKindOfFighter": "¿Qué tipo de luchador eres?",
+      "yourStyle": "Tu estilo",
+      "youFightLike": "Peleas como",
+      "whatWouldMakeYou": "Qué te haría peligroso",
+      "trainLike": "Entrena como",
+      "yourAiPartnerBuilds": "Tu compañero IA diseña cada sesión según tu estilo y puntúa tus asaltos desde el vídeo.",
+      "retake": "Repetir"
     },
     "fighterBuddyCreator": {
       "choose": "Elige",
@@ -2127,7 +2219,14 @@
       "logged": "registrado"
     },
     "sessionResultsPage": {
-      "logged": "registrado"
+      "logged": "registrado",
+      "scorecardSaved": "¡Tarjeta de puntuación guardada!",
+      "noScoresForThis": "No hay puntuaciones para esta sesión",
+      "yourVideoDidnT": "Tu vídeo no se puntuó esta vez, así que no hay nada honesto que mostrar. Tu próximo asalto grabado lo completará.",
+      "theBreakdownComesFrom": "El análisis sale de los vídeos de tus asaltos. Activa el vídeo la próxima sesión y la IA puntuará 16 aspectos de tu boxeo.",
+      "offense": "Ataque",
+      "defense": "Defensa",
+      "movement": "Movimiento"
     },
     "gymSeasonHours": {
       "preseason": "Pretemporada",
@@ -2606,6 +2705,9 @@
       "yourPartner": "Tu compañero",
       "greatCall": "Buena elección.",
       "isReadyAndYour": "está listo, y tu primer asalto está a un toque."
+    },
+    "scorePage": {
+      "failedToSaveSession": "No se pudo guardar la sesión. Inténtalo de nuevo."
     }
   },
   "feedback": {

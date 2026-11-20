@@ -977,7 +977,30 @@
       "noEmotesYet": "还没有表情",
       "tokens2": "{{token_price}} 代币",
       "highlights": "精彩瞬间",
-      "streamerDashboard": "主播面板"
+      "streamerDashboard": "主播面板",
+      "tips": "打赏：",
+      "emotes": "表情：",
+      "totalUnlocks": "次解锁总计",
+      "earningsViewersEmotes": "收入 · 观众 · 表情",
+      "failedToLoadAnalytics": "无法加载数据分析。",
+      "allTimeTokensFrom": "粉丝累计代币",
+      "totalStreams": "直播总数",
+      "totalViewersAllStreams": "观众总数（所有直播）",
+      "earningsOverTime": "收入趋势",
+      "tokensThisPeriod": "本期代币",
+      "noEarningsYet": "还没有收入",
+      "goLiveToStart": "开始直播，通过打赏和礼物赚取代币。",
+      "autoClippedMomentsWatermarked": "自动剪辑的瞬间，已加水印，可直接发布",
+      "streamHistory": "直播记录",
+      "noStreamsYet": "还没有直播",
+      "yourPastStreamsWill": "开播后，你过去的直播会显示在这里。",
+      "emotePerformance": "表情表现",
+      "studio": "工作室",
+      "createEmotesForYour": "为观众创建可在聊天中使用的表情。",
+      "createYourFirstEmote": "创建你的第一个表情",
+      "s7Days": "7 天",
+      "s30Days": "30 天",
+      "allTime": "全部时间"
     },
     "streamCard": {
       "live": "直播中"
@@ -1028,7 +1051,19 @@
       "couldnTUnfollowTry": "无法取消关注，请重试。",
       "couldnTFollowTry": "无法关注，请重试。",
       "following": "已关注",
-      "follow": "关注"
+      "follow": "关注",
+      "streamNotFound": "未找到直播。",
+      "clipSavedToYour": "短片已保存到你的主页！",
+      "streamUnavailable": "直播不可用。",
+      "backToLive": "回到直播",
+      "shareItToStart": "分享出去，开始走红",
+      "shareNow": "立即分享",
+      "later": "稍后",
+      "clipShared": "短片已分享！",
+      "reportStream": "举报直播",
+      "saving": "保存中...",
+      "sidePanel": "侧边栏",
+      "topUpTokensTo": "充值代币来打赏主播"
     },
     "onboardingFlow": {
       "ready": "就绪",
@@ -1087,7 +1122,24 @@
       "couldNotRemoveScheduled": "无法移除已安排的直播",
       "scheduleAStream": "安排直播",
       "newScheduledStream": "新的预定直播",
-      "eGSaturdayMorning": "例如：周六上午实战对练"
+      "eGSaturdayMorning": "例如：周六上午实战对练",
+      "dateTime": "日期和时间",
+      "any": "不限",
+      "amateur": "业余",
+      "professional": "职业",
+      "optional": "（可选）",
+      "whatSThisSession": "这次训练是关于什么的？",
+      "schedule": "安排",
+      "noScheduledStreams": "没有预定的直播",
+      "scheduleYourNextSession": "在上方安排你的下一次训练。",
+      "thisChannelHasNo": "这个频道没有即将开始的直播。",
+      "soon": "即将",
+      "glovesGiftedTheyLl": "手套已赠送。对方会在奖杯架上看到。",
+      "paymentStillProcessingThe": "付款仍在处理中：手套很快就会出现。",
+      "moreOptions": "更多选项",
+      "verifiedBy": "由 {{amateur_verified_by}} 认证",
+      "selfReported": "自行填报",
+      "home": "首页"
     },
     "highlightShareSheet": {
       "copied": "已复制！",
@@ -1424,7 +1476,10 @@
       "close": "关闭",
       "callouts": "挑战",
       "beatASquadMate": "在 7 天内超越小队成员的最佳成绩，夺走他的头衔",
-      "xxxxxxxx": "XXXXXXXX"
+      "xxxxxxxx": "XXXXXXXX",
+      "roundsToRate": "待评分的回合",
+      "squadMate": "小队队友",
+      "rateIt": "去评分"
     },
     "timerPage": {
       "close": "关闭",
@@ -1433,7 +1488,11 @@
       "couldnTSaveThat": "无法保存",
       "bagPadsCircuitsHiit": "沙袋、手靶、循环、HIIT。在同一屏幕上录制。",
       "start": "开始",
-      "rounds": "回合数"
+      "rounds": "回合数",
+      "editWorkout": "编辑训练",
+      "newWorkout": "新训练",
+      "name": "名称",
+      "mondayBagSession": "周一沙袋训练"
     },
     "fightFilm": {
       "fightFilm": "战斗影集",
@@ -1949,17 +2008,43 @@
     "rateRoundPage": {
       "goBack": "返回",
       "sending": "发送中…",
-      "of": "/"
+      "of": "/",
+      "couldnTSendYour": "无法发送你的评价",
+      "rateTheRound": "给回合打分",
+      "yourSquadWantsA": "你的小队想听你的评价",
+      "thisRoundIsnT": "这个回合不可用",
+      "itMayHaveBeen": "可能已被删除，或没有发送给你的小队。",
+      "yourVerdict": "你的评价",
+      "pickAStamp": "选一个印章",
+      "addALineOptional": "加一句话（可选）",
+      "updateVerdict": "更新评价",
+      "sendVerdict": "发送评价",
+      "squad": "小队",
+      "mateHas": "位队友已评价",
+      "matesHave": "位队友已评价",
+      "weighedIn": "",
+      "moreForTheVerdict": " · 还差 {{verdict_in}} 个即可出评价",
+      "verdictRevealed": " · 评价已揭晓"
     },
     "schoolLeaderboardPage": {
       "goBack": "返回"
     },
     "seasonWrappedPage": {
       "goBack": "返回",
-      "seasonWrapped": "赛季回顾"
+      "seasonWrapped": "赛季回顾",
+      "wrapped": "{{name}} 回顾",
+      "yourWrappedArrivesWhen": "赛季结束时你的回顾就会到来",
+      "wrapped2": "回顾",
+      "in": "还有",
+      "daysEverySessionAdds": "天。每次训练都会为故事添砖加瓦。",
+      "swipeOrTapFor": "滑动或点击查看下一张",
+      "shareYourSeason": "分享你的赛季",
+      "watchAgain": "再看一遍"
     },
     "sessionDetailPage": {
-      "goBack": "返回"
+      "goBack": "返回",
+      "couldnTLoadThis": "无法加载这次训练",
+      "couldnTLoadReplay": "无法加载回放"
     },
     "squadDetailPage": {
       "goBack": "返回"
@@ -2069,7 +2154,14 @@
       "share": "分享",
       "copiedPasteItAnywhere": "已复制。粘贴到任何地方。",
       "couldnTShareThat": "无法分享",
-      "back": "返回"
+      "back": "返回",
+      "whatKindOfFighter": "你是哪种拳手？",
+      "yourStyle": "你的风格",
+      "youFightLike": "你的打法像",
+      "whatWouldMakeYou": "什么会让你变得危险",
+      "trainLike": "像这样训练：",
+      "yourAiPartnerBuilds": "你的 AI 搭档围绕你的风格安排每次训练，并通过视频为你的回合评分。",
+      "retake": "重新测试"
     },
     "fighterBuddyCreator": {
       "choose": "选择",
@@ -2127,7 +2219,14 @@
       "logged": "已记录"
     },
     "sessionResultsPage": {
-      "logged": "已记录"
+      "logged": "已记录",
+      "scorecardSaved": "评分卡已保存！",
+      "noScoresForThis": "这次训练没有评分",
+      "yourVideoDidnT": "你的视频这次没有被评分，所以没有可以如实展示的内容。下次录制的回合会补上。",
+      "theBreakdownComesFrom": "分析来自你的回合视频。下次训练打开视频，AI 会为你拳击的 16 个方面评分。",
+      "offense": "进攻",
+      "defense": "防守",
+      "movement": "移动"
     },
     "gymSeasonHours": {
       "preseason": "季前赛",
@@ -2606,6 +2705,9 @@
       "yourPartner": "你的搭档",
       "greatCall": "好选择。",
       "isReadyAndYour": "已准备好，你的第一个回合只需轻点一下。"
+    },
+    "scorePage": {
+      "failedToSaveSession": "保存训练失败，请重试。"
     }
   },
   "feedback": {

@@ -977,7 +977,30 @@
       "noEmotesYet": "Эмодзи пока нет",
       "tokens2": "{{token_price}} токенов",
       "highlights": "Моменты",
-      "streamerDashboard": "Панель стримера"
+      "streamerDashboard": "Панель стримера",
+      "tips": "Чаевые:",
+      "emotes": "Эмодзи:",
+      "totalUnlocks": "открытий всего",
+      "earningsViewersEmotes": "Заработок · Зрители · Эмодзи",
+      "failedToLoadAnalytics": "Не удалось загрузить аналитику.",
+      "allTimeTokensFrom": "Токенов от фанатов за всё время",
+      "totalStreams": "Всего эфиров",
+      "totalViewersAllStreams": "Всего зрителей (все эфиры)",
+      "earningsOverTime": "Заработок по времени",
+      "tokensThisPeriod": "токенов за период",
+      "noEarningsYet": "Заработка пока нет",
+      "goLiveToStart": "Выйди в эфир, чтобы получать токены за чаевые и подарки.",
+      "autoClippedMomentsWatermarked": "Автоматически вырезанные моменты с водяным знаком, готовые к публикации",
+      "streamHistory": "История эфиров",
+      "noStreamsYet": "Эфиров пока нет",
+      "yourPastStreamsWill": "Прошлые эфиры появятся здесь, когда ты выйдешь в эфир.",
+      "emotePerformance": "Статистика эмодзи",
+      "studio": "Студия",
+      "createEmotesForYour": "Создавай эмодзи для зрителей в чате.",
+      "createYourFirstEmote": "Создай первое эмодзи",
+      "s7Days": "7 дней",
+      "s30Days": "30 дней",
+      "allTime": "За всё время"
     },
     "streamCard": {
       "live": "ЭФИР"
@@ -1028,7 +1051,19 @@
       "couldnTUnfollowTry": "Не удалось отписаться. Попробуй ещё раз.",
       "couldnTFollowTry": "Не удалось подписаться. Попробуй ещё раз.",
       "following": "Подписан",
-      "follow": "Подписаться"
+      "follow": "Подписаться",
+      "streamNotFound": "Эфир не найден.",
+      "clipSavedToYour": "Клип сохранён в профиле!",
+      "streamUnavailable": "Эфир недоступен.",
+      "backToLive": "Назад к эфиру",
+      "shareItToStart": "Поделись, чтобы попасть в тренды",
+      "shareNow": "Поделиться",
+      "later": "Позже",
+      "clipShared": "Клип отправлен!",
+      "reportStream": "Пожаловаться на эфир",
+      "saving": "Сохраняем...",
+      "sidePanel": "Боковая панель",
+      "topUpTokensTo": "Пополни токены, чтобы дать чаевые стримеру"
     },
     "onboardingFlow": {
       "ready": "Готово",
@@ -1087,7 +1122,24 @@
       "couldNotRemoveScheduled": "Не удалось удалить запланированный эфир",
       "scheduleAStream": "Запланировать эфир",
       "newScheduledStream": "Новый запланированный эфир",
-      "eGSaturdayMorning": "напр. Субботний утренний спарринг"
+      "eGSaturdayMorning": "напр. Субботний утренний спарринг",
+      "dateTime": "Дата и время",
+      "any": "Любой",
+      "amateur": "Любитель",
+      "professional": "Профессионал",
+      "optional": "(необязательно)",
+      "whatSThisSession": "О чём эта тренировка?",
+      "schedule": "Запланировать",
+      "noScheduledStreams": "Запланированных эфиров нет",
+      "scheduleYourNextSession": "Запланируй следующую тренировку выше.",
+      "thisChannelHasNo": "У этого канала нет предстоящих эфиров.",
+      "soon": "Скоро",
+      "glovesGiftedTheyLl": "Перчатки подарены. Они появятся у него на полке.",
+      "paymentStillProcessingThe": "Платёж ещё обрабатывается: перчатки скоро появятся.",
+      "moreOptions": "Ещё",
+      "verifiedBy": "Подтверждено: {{amateur_verified_by}}",
+      "selfReported": "Со слов бойца",
+      "home": "Главная"
     },
     "highlightShareSheet": {
       "copied": "Скопировано!",
@@ -1424,7 +1476,10 @@
       "close": "Закрыть",
       "callouts": "Вызовы",
       "beatASquadMate": "Побей рекорд товарища по команде за 7 дней и забери его титул",
-      "xxxxxxxx": "XXXXXXXX"
+      "xxxxxxxx": "XXXXXXXX",
+      "roundsToRate": "Раунды для оценки",
+      "squadMate": "Товарищ по команде",
+      "rateIt": "Оценить"
     },
     "timerPage": {
       "close": "Закрыть",
@@ -1433,7 +1488,11 @@
       "couldnTSaveThat": "Не удалось сохранить",
       "bagPadsCircuitsHiit": "Мешок, лапы, круговые, HIIT. Снимай на том же экране.",
       "start": "Запустить",
-      "rounds": "Раунды"
+      "rounds": "Раунды",
+      "editWorkout": "Изменить тренировку",
+      "newWorkout": "Новая тренировка",
+      "name": "Название",
+      "mondayBagSession": "Понедельник: мешок"
     },
     "fightFilm": {
       "fightFilm": "Фильм боя",
@@ -1949,17 +2008,43 @@
     "rateRoundPage": {
       "goBack": "Назад",
       "sending": "Отправка…",
-      "of": "из"
+      "of": "из",
+      "couldnTSendYour": "Не удалось отправить вердикт",
+      "rateTheRound": "Оцени раунд",
+      "yourSquadWantsA": "Команда ждёт вердикт",
+      "thisRoundIsnT": "Этот раунд недоступен",
+      "itMayHaveBeen": "Возможно, его удалили или не отправили твоей команде.",
+      "yourVerdict": "Твой вердикт",
+      "pickAStamp": "Выбери отметку",
+      "addALineOptional": "Добавь фразу (необязательно)",
+      "updateVerdict": "Обновить вердикт",
+      "sendVerdict": "Отправить вердикт",
+      "squad": "команда",
+      "mateHas": "товарищ высказался",
+      "matesHave": "товарищей высказались",
+      "weighedIn": "",
+      "moreForTheVerdict": " · ещё {{verdict_in}} до вердикта",
+      "verdictRevealed": " · вердикт открыт"
     },
     "schoolLeaderboardPage": {
       "goBack": "Назад"
     },
     "seasonWrappedPage": {
       "goBack": "Назад",
-      "seasonWrapped": "Итоги сезона"
+      "seasonWrapped": "Итоги сезона",
+      "wrapped": "Итоги: {{name}}",
+      "yourWrappedArrivesWhen": "Итоги появятся, когда закончится сезон",
+      "wrapped2": "Итоги",
+      "in": "через",
+      "daysEverySessionAdds": "дн. Каждая тренировка дополняет историю.",
+      "swipeOrTapFor": "Листай или нажми для следующего",
+      "shareYourSeason": "Поделись сезоном",
+      "watchAgain": "Посмотреть снова"
     },
     "sessionDetailPage": {
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "couldnTLoadThis": "Не удалось загрузить тренировку",
+      "couldnTLoadReplay": "Не удалось загрузить повтор"
     },
     "squadDetailPage": {
       "goBack": "Назад"
@@ -2069,7 +2154,14 @@
       "share": "Поделиться",
       "copiedPasteItAnywhere": "Скопировано. Вставь куда угодно.",
       "couldnTShareThat": "Не удалось поделиться",
-      "back": "Назад"
+      "back": "Назад",
+      "whatKindOfFighter": "Какой ты боец?",
+      "yourStyle": "Твой стиль",
+      "youFightLike": "Ты бьёшься как",
+      "whatWouldMakeYou": "Что сделает тебя опасным",
+      "trainLike": "Тренируйся как",
+      "yourAiPartnerBuilds": "ИИ-партнёр строит каждую тренировку под твой стиль и оценивает раунды по видео.",
+      "retake": "Пройти заново"
     },
     "fighterBuddyCreator": {
       "choose": "Выбери",
@@ -2127,7 +2219,14 @@
       "logged": "записано"
     },
     "sessionResultsPage": {
-      "logged": "записано"
+      "logged": "записано",
+      "scorecardSaved": "Карта оценок сохранена!",
+      "noScoresForThis": "Для этой тренировки нет оценок",
+      "yourVideoDidnT": "В этот раз видео не оценили, так что честно показать нечего. Следующий снятый раунд это заполнит.",
+      "theBreakdownComesFrom": "Разбор строится по видео раундов. Включи видео в следующий раз, и ИИ оценит 16 элементов твоего бокса.",
+      "offense": "Атака",
+      "defense": "Защита",
+      "movement": "Передвижение"
     },
     "gymSeasonHours": {
       "preseason": "Предсезонка",
@@ -2606,6 +2705,9 @@
       "yourPartner": "Твой партнёр",
       "greatCall": "Отличный выбор.",
       "isReadyAndYour": "готов, и твой первый раунд — в одном касании."
+    },
+    "scorePage": {
+      "failedToSaveSession": "Не удалось сохранить тренировку. Попробуй ещё раз."
     }
   },
   "feedback": {

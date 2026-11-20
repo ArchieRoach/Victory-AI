@@ -977,7 +977,30 @@
       "noEmotesYet": "لا توجد رموز تعبيرية بعد",
       "tokens2": "{{token_price}} رموز",
       "highlights": "اللقطات",
-      "streamerDashboard": "لوحة الباثّ"
+      "streamerDashboard": "لوحة الباثّ",
+      "tips": "الإكراميات:",
+      "emotes": "الرموز التعبيرية:",
+      "totalUnlocks": "إجمالي الفتح",
+      "earningsViewersEmotes": "الأرباح · المشاهدون · الرموز التعبيرية",
+      "failedToLoadAnalytics": "فشل تحميل الإحصائيات.",
+      "allTimeTokensFrom": "الرموز من المعجبين منذ البداية",
+      "totalStreams": "إجمالي البثوث",
+      "totalViewersAllStreams": "إجمالي المشاهدين (كل البثوث)",
+      "earningsOverTime": "الأرباح عبر الوقت",
+      "tokensThisPeriod": "رموز في هذه الفترة",
+      "noEarningsYet": "لا أرباح بعد",
+      "goLiveToStart": "ابدأ البث لتبدأ بكسب الرموز من الإكراميات والهدايا.",
+      "autoClippedMomentsWatermarked": "لحظات مقصوصة تلقائيًا، بعلامة مائية وجاهزة للنشر",
+      "streamHistory": "سجل البثوث",
+      "noStreamsYet": "لا بثوث بعد",
+      "yourPastStreamsWill": "ستظهر بثوثك السابقة هنا بعد أن تبدأ البث.",
+      "emotePerformance": "أداء الرموز التعبيرية",
+      "studio": "الاستوديو",
+      "createEmotesForYour": "أنشئ رموزًا تعبيرية يستخدمها مشاهدوك في الدردشة.",
+      "createYourFirstEmote": "أنشئ أول رمز تعبيري",
+      "s7Days": "7 أيام",
+      "s30Days": "30 يومًا",
+      "allTime": "منذ البداية"
     },
     "streamCard": {
       "live": "مباشر"
@@ -1028,7 +1051,19 @@
       "couldnTUnfollowTry": "تعذّر إلغاء المتابعة. حاول مرة أخرى.",
       "couldnTFollowTry": "تعذّرت المتابعة. حاول مرة أخرى.",
       "following": "تتابعه",
-      "follow": "متابعة"
+      "follow": "متابعة",
+      "streamNotFound": "البث غير موجود.",
+      "clipSavedToYour": "تم حفظ المقطع في ملفك!",
+      "streamUnavailable": "البث غير متاح.",
+      "backToLive": "العودة للمباشر",
+      "shareItToStart": "شاركه ليبدأ بالانتشار",
+      "shareNow": "شارك الآن",
+      "later": "لاحقًا",
+      "clipShared": "تمت مشاركة المقطع!",
+      "reportStream": "الإبلاغ عن البث",
+      "saving": "جارٍ الحفظ...",
+      "sidePanel": "اللوحة الجانبية",
+      "topUpTokensTo": "اشحن الرموز لإكرام الباثّ"
     },
     "onboardingFlow": {
       "ready": "جاهز",
@@ -1087,7 +1122,24 @@
       "couldNotRemoveScheduled": "تعذّرت إزالة البث المجدول",
       "scheduleAStream": "جدولة بث",
       "newScheduledStream": "بث مجدول جديد",
-      "eGSaturdayMorning": "مثل جلسة سبارينغ صباح السبت"
+      "eGSaturdayMorning": "مثل جلسة سبارينغ صباح السبت",
+      "dateTime": "التاريخ والوقت",
+      "any": "أي",
+      "amateur": "هاوٍ",
+      "professional": "محترف",
+      "optional": "(اختياري)",
+      "whatSThisSession": "عمّ تدور هذه الجلسة؟",
+      "schedule": "جدولة",
+      "noScheduledStreams": "لا توجد بثوث مجدولة",
+      "scheduleYourNextSession": "جدول جلستك القادمة في الأعلى.",
+      "thisChannelHasNo": "لا توجد بثوث قادمة لهذه القناة.",
+      "soon": "قريبًا",
+      "glovesGiftedTheyLl": "تم إهداء القفازات. سيرونها على رفّهم.",
+      "paymentStillProcessingThe": "الدفع ما زال قيد المعالجة: ستظهر القفازات قريبًا.",
+      "moreOptions": "خيارات أخرى",
+      "verifiedBy": "موثّق من {{amateur_verified_by}}",
+      "selfReported": "مُعلن ذاتيًا",
+      "home": "الرئيسية"
     },
     "highlightShareSheet": {
       "copied": "تم النسخ!",
@@ -1424,7 +1476,10 @@
       "close": "إغلاق",
       "callouts": "التحديات",
       "beatASquadMate": "تغلّب على أفضل نتيجة لزميل في الفريق خلال 7 أيام وانتزع لقبه",
-      "xxxxxxxx": "XXXXXXXX"
+      "xxxxxxxx": "XXXXXXXX",
+      "roundsToRate": "جولات للتقييم",
+      "squadMate": "زميل الفريق",
+      "rateIt": "قيّمها"
     },
     "timerPage": {
       "close": "إغلاق",
@@ -1433,7 +1488,11 @@
       "couldnTSaveThat": "تعذّر الحفظ",
       "bagPadsCircuitsHiit": "الكيس، الوسائد، الدوائر، HIIT. صوّرها على الشاشة نفسها.",
       "start": "ابدأ",
-      "rounds": "الجولات"
+      "rounds": "الجولات",
+      "editWorkout": "تعديل التمرين",
+      "newWorkout": "تمرين جديد",
+      "name": "الاسم",
+      "mondayBagSession": "جلسة الكيس يوم الاثنين"
     },
     "fightFilm": {
       "fightFilm": "فيلم القتال",
@@ -1949,17 +2008,43 @@
     "rateRoundPage": {
       "goBack": "رجوع",
       "sending": "جارٍ الإرسال…",
-      "of": "من"
+      "of": "من",
+      "couldnTSendYour": "تعذّر إرسال حكمك",
+      "rateTheRound": "قيّم الجولة",
+      "yourSquadWantsA": "فريقك يريد حكمًا",
+      "thisRoundIsnT": "هذه الجولة غير متاحة",
+      "itMayHaveBeen": "ربما حُذفت، أو لم تُرسل إلى فريقك.",
+      "yourVerdict": "حكمك",
+      "pickAStamp": "اختر ختمًا",
+      "addALineOptional": "أضف سطرًا (اختياري)",
+      "updateVerdict": "تحديث الحكم",
+      "sendVerdict": "إرسال الحكم",
+      "squad": "الفريق",
+      "mateHas": "زميل أدلى برأيه",
+      "matesHave": "زملاء أدلوا برأيهم",
+      "weighedIn": "",
+      "moreForTheVerdict": " · {{verdict_in}} إضافية للحكم",
+      "verdictRevealed": " · تم كشف الحكم"
     },
     "schoolLeaderboardPage": {
       "goBack": "رجوع"
     },
     "seasonWrappedPage": {
       "goBack": "رجوع",
-      "seasonWrapped": "ملخص الموسم"
+      "seasonWrapped": "ملخص الموسم",
+      "wrapped": "ملخص {{name}}",
+      "yourWrappedArrivesWhen": "يصل ملخصك عند انتهاء الموسم",
+      "wrapped2": "الملخص",
+      "in": "خلال",
+      "daysEverySessionAdds": "أيام. كل جلسة تضيف إلى القصة.",
+      "swipeOrTapFor": "اسحب أو اضغط للتالي",
+      "shareYourSeason": "شارك موسمك",
+      "watchAgain": "شاهد مجددًا"
     },
     "sessionDetailPage": {
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "couldnTLoadThis": "تعذّر تحميل هذه الجلسة",
+      "couldnTLoadReplay": "تعذّر تحميل الإعادة"
     },
     "squadDetailPage": {
       "goBack": "رجوع"
@@ -2069,7 +2154,14 @@
       "share": "مشاركة",
       "copiedPasteItAnywhere": "تم النسخ. الصقه في أي مكان.",
       "couldnTShareThat": "تعذّرت المشاركة",
-      "back": "رجوع"
+      "back": "رجوع",
+      "whatKindOfFighter": "أي نوع من الملاكمين أنت؟",
+      "yourStyle": "أسلوبك",
+      "youFightLike": "تقاتل مثل",
+      "whatWouldMakeYou": "ما الذي يجعلك خطيرًا",
+      "trainLike": "تدرّب مثل",
+      "yourAiPartnerBuilds": "شريكك بالذكاء الاصطناعي يبني كل جلسة حول أسلوبك ويقيّم جولاتك من الفيديو.",
+      "retake": "أعد الاختبار"
     },
     "fighterBuddyCreator": {
       "choose": "اختر",
@@ -2127,7 +2219,14 @@
       "logged": "مسجّلة"
     },
     "sessionResultsPage": {
-      "logged": "مسجّلة"
+      "logged": "مسجّلة",
+      "scorecardSaved": "تم حفظ بطاقة النقاط!",
+      "noScoresForThis": "لا تقييمات لهذه الجلسة",
+      "yourVideoDidnT": "لم يُقيَّم فيديوك هذه المرة، لذا لا يوجد شيء صادق لعرضه. جولتك المصورة القادمة ستملأ هذا.",
+      "theBreakdownComesFrom": "التحليل يأتي من فيديوهات جولاتك. شغّل الفيديو في الجلسة القادمة وسيقيّم الذكاء الاصطناعي 16 جانبًا من ملاكمتك.",
+      "offense": "الهجوم",
+      "defense": "الدفاع",
+      "movement": "الحركة"
     },
     "gymSeasonHours": {
       "preseason": "ما قبل الموسم",
@@ -2606,6 +2705,9 @@
       "yourPartner": "شريكك",
       "greatCall": "اختيار رائع.",
       "isReadyAndYour": "جاهز، وجولتك الأولى على بُعد ضغطة."
+    },
+    "scorePage": {
+      "failedToSaveSession": "فشل حفظ الجلسة. حاول مرة أخرى."
     }
   },
   "feedback": {
