@@ -7,6 +7,7 @@ import { Radio, Users, AlertCircle, VideoOff, Scissors, Globe, Lock, BellRing } 
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { withMinDuration } from "@/utils/async";
+import { tx } from "@/i18n/tx";
 
 async function waitForIce(pc, timeout = 4000) {
   return new Promise((resolve) => {
@@ -244,8 +245,8 @@ export default function GoLivePage() {
           const newest = list[0];
           toast.success(
             newest?.peak_reactions
-              ? `Highlight clipped: ${newest.peak_reactions} reactions at once`
-              : "Highlight clipped",
+              ? tx("ui.goLivePage.highlightClippedReactionsAt", "Highlight clipped: {{peak_reactions}} reactions at once", { peak_reactions: newest.peak_reactions })
+              : tx("ui.goLivePage.highlightClipped", "Highlight clipped"),
           );
         }
         highlightCountRef.current = list.length;
@@ -293,11 +294,11 @@ export default function GoLivePage() {
             <span className="flex items-center gap-1.5">
               <span className="flex items-center gap-1.5 bg-victory-danger text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
                 <Radio className="w-3 h-3" />
-                LIVE
+                {tx("ui.goLivePage.live", "LIVE")}
               </span>
               {streamInfo?.audience === "squad" && (
                 <span className="flex items-center gap-1 bg-victory-bg/80 backdrop-blur-sm border border-victory-teal/40 text-victory-teal text-xs font-bold px-3 py-1.5 rounded-full">
-                  <Lock className="w-3 h-3" /> SQUAD ONLY
+                  <Lock className="w-3 h-3" /> {tx("ui.goLivePage.squadOnly", "SQUAD ONLY")}
                 </span>
               )}
             </span>
@@ -314,7 +315,7 @@ export default function GoLivePage() {
               <span className="flex items-center gap-1.5 bg-victory-bg/80 backdrop-blur-sm border border-victory-lime/40 text-victory-lime text-xs font-bold px-3 py-1.5 rounded-full">
                 <Scissors className="w-3 h-3" />
                 <span key={highlightCount} className="font-mono animate-scale-in">{highlightCount}</span>
-                {highlightCount === 1 ? "highlight" : "highlights"}
+                {highlightCount === 1 ? tx("ui.goLivePage.highlight", "highlight") : tx("ui.goLivePage.highlights", "highlights")}
               </span>
             </div>
           )}
@@ -323,7 +324,7 @@ export default function GoLivePage() {
         {/* Controls bar */}
         <div className="bg-black/90 px-6 py-5 flex flex-col gap-3">
           <p className="text-white/80 text-sm text-center font-medium">
-            {streamInfo?.title || "You're Live"}
+            {streamInfo?.title || tx("ui.goLivePage.youReLive", "You're Live")}
           </p>
           <button
             onClick={handleEndStream}
@@ -332,7 +333,7 @@ export default function GoLivePage() {
           >
             {endingStream ? (
               <span className="w-5 h-5 border-2 border-victory-danger border-t-transparent rounded-full animate-spin" />
-            ) : "End Stream"}
+            ) : tx("ui.goLivePage.endStream", "End Stream")}
           </button>
         </div>
       </div>
@@ -346,7 +347,7 @@ export default function GoLivePage() {
         {phase === "starting" ? (
           <div className="flex flex-col items-center gap-5">
             <div className="w-16 h-16 border-4 border-victory-lime border-t-transparent rounded-full animate-spin" />
-            <p className="text-victory-muted text-base">Setting up your stream…</p>
+            <p className="text-victory-muted text-base">{tx("ui.goLivePage.settingUpYourStream", "Setting up your stream…")}</p>
           </div>
         ) : phase === "error" ? (
           <div className="flex flex-col items-center gap-5 text-center max-w-xs">
@@ -362,7 +363,7 @@ export default function GoLivePage() {
               onClick={() => { setPhase("idle"); setErrorMsg(""); }}
               className="victory-btn-primary px-10"
             >
-              Try Again
+              {tx("ui.goLivePage.tryAgain", "Try Again")}
             </button>
           </div>
         ) : (
@@ -381,15 +382,15 @@ export default function GoLivePage() {
                   {(user?.name || "F")[0].toUpperCase()}
                 </div>
               )}
-              <p className="text-victory-muted text-sm">Ready to go live?</p>
+              <p className="text-victory-muted text-sm">{tx("ui.goLivePage.readyToGoLive", "Ready to go live?")}</p>
             </div>
 
             {/* Audience: squad-only is the low-stakes first stream — friends, not strangers */}
             <div className="w-full space-y-3">
-              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Who can watch">
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={tx("ui.goLivePage.whoCanWatch", "Who can watch")}>
                 {[
-                  { value: "public", label: "Everyone", icon: Globe },
-                  { value: "squad",  label: "Squad only", icon: Lock },
+                  { value: "public", get label() { return tx("ui.goLivePage.everyone", "Everyone"); }, icon: Globe },
+                  { value: "squad",  get label() { return tx("ui.goLivePage.squadOnly2", "Squad only"); }, icon: Lock },
                 ].map(({ value, label, icon: Icon }) => {
                   const needsSquad = value === "squad" && squadCount === 0;
                   const active = audience === value;
@@ -401,9 +402,9 @@ export default function GoLivePage() {
                       aria-disabled={needsSquad}
                       onClick={() => {
                         if (needsSquad) {
-                          toast("Start a squad first", {
-                            description: "Squad-only streams are just for your squad.",
-                            action: { label: "Squads", onClick: () => navigate("/squads") },
+                          toast(tx("ui.goLivePage.startASquadFirst", "Start a squad first"), {
+                            description: tx("ui.goLivePage.squadOnlyStreamsAre", "Squad-only streams are just for your squad."),
+                            action: { label: tx("ui.goLivePage.squads", "Squads"), onClick: () => navigate("/squads") },
                           });
                           return;
                         }
@@ -430,14 +431,14 @@ export default function GoLivePage() {
                   className="w-full min-h-[48px] victory-card px-3 flex items-center gap-3 text-left"
                 >
                   <BellRing className={`w-4 h-4 flex-shrink-0 ${notifySquad ? "text-victory-lime" : "text-victory-muted"}`} />
-                  <span className="flex-1 text-victory-text text-sm">Ping my squad when I go live</span>
+                  <span className="flex-1 text-victory-text text-sm">{tx("ui.goLivePage.pingMySquadWhen", "Ping my squad when I go live")}</span>
                   <span className={`w-10 h-6 rounded-full p-0.5 transition-colors ${notifySquad ? "bg-victory-lime" : "bg-victory-border"}`}>
                     <span className={`block w-5 h-5 rounded-full bg-victory-bg transition-transform ${notifySquad ? "translate-x-4" : ""}`} />
                   </span>
                 </button>
               ) : squadCount === 0 ? (
                 <button onClick={() => navigate("/squads")} className="w-full text-victory-muted text-xs text-center touch-target">
-                  Start a squad so your friends get pinged when you go live, and your first highlight comes easy →
+                  {tx("ui.goLivePage.startASquadSo", "Start a squad so your friends get pinged when you go live, and your first highlight comes easy →")}
                 </button>
               ) : null}
             </div>
@@ -448,11 +449,11 @@ export default function GoLivePage() {
               className="w-full flex items-center justify-center gap-3 bg-victory-danger hover:bg-victory-danger/90 text-white font-bold text-xl rounded-2xl py-5 transition-colors active:scale-95 transition-transform shadow-lg shadow-victory-danger/30"
             >
               <Radio className="w-6 h-6" />
-              Go Live
+              {tx("ui.goLivePage.goLive", "Go Live")}
             </button>
 
             <p className="text-victory-muted text-xs text-center leading-relaxed">
-              Your camera and microphone will be used to broadcast live.
+              {tx("ui.goLivePage.yourCameraAndMicrophone", "Your camera and microphone will be used to broadcast live.")}
             </p>
           </div>
         )}

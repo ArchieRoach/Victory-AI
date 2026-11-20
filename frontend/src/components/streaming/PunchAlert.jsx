@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { tx } from "@/i18n/tx";
 
 const TIER_STYLES = {
   bronze:   { bg: "from-amber-900/95 to-amber-800/90",   ring: "ring-amber-500/50",   text: "text-amber-300",  duration: 3000 },
@@ -28,7 +29,7 @@ function GiftSubBanner({ event, onDone }) {
         style={{ animationDuration: "4000ms" }}
       >
         <span className="text-xl">🎁</span>
-        <span>{event.user_name} gifted <strong>{event.count}</strong> sub{event.count > 1 ? "s" : ""}!</span>
+        <span>{event.user_name} {tx("ui.punchAlert.gifted", "gifted")} <strong>{event.count}</strong> {tx("ui.punchAlert.sub", "sub")}{event.count > 1 ? "s" : ""}!</span>
       </div>
     </div>
   );
@@ -79,9 +80,9 @@ function ComboAlert({ event, onDone }) {
       {badgeVisible && (
         <div className={`flex flex-col items-center gap-1 animate-scale-in`}>
           <div className={`bg-gradient-to-r ${badgeStyle} ring-1 font-extrabold text-2xl tracking-widest px-6 py-2 rounded-2xl shadow-2xl uppercase`}>
-            {label} COMBO!
+            {label} {tx("ui.punchAlert.combo", "COMBO!")}
           </div>
-          <p className="text-white/80 text-sm font-semibold">{event.user_name} · {event.amount?.toLocaleString()} tokens</p>
+          <p className="text-white/80 text-sm font-semibold">{event.user_name} · {event.amount?.toLocaleString()} {tx("ui.punchAlert.tokens", "tokens")}</p>
           {event.message && (
             <p className="text-white/50 text-xs italic max-w-[220px] text-center">"{event.message}"</p>
           )}
@@ -107,9 +108,9 @@ function TipBanner({ event, onDone }) {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.35)_0%,transparent_70%)]" />
         <div className={`relative flex flex-col items-center gap-4 bg-gradient-to-b ${tier.bg} p-8 rounded-3xl ring-4 ${tier.ring} shadow-[0_0_80px_rgba(139,92,246,0.6)] max-w-sm mx-4 animate-scale-in`}>
           <span className="text-6xl animate-bounce-slow">🏆</span>
-          <p className={`font-heading font-extrabold text-3xl ${tier.text} text-center`}>TITLE SHOT!</p>
+          <p className={`font-heading font-extrabold text-3xl ${tier.text} text-center`}>{tx("ui.punchAlert.titleShot", "TITLE SHOT!")}</p>
           <p className="text-white/90 font-bold text-base text-center">{event.user_name}</p>
-          <p className={`font-mono font-extrabold text-2xl ${tier.text}`}>{event.amount?.toLocaleString()} tokens</p>
+          <p className={`font-mono font-extrabold text-2xl ${tier.text}`}>{event.amount?.toLocaleString()} {tx("ui.punchAlert.tokens", "tokens")}</p>
           {event.message && <p className="text-white/80 text-sm text-center italic">"{event.message}"</p>}
         </div>
       </div>
@@ -122,9 +123,9 @@ function TipBanner({ event, onDone }) {
         <div className={`flex flex-col items-center gap-3 bg-gradient-to-b ${tier.bg} px-8 py-6 rounded-2xl ring-2 ${tier.ring} shadow-2xl max-w-xs w-full animate-scale-in`}>
           <div className="flex items-center gap-2">
             <span className="text-3xl">{event.punch_emoji || "🐐"}</span>
-            <p className={`font-heading font-extrabold text-xl ${tier.text}`}>{event.punch_action || "GOAT STATUS"}</p>
+            <p className={`font-heading font-extrabold text-xl ${tier.text}`}>{event.punch_action || tx("ui.punchAlert.goatStatus", "GOAT STATUS")}</p>
           </div>
-          <p className="text-white font-semibold text-sm">{event.user_name} · {event.amount?.toLocaleString()} tokens</p>
+          <p className="text-white font-semibold text-sm">{event.user_name} · {event.amount?.toLocaleString()} {tx("ui.punchAlert.tokens", "tokens")}</p>
           {event.message && <p className="text-white/70 text-xs italic">"{event.message}"</p>}
         </div>
       </div>
@@ -140,7 +141,7 @@ function TipBanner({ event, onDone }) {
       >
         <span className="text-2xl">{event.punch_emoji}</span>
         <div className="min-w-0">
-          <p className={`font-bold text-sm ${tier.text}`}>{event.user_name} · {event.amount?.toLocaleString()} tokens</p>
+          <p className={`font-bold text-sm ${tier.text}`}>{event.user_name} · {event.amount?.toLocaleString()} {tx("ui.punchAlert.tokens", "tokens")}</p>
           <p className="text-white/80 text-xs">{event.punch_action}</p>
           {event.message && (
             <p className="text-white/60 text-xs italic truncate max-w-[180px]">"{event.message}"</p>

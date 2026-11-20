@@ -5,6 +5,7 @@ import { MapPin, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
+import { tx } from "@/i18n/tx";
 
 // Scanned from the QR poster on a gym wall. Only the code is sent: no GPS, no location saved.
 export default function CheckinPage() {
@@ -25,7 +26,7 @@ export default function CheckinPage() {
       await axios.post(`${API}/gyms/${res.gym_id}/join`);
       checkIn();
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Couldn't join that gym");
+      toast.error(e?.response?.data?.detail || tx("ui.checkinPage.couldnTJoinThat", "Couldn't join that gym"));
     }
   };
 
@@ -37,7 +38,7 @@ export default function CheckinPage() {
           <div className="victory-card p-6 space-y-3">
             <MapPin className="w-10 h-10 mx-auto text-victory-muted" />
             <p className="text-victory-text font-heading font-bold">{error}</p>
-            <button className="victory-btn-secondary" onClick={() => navigate("/home")}>Go home</button>
+            <button className="victory-btn-secondary" onClick={() => navigate("/home")}>{tx("ui.checkinPage.goHome", "Go home")}</button>
           </div>
         )}
         {res?.checked_in && (
@@ -45,14 +46,14 @@ export default function CheckinPage() {
             <CheckCircle2 className="w-12 h-12 mx-auto text-victory-lime" />
             <p className="text-victory-text font-heading font-extrabold text-xl">{res.gym}</p>
             <p className="text-victory-text text-sm">{res.line}</p>
-            <button className="victory-btn-primary" onClick={() => navigate("/train")}>Start training</button>
+            <button className="victory-btn-primary" onClick={() => navigate("/train")}>{tx("ui.checkinPage.startTraining", "Start training")}</button>
           </div>
         )}
         {res && !res.checked_in && (
           <div className="victory-card p-6 space-y-3">
-            <p className="text-victory-text font-heading font-bold">You're at {res.gym}</p>
-            <p className="text-victory-muted text-sm">Check-ins count for members. {res.can_join ? "Join to fight for this gym." : "Ask the gym for an invite code."}</p>
-            {res.can_join && <button className="victory-btn-primary" onClick={join}>Join {res.gym}</button>}
+            <p className="text-victory-text font-heading font-bold">{tx("ui.checkinPage.youReAt", "You're at")} {res.gym}</p>
+            <p className="text-victory-muted text-sm">{tx("ui.checkinPage.checkInsCountFor", "Check-ins count for members.")} {res.can_join ? tx("ui.checkinPage.joinToFightFor", "Join to fight for this gym.") : tx("ui.checkinPage.askTheGymFor", "Ask the gym for an invite code.")}</p>
+            {res.can_join && <button className="victory-btn-primary" onClick={join}>{tx("ui.checkinPage.join", "Join")} {res.gym}</button>}
           </div>
         )}
       </main>

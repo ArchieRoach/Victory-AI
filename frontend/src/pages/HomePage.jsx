@@ -24,6 +24,7 @@ import { ComingUp, OracleCard, WrappedCard } from "@/components/home/ComingUp";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
 import { CoachMark } from "@/components/CoachMark";
 import { STYLE_STORAGE_KEY, withArticle } from "@/lib/fighterStyle";
+import { tx } from "@/i18n/tx";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function timeAgo(str) {
@@ -37,13 +38,13 @@ function fmtViewers(n = 0) {
 
 // ── Training tips injected into the For You feed every 8 posts ───────────────
 const TRAINING_TIPS = [
-  { title: "Stance Check",       body: "Feet shoulder-width apart. Lead foot pointed forward, rear foot turned 45°. Weight on the balls of your feet." },
-  { title: "The Jab is King",    body: "Your jab sets everything up. Throw it with your shoulder, not just your arm — rotate and snap." },
-  { title: "Breathe Out",        body: "Exhale sharply on every punch. It engages your core and resets your breathing rhythm automatically." },
-  { title: "Eyes on the Chest",  body: "Watch the chest, not the eyes. The chest telegraphs every punch and you'll see the whole body in peripheral vision." },
-  { title: "Return to Guard",    body: "Every combination should end with both hands back at your chin. Punching out then dropping them costs you." },
-  { title: "Use Your Legs",      body: "Power comes from the ground up — push off your rear foot on the cross, pivot on your lead foot on the hook." },
-  { title: "Head Movement",      body: "After you punch, move your head. A stationary fighter is an easy target." },
+  { get title() { return tx("ui.homePage.stanceCheck", "Stance Check"); },       get body() { return tx("ui.homePage.feetShoulderWidthApart", "Feet shoulder-width apart. Lead foot pointed forward, rear foot turned 45°. Weight on the balls of your feet."); } },
+  { get title() { return tx("ui.homePage.theJabIsKing", "The Jab is King"); },    get body() { return tx("ui.homePage.yourJabSetsEverything", "Your jab sets everything up. Throw it with your shoulder, not just your arm — rotate and snap."); } },
+  { get title() { return tx("ui.homePage.breatheOut", "Breathe Out"); },        get body() { return tx("ui.homePage.exhaleSharplyOnEvery", "Exhale sharply on every punch. It engages your core and resets your breathing rhythm automatically."); } },
+  { get title() { return tx("ui.homePage.eyesOnTheChest", "Eyes on the Chest"); },  get body() { return tx("ui.homePage.watchTheChestNot", "Watch the chest, not the eyes. The chest telegraphs every punch and you'll see the whole body in peripheral vision."); } },
+  { get title() { return tx("ui.homePage.returnToGuard", "Return to Guard"); },    get body() { return tx("ui.homePage.everyCombinationShouldEnd", "Every combination should end with both hands back at your chin. Punching out then dropping them costs you."); } },
+  { get title() { return tx("ui.homePage.useYourLegs", "Use Your Legs"); },      get body() { return tx("ui.homePage.powerComesFromThe", "Power comes from the ground up — push off your rear foot on the cross, pivot on your lead foot on the hook."); } },
+  { get title() { return tx("ui.homePage.headMovement", "Head Movement"); },      get body() { return tx("ui.homePage.afterYouPunchMove", "After you punch, move your head. A stationary fighter is an easy target."); } },
 ];
 
 // ── Notification icon + copy ──────────────────────────────────────────────────
@@ -90,11 +91,11 @@ function LiveStreamFeedCard({ stream }) {
         <div className="absolute top-3 left-3 flex items-center gap-2">
           {isLive ? (
             <span className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded shadow">
-              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />LIVE
+              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />{tx("ui.homePage.live", "LIVE")}
             </span>
           ) : (
             <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded">
-              Recent
+              {tx("ui.homePage.recent", "Recent")}
             </span>
           )}
           {stream.category && (
@@ -128,13 +129,13 @@ function LiveStreamFeedCard({ stream }) {
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-victory-text font-semibold text-sm truncate">{stream.title || "Live Boxing Session"}</p>
+          <p className="text-victory-text font-semibold text-sm truncate">{stream.title || tx("ui.homePage.liveBoxingSession", "Live Boxing Session")}</p>
           <p className="text-victory-muted text-xs truncate">{name}</p>
         </div>
         <span className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded ${
           isLive ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-victory-border text-victory-muted"
         }`}>
-          {isLive ? "Watch Now" : "Replay"}
+          {isLive ? tx("ui.homePage.watchNow", "Watch Now") : tx("ui.homePage.replay", "Replay")}
         </span>
       </div>
     </button>
@@ -174,7 +175,7 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
       const res = await axios.post(`${API}/posts/${post.post_id}/comments`, { text: commentText.trim() });
       setComments((c) => [...c, res.data]);
       setCommentText("");
-    } catch { toast.error("Could not post comment"); }
+    } catch { toast.error(tx("ui.homePage.couldNotPostComment", "Could not post comment")); }
     finally { setSubmitting(false); }
   };
 
@@ -216,7 +217,7 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
         ))}
         <button
           onClick={() => setReportTarget({ type: "post", id: post.post_id })}
-          aria-label="Report post"
+          aria-label={tx("ui.homePage.reportPost", "Report post")}
           className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger flex-shrink-0 -mr-2"
         >
           <Flag className="w-4 h-4" />
@@ -266,7 +267,7 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
               <div className="w-4 h-4 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
             </div>
           ) : comments.length === 0 ? (
-            <p className="text-victory-muted text-xs text-center">No comments yet</p>
+            <p className="text-victory-muted text-xs text-center">{tx("ui.homePage.noCommentsYet", "No comments yet")}</p>
           ) : comments.map((c) => (
             <div key={c.comment_id} className="flex gap-2">
               <div className="w-6 h-6 rounded-full bg-victory-lime/20 flex items-center justify-center flex-shrink-0">
@@ -280,7 +281,7 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
               </div>
               <button
                 onClick={() => setReportTarget({ type: "comment", id: c.comment_id })}
-                aria-label="Report comment"
+                aria-label={tx("ui.homePage.reportComment", "Report comment")}
                 className="w-11 h-11 -my-2.5 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger flex-shrink-0"
               >
                 <Flag className="w-3 h-3" />
@@ -290,9 +291,9 @@ function PostFeedCard({ post, onLike, onShareUpdate, currentUserId }) {
           <div className="flex gap-2 pt-1">
             <input value={commentText} onChange={(e) => setCommentText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submitComment()}
-              placeholder="Add a comment…" className="victory-input flex-1 text-sm py-1.5" maxLength={300} />
+              placeholder={tx("ui.homePage.addAComment", "Add a comment…")} className="victory-input flex-1 text-sm py-1.5" maxLength={300} />
             <button onClick={submitComment} disabled={submitting || !commentText.trim()}
-              aria-label="Post comment"
+              aria-label={tx("ui.homePage.postComment", "Post comment")}
               className="w-11 h-11 rounded-full bg-victory-lime flex items-center justify-center disabled:opacity-40 flex-shrink-0 touch-target">
               <Send className="w-4 h-4 text-victory-bg" />
             </button>
@@ -311,7 +312,7 @@ function TipFeedCard({ tip }) {
         🥊
       </div>
       <div className="flex-1 min-w-0">
-        <p className="section-label mb-1">Coach's Corner</p>
+        <p className="section-label mb-1">{tx("ui.homePage.coachSCorner", "Coach's Corner")}</p>
         <p className="text-victory-text text-sm font-semibold leading-snug">{tip.title}</p>
         <p className="text-victory-muted text-xs mt-1.5 leading-relaxed">{tip.body}</p>
       </div>
@@ -362,12 +363,12 @@ function FeedEmpty({ onGoLive }) {
         <Tv className="w-8 h-8 text-victory-lime/50" />
       </div>
       <div className="space-y-1.5">
-        <p className="text-victory-text font-bold text-lg">Your feed is empty</p>
-        <p className="text-victory-muted text-sm">Follow fighters or be the first to go live today.</p>
+        <p className="text-victory-text font-bold text-lg">{tx("ui.homePage.yourFeedIsEmpty", "Your feed is empty")}</p>
+        <p className="text-victory-muted text-sm">{tx("ui.homePage.followFightersOrBe", "Follow fighters or be the first to go live today.")}</p>
       </div>
       <div className="flex gap-3">
-        <button onClick={() => navigate("/live")} className="victory-btn-ghost px-5 py-2.5 text-sm">Browse Live</button>
-        <button onClick={onGoLive} className="victory-btn-primary px-5 py-2.5 text-sm">Go Live</button>
+        <button onClick={() => navigate("/live")} className="victory-btn-ghost px-5 py-2.5 text-sm">{tx("ui.homePage.browseLive", "Browse Live")}</button>
+        <button onClick={onGoLive} className="victory-btn-primary px-5 py-2.5 text-sm">{tx("ui.homePage.goLive", "Go Live")}</button>
       </div>
     </div>
   );
@@ -380,8 +381,8 @@ function NotifEmpty() {
         <Bell className="w-10 h-10 text-victory-muted" />
       </div>
       <div className="space-y-2">
-        <p className="text-victory-text font-bold text-xl">You're all caught up</p>
-        <p className="text-victory-muted text-sm">Likes, comments, tips and gift subs will appear here.</p>
+        <p className="text-victory-text font-bold text-xl">{tx("ui.homePage.youReAllCaught", "You're all caught up")}</p>
+        <p className="text-victory-muted text-sm">{tx("ui.homePage.likesCommentsTipsAnd", "Likes, comments, tips and gift subs will appear here.")}</p>
       </div>
     </div>
   );
@@ -424,7 +425,7 @@ export default function HomePage() {
     try {
       const res = await axios.get(`${API}/home/feed`);
       setFeed(res.data);
-    } catch { toast.error("Couldn't load feed — try again."); }
+    } catch { toast.error(tx("ui.homePage.couldnTLoadFeed", "Couldn't load feed — try again.")); }
     finally { setLoadingFeed(false); }
   }, []);
 
@@ -433,7 +434,7 @@ export default function HomePage() {
     try {
       const res = await axios.get(`${API}/home/following`);
       setFollowingFeed(res.data);
-    } catch { toast.error("Couldn't load feed — try again."); }
+    } catch { toast.error(tx("ui.homePage.couldnTLoadFeed", "Couldn't load feed — try again.")); }
     finally { setLoadingFollowing(false); }
   }, []);
 
@@ -500,7 +501,7 @@ export default function HomePage() {
     } catch {
       setFeed((prev) => prev.map(toggle)); // revert the optimistic flip
       setFollowingFeed((prev) => prev.map(toggle));
-      toast.error("Couldn't update like — try again.");
+      toast.error(tx("ui.homePage.couldnTUpdateLike", "Couldn't update like — try again."));
     } finally {
       likingRef.current.delete(postId);
     }
@@ -553,12 +554,12 @@ export default function HomePage() {
               className="flex items-center gap-1 touch-target text-victory-orange text-xs font-bold px-2.5 rounded-full border border-victory-orange/30 bg-victory-orange/10 hover:bg-victory-orange/20 transition-colors"
             >
               <Flame className="w-3.5 h-3.5" />
-              Trending
+              {tx("ui.homePage.trending", "Trending")}
             </button>
             {/* Notification bell */}
             <button
               onClick={() => setTab("notifications")}
-              aria-label="Notifications"
+              aria-label={tx("ui.homePage.notifications", "Notifications")}
               className="relative w-11 h-11 flex items-center justify-center text-victory-muted hover:text-victory-text touch-target"
             >
               <Bell className="w-5 h-5" />
@@ -571,7 +572,7 @@ export default function HomePage() {
             {/* User avatar */}
             <button
               onClick={() => navigate("/profile")}
-              aria-label="My profile"
+              aria-label={tx("ui.homePage.myProfile", "My profile")}
               className="w-11 h-11 rounded-full bg-victory-card-highlight border border-victory-border flex items-center justify-center text-victory-text font-semibold text-sm touch-target"
             >
               {user?.name?.[0]?.toUpperCase() || "U"}
@@ -589,7 +590,7 @@ export default function HomePage() {
                 : "border-transparent text-victory-muted hover:text-victory-text"
             }`}
           >
-            For You
+            {tx("ui.homePage.forYou", "For You")}
           </button>
           <button
             onClick={() => setTab("following")}
@@ -599,7 +600,7 @@ export default function HomePage() {
                 : "border-transparent text-victory-muted hover:text-victory-text"
             }`}
           >
-            Following
+            {tx("ui.homePage.following", "Following")}
           </button>
           <button
             onClick={() => setTab("notifications")}
@@ -609,7 +610,7 @@ export default function HomePage() {
                 : "border-transparent text-victory-muted hover:text-victory-text"
             }`}
           >
-            Notifications
+            {tx("ui.homePage.notifications", "Notifications")}
             {unread > 0 && (
               <span className="bg-red-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                 {unread > 9 ? "9+" : unread}
@@ -654,11 +655,11 @@ export default function HomePage() {
             <Flame className="w-6 h-6 text-orange-400 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-victory-text text-sm font-semibold">
-                Don't lose your {streakAtRisk}-day streak
+                {tx("ui.homePage.donTLoseYour", "Don't lose your")} {streakAtRisk}{tx("ui.homePage.dayStreak", "-day streak")}
               </p>
-              <p className="text-victory-muted text-xs">One rest day is fine. Two in a row ends it, so one round today keeps it alive.</p>
+              <p className="text-victory-muted text-xs">{tx("ui.homePage.oneRestDayIs", "One rest day is fine. Two in a row ends it, so one round today keeps it alive.")}</p>
             </div>
-            <span className="text-orange-400 text-xs font-bold flex-shrink-0">Train now</span>
+            <span className="text-orange-400 text-xs font-bold flex-shrink-0">{tx("ui.homePage.trainNow", "Train now")}</span>
           </button>
         </div>
       )}
@@ -728,11 +729,11 @@ export default function HomePage() {
                 <Users className="w-8 h-8 text-victory-lime/50" />
               </div>
               <div className="space-y-1.5">
-                <p className="text-victory-text font-bold text-lg">No posts yet</p>
-                <p className="text-victory-muted text-sm">Follow fighters on Discover to see their content here.</p>
+                <p className="text-victory-text font-bold text-lg">{tx("ui.homePage.noPostsYet", "No posts yet")}</p>
+                <p className="text-victory-muted text-sm">{tx("ui.homePage.followFightersOnDiscover", "Follow fighters on Discover to see their content here.")}</p>
               </div>
               <button onClick={() => navigate("/discover")} className="victory-btn-primary px-5 py-2.5 text-sm">
-                Find Fighters
+                {tx("ui.homePage.findFighters", "Find Fighters")}
               </button>
             </div>
           ) : (

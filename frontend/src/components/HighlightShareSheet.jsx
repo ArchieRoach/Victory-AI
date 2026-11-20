@@ -7,6 +7,7 @@ import { X, Share2, Download, Link, Scissors, Flame, RotateCcw, Send, Users, Dum
 import { analytics } from "@/lib/analytics";
 import { fetchVideoFile, canShareFile, shareVideoFile, downloadFile, highlightCaption } from "@/lib/shareVideo";
 import { SquadVerdict } from "@/components/SquadVerdict";
+import { tx } from "@/i18n/tx";
 
 const POLL_MS = 4000;
 const PENDING = ["clipping", "processing"];
@@ -68,11 +69,11 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
       const result = await shareVideoFile(file, { title: hl.stream_title || "Victory AI highlight", text: highlightCaption(hl) });
       if (result === "shared") await recordShare("native");
       if (result === "downloaded") {
-        toast.success("Saved — post it from your camera roll");
+        toast.success(tx("ui.highlightShareSheet.savedPostItFrom", "Saved — post it from your camera roll"));
         await recordShare("download");
       }
     } catch {
-      toast.error("Couldn't open the share sheet — try Save video instead");
+      toast.error(tx("ui.highlightShareSheet.couldnTOpenThe", "Couldn't open the share sheet — try Save video instead"));
     }
     setBusy(null);
   };
@@ -81,7 +82,7 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
     if (!file) return;
     setBusy("save");
     downloadFile(file);
-    toast.success("Video saved");
+    toast.success(tx("ui.highlightShareSheet.videoSaved", "Video saved"));
     await recordShare("download");
     setBusy(null);
   };
@@ -93,9 +94,9 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
       setHl((h) => ({ ...h, post_id: res.data.post_id }));
       onChange?.({ ...hl, post_id: res.data.post_id });
       analytics.capture("highlight_posted", { source: hl?.source });
-      toast.success("Posted to your profile");
+      toast.success(tx("ui.highlightShareSheet.postedToYourProfile", "Posted to your profile"));
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't post — try again");
+      toast.error(err?.response?.data?.detail || tx("ui.highlightShareSheet.couldnTPostTry", "Couldn't post — try again"));
     }
     setBusy(null);
   };
@@ -107,7 +108,7 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
       setTimeout(() => setCopied(false), 2000);
       await recordShare("link");
     } catch {
-      toast.error("Could not copy link");
+      toast.error(tx("ui.highlightShareSheet.couldNotCopyLink", "Could not copy link"));
     }
   };
 
@@ -119,11 +120,11 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
         : await axios.post(`${API}/fight-film/${highlightId}`);
       setHl((h) => ({ ...h, on_fight_film: res.data.on_fight_film }));
       if (res.data.on_fight_film) {
-        toast.success("Added to your Fight Film");
+        toast.success(tx("ui.highlightShareSheet.addedToYourFight", "Added to your Fight Film"));
         analytics.capture("fight_film_added", { source: hl?.source });
       }
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't update your Fight Film");
+      toast.error(err?.response?.data?.detail || tx("ui.highlightShareSheet.couldnTUpdateYour", "Couldn't update your Fight Film"));
     }
     setBusy(null);
   };
@@ -135,7 +136,7 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
       setHl((h) => ({ ...h, status: "processing" }));
       setPollKey((k) => k + 1);
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Retry failed");
+      toast.error(err?.response?.data?.detail || tx("ui.highlightShareSheet.retryFailed", "Retry failed"));
     }
     setBusy(null);
   };
@@ -143,7 +144,7 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
   const shareLabel = file && !canShareFile(file) ? "Download to share" : "Share video";
 
   return (
-    <BottomSheet onClose={onClose} label="Share highlight" className="w-full max-w-lg mx-auto">
+    <BottomSheet onClose={onClose} label={tx("ui.highlightShareSheet.shareHighlight", "Share highlight")} className="w-full max-w-lg mx-auto">
       {({ close }) => (
       <div className="overflow-y-auto min-h-0 flex-1">
 
@@ -151,20 +152,20 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
           <div className="flex items-center gap-2 min-w-0">
             {hl?.source === "auto" ? (
               <span className="flex items-center gap-1 bg-victory-lime/15 text-victory-lime text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-lime/30">
-                <Flame className="w-3 h-3" /> AUTO HIGHLIGHT
+                <Flame className="w-3 h-3" /> {tx("ui.highlightShareSheet.autoHighlight", "AUTO HIGHLIGHT")}
               </span>
             ) : hl?.source === "training" ? (
               <span className="flex items-center gap-1 bg-victory-teal/15 text-victory-teal text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-teal/30">
-                <Dumbbell className="w-3 h-3" /> YOUR ROUND
+                <Dumbbell className="w-3 h-3" /> {tx("ui.highlightShareSheet.yourRound", "YOUR ROUND")}
               </span>
             ) : (
               <span className="flex items-center gap-1 bg-victory-card-highlight text-victory-muted text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border border-victory-border">
-                <Scissors className="w-3 h-3" /> CLIP
+                <Scissors className="w-3 h-3" /> {tx("ui.highlightShareSheet.clip", "CLIP")}
               </span>
             )}
             <p className="text-victory-muted text-xs truncate">{hl?.stream_title}</p>
           </div>
-          <button onClick={() => close()} aria-label="Close" className="w-11 h-11 -mr-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={() => close()} aria-label={tx("ui.highlightShareSheet.close", "Close")} className="w-11 h-11 -mr-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -186,10 +187,10 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
                 <div className="w-12 h-12 rounded-2xl bg-victory-danger/10 border border-victory-danger/30 flex items-center justify-center">
                   <RotateCcw className="w-6 h-6 text-victory-danger" />
                 </div>
-                <p className="text-victory-text text-sm font-bold">This one didn't render</p>
+                <p className="text-victory-text text-sm font-bold">{tx("ui.highlightShareSheet.thisOneDidnT", "This one didn't render")}</p>
                 {isOwner && (
                   <button onClick={handleRetry} disabled={busy === "retry"} className="victory-btn-ghost w-auto px-4 text-sm min-h-[44px]">
-                    {busy === "retry" ? "Retrying…" : "Try again"}
+                    {busy === "retry" ? tx("ui.highlightShareSheet.retrying", "Retrying…") : tx("ui.highlightShareSheet.tryAgain", "Try again")}
                   </button>
                 )}
               </div>
@@ -199,9 +200,9 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 gap-2">
                   <Scissors className="w-7 h-7 text-victory-lime animate-bounce-slow" />
                   <p className="text-victory-text text-sm font-heading font-bold">
-                    {status === "clipping" ? "Capturing the moment…" : "Adding your watermark…"}
+                    {status === "clipping" ? tx("ui.highlightShareSheet.capturingTheMoment", "Capturing the moment…") : tx("ui.highlightShareSheet.addingYourWatermark", "Adding your watermark…")}
                   </p>
-                  <p className="text-victory-muted text-xs">Usually under a minute. You can close this — it'll be in Highlights.</p>
+                  <p className="text-victory-muted text-xs">{tx("ui.highlightShareSheet.usuallyUnderAMinute", "Usually under a minute. You can close this — it'll be in Highlights.")}</p>
                 </div>
               </div>
             )}
@@ -212,7 +213,7 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
           <div className="flex items-center justify-center gap-4 px-4 pt-4">
             <div className="text-center">
               <p className="font-mono font-bold text-2xl text-victory-lime">{Number(hl.round_score).toFixed(1)}</p>
-              <p className="text-victory-muted text-[11px]">AI score</p>
+              <p className="text-victory-muted text-[11px]">{tx("ui.highlightShareSheet.aiScore", "AI score")}</p>
             </div>
             {hl.score_delta > 0 && (
               <>
@@ -221,14 +222,14 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
                   <p className="font-mono font-bold text-2xl text-victory-teal flex items-center gap-1 justify-center">
                     <TrendingUp className="w-4 h-4" />+{Number(hl.score_delta).toFixed(1)}
                   </p>
-                  <p className="text-victory-muted text-[11px]">since last session</p>
+                  <p className="text-victory-muted text-[11px]">{tx("ui.highlightShareSheet.sinceLastSession", "since last session")}</p>
                 </div>
               </>
             )}
             <div className="w-px h-8 bg-victory-border" />
             <div className="text-center">
               <p className="font-mono font-bold text-2xl text-victory-text">{hl.share_count || 0}</p>
-              <p className="text-victory-muted text-[11px]">shares</p>
+              <p className="text-victory-muted text-[11px]">{tx("ui.highlightShareSheet.shares", "shares")}</p>
             </div>
           </div>
         )}
@@ -237,19 +238,19 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
           <div className="flex items-center justify-center gap-4 px-4 pt-4">
             <div className="text-center">
               <p className="font-mono font-bold text-2xl text-victory-lime">{hl.peak_reactions}</p>
-              <p className="text-victory-muted text-[11px]">reactions at once</p>
+              <p className="text-victory-muted text-[11px]">{tx("ui.highlightShareSheet.reactionsAtOnce", "reactions at once")}</p>
             </div>
             <div className="w-px h-8 bg-victory-border" />
             <div className="text-center">
               <p className="font-mono font-bold text-2xl text-victory-text flex items-center gap-1 justify-center">
                 <Users className="w-4 h-4 text-victory-muted" />{hl.peak_reactors}
               </p>
-              <p className="text-victory-muted text-[11px]">people hyped</p>
+              <p className="text-victory-muted text-[11px]">{tx("ui.highlightShareSheet.peopleHyped", "people hyped")}</p>
             </div>
             <div className="w-px h-8 bg-victory-border" />
             <div className="text-center">
               <p className="font-mono font-bold text-2xl text-victory-text">{hl.share_count || 0}</p>
-              <p className="text-victory-muted text-[11px]">shares</p>
+              <p className="text-victory-muted text-[11px]">{tx("ui.highlightShareSheet.shares", "shares")}</p>
             </div>
           </div>
         )}
@@ -261,13 +262,13 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
             className="victory-btn-primary flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <Share2 className="w-5 h-5" />
-            {status !== "ready" ? "Rendering…" : !file && !fileError ? "Preparing video…" : shareLabel}
+            {status !== "ready" ? tx("ui.highlightShareSheet.rendering", "Rendering…") : !file && !fileError ? tx("ui.highlightShareSheet.preparingVideo", "Preparing video…") : shareLabel}
           </button>
           {fileError && (
-            <p className="text-victory-muted text-xs text-center">Couldn't load the video file. Check your connection and reopen this sheet.</p>
+            <p className="text-victory-muted text-xs text-center">{tx("ui.highlightShareSheet.couldnTLoadThe", "Couldn't load the video file. Check your connection and reopen this sheet.")}</p>
           )}
           <p className="text-victory-muted text-[11px] text-center">
-            Opens your share sheet: TikTok, Instagram, Snapchat, YouTube Shorts and more
+            {tx("ui.highlightShareSheet.opensYourShareSheet", "Opens your share sheet: TikTok, Instagram, Snapchat, YouTube Shorts and more")}
           </p>
 
           <div className="grid grid-cols-2 gap-3">
@@ -276,11 +277,11 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
               disabled={!file || busy === "save"}
               className="victory-btn-ghost flex items-center justify-center gap-2 min-h-[48px] text-sm disabled:opacity-50"
             >
-              <Download className="w-4 h-4" /> Save video
+              <Download className="w-4 h-4" /> {tx("ui.highlightShareSheet.saveVideo", "Save video")}
             </button>
             {hl?.post_id ? (
               <button onClick={handleCopyLink} className="victory-btn-ghost flex items-center justify-center gap-2 min-h-[48px] text-sm">
-                <Link className="w-4 h-4" /> {copied ? "Copied!" : "Copy link"}
+                <Link className="w-4 h-4" /> {copied ? tx("ui.highlightShareSheet.copied", "Copied!") : tx("ui.highlightShareSheet.copyLink", "Copy link")}
               </button>
             ) : isOwner ? (
               <button
@@ -288,7 +289,7 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
                 disabled={status !== "ready" || busy === "post"}
                 className="victory-btn-ghost flex items-center justify-center gap-2 min-h-[48px] text-sm disabled:opacity-50"
               >
-                <Send className="w-4 h-4" /> {busy === "post" ? "Posting…" : "Post to feed"}
+                <Send className="w-4 h-4" /> {busy === "post" ? tx("ui.highlightShareSheet.posting", "Posting…") : tx("ui.highlightShareSheet.postToFeed", "Post to feed")}
               </button>
             ) : (
               <div />
@@ -304,7 +305,7 @@ export function HighlightShareSheet({ highlightId, initial = null, onClose, onCh
                 hl.on_fight_film ? "bg-victory-lime/15 border-victory-lime text-victory-lime" : "bg-victory-card border-victory-border text-victory-text"
               }`}
             >
-              <Film className="w-4 h-4" /> {hl.on_fight_film ? "On your Fight Film" : "Add to your Fight Film"}
+              <Film className="w-4 h-4" /> {hl.on_fight_film ? tx("ui.highlightShareSheet.onYourFightFilm", "On your Fight Film") : tx("ui.highlightShareSheet.addToYourFight", "Add to your Fight Film")}
             </button>
           )}
 

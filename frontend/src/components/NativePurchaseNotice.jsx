@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { nativePaywall } from "@/lib/nativeBridge";
 import { ArrowLeft, Lock, X } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 // Deliberately neutral: Guideline 3.1.3(b) lets the iOS app unlock purchases made
 // elsewhere, but it may not link to, price, or tell users where to buy them.
 const COPY = {
-  title: "Not available in the app",
-  body: "This isn't available in the Victory AI iOS app. Anything already on your account works here as normal.",
+  get title() { return tx("ui.nativePurchaseNotice.notAvailableInThe", "Not available in the app"); },
+  get body() { return tx("ui.nativePurchaseNotice.thisIsnTAvailable", "This isn't available in the Victory AI iOS app. Anything already on your account works here as normal."); },
 };
 
 function NoticeBody() {
@@ -27,7 +28,7 @@ export function NativePurchaseNoticePage() {
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col">
       <div className="px-4 py-3">
-        <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+        <button onClick={() => navigate(-1)} aria-label={tx("ui.nativePurchaseNotice.goBack", "Go back")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
           <ArrowLeft className="w-5 h-5" />
         </button>
       </div>
@@ -43,7 +44,7 @@ export function NativePurchaseNoticeModal({ onClose }) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm px-4 pb-4 sm:pb-0">
       <div className="w-full max-w-md bg-victory-bg border border-victory-border rounded-2xl overflow-hidden shadow-2xl">
         <div className="flex justify-end px-2 pt-2">
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target">
+          <button onClick={onClose} aria-label={tx("ui.nativePurchaseNotice.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target">
             <X className="w-5 h-5 text-victory-muted hover:text-victory-text" />
           </button>
         </div>

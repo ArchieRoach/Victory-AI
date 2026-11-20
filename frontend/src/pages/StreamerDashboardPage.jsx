@@ -4,11 +4,12 @@ import axios from "axios";
 import { API } from "@/App";
 import { EarningsCard } from "@/components/streaming/EarningsCard";
 import { ArrowLeft, Zap, Radio, Users, Smile, TrendingUp, Clock, ChevronRight, Scissors } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 const PERIODS = [
-  { value: "7d",  label: "7 days"  },
-  { value: "30d", label: "30 days" },
-  { value: "all", label: "All time" },
+  { value: "7d",  get label() { return tx("ui.streamerDashboardPage.s7Days", "7 days"); }  },
+  { value: "30d", get label() { return tx("ui.streamerDashboardPage.s30Days", "30 days"); } },
+  { value: "all", get label() { return tx("ui.streamerDashboardPage.allTime", "All time"); } },
 ];
 
 const TYPE_COLORS = {
@@ -80,9 +81,9 @@ function EarningsChart({ data: rawData }) {
               {!isEmpty && (
                 <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-10 pointer-events-none">
                   <div className="bg-victory-bg border border-victory-border rounded-lg px-2 py-1 text-[10px] whitespace-nowrap text-center shadow-lg">
-                    <p className="text-victory-text font-semibold">{fmt(d.total)} tokens</p>
-                    {d.tips   > 0 && <p className="text-victory-lime">Tips: {fmt(d.tips)}</p>}
-                    {d.emotes > 0 && <p className="text-violet-400">Emotes: {fmt(d.emotes)}</p>}
+                    <p className="text-victory-text font-semibold">{fmt(d.total)} {tx("ui.streamerDashboardPage.tokens", "tokens")}</p>
+                    {d.tips   > 0 && <p className="text-victory-lime">{tx("ui.streamerDashboardPage.tips", "Tips:")} {fmt(d.tips)}</p>}
+                    {d.emotes > 0 && <p className="text-violet-400">{tx("ui.streamerDashboardPage.emotes", "Emotes:")} {fmt(d.emotes)}</p>}
                     <p className="text-victory-muted">{d.label}</p>
                   </div>
                   <div className="w-1.5 h-1.5 bg-victory-border rotate-45 -mt-1" />
@@ -126,10 +127,10 @@ function EarningsChart({ data: rawData }) {
       {/* Legend */}
       <div className="flex items-center gap-4 mt-2">
         <span className="flex items-center gap-1.5 text-[10px] text-victory-muted">
-          <span className="w-2.5 h-2.5 rounded-sm bg-victory-lime/80 inline-block" /> Tips
+          <span className="w-2.5 h-2.5 rounded-sm bg-victory-lime/80 inline-block" /> {tx("ui.streamerDashboardPage.tips2", "Tips")}
         </span>
         <span className="flex items-center gap-1.5 text-[10px] text-victory-muted">
-          <span className="w-2.5 h-2.5 rounded-sm bg-violet-500/70 inline-block" /> Emotes
+          <span className="w-2.5 h-2.5 rounded-sm bg-violet-500/70 inline-block" /> {tx("ui.streamerDashboardPage.emotes2", "Emotes")}
         </span>
       </div>
     </div>
@@ -167,7 +168,7 @@ function StreamRow({ stream }) {
         ) : (
           <p className="text-victory-muted text-xs">—</p>
         )}
-        {stream.tips_earned > 0 && <p className="text-victory-muted text-[10px]">tokens</p>}
+        {stream.tips_earned > 0 && <p className="text-victory-muted text-[10px]">{tx("ui.streamerDashboardPage.tokens", "tokens")}</p>}
       </div>
     </div>
   );
@@ -185,9 +186,9 @@ function EmoteRow({ emote }) {
       <div className="flex-1 min-w-0">
         <p className="text-victory-text text-sm font-bold">{emote.emoji} {emote.name}</p>
         <p className="text-victory-muted text-xs">
-          {emote.token_price === 0 ? "Free" : `${emote.token_price} tokens`}
+          {emote.token_price === 0 ? tx("ui.streamerDashboardPage.free", "Free") : tx("ui.streamerDashboardPage.tokens2", "{{token_price}} tokens", { token_price: emote.token_price })}
           {" · "}
-          {emote.unlock_count} total unlocks
+          {emote.unlock_count} {tx("ui.streamerDashboardPage.totalUnlocks", "total unlocks")}
         </p>
       </div>
       <div className="text-right flex-shrink-0">
@@ -195,7 +196,7 @@ function EmoteRow({ emote }) {
           {emote.unlocks_period > 0 ? `+${fmt(emote.revenue_period)}` : "—"}
         </p>
         {emote.unlocks_period > 0 && (
-          <p className="text-victory-muted text-[10px]">{emote.unlocks_period} unlocks</p>
+          <p className="text-victory-muted text-[10px]">{emote.unlocks_period} {tx("ui.streamerDashboardPage.unlocks", "unlocks")}</p>
         )}
       </div>
     </div>
@@ -223,12 +224,12 @@ export default function StreamerDashboardPage() {
 
       {/* Header */}
       <div className="sticky top-0 z-20 material-header px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+        <button onClick={() => navigate(-1)} aria-label={tx("ui.streamerDashboardPage.goBack", "Go back")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1">
-          <h1 className="text-victory-text font-bold text-base">Streamer Dashboard</h1>
-          <p className="text-victory-muted text-xs">Earnings · Viewers · Emotes</p>
+          <h1 className="text-victory-text font-bold text-base">{tx("ui.streamerDashboardPage.streamerDashboard", "Streamer Dashboard")}</h1>
+          <p className="text-victory-muted text-xs">{tx("ui.streamerDashboardPage.earningsViewersEmotes", "Earnings · Viewers · Emotes")}</p>
         </div>
         {/* Period selector */}
         <div className="flex items-center gap-2 bg-victory-card border border-victory-border rounded-xl p-1">
@@ -253,7 +254,7 @@ export default function StreamerDashboardPage() {
           <div className="w-8 h-8 border-2 border-victory-lime border-t-transparent rounded-full animate-spin" />
         </div>
       ) : !data ? (
-        <div className="text-center py-24 text-victory-muted">Failed to load analytics.</div>
+        <div className="text-center py-24 text-victory-muted">{tx("ui.streamerDashboardPage.failedToLoadAnalytics", "Failed to load analytics.")}</div>
       ) : (
         <div className="max-w-lg mx-auto px-4 py-5 space-y-6">
 
@@ -261,11 +262,11 @@ export default function StreamerDashboardPage() {
 
           {/* ── All-time earnings hero ── */}
           <div className="bg-gradient-to-br from-victory-lime/15 to-victory-lime/5 border border-victory-lime/30 rounded-2xl p-5 text-center">
-            <p className="text-victory-muted text-xs mb-1">All-time tokens from fans</p>
+            <p className="text-victory-muted text-xs mb-1">{tx("ui.streamerDashboardPage.allTimeTokensFrom", "All-time tokens from fans")}</p>
             <p className="text-4xl font-black text-victory-lime tracking-tight">
               {fmt(ov.total_earned_alltime)}
             </p>
-            <p className="text-victory-muted text-xs mt-1">tokens</p>
+            <p className="text-victory-muted text-xs mt-1">{tx("ui.streamerDashboardPage.tokens", "tokens")}</p>
           </div>
 
           {/* ── Period stat cards ── */}
@@ -285,12 +286,12 @@ export default function StreamerDashboardPage() {
             />
             <StatCard
               icon={Radio}
-              label="Total streams"
+              label={tx("ui.streamerDashboardPage.totalStreams", "Total streams")}
               value={fmt(ov.total_streams)}
             />
             <StatCard
               icon={Users}
-              label="Total viewers (all streams)"
+              label={tx("ui.streamerDashboardPage.totalViewersAllStreams", "Total viewers (all streams)")}
               value={fmt(ov.total_viewers)}
             />
           </div>
@@ -299,9 +300,9 @@ export default function StreamerDashboardPage() {
           <div className="bg-victory-card border border-victory-border rounded-2xl p-4">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-victory-text font-semibold text-sm">Earnings over time</h2>
+                <h2 className="text-victory-text font-semibold text-sm">{tx("ui.streamerDashboardPage.earningsOverTime", "Earnings over time")}</h2>
                 <p className="text-victory-muted text-xs mt-0.5">
-                  {fmt(ov.total_earned_period)} tokens this period
+                  {fmt(ov.total_earned_period)} {tx("ui.streamerDashboardPage.tokensThisPeriod", "tokens this period")}
                 </p>
               </div>
               <TrendingUp className="w-4 h-4 text-victory-lime" />
@@ -311,8 +312,8 @@ export default function StreamerDashboardPage() {
                 <div className="w-10 h-10 rounded-full bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-victory-lime/50" />
                 </div>
-                <p className="text-victory-text font-semibold text-sm">No earnings yet</p>
-                <p className="text-victory-muted text-xs">Go live to start earning tokens from tips and gifts.</p>
+                <p className="text-victory-text font-semibold text-sm">{tx("ui.streamerDashboardPage.noEarningsYet", "No earnings yet")}</p>
+                <p className="text-victory-muted text-xs">{tx("ui.streamerDashboardPage.goLiveToStart", "Go live to start earning tokens from tips and gifts.")}</p>
               </div>
             ) : (
               <EarningsChart data={data.chart} />
@@ -327,8 +328,8 @@ export default function StreamerDashboardPage() {
               <Scissors className="w-5 h-5 text-victory-lime" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-victory-text font-heading font-bold text-sm">Highlights</p>
-              <p className="text-victory-muted text-xs">Auto-clipped moments, watermarked and ready to post</p>
+              <p className="text-victory-text font-heading font-bold text-sm">{tx("ui.streamerDashboardPage.highlights", "Highlights")}</p>
+              <p className="text-victory-muted text-xs">{tx("ui.streamerDashboardPage.autoClippedMomentsWatermarked", "Auto-clipped moments, watermarked and ready to post")}</p>
             </div>
             <ChevronRight className="w-4 h-4 text-victory-muted" />
           </button>
@@ -336,12 +337,12 @@ export default function StreamerDashboardPage() {
           {/* ── Recent streams ── */}
           <div className="bg-victory-card border border-victory-border rounded-2xl p-4">
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-victory-text font-semibold text-sm">Stream history</h2>
+              <h2 className="text-victory-text font-semibold text-sm">{tx("ui.streamerDashboardPage.streamHistory", "Stream history")}</h2>
               <button
                 onClick={() => navigate("/go-live")}
                 className="text-victory-lime text-xs flex items-center gap-0.5 touch-target hover:underline"
               >
-                Go Live <ChevronRight className="w-3 h-3" />
+                {tx("ui.streamerDashboardPage.goLive", "Go Live")} <ChevronRight className="w-3 h-3" />
               </button>
             </div>
             {data.streams.length === 0 ? (
@@ -349,8 +350,8 @@ export default function StreamerDashboardPage() {
                 <div className="w-10 h-10 rounded-full bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center">
                   <Radio className="w-5 h-5 text-victory-lime/50" />
                 </div>
-                <p className="text-victory-text font-semibold text-sm">No streams yet</p>
-                <p className="text-victory-muted text-xs">Your past streams will show up here once you go live.</p>
+                <p className="text-victory-text font-semibold text-sm">{tx("ui.streamerDashboardPage.noStreamsYet", "No streams yet")}</p>
+                <p className="text-victory-muted text-xs">{tx("ui.streamerDashboardPage.yourPastStreamsWill", "Your past streams will show up here once you go live.")}</p>
               </div>
             ) : (
               data.streams.map((s) => <StreamRow key={s.stream_id} stream={s} />)
@@ -360,12 +361,12 @@ export default function StreamerDashboardPage() {
           {/* ── Emote performance ── */}
           <div className="bg-victory-card border border-victory-border rounded-2xl p-4">
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-victory-text font-semibold text-sm">Emote performance</h2>
+              <h2 className="text-victory-text font-semibold text-sm">{tx("ui.streamerDashboardPage.emotePerformance", "Emote performance")}</h2>
               <button
                 onClick={() => navigate("/emotes")}
                 className="text-victory-lime text-xs flex items-center gap-0.5 touch-target hover:underline"
               >
-                Studio <ChevronRight className="w-3 h-3" />
+                {tx("ui.streamerDashboardPage.studio", "Studio")} <ChevronRight className="w-3 h-3" />
               </button>
             </div>
             {data.emote_performance.length === 0 ? (
@@ -373,13 +374,13 @@ export default function StreamerDashboardPage() {
                 <div className="w-10 h-10 rounded-full bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center">
                   <Smile className="w-5 h-5 text-victory-lime/50" />
                 </div>
-                <p className="text-victory-text font-semibold text-sm">No emotes yet</p>
-                <p className="text-victory-muted text-xs">Create emotes for your viewers to use in chat.</p>
+                <p className="text-victory-text font-semibold text-sm">{tx("ui.streamerDashboardPage.noEmotesYet", "No emotes yet")}</p>
+                <p className="text-victory-muted text-xs">{tx("ui.streamerDashboardPage.createEmotesForYour", "Create emotes for your viewers to use in chat.")}</p>
                 <button
                   onClick={() => navigate("/emotes")}
                   className="mt-1 text-victory-lime text-xs underline touch-target flex items-center justify-center"
                 >
-                  Create your first emote
+                  {tx("ui.streamerDashboardPage.createYourFirstEmote", "Create your first emote")}
                 </button>
               </div>
             ) : (

@@ -14,6 +14,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { tx } from "@/i18n/tx";
 
 const DIMENSION_GROUPS = {
   "Offensive Technique": [
@@ -177,7 +178,7 @@ export default function ScorePage() {
     } catch (error) {
       clearInterval(analysisIntervalRef.current);
       setLoading(false);
-      toast.error("Failed to save session. Please try again.");
+      toast.error(tx("ui.scorePage.failedToSaveSession", "Failed to save session. Please try again."));
     }
   };
 

@@ -1,15 +1,16 @@
 import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 const LANGUAGES = [
-  { code: "en",    label: "English",    flag: "🇬🇧" },
-  { code: "es",    label: "Español",    flag: "🇪🇸" },
-  { code: "fr",    label: "Français",   flag: "🇫🇷" },
-  { code: "pt-BR", label: "Português",  flag: "🇧🇷" },
-  { code: "de",    label: "Deutsch",    flag: "🇩🇪" },
+  { code: "en",    get label() { return tx("ui.languageSelector.english", "English"); },    flag: "🇬🇧" },
+  { code: "es",    get label() { return tx("ui.languageSelector.espaOl", "Español"); },    flag: "🇪🇸" },
+  { code: "fr",    get label() { return tx("ui.languageSelector.franAis", "Français"); },   flag: "🇫🇷" },
+  { code: "pt-BR", get label() { return tx("ui.languageSelector.portuguS", "Português"); },  flag: "🇧🇷" },
+  { code: "de",    get label() { return tx("ui.languageSelector.deutsch", "Deutsch"); },    flag: "🇩🇪" },
   { code: "ar",    label: "العربية",    flag: "🇸🇦" },
   { code: "ru",    label: "Русский",    flag: "🇷🇺" },
-  { code: "pl",    label: "Polski",     flag: "🇵🇱" },
+  { code: "pl",    get label() { return tx("ui.languageSelector.polski", "Polski"); },     flag: "🇵🇱" },
   { code: "zh-CN", label: "中文",        flag: "🇨🇳" },
   { code: "ja",    label: "日本語",      flag: "🇯🇵" },
 ];

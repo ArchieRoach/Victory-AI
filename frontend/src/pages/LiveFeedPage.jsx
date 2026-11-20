@@ -5,6 +5,7 @@ import Hls from "hls.js";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { Radio, Users, Volume2, VolumeX, Plus, Tv, Swords } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmtViewers(n = 0) {
@@ -24,9 +25,9 @@ function buildRecord(stream) {
 
 // ── Filter pills ──────────────────────────────────────────────────────────────
 const STATUS_PILLS = [
-  { label: "All",      value: null        },
-  { label: "🔴 Live",  value: "live"      },
-  { label: "Recent",   value: "recent"    },
+  { get label() { return tx("ui.liveFeedPage.all", "All"); },      value: null        },
+  { get label() { return tx("ui.liveFeedPage.live3", "🔴 Live"); },  value: "live"      },
+  { get label() { return tx("ui.liveFeedPage.recent", "Recent"); },   value: "recent"    },
 ];
 
 // ── Full-screen stream card with IntersectionObserver HLS autoplay ─────────
@@ -109,7 +110,7 @@ function StreamCard({ stream, muted, onToggleMute }) {
       <button
         className="absolute inset-0 z-10"
         onClick={() => navigate(`/stream/${stream.stream_id}`)}
-        aria-label="Open stream"
+        aria-label={tx("ui.liveFeedPage.openStream", "Open stream")}
       />
 
       {/* Gradient layers */}
@@ -125,7 +126,7 @@ function StreamCard({ stream, muted, onToggleMute }) {
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-2 text-center px-8">
             <Tv className="w-10 h-10 text-white/40" />
-            <p className="text-white/60 text-sm">Stream unavailable</p>
+            <p className="text-white/60 text-sm">{tx("ui.liveFeedPage.streamUnavailable", "Stream unavailable")}</p>
           </div>
         </div>
       )}
@@ -135,11 +136,11 @@ function StreamCard({ stream, muted, onToggleMute }) {
         {isLive ? (
           <span className="flex items-center gap-1.5 bg-victory-danger text-white text-xs font-bold px-2.5 py-1 rounded">
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-            LIVE
+            {tx("ui.liveFeedPage.live", "LIVE")}
           </span>
         ) : (
           <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded">
-            Recent
+            {tx("ui.liveFeedPage.recent", "Recent")}
           </span>
         )}
         {stream.category && (
@@ -179,7 +180,7 @@ function StreamCard({ stream, muted, onToggleMute }) {
           )}
           {isLive && (
             <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-victory-danger text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">
-              LIVE
+              {tx("ui.liveFeedPage.live", "LIVE")}
             </span>
           )}
         </button>
@@ -199,7 +200,7 @@ function StreamCard({ stream, muted, onToggleMute }) {
           {muted
             ? <VolumeX className="w-7 h-7 text-white drop-shadow" />
             : <Volume2 className="w-7 h-7 text-white drop-shadow" />}
-          <span className="text-white text-xs drop-shadow">{muted ? "Unmute" : "Mute"}</span>
+          <span className="text-white text-xs drop-shadow">{muted ? tx("ui.liveFeedPage.unmute", "Unmute") : tx("ui.liveFeedPage.mute", "Mute")}</span>
         </button>
 
         {/* Go Live shortcut */}
@@ -210,7 +211,7 @@ function StreamCard({ stream, muted, onToggleMute }) {
           <div className="w-10 h-10 rounded-xl bg-victory-lime flex items-center justify-center shadow-lg">
             <Radio className="w-5 h-5 text-black" />
           </div>
-          <span className="text-white text-xs drop-shadow">Go Live</span>
+          <span className="text-white text-xs drop-shadow">{tx("ui.liveFeedPage.goLive", "Go Live")}</span>
         </button>
       </div>
 
@@ -221,7 +222,7 @@ function StreamCard({ stream, muted, onToggleMute }) {
           <p className="text-white/80 text-sm font-mono mt-0.5 drop-shadow">{record}</p>
         )}
         <p className="text-white/80 text-sm mt-1.5 line-clamp-2 drop-shadow leading-snug">
-          {stream.title || "Live Boxing Session"}
+          {stream.title || tx("ui.liveFeedPage.liveBoxingSession", "Live Boxing Session")}
         </p>
       </div>
     </div>
@@ -236,12 +237,12 @@ function EmptyCard({ onGoLive }) {
         <Tv className="w-10 h-10 text-victory-lime/60" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-victory-text font-heading font-extrabold text-2xl">Nobody's Live Yet</h2>
-        <p className="text-victory-muted text-sm">Be the first in the gym today.</p>
+        <h2 className="text-victory-text font-heading font-extrabold text-2xl">{tx("ui.liveFeedPage.nobodySLiveYet", "Nobody's Live Yet")}</h2>
+        <p className="text-victory-muted text-sm">{tx("ui.liveFeedPage.beTheFirstIn", "Be the first in the gym today.")}</p>
       </div>
       <button onClick={onGoLive} className="victory-btn-primary px-10 py-3 font-bold text-base">
         <Radio className="w-4 h-4 inline mr-2" />
-        Go Live Now
+        {tx("ui.liveFeedPage.goLiveNow", "Go Live Now")}
       </button>
     </div>
   );
@@ -300,12 +301,12 @@ export default function LiveFeedPage() {
             onClick={() => navigate("/fantasy")}
             className="flex-shrink-0 flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full text-victory-lime border border-victory-lime/40"
           >
-            <Swords className="w-3.5 h-3.5" /> Fantasy
+            <Swords className="w-3.5 h-3.5" /> {tx("ui.liveFeedPage.fantasy", "Fantasy")}
           </button>
           {liveCount > 0 && (
             <span className="flex-shrink-0 ml-auto flex items-center gap-1 text-victory-danger text-xs font-semibold">
               <span className="w-1.5 h-1.5 bg-victory-danger rounded-full animate-pulse" />
-              {liveCount} live
+              {liveCount} {tx("ui.liveFeedPage.live2", "live")}
             </span>
           )}
         </div>
@@ -341,7 +342,7 @@ export default function LiveFeedPage() {
       {/* Plus / Go Live FAB — matches TikTok centre */}
       <button
         onClick={() => navigate("/go-live")}
-        aria-label="Go live"
+        aria-label={tx("ui.liveFeedPage.goLive2", "Go live")}
         className="fixed bottom-24 left-1/2 -translate-x-1/2 z-30 w-12 h-12 bg-victory-lime rounded-2xl flex items-center justify-center shadow-lg shadow-victory-lime/30 pointer-events-auto"
       >
         <Plus className="w-6 h-6 text-black stroke-[3]" />

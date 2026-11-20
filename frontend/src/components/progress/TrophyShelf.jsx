@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { API } from "@/App";
 import { BragButton } from "./BragButton";
 import { isNativeShell } from "@/lib/nativeShell";
-import { TROPHY_GUIDE, trophyHow } from "@/lib/trophyGuide";
+import { trophyGuide, trophyHow } from "@/lib/trophyGuide";
+import { tx } from "@/i18n/tx";
 
 // Goal: permission to show off without posting anything.
 // Psychology: a trophy shelf is implicit bragging; it only means something because every
@@ -29,12 +30,12 @@ export function TrophyShelf({ userId, isMe = false }) {
     setGiving(true);
     try {
       const { data } = await axios.post(`${API}/treasures`, { recipient_id: userId, kind });
-      toast.success(`You gave ${data.given}. ${data.left_today} left today.`);
-      if (data.surprise) toast(`Corner surprise: ${data.surprise.title}`, { description: data.surprise.body });
+      toast.success(tx("ui.trophyShelf.youGaveLeftToday", "You gave {{given}}. {{left_today}} left today.", { given: data.given, left_today: data.left_today }));
+      if (data.surprise) toast(tx("ui.trophyShelf.cornerSurprise", "Corner surprise: {{title}}", { title: data.surprise.title }), { description: data.surprise.body });
       load();
     } catch (e) {
       const d = e?.response?.data?.detail;
-      toast.error(typeof d === "string" ? d : "Couldn't give that right now");
+      toast.error(typeof d === "string" ? d : tx("ui.trophyShelf.couldnTGiveThat", "Couldn't give that right now"));
     }
     setGiving(false);
   };
@@ -44,11 +45,11 @@ export function TrophyShelf({ userId, isMe = false }) {
     setGiving(true);
     try {
       const { data } = await axios.post(`${API}/gloves/gift/checkout`, { recipient_id: userId, origin_url: window.location.origin });
-      if (data.for_parent) toast("Ask a parent or guardian to complete this payment.");
+      if (data.for_parent) toast(tx("ui.trophyShelf.askAParentOr", "Ask a parent or guardian to complete this payment."));
       window.location.href = data.checkout_url;
     } catch (e) {
       const d = e?.response?.data?.detail;
-      toast.error(typeof d === "string" ? d : "Couldn't start the gift right now");
+      toast.error(typeof d === "string" ? d : tx("ui.trophyShelf.couldnTStartThe", "Couldn't start the gift right now"));
       setGiving(false);
     }
   };
@@ -59,22 +60,22 @@ export function TrophyShelf({ userId, isMe = false }) {
   return (
     <section className="victory-card p-4 space-y-3" data-testid="trophy-shelf">
       <div className="flex items-center justify-between">
-        <p className="section-label flex items-center gap-1.5"><Award className="w-3 h-3" /> Trophy shelf</p>
-        <span className="text-[11px] text-victory-muted">Level <span className="font-mono text-victory-text">{shelf.level}</span></span>
+        <p className="section-label flex items-center gap-1.5"><Award className="w-3 h-3" /> {tx("ui.trophyShelf.trophyShelf", "Trophy shelf")}</p>
+        <span className="text-[11px] text-victory-muted">{tx("ui.trophyShelf.level", "Level")} <span className="font-mono text-victory-text">{shelf.level}</span></span>
       </div>
-      {empty && <p className="text-victory-muted text-sm">{isMe ? "Belts, crowns and titles land here as you earn them." : "Nothing on the shelf yet."}</p>}
+      {empty && <p className="text-victory-muted text-sm">{isMe ? tx("ui.trophyShelf.beltsCrownsAndTitles", "Belts, crowns and titles land here as you earn them.") : tx("ui.trophyShelf.nothingOnTheShelf", "Nothing on the shelf yet.")}</p>}
 
       {(shelf.gloves?.length > 0 || shelf.gifted_gloves?.length > 0) && (
         <div className="flex flex-wrap gap-1.5">
           {shelf.gloves.map((g) => (
             <button type="button" key={g.season_id} onClick={() => pick(g.name, trophyHow("gloves"))}
               className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full bg-victory-lime/15 border border-victory-lime/40 text-victory-lime flex items-center gap-1">
-              <Trophy className="w-3 h-3" /> {g.name}{g.hours ? ` · ${g.hours}h earned` : " · earned"}
+              <Trophy className="w-3 h-3" /> {g.name}{g.hours ? tx("ui.trophyShelf.hEarned", " · {{hours}}h earned", { hours: g.hours }) : tx("ui.trophyShelf.earned", " · earned")}
             </button>
           ))}
           {shelf.gifted_gloves.map((g) => (
             <span key={`gift-${g.season_id}`} className="text-[11px] font-heading font-bold px-2.5 py-1 rounded-full border border-victory-teal/40 text-victory-teal flex items-center gap-1">
-              <Gift className="w-3 h-3" /> {g.name} · gifted by {g.count} fan{g.count === 1 ? "" : "s"}
+              <Gift className="w-3 h-3" /> {g.name} {tx("ui.trophyShelf.giftedBy", "· gifted by")} {g.count} {tx("ui.trophyShelf.fan", "fan")}{g.count === 1 ? "" : "s"}
             </span>
           ))}
         </div>
@@ -82,7 +83,7 @@ export function TrophyShelf({ userId, isMe = false }) {
 
       {shelf.mastery?.tier && (
         <p className="text-[11px] text-victory-muted">
-          <span className="text-victory-teal font-semibold">{shelf.mastery.tier}</span> · <span className="font-mono text-victory-text">{shelf.mastery.verified_hours}</span> proven hours on the road to 10,000
+          <span className="text-victory-teal font-semibold">{shelf.mastery.tier}</span> · <span className="font-mono text-victory-text">{shelf.mastery.verified_hours}</span> {tx("ui.trophyShelf.provenHoursOnThe", "proven hours on the road to 10,000")}
         </p>
       )}
 
@@ -90,7 +91,7 @@ export function TrophyShelf({ userId, isMe = false }) {
         <p className="text-[11px] text-victory-muted flex items-center gap-1.5 flex-wrap" data-testid="shelf-eggs">
           <Egg className="w-3.5 h-3.5 text-victory-orange" />
           {shelf.eggs.found.map((e) => <button type="button" key={e.key} onClick={() => pick(e.name, e.desc)} className="text-victory-text underline decoration-dotted">{e.name}</button>)}
-          <span>· {shelf.eggs.found.length} of {shelf.eggs.total} hidden eggs found</span>
+          <span>· {shelf.eggs.found.length} {tx("ui.trophyShelf.of", "of")} {shelf.eggs.total} {tx("ui.trophyShelf.hiddenEggsFound", "hidden eggs found")}</span>
         </p>
       )}
 
@@ -140,9 +141,9 @@ export function TrophyShelf({ userId, isMe = false }) {
       )}
 
       <details className="text-[12px]" data-testid="trophy-guide">
-        <summary className="text-victory-muted cursor-pointer min-h-[44px] flex items-center">How to earn them</summary>
+        <summary className="text-victory-muted cursor-pointer min-h-[44px] flex items-center">{tx("ui.trophyShelf.howToEarnThem", "How to earn them")}</summary>
         <ul className="space-y-1.5 pb-1">
-          {TROPHY_GUIDE.map((g) => (
+          {trophyGuide().map((g) => (
             <li key={g.key}><span className="text-victory-text font-semibold">{g.name}:</span> <span className="text-victory-muted">{g.how}</span></li>
           ))}
         </ul>
@@ -150,7 +151,7 @@ export function TrophyShelf({ userId, isMe = false }) {
 
       {shelf.can_give && (
         <div className="pt-1">
-          <p className="text-[11px] text-victory-muted mb-1.5">Give them something only a friend can</p>
+          <p className="text-[11px] text-victory-muted mb-1.5">{tx("ui.trophyShelf.giveThemSomethingOnly", "Give them something only a friend can")}</p>
           <div className="grid grid-cols-3 gap-2">
             {[["respect", "Respect"], ["heart", "Heart"], ["sharp", "Sharp"]].map(([kind, label]) => {
               const Icon = TREASURE_ICONS[kind];
@@ -166,10 +167,10 @@ export function TrophyShelf({ userId, isMe = false }) {
       {shelf.can_gift_gloves && !isNativeShell() && (
         <button type="button" onClick={giftGloves} disabled={giving} data-testid="gift-gloves"
           className="victory-btn-secondary flex items-center justify-center gap-2">
-          <Gift className="w-4 h-4" /> Gift them Golden Gloves · £5
+          <Gift className="w-4 h-4" /> {tx("ui.trophyShelf.giftThemGoldenGloves", "Gift them Golden Gloves · £5")}
         </button>
       )}
-      {isMe && !empty && <BragButton win={{ kind: "shelf", level: shelf.level, crowns: shelf.crown_count }} label="Share your shelf" />}
+      {isMe && !empty && <BragButton win={{ kind: "shelf", level: shelf.level, crowns: shelf.crown_count }} label={tx("ui.trophyShelf.shareYourShelf", "Share your shelf")} />}
     </section>
   );
 }

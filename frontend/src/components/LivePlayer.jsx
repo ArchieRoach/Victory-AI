@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { Wifi, WifiOff } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 export default function LivePlayer({ playbackId, autoPlay = true, className = "" }) {
   const videoRef = useRef(null);
@@ -72,7 +73,7 @@ export default function LivePlayer({ playbackId, autoPlay = true, className = ""
     return (
       <div className={`w-full aspect-video bg-black flex flex-col items-center justify-center gap-2 ${className}`}>
         <WifiOff className="w-8 h-8 text-victory-muted" />
-        <p className="text-victory-muted text-sm">Stream not started</p>
+        <p className="text-victory-muted text-sm">{tx("ui.livePlayer.streamNotStarted", "Stream not started")}</p>
       </div>
     );
   }
@@ -90,7 +91,7 @@ export default function LivePlayer({ playbackId, autoPlay = true, className = ""
       {loading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3">
           <Wifi className="w-8 h-8 text-victory-lime animate-pulse" />
-          <p className="text-victory-muted text-sm">Connecting to stream...</p>
+          <p className="text-victory-muted text-sm">{tx("ui.livePlayer.connectingToStream", "Connecting to stream...")}</p>
         </div>
       )}
 

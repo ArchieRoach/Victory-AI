@@ -5,6 +5,7 @@ import { ArrowLeft, Delete, Target, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
+import { tx } from "@/i18n/tx";
 
 // Build your own combination and make it this week's focus. Reasoning: "Combo builder" in
 // backend/gamification.py (autonomy and creativity: a plan you designed is one you follow).
@@ -36,7 +37,7 @@ export default function ComboBuilderPage() {
         const { data: f } = await axios.post(`${API}/combos/${combo.combo_id}/focus`);
         toast.success(f.line);
       } else {
-        toast.success("Saved");
+        toast.success(tx("ui.comboBuilderPage.saved", "Saved"));
       }
       setMoves([]); setName("");
       load();
@@ -50,17 +51,17 @@ export default function ComboBuilderPage() {
     try { const r = await fn(); toast.success(typeof ok === "function" ? ok(r.data) : ok); load(); } catch (e) { err(e, "That didn't work"); }
   };
 
-  if (data === false) return <div className="min-h-screen bg-victory-bg p-6 text-victory-muted">Couldn't load your combinations.</div>;
+  if (data === false) return <div className="min-h-screen bg-victory-bg p-6 text-victory-muted">{tx("ui.comboBuilderPage.couldnTLoadYour", "Couldn't load your combinations.")}</div>;
 
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="combo-builder">
       <header className="p-4 flex items-center gap-2 border-b border-victory-border">
-        <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label="Back" onClick={() => navigate(-1)}>
+        <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label={tx("ui.comboBuilderPage.back", "Back")} onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
         <div>
-          <h1 className="text-xl font-heading font-extrabold text-victory-text">Combo builder</h1>
-          <p className="text-victory-muted text-sm">Design it. Drill it. Your AI partner checks it on video.</p>
+          <h1 className="text-xl font-heading font-extrabold text-victory-text">{tx("ui.comboBuilderPage.comboBuilder", "Combo builder")}</h1>
+          <p className="text-victory-muted text-sm">{tx("ui.comboBuilderPage.designItDrillIt", "Design it. Drill it. Your AI partner checks it on video.")}</p>
         </div>
       </header>
 
@@ -69,7 +70,7 @@ export default function ComboBuilderPage() {
           <section className="victory-card p-4 border-victory-lime/30 bg-victory-lime/5 flex items-center gap-3">
             <Target className="w-5 h-5 text-victory-lime flex-shrink-0" />
             <div className="min-w-0">
-              <p className="section-label">This week's focus</p>
+              <p className="section-label">{tx("ui.comboBuilderPage.thisWeekSFocus", "This week's focus")}</p>
               <p className="text-victory-text font-mono font-bold">{data.active.label}</p>
               {data.active.name && <p className="text-victory-muted text-[11px]">{data.active.name}</p>}
             </div>
@@ -78,26 +79,26 @@ export default function ComboBuilderPage() {
 
         <section className="victory-card p-4 space-y-3">
           <div className="min-h-[56px] rounded-lg bg-victory-card-highlight border border-victory-border p-3 flex flex-wrap items-center gap-1.5" aria-live="polite">
-            {moves.length === 0 ? <span className="text-victory-muted text-sm">Tap moves to build your combination</span>
+            {moves.length === 0 ? <span className="text-victory-muted text-sm">{tx("ui.comboBuilderPage.tapMovesToBuild", "Tap moves to build your combination")}</span>
               : moves.map((m, i) => (
                 <span key={i} className={`px-2.5 py-1 rounded-full font-heading font-bold text-sm ${PUNCHES.includes(m) ? "bg-victory-lime text-victory-bg" : "bg-victory-teal/15 text-victory-teal"}`}>{label(m)}</span>
               ))}
             {moves.length > 0 && (
-              <button aria-label="Remove last move" className="ml-auto w-11 h-11 rounded-full flex items-center justify-center text-victory-muted" onClick={() => setMoves(moves.slice(0, -1))}>
+              <button aria-label={tx("ui.comboBuilderPage.removeLastMove", "Remove last move")} className="ml-auto w-11 h-11 rounded-full flex items-center justify-center text-victory-muted" onClick={() => setMoves(moves.slice(0, -1))}>
                 <Delete className="w-4 h-4" />
               </button>
             )}
           </div>
 
-          <p className="section-label">Punches</p>
+          <p className="section-label">{tx("ui.comboBuilderPage.punches", "Punches")}</p>
           <div className="grid grid-cols-6 gap-1.5">
             {PUNCHES.map((m) => (
               <button key={m} disabled={moves.length >= MAX} onClick={() => setMoves([...moves, m])} title={data?.moves?.[m]}
                 className="min-h-[48px] rounded-xl bg-victory-card-highlight border border-victory-border font-mono font-bold text-lg text-victory-text active:scale-95 transition-transform">{m}</button>
             ))}
           </div>
-          <p className="text-[10px] text-victory-muted">1 jab · 2 cross · 3 lead hook · 4 rear hook · 5 lead uppercut · 6 rear uppercut</p>
-          <p className="section-label">Defence and feet</p>
+          <p className="text-[10px] text-victory-muted">{tx("ui.comboBuilderPage.s1Jab2Cross", "1 jab · 2 cross · 3 lead hook · 4 rear hook · 5 lead uppercut · 6 rear uppercut")}</p>
+          <p className="section-label">{tx("ui.comboBuilderPage.defenceAndFeet", "Defence and feet")}</p>
           <div className="flex flex-wrap gap-1.5">
             {DEFENCE.map((m) => (
               <button key={m} disabled={moves.length >= MAX} onClick={() => setMoves([...moves, m])}
@@ -105,16 +106,16 @@ export default function ComboBuilderPage() {
             ))}
           </div>
 
-          <input className="victory-input" maxLength={24} placeholder="Name it (optional)" aria-label="Combination name" value={name} onChange={(e) => setName(e.target.value)} />
+          <input className="victory-input" maxLength={24} placeholder={tx("ui.comboBuilderPage.nameItOptional", "Name it (optional)")} aria-label={tx("ui.comboBuilderPage.combinationName", "Combination name")} value={name} onChange={(e) => setName(e.target.value)} />
           <div className="grid grid-cols-2 gap-2">
-            <button className="victory-btn-ghost" disabled={busy || moves.length < 2} onClick={() => save(false)}>Save</button>
-            <button className="victory-btn-primary" disabled={busy || moves.length < 2} onClick={() => save(true)}>Make it my focus</button>
+            <button className="victory-btn-ghost" disabled={busy || moves.length < 2} onClick={() => save(false)}>{tx("ui.comboBuilderPage.save", "Save")}</button>
+            <button className="victory-btn-primary" disabled={busy || moves.length < 2} onClick={() => save(true)}>{tx("ui.comboBuilderPage.makeItMyFocus", "Make it my focus")}</button>
           </div>
         </section>
 
         {data?.combos?.length > 0 && (
           <section className="space-y-2">
-            <p className="section-label">Your combinations · {data.combos.length}/{data.max}</p>
+            <p className="section-label">{tx("ui.comboBuilderPage.yourCombinations", "Your combinations ·")} {data.combos.length}/{data.max}</p>
             {data.combos.map((c) => {
               const active = data.active?.combo_id === c.combo_id;
               return (
@@ -123,8 +124,8 @@ export default function ComboBuilderPage() {
                     <p className="font-mono font-bold text-victory-text">{c.label}</p>
                     <p className="text-[11px] text-victory-muted truncate">{c.name || c.focus.join(" · ")}</p>
                   </div>
-                  {active ? <span className="text-[10px] font-heading font-bold uppercase text-victory-lime flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Focus</span> : (
-                    <button className="victory-btn-secondary w-auto px-3 min-h-[44px] text-sm" onClick={() => act(() => axios.post(`${API}/combos/${c.combo_id}/focus`), (d) => d.line)}>Focus</button>
+                  {active ? <span className="text-[10px] font-heading font-bold uppercase text-victory-lime flex items-center gap-1"><Check className="w-3.5 h-3.5" /> {tx("ui.comboBuilderPage.focus", "Focus")}</span> : (
+                    <button className="victory-btn-secondary w-auto px-3 min-h-[44px] text-sm" onClick={() => act(() => axios.post(`${API}/combos/${c.combo_id}/focus`), (d) => d.line)}>{tx("ui.comboBuilderPage.focus", "Focus")}</button>
                   )}
                   <button aria-label={`Delete ${c.label}`} className="w-11 h-11 rounded-full flex items-center justify-center text-victory-muted" onClick={() => act(() => axios.delete(`${API}/combos/${c.combo_id}`), "Deleted")}>
                     <Trash2 className="w-4 h-4" />

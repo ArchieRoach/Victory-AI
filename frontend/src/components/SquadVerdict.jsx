@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Users, Lock, Send, Gavel } from "lucide-react";
 import { STAMPS, stampByKey } from "@/lib/stamps";
 import { analytics } from "@/lib/analytics";
+import { tx } from "@/i18n/tx";
 
 // Owner-only panel on a ready highlight: send it to the squad, then watch stamps come in.
 // The overall verdict stays hidden until enough of the squad has weighed in — the open
@@ -28,7 +29,7 @@ export function SquadVerdict({ highlightId, sentToSquad = 0 }) {
       toast.success(`Sent to ${res.data.sent_to} squad ${res.data.sent_to === 1 ? "mate" : "mates"}`);
       analytics.capture("round_sent_to_squad", { squad_size: res.data.sent_to });
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't send to your squad");
+      toast.error(err?.response?.data?.detail || tx("ui.squadVerdict.couldnTSendTo", "Couldn't send to your squad"));
     }
     setSending(false);
   };
@@ -36,7 +37,7 @@ export function SquadVerdict({ highlightId, sentToSquad = 0 }) {
   if (!sent) {
     return (
       <button onClick={send} disabled={sending} className="victory-btn-secondary flex items-center justify-center gap-2 disabled:opacity-50">
-        <Send className="w-4 h-4" /> {sending ? "Sending…" : "Get your squad's verdict"}
+        <Send className="w-4 h-4" /> {sending ? tx("ui.squadVerdict.sending", "Sending…") : tx("ui.squadVerdict.getYourSquadS", "Get your squad's verdict")}
       </button>
     );
   }
@@ -46,8 +47,8 @@ export function SquadVerdict({ highlightId, sentToSquad = 0 }) {
   return (
     <section className="victory-card p-4 space-y-3" data-testid="squad-verdict">
       <div className="flex items-center justify-between">
-        <p className="section-label flex items-center gap-1.5"><Users className="w-3 h-3" /> Squad verdict</p>
-        <span className="text-victory-muted text-[11px] font-mono">{data.count}/{data.sent_to} reacted</span>
+        <p className="section-label flex items-center gap-1.5"><Users className="w-3 h-3" /> {tx("ui.squadVerdict.squadVerdict", "Squad verdict")}</p>
+        <span className="text-victory-muted text-[11px] font-mono">{data.count}/{data.sent_to} {tx("ui.squadVerdict.reacted", "reacted")}</span>
       </div>
 
       {verdictStamp ? (
@@ -57,7 +58,7 @@ export function SquadVerdict({ highlightId, sentToSquad = 0 }) {
           </div>
           <div>
             <p className="text-victory-text font-heading font-extrabold">{verdictStamp.label}</p>
-            <p className="text-victory-muted text-xs">{data.verdict.count} of {data.count} said it</p>
+            <p className="text-victory-muted text-xs">{data.verdict.count} {tx("ui.squadVerdict.of", "of")} {data.count} {tx("ui.squadVerdict.saidIt", "said it")}</p>
           </div>
         </div>
       ) : (
@@ -66,7 +67,7 @@ export function SquadVerdict({ highlightId, sentToSquad = 0 }) {
             <Lock className="w-5 h-5 text-victory-muted" />
           </div>
           <p className="text-victory-text text-sm">
-            <span className="font-mono text-victory-lime font-bold">{data.verdict_in}</span> more {data.verdict_in === 1 ? "reaction" : "reactions"} to unlock the verdict
+            <span className="font-mono text-victory-lime font-bold">{data.verdict_in}</span> {tx("ui.squadVerdict.more", "more")} {data.verdict_in === 1 ? tx("ui.squadVerdict.reaction", "reaction") : tx("ui.squadVerdict.reactions", "reactions")} {tx("ui.squadVerdict.toUnlockTheVerdict", "to unlock the verdict")}
           </p>
         </div>
       )}

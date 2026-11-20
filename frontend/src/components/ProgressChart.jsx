@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { usePalette } from "@/hooks/useColorScheme";
+import { tx } from "@/i18n/tx";
 
 export const ProgressChart = ({ sessions: allSessions }) => {
   const p = usePalette();
@@ -57,7 +58,7 @@ export const ProgressChart = ({ sessions: allSessions }) => {
       <div className="h-32 flex flex-col items-center justify-center">
         <div className="w-4 h-4 rounded-full bg-victory-lime mb-2" />
         <p className="text-victory-muted text-sm">
-          Session 1 — your baseline
+          {tx("ui.progressChart.session1YourBaseline", "Session 1 — your baseline")}
         </p>
         <p className="text-victory-lime font-mono text-lg">
           {sessions[0].overall_score.toFixed(1)}/10

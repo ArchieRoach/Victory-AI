@@ -2,6 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useAuth } from "@/App";
 import { GlassView } from "expo-glass-effect";
 import { activeTip, claim, dismiss, release, subscribe, tipContext, tipText } from "@/lib/coachMarks";
+import { tx } from "@/i18n/tx";
 
 // A personalised tip that appears beside the thing it explains, at the moment it's first met.
 // The rules (one at a time, 3 a day, shown once, never mid-round) live in lib/coachMarks.js.
@@ -39,7 +40,7 @@ export function CoachMark({ id, tip, position = "top", hold = false, delay = 700
           <GlassView glassEffectStyle="regular" className="px-3 py-2.5 text-left">
             <p className="text-victory-text text-xs leading-snug">{text}</p>
             <button onClick={() => dismiss(id)} className="text-victory-lime text-[11px] font-bold mt-1.5 min-h-[32px] px-1 -mx-1">
-              Got it
+              {tx("ui.coachMark.gotIt", "Got it")}
             </button>
           </GlassView>
         </div>

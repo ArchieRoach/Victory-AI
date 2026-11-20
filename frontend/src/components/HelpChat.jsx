@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Send, Sparkles, Mail } from "lucide-react";
 import { API } from "@/App";
 import { BottomSheet } from "@/components/BottomSheet";
+import { tx } from "@/i18n/tx";
 
 // Ask Victory: quick answers about the app, from a guide of real facts (backend/help_assistant.py).
 // Anything it can't answer goes to the team by email with one tap, so nobody is left waiting.
@@ -13,7 +14,7 @@ const STARTERS = ["How do I cancel Pro?", "Why can't I hear my coach?", "How do 
 export function HelpChat({ onClose }) {
   const location = useLocation();
   const [messages, setMessages] = useState([
-    { role: "assistant", text: "Hi! I'm Ask Victory. Ask me anything about the app." },
+    { role: "assistant", text: tx("ui.helpChat.greeting", "Hi! I'm Ask Victory. Ask me anything about the app.") },
   ]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -35,7 +36,7 @@ export function HelpChat({ onClose }) {
       setMessages((m) => [...m, { role: "assistant", text: data.reply }]);
       if (data.handoff) setCanHandOff(true);
     } catch {
-      setMessages((m) => [...m, { role: "assistant", text: "I can't answer right now. Tap \"Send to the team\" and someone will email you back." }]);
+      setMessages((m) => [...m, { role: "assistant", get text() { return tx("ui.helpChat.iCanTAnswer", "I can't answer right now. Tap \"Send to the team\" and someone will email you back."); } }]);
       setCanHandOff(true);
     }
     setBusy(false);
@@ -48,16 +49,16 @@ export function HelpChat({ onClose }) {
       setSent(true);
       setMessages((m) => [...m, { role: "assistant", text: `Sent to the team. They'll email you${data.reply_to ? ` at ${data.reply_to}` : ""}.` }]);
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't send that. Try again.");
+      toast.error(err?.response?.data?.detail || tx("ui.helpChat.couldnTSendThat", "Couldn't send that. Try again."));
     }
     setBusy(false);
   };
 
   return (
-    <BottomSheet onClose={onClose} label="Ask Victory" className="w-full max-w-lg mx-auto" testId="help-chat">
+    <BottomSheet onClose={onClose} label={tx("ui.helpChat.askVictory", "Ask Victory")} className="w-full max-w-lg mx-auto" testId="help-chat">
       <div className="p-4 flex flex-col gap-3 max-h-[78vh]">
         <h2 className="font-heading font-bold text-victory-text flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-victory-lime" /> Ask Victory
+          <Sparkles className="w-4 h-4 text-victory-lime" /> {tx("ui.helpChat.askVictory", "Ask Victory")}
         </h2>
         <div className="flex-1 overflow-y-auto space-y-2 min-h-[160px]" aria-live="polite">
           {messages.map((m, i) => (
@@ -82,14 +83,14 @@ export function HelpChat({ onClose }) {
 
         {canHandOff && !sent && (
           <button onClick={handOff} disabled={busy} className="victory-btn-ghost w-full flex items-center justify-center gap-2 disabled:opacity-60" data-testid="help-handoff">
-            <Mail className="w-4 h-4" /> Send to the team
+            <Mail className="w-4 h-4" /> {tx("ui.helpChat.sendToTheTeam", "Send to the team")}
           </button>
         )}
 
         <form onSubmit={(e) => { e.preventDefault(); ask(); }} className="flex gap-2">
-          <input value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={500} placeholder="Ask a question"
-            aria-label="Your question" className="victory-input flex-1" />
-          <button type="submit" disabled={busy || !draft.trim()} aria-label="Send"
+          <input value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={500} placeholder={tx("ui.helpChat.askAQuestion", "Ask a question")}
+            aria-label={tx("ui.helpChat.yourQuestion", "Your question")} className="victory-input flex-1" />
+          <button type="submit" disabled={busy || !draft.trim()} aria-label={tx("ui.helpChat.send", "Send")}
             className="w-12 h-12 rounded-full bg-victory-lime text-victory-bg flex items-center justify-center disabled:opacity-50">
             <Send className="w-4 h-4" />
           </button>

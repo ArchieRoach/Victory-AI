@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { X, Zap } from "lucide-react";
 import { isNativeShell } from "@/lib/nativeShell";
 import { NativePurchaseNoticeModal } from "@/components/NativePurchaseNotice";
+import { tx } from "@/i18n/tx";
 
 export function TokenPurchaseModal({ onClose }) {
   if (isNativeShell()) return <NativePurchaseNoticeModal onClose={onClose} />;
@@ -25,25 +26,25 @@ function TokenStorePrompt({ onClose }) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-victory-border">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-victory-lime" />
-            <h2 className="font-heading font-extrabold text-victory-text text-lg">Top Up Tokens</h2>
+            <h2 className="font-heading font-extrabold text-victory-text text-lg">{tx("ui.tokenPurchaseModal.topUpTokens", "Top Up Tokens")}</h2>
           </div>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target">
+          <button onClick={onClose} aria-label={tx("ui.tokenPurchaseModal.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target">
             <X className="w-5 h-5 text-victory-muted hover:text-victory-text" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
           <p className="text-victory-muted text-sm">
-            Use tokens to tip streamers, buy emotes, send punch alerts, and gift subscriptions.
+            {tx("ui.tokenPurchaseModal.useTokensToTip", "Use tokens to tip streamers, buy emotes, send punch alerts, and gift subscriptions.")}
           </p>
 
           {/* Quick preview of packages */}
           <div className="grid grid-cols-2 gap-2">
             {[
-              { tokens: 200,  price: 1.99,  label: "Starter" },
-              { tokens: 500,  price: 4.99,  label: "Fighter",  popular: true },
-              { tokens: 1200, price: 9.99,  label: "Champion", save: "17%" },
-              { tokens: 3000, price: 19.99, label: "Legend",   save: "33%" },
+              { tokens: 200,  price: 1.99,  get label() { return tx("ui.tokenPurchaseModal.starter", "Starter"); } },
+              { tokens: 500,  price: 4.99,  get label() { return tx("ui.tokenPurchaseModal.fighter", "Fighter"); },  popular: true },
+              { tokens: 1200, price: 9.99,  get label() { return tx("ui.tokenPurchaseModal.champion", "Champion"); }, save: "17%" },
+              { tokens: 3000, price: 19.99, get label() { return tx("ui.tokenPurchaseModal.legend", "Legend"); },   save: "33%" },
             ].map((p) => (
               <div
                 key={p.label}
@@ -53,12 +54,12 @@ function TokenStorePrompt({ onClose }) {
               >
                 {p.popular && (
                   <span className="absolute -top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded-full bg-victory-lime text-victory-bg">
-                    Popular
+                    {tx("ui.tokenPurchaseModal.popular", "Popular")}
                   </span>
                 )}
                 {p.save && (
                   <span className="absolute -top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500 text-white">
-                    Save {p.save}
+                    {tx("ui.tokenPurchaseModal.save", "Save")} {p.save}
                   </span>
                 )}
                 <p className="text-victory-text text-xs font-semibold mt-1">{p.label}</p>
@@ -73,10 +74,10 @@ function TokenStorePrompt({ onClose }) {
             className="w-full victory-btn-primary py-4 text-base font-extrabold flex items-center justify-center gap-2"
           >
             <Zap className="w-5 h-5" />
-            View all packs & buy
+            {tx("ui.tokenPurchaseModal.viewAllPacksBuy", "View all packs & buy")}
           </button>
 
-          <p className="text-victory-muted text-xs text-center">Tokens are non-refundable. Secured by Stripe.</p>
+          <p className="text-victory-muted text-xs text-center">{tx("ui.tokenPurchaseModal.tokensAreNonRefundable", "Tokens are non-refundable. Secured by Stripe.")}</p>
         </div>
       </div>
     </div>

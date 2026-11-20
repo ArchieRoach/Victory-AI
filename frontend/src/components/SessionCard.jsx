@@ -1,4 +1,5 @@
 import { ChevronRight } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 export const SessionCard = ({ session, onClick }) => {
   const date = new Date(session.date);
@@ -77,7 +78,7 @@ export const SessionCard = ({ session, onClick }) => {
           ) : (
             <>
               <p className="font-mono font-bold text-victory-muted leading-none">—</p>
-              <p className="text-victory-muted text-[10px]">logged</p>
+              <p className="text-victory-muted text-[10px]">{tx("ui.sessionCard.logged", "logged")}</p>
             </>
           )}
         </div>

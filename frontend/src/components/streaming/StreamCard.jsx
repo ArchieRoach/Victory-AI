@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Hls from "hls.js";
 import { Radio, Users } from "lucide-react";
 import { ProgressiveImage } from "@/components/ProgressiveImage";
+import { tx } from "@/i18n/tx";
 
 const HLS_BASE = "https://livepeercdn.studio/hls";
 
@@ -131,7 +132,7 @@ export function StreamCard({ stream }) {
         {isLive && (
           <div className="absolute top-2 left-2 flex items-center gap-1 bg-victory-danger text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow">
             <Radio className="w-2.5 h-2.5" />
-            LIVE
+            {tx("ui.streamCard.live", "LIVE")}
           </div>
         )}
 

@@ -3,6 +3,7 @@ import { X, Coins, Check, Smile } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { API } from "@/App";
+import { tx } from "@/i18n/tx";
 
 export function EmoteShop({ streamOwnerId, onClose, tokenBalance, onBalanceChange }) {
   const [emotes,    setEmotes]    = useState([]);
@@ -31,12 +32,12 @@ export function EmoteShop({ streamOwnerId, onClose, tokenBalance, onBalanceChang
       await axios.post(`${API}/emotes/${emote.emote_id}/purchase`);
       setEmotes((prev) => prev.map((e) => e.emote_id === emote.emote_id ? { ...e, owned: true } : e));
       onBalanceChange?.(-emote.token_price);
-      toast.success(`${emote.name} unlocked!`);
+      toast.success(tx("ui.emoteShop.unlocked", "{{name}} unlocked!", { name: emote.name }));
     } catch (err) {
       const detail = err?.response?.data?.detail;
-      if (detail === "insufficient_tokens") toast.error("Not enough tokens.");
-      else if (detail === "Already unlocked") toast("Already in your collection.");
-      else toast.error("Purchase failed.");
+      if (detail === "insufficient_tokens") toast.error(tx("ui.emoteShop.notEnoughTokens", "Not enough tokens."));
+      else if (detail === "Already unlocked") toast(tx("ui.emoteShop.alreadyInYourCollection", "Already in your collection."));
+      else toast.error(tx("ui.emoteShop.purchaseFailed", "Purchase failed."));
     } finally {
       setBuying(null);
     }
@@ -52,12 +53,12 @@ export function EmoteShop({ streamOwnerId, onClose, tokenBalance, onBalanceChang
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-victory-text font-bold text-base">Emote Shop</h2>
+            <h2 className="text-victory-text font-bold text-base">{tx("ui.emoteShop.emoteShop", "Emote Shop")}</h2>
             <p className="text-victory-muted text-xs mt-0.5">
-              Balance: <span className="text-victory-lime font-semibold">{tokenBalance?.toLocaleString()} tokens</span>
+              {tx("ui.emoteShop.balance", "Balance:")} <span className="text-victory-lime font-semibold">{tokenBalance?.toLocaleString()} {tx("ui.emoteShop.tokens", "tokens")}</span>
             </p>
           </div>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={onClose} aria-label={tx("ui.emoteShop.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -70,8 +71,8 @@ export function EmoteShop({ streamOwnerId, onClose, tokenBalance, onBalanceChang
         ) : emotes.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
             <Smile className="w-8 h-8 text-victory-muted/60" />
-            <p className="text-victory-text text-sm font-semibold">No emotes yet</p>
-            <p className="text-victory-muted text-xs">This streamer hasn't created any emotes yet.</p>
+            <p className="text-victory-text text-sm font-semibold">{tx("ui.emoteShop.noEmotesYet", "No emotes yet")}</p>
+            <p className="text-victory-muted text-xs">{tx("ui.emoteShop.thisStreamerHasnT", "This streamer hasn't created any emotes yet.")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto pr-1" style={{ scrollbarWidth: "none" }}>
@@ -102,11 +103,11 @@ export function EmoteShop({ streamOwnerId, onClose, tokenBalance, onBalanceChang
                 <span className="text-[10px] font-bold text-victory-text leading-tight text-center">{emote.name}</span>
                 <span className="text-[9px] text-victory-muted">{emote.emoji}</span>
                 {emote.owned ? (
-                  <span className="text-[10px] text-victory-lime font-semibold">Owned</span>
+                  <span className="text-[10px] text-victory-lime font-semibold">{tx("ui.emoteShop.owned", "Owned")}</span>
                 ) : (
                   <span className="flex items-center gap-0.5 text-[10px] text-victory-muted">
                     <Coins className="w-2.5 h-2.5" />
-                    {emote.token_price === 0 ? "Free" : emote.token_price.toLocaleString()}
+                    {emote.token_price === 0 ? tx("ui.emoteShop.free", "Free") : emote.token_price.toLocaleString()}
                   </span>
                 )}
               </button>

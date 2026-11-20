@@ -14,11 +14,12 @@ import { sessionWin, glovesLine } from "@/lib/progression";
 import { haptic } from "@/lib/haptics";
 import { maybeAskForRating } from "@/lib/ratingPrompt";
 import { CoachMark } from "@/components/CoachMark";
+import { tx } from "@/i18n/tx";
 
 const RARITY = {
-  common: { label: "SCOUTING REPORT", cls: "bg-victory-card-highlight text-victory-muted border-victory-border" },
-  rare:   { label: "RARE REPORT",     cls: "bg-victory-teal/15 text-victory-teal border-victory-teal/40" },
-  epic:   { label: "EPIC REPORT",     cls: "bg-victory-lime/15 text-victory-lime border-victory-lime/50" },
+  common: { get label() { return tx("ui.sessionRewards.scoutingReport", "SCOUTING REPORT"); }, cls: "bg-victory-card-highlight text-victory-muted border-victory-border" },
+  rare:   { get label() { return tx("ui.sessionRewards.rareReport", "RARE REPORT"); },     cls: "bg-victory-teal/15 text-victory-teal border-victory-teal/40" },
+  epic:   { get label() { return tx("ui.sessionRewards.epicReport", "EPIC REPORT"); },     cls: "bg-victory-lime/15 text-victory-lime border-victory-lime/50" },
 };
 
 function PersonalBests({ pb }) {
@@ -33,7 +34,7 @@ function PersonalBests({ pb }) {
       {fresh.length > 0 && (
         <div>
           <p className="section-label mb-2 flex items-center gap-1.5">
-            <Trophy className="w-3 h-3" /> {fresh.length === 1 ? "New personal best" : `${fresh.length} new personal bests`}
+            <Trophy className="w-3 h-3" /> {fresh.length === 1 ? tx("ui.sessionRewards.newPersonalBest", "New personal best") : tx("ui.sessionRewards.newPersonalBests", "{{length}} new personal bests", { length: fresh.length })}
           </p>
           <div className="space-y-1.5">
             {fresh.map((b) => (
@@ -51,14 +52,14 @@ function PersonalBests({ pb }) {
       {near.length > 0 && (
         <div>
           <p className="text-victory-orange text-[10px] font-bold uppercase tracking-[0.18em] mb-2 flex items-center gap-1.5">
-            <Target className="w-3 h-3" /> So close
+            <Target className="w-3 h-3" /> {tx("ui.sessionRewards.soClose", "So close")}
           </p>
           <div className="space-y-1.5">
             {near.map((n) => (
               <div key={n.name} className="flex items-center justify-between">
                 <span className="text-victory-text text-sm">{n.name}</span>
                 <span className="text-victory-muted text-xs">
-                  <span className="font-mono text-victory-orange font-bold">{n.gap}</span> off your best ({n.best})
+                  <span className="font-mono text-victory-orange font-bold">{n.gap}</span> {tx("ui.sessionRewards.offYourBest", "off your best (")}{n.best})
                 </span>
               </div>
             ))}
@@ -71,8 +72,8 @@ function PersonalBests({ pb }) {
             <Trophy className="w-5 h-5 text-victory-lime" />
           </div>
           <div>
-            <p className="text-victory-text text-sm font-semibold">Personal bests set for {baselines} skills</p>
-            <p className="text-victory-muted text-xs">Every one of them can be broken next session.</p>
+            <p className="text-victory-text text-sm font-semibold">{tx("ui.sessionRewards.personalBestsSetFor", "Personal bests set for")} {baselines} {tx("ui.sessionRewards.skills", "skills")}</p>
+            <p className="text-victory-muted text-xs">{tx("ui.sessionRewards.everyOneOfThem", "Every one of them can be broken next session.")}</p>
           </div>
         </div>
       )}
@@ -95,7 +96,7 @@ function ScoutingReport({ report }) {
           <p className="text-victory-muted text-xs mb-2">{report.body}</p>
           {report.reason !== "unscored" && (
             <button onClick={() => navigate("/train")} className="text-victory-lime text-xs font-heading font-bold flex items-center gap-1 touch-target">
-              <Video className="w-3.5 h-3.5" /> Turn on video next session
+              <Video className="w-3.5 h-3.5" /> {tx("ui.sessionRewards.turnOnVideoNext", "Turn on video next session")}
             </button>
           )}
         </div>
@@ -113,12 +114,12 @@ function ScoutingReport({ report }) {
           {report.rarity === "common" ? <ScanSearch className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />} {rarity.label}
         </span>
         {report.types_total > 0 && (
-          <span className="text-victory-muted text-[10px] font-mono">{report.types_found}/{report.types_total} report types found</span>
+          <span className="text-victory-muted text-[10px] font-mono">{report.types_found}/{report.types_total} {tx("ui.sessionRewards.reportTypesFound", "report types found")}</span>
         )}
       </div>
       <p className="text-victory-text font-heading font-bold">{report.title}</p>
       <p className="text-victory-muted text-sm">{report.body}</p>
-      <p className="text-victory-muted text-[11px]">Your next report unlocks after your next session.</p>
+      <p className="text-victory-muted text-[11px]">{tx("ui.sessionRewards.yourNextReportUnlocks", "Your next report unlocks after your next session.")}</p>
     </section>
   );
 }
@@ -134,14 +135,14 @@ function SeasonProgress({ season: initial }) {
   return (
     <section className="victory-card p-4 space-y-2" data-testid="season-progress">
       <div className="flex items-center justify-between">
-        <p className="section-label flex items-center gap-1.5"><Shield className="w-3 h-3" /> {season.number ? `Season ${season.number}` : "Preseason"}</p>
-        <span className="text-victory-muted text-[11px]">{season.days_left} days left</span>
+        <p className="section-label flex items-center gap-1.5"><Shield className="w-3 h-3" /> {season.number ? tx("ui.sessionRewards.season", "Season {{number}}", { number: season.number }) : tx("ui.sessionRewards.preseason", "Preseason")}</p>
+        <span className="text-victory-muted text-[11px]">{season.days_left} {tx("ui.sessionRewards.daysLeft", "days left")}</span>
       </div>
       <div className="flex items-baseline justify-between">
         <p className="font-heading font-extrabold text-xl text-victory-text">
           {season.rank}
           {season.ranked_up && (
-            <span className="ml-2 align-middle text-[10px] font-heading font-extrabold bg-victory-lime text-victory-bg px-2 py-0.5 rounded-full animate-scale-in">RANKED UP</span>
+            <span className="ml-2 align-middle text-[10px] font-heading font-extrabold bg-victory-lime text-victory-bg px-2 py-0.5 rounded-full animate-scale-in">{tx("ui.sessionRewards.rankedUp", "RANKED UP")}</span>
           )}
         </p>
         <p className="font-mono text-sm text-victory-lime font-bold">
@@ -152,7 +153,7 @@ function SeasonProgress({ season: initial }) {
         <div className="h-full rounded-full bg-gradient-to-r from-victory-teal to-victory-lime" style={{ width: `${pct}%` }} />
       </div>
       <p className="text-victory-muted text-xs">
-        {season.earned ? <><span className="font-mono text-victory-lime">+{season.earned}</span> this session · </> : null}
+        {season.earned ? <><span className="font-mono text-victory-lime">+{season.earned}</span> {tx("ui.sessionRewards.thisSession", "this session ·")} </> : null}
         {label}
       </p>
     </section>
@@ -175,22 +176,22 @@ function CalloutButton({ pbs }) {
       setState("idle");
       const detail = err?.response?.data?.detail;
       if (detail && detail.toLowerCase().includes("squad")) {
-        toast(detail, { action: { label: "Squads", onClick: () => navigate("/squads") } });
+        toast(detail, { action: { label: tx("ui.sessionRewards.squads", "Squads"), onClick: () => navigate("/squads") } });
       } else {
-        toast.error(detail || "Couldn't send the callout");
+        toast.error(detail || tx("ui.sessionRewards.couldnTSendThe", "Couldn't send the callout"));
       }
     }
   };
   if (state === "sent") {
     return (
       <p className="text-victory-muted text-xs flex items-center gap-1.5 pt-1">
-        <Megaphone className="w-3.5 h-3.5 text-victory-lime" /> Callout sent — your squad has 7 days to beat {pick.name} {pick.score}.
+        <Megaphone className="w-3.5 h-3.5 text-victory-lime" /> {tx("ui.sessionRewards.calloutSentYourSquad", "Callout sent — your squad has 7 days to beat")} {pick.name} {pick.score}.
       </p>
     );
   }
   return (
     <button onClick={send} disabled={state === "sending"} className="victory-btn-secondary w-full flex items-center justify-center gap-2 min-h-[48px] disabled:opacity-50">
-      <Megaphone className="w-4 h-4" /> {state === "sending" ? "Sending…" : `Call out your squad: beat my ${pick.name} ${pick.score}`}
+      <Megaphone className="w-4 h-4" /> {state === "sending" ? tx("ui.sessionRewards.sending", "Sending…") : tx("ui.sessionRewards.callOutYourSquad", "Call out your squad: beat my {{name}} {{score}}", { name: pick.name, score: pick.score })}
     </button>
   );
 }
@@ -205,9 +206,9 @@ function CalloutsBeaten({ beaten }) {
             <Crown className="w-5 h-5 text-victory-bg" />
           </div>
           <div>
-            <p className="text-victory-text font-heading font-extrabold text-sm">You beat {b.challenger_name}'s callout</p>
+            <p className="text-victory-text font-heading font-extrabold text-sm">{tx("ui.sessionRewards.youBeat", "You beat")} {b.challenger_name}{tx("ui.sessionRewards.sCallout", "'s callout")}</p>
             <p className="text-victory-muted text-xs">
-              {b.dimension} <span className="font-mono text-victory-lime">{b.your_score}</span> vs {b.score} · title taken: {b.title}
+              {b.dimension} <span className="font-mono text-victory-lime">{b.your_score}</span> {tx("ui.sessionRewards.vs", "vs")} {b.score} {tx("ui.sessionRewards.titleTaken", "· title taken:")} {b.title}
             </p>
           </div>
         </div>
@@ -236,13 +237,13 @@ function BringYourCrew({ moment }) {
         }
       } else {
         await navigator.clipboard?.writeText(`${data.brag} ${url}`);
-        toast.success("Invite link copied");
+        toast.success(tx("ui.sessionRewards.inviteLinkCopied", "Invite link copied"));
       }
       analytics.capture("squad_invite_sent", { via, has_skill: !!moment.dimension });
       setState("sent");
     } catch (err) {
       setState("idle");
-      toast.error(err?.response?.data?.detail || "Couldn't make the invite — try again");
+      toast.error(err?.response?.data?.detail || tx("ui.sessionRewards.couldnTMakeThe", "Couldn't make the invite — try again"));
     }
   };
   return (
@@ -251,14 +252,14 @@ function BringYourCrew({ moment }) {
         {state === "sent" ? <Check className="w-5 h-5 text-victory-teal" /> : <UserPlus className="w-5 h-5 text-victory-teal" />}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-victory-text text-sm font-semibold">{state === "sent" ? "Invite sent" : moment.headline}</p>
+        <p className="text-victory-text text-sm font-semibold">{state === "sent" ? tx("ui.sessionRewards.inviteSent", "Invite sent") : moment.headline}</p>
         <p className="text-victory-muted text-xs">
-          {state === "sent" ? "You'll get a ping when they join your squad." : "Send a mate the link. They land straight in your squad."}
+          {state === "sent" ? tx("ui.sessionRewards.youLlGetA", "You'll get a ping when they join your squad.") : tx("ui.sessionRewards.sendAMateThe", "Send a mate the link. They land straight in your squad.")}
         </p>
       </div>
       {state !== "sent" && (
         <button onClick={invite} disabled={state === "working"} className="victory-btn-secondary w-auto px-4 min-h-[44px] text-sm disabled:opacity-50">
-          {state === "working" ? "…" : "Invite"}
+          {state === "working" ? "…" : tx("ui.sessionRewards.invite", "Invite")}
         </button>
       )}
     </section>
@@ -275,20 +276,20 @@ function StatusEarned({ status, quests, gloves }) {
   return (
     <section className={`victory-card p-4 space-y-2 ${status.leveled_up ? "border-victory-lime/30 bg-victory-lime/5" : ""}`} data-testid="status-earned">
       <div className="flex items-center justify-between">
-        <p className="section-label flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> Status</p>
+        <p className="section-label flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> {tx("ui.sessionRewards.status", "Status")}</p>
         <span className="font-mono font-bold text-victory-lime">+{status.earned}</span>
       </div>
-      {status.booster && <p className="text-[11px] text-victory-teal">{status.booster} doubled it</p>}
+      {status.booster && <p className="text-[11px] text-victory-teal">{status.booster} {tx("ui.sessionRewards.doubledIt", "doubled it")}</p>}
       {status.leveled_up ? (
-        <p className="text-victory-text font-heading font-extrabold text-lg">Level {status.level}!{status.unlocked?.length ? ` Unlocked ${status.unlocked.map((u) => u.name).join(", ")}.` : ""}</p>
+        <p className="text-victory-text font-heading font-extrabold text-lg">{tx("ui.sessionRewards.level", "Level")} {status.level}!{status.unlocked?.length ? ` Unlocked ${status.unlocked.map((u) => u.name).join(", ")}.` : ""}</p>
       ) : (
-        <p className="text-victory-muted text-[12px]">Level <span className="font-mono text-victory-text">{status.level}</span> · <span className="font-mono text-victory-text">{status.total}</span> status points, and they never go down.</p>
+        <p className="text-victory-muted text-[12px]">{tx("ui.sessionRewards.level", "Level")} <span className="font-mono text-victory-text">{status.level}</span> · <span className="font-mono text-victory-text">{status.total}</span> {tx("ui.sessionRewards.statusPointsAndThey", "status points, and they never go down.")}</p>
       )}
       {quest && (
         <button className="w-full text-left text-[12px] text-victory-muted min-h-[44px]" onClick={() => navigate("/leaderboard?tab=quests")}>
-          {quest.just_completed ? <span className="text-victory-lime font-semibold">{quest.name} just completed the mission! Pick your booster.</span>
-            : quest.counted === false ? <>This one didn't count toward {quest.name}'s mission. Check what it needs.</>
-            : <>Squad mission: <span className="font-mono text-victory-text">{quest.progress}/{quest.target}</span> for {quest.name}</>}
+          {quest.just_completed ? <span className="text-victory-lime font-semibold">{quest.name} {tx("ui.sessionRewards.justCompletedTheMission", "just completed the mission! Pick your booster.")}</span>
+            : quest.counted === false ? <>{tx("ui.sessionRewards.thisOneDidnT", "This one didn't count toward")} {quest.name}{tx("ui.sessionRewards.sMissionCheckWhat", "'s mission. Check what it needs.")}</>
+            : <>{tx("ui.sessionRewards.squadMission", "Squad mission:")} <span className="font-mono text-victory-text">{quest.progress}/{quest.target}</span> {tx("ui.sessionRewards.for", "for")} {quest.name}</>}
         </button>
       )}
       {glove && (
@@ -321,14 +322,14 @@ function Reflection({ sessionId, tags }) {
   };
   return (
     <section className="victory-card p-4 space-y-3" data-testid="session-reflection">
-      <p className="section-label">How did that feel?</p>
-      <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="How much you enjoyed it, 1 to 5">
+      <p className="section-label">{tx("ui.sessionRewards.howDidThatFeel", "How did that feel?")}</p>
+      <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label={tx("ui.sessionRewards.howMuchYouEnjoyed", "How much you enjoyed it, 1 to 5")}>
         {[1, 2, 3, 4, 5].map((v) => (
           <button key={v} role="radio" aria-checked={enjoyment === v} onClick={() => rate(v)}
             className={`min-h-[44px] rounded-xl font-mono font-bold ${enjoyment === v ? "bg-victory-lime text-victory-bg" : "bg-victory-card-highlight text-victory-text"}`}>{v}</button>
         ))}
       </div>
-      <div className="flex justify-between text-[10px] text-victory-muted -mt-1"><span>Not for me</span><span>Loved it</span></div>
+      <div className="flex justify-between text-[10px] text-victory-muted -mt-1"><span>{tx("ui.sessionRewards.notForMe", "Not for me")}</span><span>{tx("ui.sessionRewards.lovedIt", "Loved it")}</span></div>
       {enjoyment && (
         <div className="flex flex-wrap gap-1.5">
           {Object.entries(tags).map(([k, label]) => (
@@ -337,7 +338,7 @@ function Reflection({ sessionId, tags }) {
           ))}
         </div>
       )}
-      {saved && <p className="text-[11px] text-victory-muted">Noted. Your partner learns what you enjoy.</p>}
+      {saved && <p className="text-[11px] text-victory-muted">{tx("ui.sessionRewards.notedYourPartnerLearns", "Noted. Your partner learns what you enjoy.")}</p>}
     </section>
   );
 }
@@ -347,11 +348,11 @@ function BossResult({ boss }) {
   if (!boss) return null;
   return (
     <section className={`victory-card p-4 space-y-2 ${boss.beaten ? "border-victory-lime/40 bg-victory-lime/5" : "border-victory-orange/30"}`} data-testid="boss-result">
-      <p className="section-label flex items-center gap-1.5"><Skull className="w-3 h-3" /> Boss Round</p>
+      <p className="section-label flex items-center gap-1.5"><Skull className="w-3 h-3" /> {tx("ui.sessionRewards.bossRound", "Boss Round")}</p>
       <p className="text-victory-text font-heading font-extrabold text-lg">{boss.line}</p>
-      <p className="text-[12px] text-victory-muted">{boss.target?.line}. You got: {Object.entries(boss.got || {}).map(([k, v]) => `${v} ${k.replace("_", " ")}`).join(", ") || "nothing counted"}.</p>
-      {boss.status > 0 && <p className="text-[12px] text-victory-lime">+{boss.status} status</p>}
-      {boss.beaten && <BragButton win={{ kind: "boss", name: boss.name }} label="Show off the win" />}
+      <p className="text-[12px] text-victory-muted">{boss.target?.line}{tx("ui.sessionRewards.youGot", ". You got:")} {Object.entries(boss.got || {}).map(([k, v]) => `${v} ${k.replace("_", " ")}`).join(", ") || tx("ui.sessionRewards.nothingCounted", "nothing counted")}.</p>
+      {boss.status > 0 && <p className="text-[12px] text-victory-lime">+{boss.status} {tx("ui.sessionRewards.status2", "status")}</p>}
+      {boss.beaten && <BragButton win={{ kind: "boss", name: boss.name }} label={tx("ui.sessionRewards.showOffTheWin", "Show off the win")} />}
       <BossVote />
     </section>
   );
@@ -362,7 +363,7 @@ function Unlocked({ features }) {
   if (!features?.length) return null;
   return (
     <section className="victory-card p-4 space-y-2 border-victory-lime/40" data-testid="unlocked">
-      <p className="section-label flex items-center gap-1.5"><LockOpen className="w-3 h-3" /> Unlocked</p>
+      <p className="section-label flex items-center gap-1.5"><LockOpen className="w-3 h-3" /> {tx("ui.sessionRewards.unlocked", "Unlocked")}</p>
       {features.map((f) => (
         <div key={f.key}>
           <p className="text-victory-text font-heading font-bold">{f.name}</p>
@@ -378,9 +379,9 @@ function EasterEgg({ eggs }) {
   if (!eggs?.new?.length) return null;
   return (
     <section className="victory-card p-4 space-y-1 border-victory-orange/40" data-testid="easter-egg">
-      <p className="section-label flex items-center gap-1.5"><Egg className="w-3 h-3" /> Hidden egg found</p>
+      <p className="section-label flex items-center gap-1.5"><Egg className="w-3 h-3" /> {tx("ui.sessionRewards.hiddenEggFound", "Hidden egg found")}</p>
       {eggs.new.map((e) => <p key={e.key} className="text-victory-text text-sm"><span className="font-heading font-bold">{e.name}</span> · {e.desc}</p>)}
-      <p className="text-[11px] text-victory-muted"><span className="font-mono">{eggs.found}</span> of {eggs.total} found. The rest are still hidden.</p>
+      <p className="text-[11px] text-victory-muted"><span className="font-mono">{eggs.found}</span> {tx("ui.sessionRewards.of", "of")} {eggs.total} {tx("ui.sessionRewards.foundTheRestAre", "found. The rest are still hidden.")}</p>
     </section>
   );
 }
@@ -390,9 +391,9 @@ function OracleProved({ oracle }) {
   if (!oracle) return null;
   return (
     <section className="victory-card p-4 space-y-1 border-victory-teal/40 bg-victory-teal/5" data-testid="oracle-proved">
-      <p className="section-label flex items-center gap-1.5"><Telescope className="w-3 h-3" /> Prediction proved</p>
+      <p className="section-label flex items-center gap-1.5"><Telescope className="w-3 h-3" /> {tx("ui.sessionRewards.predictionProved", "Prediction proved")}</p>
       <p className="text-victory-text text-sm font-semibold">{oracle.line}</p>
-      <p className="text-[12px] text-victory-lime">+{oracle.status} status</p>
+      <p className="text-[12px] text-victory-lime">+{oracle.status} {tx("ui.sessionRewards.status2", "status")}</p>
     </section>
   );
 }
@@ -402,11 +403,11 @@ function CoachEye({ report }) {
   if (!report?.length) return null;
   return (
     <section className="victory-card p-4 space-y-2" data-testid="coach-eye">
-      <p className="section-label flex items-center gap-1.5"><Eye className="w-3 h-3" /> Coach's Eye</p>
+      <p className="section-label flex items-center gap-1.5"><Eye className="w-3 h-3" /> {tx("ui.sessionRewards.coachSEye", "Coach's Eye")}</p>
       <ul className="space-y-1.5">
         {report.map((r) => (
           <li key={r.dimension} className="flex items-center justify-between gap-2 text-sm">
-            <span className="text-victory-text">{r.dimension}{r.drill ? <span className="text-victory-muted text-[12px]"> · drill: {r.drill}</span> : null}</span>
+            <span className="text-victory-text">{r.dimension}{r.drill ? <span className="text-victory-muted text-[12px]"> {tx("ui.sessionRewards.drill", "· drill:")} {r.drill}</span> : null}</span>
             <span className="font-mono text-victory-text">{r.score}</span>
           </li>
         ))}
@@ -427,17 +428,17 @@ function CrewCheer() {
       await axios.post(`${API}/crew/cheer/${id}`);
       setMates((m) => m.map((x) => (x.user_id === id ? { ...x, cheered: true } : x)));
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Couldn't send that cheer");
+      toast.error(e?.response?.data?.detail || tx("ui.sessionRewards.couldnTSendThat", "Couldn't send that cheer"));
     }
   };
   return (
     <section className="victory-card p-4 space-y-2" data-testid="crew-cheer">
-      <p className="section-label flex items-center gap-1.5"><PartyPopper className="w-3 h-3" /> Your squad trained today too</p>
+      <p className="section-label flex items-center gap-1.5"><PartyPopper className="w-3 h-3" /> {tx("ui.sessionRewards.yourSquadTrainedToday", "Your squad trained today too")}</p>
       <div className="flex flex-wrap gap-2">
         {mates.map((m) => (
           <button key={m.user_id} disabled={m.cheered} onClick={() => cheer(m.user_id)}
             className={`filter-pill min-h-[44px] ${m.cheered ? "filter-pill-active" : "filter-pill-inactive"}`}>
-            {m.cheered ? `Cheered ${m.name}` : `Cheer ${m.name}`}
+            {m.cheered ? tx("ui.sessionRewards.cheered", "Cheered {{name}}", { name: m.name }) : tx("ui.sessionRewards.cheer", "Cheer {{name}}", { name: m.name })}
           </button>
         ))}
       </div>
@@ -452,10 +453,10 @@ function BossVote() {
     axios.get(`${API}/boss/vote`).then((r) => setV(r.data)).catch(() => {});
   }, []);
   if (!v) return null;
-  const vote = (key) => axios.post(`${API}/boss/vote`, { key }).then((r) => setV(r.data)).catch(() => toast.error("Couldn't count that vote"));
+  const vote = (key) => axios.post(`${API}/boss/vote`, { key }).then((r) => setV(r.data)).catch(() => toast.error(tx("ui.sessionRewards.couldnTCountThat", "Couldn't count that vote")));
   return (
     <div className="pt-2 border-t border-victory-border space-y-2" data-testid="boss-vote">
-      <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Vote className="w-3.5 h-3.5" /> Pick next week's boss. Most votes wins.</p>
+      <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Vote className="w-3.5 h-3.5" /> {tx("ui.sessionRewards.pickNextWeekS", "Pick next week's boss. Most votes wins.")}</p>
       <div className="grid grid-cols-2 gap-2">
         {v.options.map((o) => (
           <button key={o.key} onClick={() => vote(o.key)} aria-pressed={v.my_vote === o.key}
@@ -475,8 +476,8 @@ function CallsSummary({ calls }) {
     <section className="victory-card p-3 text-[12px] text-victory-muted flex items-center gap-2" data-testid="calls-summary">
       <Megaphone className="w-4 h-4 text-victory-lime flex-shrink-0" />
       <span>
-        {calls.calls} combos called.
-        {calls.rate != null ? <> You landed <span className="font-mono text-victory-text">{calls.rate}%</span>; next session starts at that level.</> : " Turn on Live Coach and the calls adapt to you."}
+        {calls.calls} {tx("ui.sessionRewards.combosCalled", "combos called.")}
+        {calls.rate != null ? <> {tx("ui.sessionRewards.youLanded", "You landed")} <span className="font-mono text-victory-text">{calls.rate}%</span>{tx("ui.sessionRewards.nextSessionStartsAt", "; next session starts at that level.")}</> : tx("ui.sessionRewards.turnOnLiveCoach", " Turn on Live Coach and the calls adapt to you.")}
       </span>
     </section>
   );
@@ -516,9 +517,9 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
     return (
       <div className="space-y-3" data-testid="session-rewards">
         <section className="victory-card p-4 space-y-1" data-testid="freestyle-done">
-          <p className="section-label flex items-center gap-1.5"><Music className="w-3 h-3" /> Freestyle</p>
-          <p className="text-victory-text text-sm">No score today, just training. It counts for your week and your partner.</p>
-          {rewards.week && <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><CalendarCheck className="w-3.5 h-3.5" /> {rewards.week.done}/{rewards.week.target} this week</p>}
+          <p className="section-label flex items-center gap-1.5"><Music className="w-3 h-3" /> {tx("ui.sessionRewards.freestyle", "Freestyle")}</p>
+          <p className="text-victory-text text-sm">{tx("ui.sessionRewards.noScoreTodayJust", "No score today, just training. It counts for your week and your partner.")}</p>
+          {rewards.week && <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><CalendarCheck className="w-3.5 h-3.5" /> {rewards.week.done}/{rewards.week.target} {tx("ui.sessionRewards.thisWeek", "this week")}</p>}
         </section>
         <CallsSummary calls={calls} />
         <CornerSurprise surprise={rewards.surprise} />
@@ -540,7 +541,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
         <CornerSurprise surprise={rewards?.surprise} />
         <Reflection sessionId={sessionId} tags={rewards?.reflection_tags} />
         <details className="victory-card p-3" data-testid="newcomer-details">
-          <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[44px] flex items-center">See all your numbers</summary>
+          <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[44px] flex items-center">{tx("ui.sessionRewards.seeAllYourNumbers", "See all your numbers")}</summary>
           <div className="space-y-3 mt-3">
             <PersonalBests pb={rewards?.personal_bests} />
             <ScoutingReport report={scoutingReport ?? rewards?.scouting_report} />
@@ -578,7 +579,7 @@ export function SessionRewards({ rewards, scoutingReport, overall, liveStats, se
       <CoachEye report={rewards?.coach_eye} />
       {mastery ? (
         <details className="victory-card p-3">
-          <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[32px] flex items-center">Points, status and season</summary>
+          <summary className="text-[12px] text-victory-muted cursor-pointer min-h-[32px] flex items-center">{tx("ui.sessionRewards.pointsStatusAndSeason", "Points, status and season")}</summary>
           <div className="space-y-3 mt-3">{points}</div>
         </details>
       ) : points}

@@ -5,19 +5,20 @@ import { API } from "@/App";
 import { toast } from "sonner";
 import { isNativeShell } from "@/lib/nativeShell";
 import { NativePurchaseNoticeModal } from "@/components/NativePurchaseNotice";
+import { tx } from "@/i18n/tx";
 
 const TIERS = [
-  { count: 1,  price: 4.99,   label: "1 Gift Sub",   description: "Gift a single subscription" },
-  { count: 5,  price: 19.99,  label: "5 Gift Subs",  description: "Best value · save 20%" },
-  { count: 10, price: 34.99,  label: "10 Gift Subs", description: "Super value · save 30%" },
-  { count: 50, price: 149.99, label: "50 Gift Subs", description: "Community bomb · save 40%" },
+  { count: 1,  price: 4.99,   get label() { return tx("ui.giftSubModal.s1GiftSub", "1 Gift Sub"); },   get description() { return tx("ui.giftSubModal.giftASingleSubscription", "Gift a single subscription"); } },
+  { count: 5,  price: 19.99,  get label() { return tx("ui.giftSubModal.s5GiftSubs", "5 Gift Subs"); },  get description() { return tx("ui.giftSubModal.bestValueSave20", "Best value · save 20%"); } },
+  { count: 10, price: 34.99,  get label() { return tx("ui.giftSubModal.s10GiftSubs", "10 Gift Subs"); }, get description() { return tx("ui.giftSubModal.superValueSave30", "Super value · save 30%"); } },
+  { count: 50, price: 149.99, get label() { return tx("ui.giftSubModal.s50GiftSubs", "50 Gift Subs"); }, get description() { return tx("ui.giftSubModal.communityBombSave40", "Community bomb · save 40%"); } },
 ];
 
 const BADGE_THRESHOLDS = [
-  { min: 1,  emoji: "🎁", label: "Gifter" },
-  { min: 5,  emoji: "🥈", label: "Silver Gifter" },
-  { min: 10, emoji: "🏆", label: "Gold Gifter" },
-  { min: 50, emoji: "💎", label: "Diamond Gifter" },
+  { min: 1,  emoji: "🎁", get label() { return tx("ui.giftSubModal.gifter", "Gifter"); } },
+  { min: 5,  emoji: "🥈", get label() { return tx("ui.giftSubModal.silverGifter", "Silver Gifter"); } },
+  { min: 10, emoji: "🏆", get label() { return tx("ui.giftSubModal.goldGifter", "Gold Gifter"); } },
+  { min: 50, emoji: "💎", get label() { return tx("ui.giftSubModal.diamondGifter", "Diamond Gifter"); } },
 ];
 
 export function GiftSubModal({ streamId, onClose }) {
@@ -40,7 +41,7 @@ function GiftSubCheckout({ streamId, onClose }) {
       });
       window.location.href = res.data.checkout_url;
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not start checkout.");
+      toast.error(err?.response?.data?.detail || tx("ui.giftSubModal.couldNotStartCheckout", "Could not start checkout."));
       setLoading(false);
     }
   };
@@ -53,9 +54,9 @@ function GiftSubCheckout({ streamId, onClose }) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-victory-border">
           <div className="flex items-center gap-2">
             <Gift className="w-5 h-5 text-victory-lime" />
-            <h2 className="font-heading font-extrabold text-victory-text text-lg">Gift a Sub</h2>
+            <h2 className="font-heading font-extrabold text-victory-text text-lg">{tx("ui.giftSubModal.giftASub", "Gift a Sub")}</h2>
           </div>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target">
+          <button onClick={onClose} aria-label={tx("ui.giftSubModal.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target">
             <X className="w-5 h-5 text-victory-muted hover:text-victory-text" />
           </button>
         </div>
@@ -82,7 +83,7 @@ function GiftSubCheckout({ streamId, onClose }) {
 
           {/* Gifter badge progression */}
           <div className="bg-victory-card border border-victory-border rounded-xl p-3">
-            <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">Gifter Badges</p>
+            <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">{tx("ui.giftSubModal.gifterBadges", "Gifter Badges")}</p>
             <div className="flex justify-between">
               {BADGE_THRESHOLDS.map((b) => (
                 <div key={b.min} className={`flex flex-col items-center gap-1 ${selected >= b.min ? "opacity-100" : "opacity-30"}`}>
@@ -92,7 +93,7 @@ function GiftSubCheckout({ streamId, onClose }) {
                 </div>
               ))}
             </div>
-            <p className="text-victory-muted text-xs mt-2 text-center">Badges appear next to your username in chat forever.</p>
+            <p className="text-victory-muted text-xs mt-2 text-center">{tx("ui.giftSubModal.badgesAppearNextTo", "Badges appear next to your username in chat forever.")}</p>
           </div>
 
           {/* CTA */}
@@ -106,12 +107,12 @@ function GiftSubCheckout({ streamId, onClose }) {
             ) : (
               <>
                 <Gift className="w-5 h-5" />
-                Gift {tier?.label} — £{tier?.price}
+                {tx("ui.giftSubModal.gift", "Gift")} {tier?.label} — £{tier?.price}
               </>
             )}
           </button>
 
-          <p className="text-victory-muted text-xs text-center">Each gift gives 30 days of Pro to someone watching who doesn't have it yet. If nobody can take it right now, it waits for the next viewer. The streamer gets 80% of what you pay, after VAT and fees.</p>
+          <p className="text-victory-muted text-xs text-center">{tx("ui.giftSubModal.eachGiftGives30", "Each gift gives 30 days of Pro to someone watching who doesn't have it yet. If nobody can take it right now, it waits for the next viewer. The streamer gets 80% of what you pay, after VAT and fees.")}</p>
         </div>
       </div>
     </div>

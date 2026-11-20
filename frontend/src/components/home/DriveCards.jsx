@@ -6,6 +6,7 @@ import { API } from "@/App";
 import { rankHeadline } from "@/lib/progression";
 import { orderCards, readTaps, recordTap, resetTaps } from "@/lib/homeOrder";
 import { isUnlocked } from "@/lib/unlocks";
+import { tx } from "@/i18n/tx";
 
 // Ordered by what this fighter actually taps (reasoning in lib/homeOrder.js).
 export function DriveCards({ unlocks }) {
@@ -26,7 +27,7 @@ export function DriveCards({ unlocks }) {
 
   const cards = {
     compete: {
-      icon: Trophy, title: "Your rank", path: "/leaderboard?tab=ranks",
+      icon: Trophy, get title() { return tx("ui.driveCards.yourRank", "Your rank"); }, path: "/leaderboard?tab=ranks",
       line: (ranks && rankHeadline(ranks)) || "See where you stand this week.",
     },
     crew: {
@@ -34,10 +35,10 @@ export function DriveCards({ unlocks }) {
       line: quest ? (quest.completed ? "Mission done. Pick your booster." : `${quest.progress}/${quest.target} on this week's mission`) : "Missions are better with a squad.",
     },
     explore: isUnlocked(unlocks, "boss") && boss && !boss.beaten && boss.attempts_left > 0
-      ? { icon: Skull, title: `Boss: ${boss.name}`, path: "/train?mode=boss", line: `${boss.target.line}. ${boss.attempts_left} tries left.` }
+      ? { icon: Skull, get title() { return tx("ui.driveCards.boss", "Boss: {{name}}", { name: boss.name }); }, path: "/train?mode=boss", get line() { return tx("ui.driveCards.triesLeft", "{{line}}. {{attempts_left}} tries left.", { line: boss.target.line, attempts_left: boss.attempts_left }); } }
       : isUnlocked(unlocks, "round_types")
-        ? { icon: Compass, title: "Try something new", path: "/train?mode=freestyle", line: "A freestyle round: no score, just you and your music." }
-        : { icon: Compass, title: "Build a combination", path: "/combos", line: "Put your own combo together and drill it." },
+        ? { icon: Compass, get title() { return tx("ui.driveCards.trySomethingNew", "Try something new"); }, path: "/train?mode=freestyle", get line() { return tx("ui.driveCards.aFreestyleRoundNo", "A freestyle round: no score, just you and your music."); } }
+        : { icon: Compass, get title() { return tx("ui.driveCards.buildACombination", "Build a combination"); }, path: "/combos", get line() { return tx("ui.driveCards.putYourOwnCombo", "Put your own combo together and drill it."); } },
   };
 
   return (
@@ -57,7 +58,7 @@ export function DriveCards({ unlocks }) {
           </button>
         );
       })}
-      <button onClick={reset} className="text-[11px] text-victory-muted min-h-[44px] w-full text-right">Reset my Home</button>
+      <button onClick={reset} className="text-[11px] text-victory-muted min-h-[44px] w-full text-right">{tx("ui.driveCards.resetMyHome", "Reset my Home")}</button>
     </section>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Confetti } from "@/components/Confetti";
 import { useTranslation } from "react-i18next";
+import { tx } from "@/i18n/tx";
 
 const TIER_STYLES = {
   legend:  { glow: "rgba(234,179,8,0.45)",  ring: "ring-yellow-400/60", text: "text-yellow-300", bg: "from-yellow-900/95 to-yellow-800/90" },

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { API } from "@/App";
 import { glovesHeadline } from "@/lib/progression";
 import { BragButton } from "./BragButton";
+import { tx } from "@/i18n/tx";
 
 // Goal: one prize per season that's genuinely hard to get and only goes to real training.
 // Psychology: scarcity (we want what we can't simply have, and value what's hard to win),
@@ -27,10 +28,10 @@ export function GoldenGloves() {
     try {
       const { data } = await axios.post(`${API}/gloves/pledge`, { promises });
       setG(data);
-      toast.success("You're in. Only proven rounds count from here.");
+      toast.success(tx("ui.goldenGloves.youReInOnly", "You're in. Only proven rounds count from here."));
     } catch (e) {
       const d = e?.response?.data?.detail;
-      toast.error(typeof d === "string" ? d : "Couldn't enter right now");
+      toast.error(typeof d === "string" ? d : tx("ui.goldenGloves.couldnTEnterRight", "Couldn't enter right now"));
     }
     setBusy(false);
   };
@@ -46,7 +47,7 @@ export function GoldenGloves() {
           {g.earned ? <Trophy className="w-7 h-7 text-victory-lime" /> : <Lock className="w-6 h-6 text-victory-muted" />}
         </div>
         <div className="min-w-0">
-          <p className="section-label">{g.preseason ? "Coming at launch" : "Limited to this season"}</p>
+          <p className="section-label">{g.preseason ? tx("ui.goldenGloves.comingAtLaunch", "Coming at launch") : tx("ui.goldenGloves.limitedToThisSeason", "Limited to this season")}</p>
           <p className="text-victory-text font-heading font-extrabold text-lg leading-tight">{g.name}</p>
           <p className="text-victory-muted text-[11px]">{glovesHeadline(g)}</p>
         </div>
@@ -55,21 +56,21 @@ export function GoldenGloves() {
       {g.pledged && !g.earned && (
         <>
           <div className="h-2 rounded-full bg-victory-card-highlight overflow-hidden" role="progressbar"
-            aria-valuenow={g.pct} aria-valuemin={0} aria-valuemax={100} aria-label="Golden Gloves progress">
+            aria-valuenow={g.pct} aria-valuemin={0} aria-valuemax={100} aria-label={tx("ui.goldenGloves.goldenGlovesProgress", "Golden Gloves progress")}>
             <div className="h-full bg-victory-lime rounded-full transition-all" style={{ width: `${g.pct}%` }} />
           </div>
           <div className="flex justify-between text-[11px] text-victory-muted">
-            <span><span className="font-mono text-victory-text">{g.verified_hours}</span> / {g.target_hours} proven hours</span>
-            <span><span className="font-mono text-victory-text">{g.minutes_left_today}</span> verified min left today</span>
+            <span><span className="font-mono text-victory-text">{g.verified_hours}</span> / {g.target_hours} {tx("ui.goldenGloves.provenHours", "proven hours")}</span>
+            <span><span className="font-mono text-victory-text">{g.minutes_left_today}</span> {tx("ui.goldenGloves.verifiedMinLeftToday", "verified min left today")}</span>
           </div>
         </>
       )}
 
-      {g.earned && <BragButton win={{ kind: "crown", name: g.name }} label="Show them off" />}
+      {g.earned && <BragButton win={{ kind: "crown", name: g.name }} label={tx("ui.goldenGloves.showThemOff", "Show them off")} />}
 
       {!g.pledged && g.window.open && (
         <div className="space-y-2">
-          <p className="text-[12px] text-victory-text">To enter, make these promises. Entries close in <span className="font-mono">{g.window.days_to_close}</span> day{g.window.days_to_close === 1 ? "" : "s"}.</p>
+          <p className="text-[12px] text-victory-text">{tx("ui.goldenGloves.toEnterMakeThese", "To enter, make these promises. Entries close in")} <span className="font-mono">{g.window.days_to_close}</span> {tx("ui.goldenGloves.day", "day")}{g.window.days_to_close === 1 ? "" : "s"}.</p>
           {g.promises.map((text, i) => (
             <label key={text} className="flex items-start gap-2 text-[12px] text-victory-text min-h-[44px]">
               <input type="checkbox" className="mt-1 accent-victory-lime" checked={!!promises[i]}
@@ -77,24 +78,24 @@ export function GoldenGloves() {
               {text}
             </label>
           ))}
-          <button className="victory-btn-primary" disabled={busy || !promises.every(Boolean)} onClick={pledge}>I'm in. Start the chase</button>
+          <button className="victory-btn-primary" disabled={busy || !promises.every(Boolean)} onClick={pledge}>{tx("ui.goldenGloves.iMInStart", "I'm in. Start the chase")}</button>
         </div>
       )}
 
       {g.preseason && (
-        <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" /> Entries open on launch day. Train with video on before then and you'll start ready.</p>
+        <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" /> {tx("ui.goldenGloves.entriesOpenOnLaunch", "Entries open on launch day. Train with video on before then and you'll start ready.")}</p>
       )}
 
       {!g.preseason && !g.pledged && !g.window.open && !g.earned && (
-        <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" /> Entries for these gloves have closed. The next chase opens when the new season starts.</p>
+        <p className="text-[12px] text-victory-muted flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" /> {tx("ui.goldenGloves.entriesForTheseGloves", "Entries for these gloves have closed. The next chase opens when the new season starts.")}</p>
       )}
 
       <details className="text-[11px] text-victory-muted">
-        <summary className="cursor-pointer min-h-[44px] flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-victory-teal" /> What counts as proof</summary>
+        <summary className="cursor-pointer min-h-[44px] flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-victory-teal" /> {tx("ui.goldenGloves.whatCountsAsProof", "What counts as proof")}</summary>
         <ul className="space-y-1 pl-5 list-disc">
           {g.rules.map((r) => <li key={r}>{r}</li>)}
         </ul>
-        <p className="mt-2 flex items-center gap-1.5"><Video className="w-3.5 h-3.5" /> Record your rounds on video so the AI can score them.</p>
+        <p className="mt-2 flex items-center gap-1.5"><Video className="w-3.5 h-3.5" /> {tx("ui.goldenGloves.recordYourRoundsOn", "Record your rounds on video so the AI can score them.")}</p>
       </details>
     </section>
   );

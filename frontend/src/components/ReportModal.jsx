@@ -4,14 +4,15 @@ import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
 import { X, Flag } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 const REASONS = [
-  { value: "spam", label: "Spam or scam" },
-  { value: "harassment", label: "Harassment or bullying" },
-  { value: "nudity", label: "Nudity or sexual content" },
-  { value: "violence", label: "Violence or dangerous content" },
-  { value: "hate", label: "Hate speech" },
-  { value: "other", label: "Something else" },
+  { value: "spam", get label() { return tx("ui.reportModal.spamOrScam", "Spam or scam"); } },
+  { value: "harassment", get label() { return tx("ui.reportModal.harassmentOrBullying", "Harassment or bullying"); } },
+  { value: "nudity", get label() { return tx("ui.reportModal.nudityOrSexualContent", "Nudity or sexual content"); } },
+  { value: "violence", get label() { return tx("ui.reportModal.violenceOrDangerousContent", "Violence or dangerous content"); } },
+  { value: "hate", get label() { return tx("ui.reportModal.hateSpeech", "Hate speech"); } },
+  { value: "other", get label() { return tx("ui.reportModal.somethingElse", "Something else"); } },
 ];
 
 // contentType: "post" | "comment" | "stream" | "user"
@@ -22,7 +23,7 @@ export function ReportModal({ contentType, contentId, onClose }) {
   const [done, setDone] = useState(false);
 
   const handleSubmit = async () => {
-    if (!reason) { toast.error("Pick a reason"); return; }
+    if (!reason) { toast.error(tx("ui.reportModal.pickAReason", "Pick a reason")); return; }
     setSubmitting(true);
     try {
       await axios.post(`${API}/reports`, {
@@ -32,32 +33,32 @@ export function ReportModal({ contentType, contentId, onClose }) {
       });
       setDone(true);
     } catch {
-      toast.error("Could not submit report");
+      toast.error(tx("ui.reportModal.couldNotSubmitReport", "Could not submit report"));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <BottomSheet onClose={onClose} label="Report" className="w-full max-w-lg mx-auto">
+    <BottomSheet onClose={onClose} label={tx("ui.reportModal.report", "Report")} className="w-full max-w-lg mx-auto">
       {({ close }) => (
       <div className="overflow-y-auto min-h-0 flex-1">
 
         <div className="flex items-center justify-between px-4 py-3 border-b border-victory-border">
           <div className="flex items-center gap-2">
             <Flag className="w-4 h-4 text-victory-danger" />
-            <p className="text-victory-text font-bold text-sm">Report</p>
+            <p className="text-victory-text font-bold text-sm">{tx("ui.reportModal.report", "Report")}</p>
           </div>
-          <button onClick={() => close()} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={() => close()} aria-label={tx("ui.reportModal.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {done ? (
           <div className="flex flex-col items-center justify-center py-10 px-6 gap-2 text-center">
-            <p className="text-victory-text font-bold">Thanks — we'll review this.</p>
-            <p className="text-victory-muted text-sm">Reports help keep Victory AI safe for everyone.</p>
-            <button onClick={() => close()} className="victory-btn-primary mt-4 px-8">Done</button>
+            <p className="text-victory-text font-bold">{tx("ui.reportModal.thanksWeLlReview", "Thanks — we'll review this.")}</p>
+            <p className="text-victory-muted text-sm">{tx("ui.reportModal.reportsHelpKeepVictory", "Reports help keep Victory AI safe for everyone.")}</p>
+            <button onClick={() => close()} className="victory-btn-primary mt-4 px-8">{tx("ui.reportModal.done", "Done")}</button>
           </div>
         ) : (
           <div className="p-4 space-y-2 pb-8">
@@ -77,7 +78,7 @@ export function ReportModal({ contentType, contentId, onClose }) {
             <textarea
               value={detail}
               onChange={(e) => setDetail(e.target.value)}
-              placeholder="Additional details (optional)"
+              placeholder={tx("ui.reportModal.additionalDetailsOptional", "Additional details (optional)")}
               className="victory-input resize-none"
               rows={2}
               maxLength={280}
@@ -87,7 +88,7 @@ export function ReportModal({ contentType, contentId, onClose }) {
               disabled={submitting || !reason}
               className="victory-btn-primary w-full disabled:opacity-40"
             >
-              {submitting ? "Submitting…" : "Submit report"}
+              {submitting ? tx("ui.reportModal.submitting", "Submitting…") : tx("ui.reportModal.submitReport", "Submit report")}
             </button>
           </div>
         )}

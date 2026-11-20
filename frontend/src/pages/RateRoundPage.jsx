@@ -7,6 +7,7 @@ import { ArrowLeft, Swords, Check } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { STAMPS } from "@/lib/stamps";
 import { analytics } from "@/lib/analytics";
+import { tx } from "@/i18n/tx";
 
 export default function RateRoundPage() {
   const { highlightId } = useParams();
@@ -39,7 +40,7 @@ export default function RateRoundPage() {
       setDone(true);
       analytics.capture("round_stamped", { stamp: picked, with_comment: !!comment.trim() });
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't send your verdict");
+      toast.error(err?.response?.data?.detail || tx("ui.rateRoundPage.couldnTSendYour", "Couldn't send your verdict"));
     }
     setSending(false);
   };
@@ -48,13 +49,13 @@ export default function RateRoundPage() {
     <div className="min-h-screen bg-victory-bg pb-nav">
       <div className="sticky top-0 z-20 material-header">
         <header className="p-4 flex items-center gap-2 max-w-lg mx-auto">
-          <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 -ml-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={() => navigate(-1)} aria-label={tx("ui.rateRoundPage.goBack", "Go back")} className="w-11 h-11 -ml-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="min-w-0">
-            <h1 className="text-xl font-heading font-extrabold text-victory-text">Rate the round</h1>
+            <h1 className="text-xl font-heading font-extrabold text-victory-text">{tx("ui.rateRoundPage.rateTheRound", "Rate the round")}</h1>
             <p className="text-victory-muted text-sm truncate">
-              {hl ? `${hl.streamer_name || "Your squad mate"} · ${hl.stream_title || "Round"}` : "Your squad wants a verdict"}
+              {hl ? `${hl.streamer_name || "Your squad mate"} · ${hl.stream_title || "Round"}` : tx("ui.rateRoundPage.yourSquadWantsA", "Your squad wants a verdict")}
             </p>
           </div>
         </header>
@@ -66,8 +67,8 @@ export default function RateRoundPage() {
             <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
               <Swords className="w-8 h-8 text-victory-lime/60" />
             </div>
-            <p className="text-victory-text font-bold text-lg mb-1">This round isn't available</p>
-            <p className="text-victory-muted text-sm">It may have been deleted, or it wasn't sent to your squad.</p>
+            <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.rateRoundPage.thisRoundIsnT", "This round isn't available")}</p>
+            <p className="text-victory-muted text-sm">{tx("ui.rateRoundPage.itMayHaveBeen", "It may have been deleted, or it wasn't sent to your squad.")}</p>
           </div>
         )}
 
@@ -79,8 +80,8 @@ export default function RateRoundPage() {
               <video src={hl.share_video_url} poster={hl.thumbnail_url} className="w-full h-full object-cover" autoPlay muted loop playsInline controls />
             </div>
 
-            <p className="section-label">Your verdict</p>
-            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Pick a stamp">
+            <p className="section-label">{tx("ui.rateRoundPage.yourVerdict", "Your verdict")}</p>
+            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={tx("ui.rateRoundPage.pickAStamp", "Pick a stamp")}>
               {STAMPS.map(({ key, label, icon: Icon }) => {
                 const active = picked === key;
                 return (
@@ -101,20 +102,20 @@ export default function RateRoundPage() {
 
             <input
               className="victory-input w-full"
-              placeholder="Add a line (optional)"
+              placeholder={tx("ui.rateRoundPage.addALineOptional", "Add a line (optional)")}
               maxLength={80}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             />
 
             <button onClick={submit} disabled={!picked || sending} className="victory-btn-primary disabled:opacity-50 flex items-center justify-center gap-2">
-              {done ? <><Check className="w-5 h-5" /> Update verdict</> : sending ? "Sending…" : "Send verdict"}
+              {done ? <><Check className="w-5 h-5" /> {tx("ui.rateRoundPage.updateVerdict", "Update verdict")}</> : sending ? tx("ui.rateRoundPage.sending", "Sending…") : tx("ui.rateRoundPage.sendVerdict", "Send verdict")}
             </button>
 
             {done && summary && (
               <p className="text-victory-muted text-sm text-center animate-fade-in">
-                <span className="font-mono text-victory-lime font-bold">{summary.count}</span> of {summary.sent_to} squad {summary.sent_to === 1 ? "mate has" : "mates have"} weighed in
-                {summary.verdict_in > 0 ? ` · ${summary.verdict_in} more for the verdict` : " · verdict revealed"}
+                <span className="font-mono text-victory-lime font-bold">{summary.count}</span> {tx("ui.rateRoundPage.of", "of")} {summary.sent_to} {tx("ui.rateRoundPage.squad", "squad")} {summary.sent_to === 1 ? tx("ui.rateRoundPage.mateHas", "mate has") : tx("ui.rateRoundPage.matesHave", "mates have")} {tx("ui.rateRoundPage.weighedIn", "weighed in")}
+                {summary.verdict_in > 0 ? tx("ui.rateRoundPage.moreForTheVerdict", " · {{verdict_in}} more for the verdict", { verdict_in: summary.verdict_in }) : tx("ui.rateRoundPage.verdictRevealed", " · verdict revealed")}
               </p>
             )}
           </>

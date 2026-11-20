@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { usePalette } from "@/hooks/useColorScheme";
+import { tx } from "@/i18n/tx";
 
 const DIMENSIONS = [
   "Jab",
@@ -116,11 +117,11 @@ export const RadarChart = ({
         <div className="flex items-center justify-center gap-5 -mt-2 text-xs">
           <span className="flex items-center gap-1.5 text-victory-text">
             <span className="w-3 h-3 rounded-full border-2 border-victory-lime bg-victory-lime/30" />
-            This session
+            {tx("ui.radarChart.thisSession", "This session")}
           </span>
           <span className="flex items-center gap-1.5 text-victory-muted">
             <span className="w-3 h-3 rounded-full border border-dashed border-victory-teal" />
-            Last session
+            {tx("ui.radarChart.lastSession", "Last session")}
           </span>
         </div>
       )}

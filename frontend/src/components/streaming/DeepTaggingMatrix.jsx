@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 const WEIGHT_CLASSES = [
   "Heavyweight", "Cruiserweight", "Light Heavyweight",
@@ -12,9 +13,9 @@ const CATEGORIES = ["Professional", "Amateur", "Training"];
 const ROLES      = ["Boxer", "Coach", "Commentator", "Analyst"];
 
 const STATUSES = [
-  { label: "All",      value: null   },
-  { label: "Live Now", value: "live" },
-  { label: "Recent",   value: "idle" },
+  { get label() { return tx("ui.deepTaggingMatrix.all", "All"); },      value: null   },
+  { get label() { return tx("ui.deepTaggingMatrix.liveNow", "Live Now"); }, value: "live" },
+  { get label() { return tx("ui.deepTaggingMatrix.recent", "Recent"); },   value: "idle" },
 ];
 
 function Pill({ active, onClick, children }) {
@@ -85,7 +86,7 @@ export function DeepTaggingMatrix({ filters, onChange }) {
           }`}
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
-          Filters
+          {tx("ui.deepTaggingMatrix.filters", "Filters")}
           {activeCount > 0 && (
             <span className="w-4 h-4 rounded-full bg-victory-lime text-victory-bg text-[10px] font-bold flex items-center justify-center">
               {activeCount}
@@ -117,7 +118,7 @@ export function DeepTaggingMatrix({ filters, onChange }) {
             onClick={clearAll}
             className="text-xs text-victory-muted hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0 ml-1"
           >
-            Clear all
+            {tx("ui.deepTaggingMatrix.clearAll", "Clear all")}
           </button>
         </div>
       )}
@@ -126,19 +127,19 @@ export function DeepTaggingMatrix({ filters, onChange }) {
       {expanded && (
         <div className="mx-4 bg-victory-card border border-victory-border rounded-xl p-4 space-y-4">
           <FilterGroup
-            label="Category"
+            label={tx("ui.deepTaggingMatrix.category", "Category")}
             options={CATEGORIES}
             active={filters.category}
             onToggle={(v) => toggle("category", v)}
           />
           <FilterGroup
-            label="Role"
+            label={tx("ui.deepTaggingMatrix.role", "Role")}
             options={ROLES}
             active={filters.role}
             onToggle={(v) => toggle("role", v)}
           />
           <FilterGroup
-            label="Weight Class"
+            label={tx("ui.deepTaggingMatrix.weightClass", "Weight Class")}
             options={WEIGHT_CLASSES}
             active={filters.weight_class}
             onToggle={(v) => toggle("weight_class", v)}
@@ -149,7 +150,7 @@ export function DeepTaggingMatrix({ filters, onChange }) {
               onClick={() => { clearAll(); setExpanded(false); }}
               className="text-xs text-red-400 hover:text-red-300 transition-colors"
             >
-              Clear all filters
+              {tx("ui.deepTaggingMatrix.clearAllFilters", "Clear all filters")}
             </button>
           )}
         </div>

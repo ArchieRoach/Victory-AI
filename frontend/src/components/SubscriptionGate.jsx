@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Zap, Lock } from "lucide-react";
 import { API, useAuth } from "@/App";
+import { tx } from "@/i18n/tx";
 
 const FREE_FEATURES = [
   "Round timer",
@@ -23,9 +24,9 @@ function UsageBanner({ usage, onUpgrade }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-victory-muted">
-            {low ? "⚡ " : ""}{usage.tokens_remaining.toLocaleString()} AI credits left this month
+            {low ? "⚡ " : ""}{usage.tokens_remaining.toLocaleString()} {tx("ui.subscriptionGate.aiCreditsLeftThis", "AI credits left this month")}
           </span>
-          <span className="text-xs text-victory-muted">{pct}% used</span>
+          <span className="text-xs text-victory-muted">{pct}{tx("ui.subscriptionGate.used", "% used")}</span>
         </div>
         <div className="h-1 bg-victory-border rounded-full overflow-hidden">
           <div
@@ -38,7 +39,7 @@ function UsageBanner({ usage, onUpgrade }) {
         onClick={onUpgrade}
         className="text-xs text-victory-lime font-semibold whitespace-nowrap border border-victory-lime/30 rounded-lg px-2.5 touch-target flex items-center justify-center hover:bg-victory-lime/10 transition-colors"
       >
-        Go Pro
+        {tx("ui.subscriptionGate.goPro", "Go Pro")}
       </button>
     </div>
   );
@@ -52,27 +53,27 @@ function QuotaExceededScreen({ feature }) {
         <Zap className="w-9 h-9 text-victory-danger" />
       </div>
       <h2 className="font-heading font-extrabold text-2xl text-victory-text mb-2">
-        Monthly limit reached
+        {tx("ui.subscriptionGate.monthlyLimitReached", "Monthly limit reached")}
       </h2>
       <p className="text-victory-muted text-sm mb-2 max-w-xs leading-relaxed">
-        You've used your 10,000 free AI credits for this month.
+        {tx("ui.subscriptionGate.youVeUsedYour", "You've used your 10,000 free AI credits for this month.")}
       </p>
         <p className="text-victory-muted text-xs mb-8 max-w-xs">
-          Resets on the 1st. Upgrade to Pro for unlimited{" "}
-          <span className="text-victory-lime">{feature}</span> with no monthly cap.
+          {tx("ui.subscriptionGate.resetsOnThe1st", "Resets on the 1st. Upgrade to Pro for unlimited")}{" "}
+          <span className="text-victory-lime">{feature}</span> {tx("ui.subscriptionGate.withNoMonthlyCap", "with no monthly cap.")}
         </p>
         <button
           onClick={() => navigate("/paywall")}
           className="victory-btn-primary w-full max-w-xs flex items-center justify-center gap-2 mb-3"
         >
           <Zap className="w-4 h-4" />
-          Upgrade to Pro
+          {tx("ui.subscriptionGate.upgradeToPro", "Upgrade to Pro")}
         </button>
       <button
         onClick={() => navigate(-1)}
         className="text-victory-muted text-sm touch-target flex items-center justify-center"
       >
-        Go back
+        {tx("ui.subscriptionGate.goBack", "Go back")}
       </button>
     </div>
   );
@@ -86,16 +87,14 @@ function NoSubscriptionScreen({ feature }) {
         <Lock className="w-9 h-9 text-victory-lime" />
       </div>
       <h2 className="font-heading font-extrabold text-2xl text-victory-text mb-2">
-        Pro Feature
+        {tx("ui.subscriptionGate.proFeature", "Pro Feature")}
       </h2>
       <p className="text-victory-muted text-sm mb-6 max-w-xs leading-relaxed">
-        <span className="text-victory-lime font-semibold">{feature}</span> uses
-        AI credits. Free users get 10,000 credits per month — enough for ~5
-        full training analyses.
+        <span className="text-victory-lime font-semibold">{feature}</span> {tx("ui.subscriptionGate.usesAiCreditsFree", "uses AI credits. Free users get 10,000 credits per month — enough for ~5 full training analyses.")}
       </p>
       <div className="bg-victory-card border border-victory-border rounded-xl p-4 mb-6 w-full max-w-xs text-left space-y-2">
         <p className="text-victory-muted text-xs uppercase tracking-wider font-semibold mb-3">
-          Always free
+          {tx("ui.subscriptionGate.alwaysFree", "Always free")}
         </p>
         {FREE_FEATURES.map((f) => (
           <div key={f} className="flex items-center gap-2 text-sm text-victory-text">
@@ -109,10 +108,10 @@ function NoSubscriptionScreen({ feature }) {
         className="victory-btn-primary w-full max-w-xs flex items-center justify-center gap-2"
       >
         <Zap className="w-4 h-4" />
-        Unlock Pro
+        {tx("ui.subscriptionGate.unlockPro", "Unlock Pro")}
       </button>
       <button onClick={() => navigate(-1)} className="text-victory-muted text-sm mt-4 touch-target flex items-center justify-center">
-        Go back
+        {tx("ui.subscriptionGate.goBack", "Go back")}
       </button>
     </div>
   );

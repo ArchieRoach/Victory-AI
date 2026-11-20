@@ -5,6 +5,7 @@ import { ArrowLeft, Share2, Swords, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { API, useAuth } from "@/App";
 import { QUESTIONS, STYLES, STYLE_STORAGE_KEY, scoreStyle, styleShareText, withArticle } from "@/lib/fighterStyle";
+import { tx } from "@/i18n/tx";
 
 // Public, no sign-up. See lib/fighterStyle.js for the Goal / Psychology / Design.
 export default function StyleQuizPage() {
@@ -21,9 +22,9 @@ export default function StyleQuizPage() {
     const url = `${window.location.origin}/style`;
     try {
       if (navigator.share) await navigator.share({ title: "Victory AI", text, url });
-      else { await navigator.clipboard.writeText(`${text} ${url}`); toast.success("Copied. Paste it anywhere."); }
+      else { await navigator.clipboard.writeText(`${text} ${url}`); toast.success(tx("ui.styleQuizPage.copiedPasteItAnywhere", "Copied. Paste it anywhere.")); }
     } catch (e) {
-      if (e?.name !== "AbortError") toast.error("Couldn't share that one");
+      if (e?.name !== "AbortError") toast.error(tx("ui.styleQuizPage.couldnTShareThat", "Couldn't share that one"));
     }
   };
 
@@ -43,13 +44,13 @@ export default function StyleQuizPage() {
   return (
     <div className="min-h-screen bg-victory-bg" data-testid="style-quiz">
       <header className="p-4 flex items-center gap-2 border-b border-victory-border">
-        <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label="Back"
+        <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label={tx("ui.styleQuizPage.back", "Back")}
           onClick={() => (answers.length && !done ? setAnswers(answers.slice(0, -1)) : navigate(-1))}>
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
         <div>
-          <h1 className="text-xl font-heading font-extrabold text-victory-text">What kind of fighter are you?</h1>
-          <p className="text-victory-muted text-sm">{done ? "Your style" : `Question ${answers.length + 1} of ${QUESTIONS.length}`}</p>
+          <h1 className="text-xl font-heading font-extrabold text-victory-text">{tx("ui.styleQuizPage.whatKindOfFighter", "What kind of fighter are you?")}</h1>
+          <p className="text-victory-muted text-sm">{done ? tx("ui.styleQuizPage.yourStyle", "Your style") : `Question ${answers.length + 1} of ${QUESTIONS.length}`}</p>
         </div>
       </header>
 
@@ -77,7 +78,7 @@ export default function StyleQuizPage() {
               <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mx-auto mb-4">
                 <Swords className="w-8 h-8 text-victory-lime" />
               </div>
-              <p className="section-label">You fight like {style.legend}</p>
+              <p className="section-label">{tx("ui.styleQuizPage.youFightLike", "You fight like")} {style.legend}</p>
               <p className="text-gradient font-heading font-extrabold text-4xl mt-1">{style.name}</p>
               <p className="text-victory-text text-sm mt-3">{style.blurb}</p>
               <div className="flex flex-wrap justify-center gap-1.5 mt-4">
@@ -88,15 +89,15 @@ export default function StyleQuizPage() {
             </section>
 
             <section className="victory-card p-4">
-              <p className="section-label mb-1">What would make you dangerous</p>
+              <p className="section-label mb-1">{tx("ui.styleQuizPage.whatWouldMakeYou", "What would make you dangerous")}</p>
               <p className="text-victory-text text-sm">{style.gap}</p>
             </section>
 
-            <button className="victory-btn-primary" onClick={trainIt}>Train like {withArticle(style.name)}</button>
-            <p className="text-victory-muted text-[11px] text-center -mt-2">Your AI partner builds every session around your style and scores your rounds from video.</p>
+            <button className="victory-btn-primary" onClick={trainIt}>{tx("ui.styleQuizPage.trainLike", "Train like")} {withArticle(style.name)}</button>
+            <p className="text-victory-muted text-[11px] text-center -mt-2">{tx("ui.styleQuizPage.yourAiPartnerBuilds", "Your AI partner builds every session around your style and scores your rounds from video.")}</p>
             <div className="grid grid-cols-2 gap-2">
-              <button className="victory-btn-secondary flex items-center justify-center gap-2" onClick={share}><Share2 className="w-4 h-4" /> Share</button>
-              <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={() => setAnswers([])}><RotateCcw className="w-4 h-4" /> Retake</button>
+              <button className="victory-btn-secondary flex items-center justify-center gap-2" onClick={share}><Share2 className="w-4 h-4" /> {tx("ui.styleQuizPage.share", "Share")}</button>
+              <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={() => setAnswers([])}><RotateCcw className="w-4 h-4" /> {tx("ui.styleQuizPage.retake", "Retake")}</button>
             </div>
           </>
         )}

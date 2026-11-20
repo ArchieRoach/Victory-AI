@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Timer, ChevronRight } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 // The way into the workout timer (reasoning in backend/workouts.py): bag, pads, circuits and HIIT
 // with the camera on the same screen.
@@ -12,8 +13,8 @@ export function TimerCard() {
         <Timer className="w-5 h-5 text-victory-lime" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-victory-text font-semibold">Timer & circuits</p>
-        <p className="text-victory-muted text-xs">Bag, pads, circuits, HIIT. Film it on the same screen.</p>
+        <p className="text-victory-text font-semibold">{tx("ui.timerCard.timerCircuits", "Timer & circuits")}</p>
+        <p className="text-victory-muted text-xs">{tx("ui.timerCard.bagPadsCircuitsHiit", "Bag, pads, circuits, HIIT. Film it on the same screen.")}</p>
       </div>
       <ChevronRight className="w-5 h-5 text-victory-muted" />
     </button>

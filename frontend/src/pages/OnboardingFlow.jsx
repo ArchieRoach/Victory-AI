@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { whyWeAsk } from "@/lib/onboardingWhy";
 import { previousStep, cleanFighterName } from "@/lib/onboardingBack";
-import { GOALS } from "@/lib/goals";
+import { GOALS, goalLabel } from "@/lib/goals";
 import { labelLines, planLines } from "@/lib/onboardingPitch";
 import { withCue } from "@/lib/verbalCues";
 
@@ -14,6 +14,7 @@ import { ChevronRight, ChevronLeft, Star, Users, Target, Zap, Check } from "luci
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "react-i18next";
 import { withMinDuration } from "@/utils/async";
+import { tx } from "@/i18n/tx";
 
 // PHASE 0: BIRTH DATE (age gate — GDPR Art. 8 minimum digital-consent age)
 const BirthDatePhase = ({ onNext }) => {
@@ -66,7 +67,7 @@ const AffirmationPhase = ({ stats, onNext }) => {
   return (
     <div className="animate-fade-in space-y-6">
       <div className="text-center mb-8">
-        <img src="/victory-logo.png" alt="Victory AI" className="w-40 h-40 mx-auto mb-4 object-contain" />
+        <img src="/victory-logo.png" alt={tx("ui.onboardingFlow.victoryAi", "Victory AI")} className="w-40 h-40 mx-auto mb-4 object-contain" />
         <h1 className="text-2xl font-heading font-extrabold text-victory-text mb-2">
           {t("onboarding.affirmation.title")}
         </h1>
@@ -83,7 +84,7 @@ const AffirmationPhase = ({ stats, onNext }) => {
           </div>
           <div className="victory-card p-4 text-center">
             <p className="font-mono text-2xl font-bold text-victory-lime">{stats.fighters}</p>
-            <p className="text-victory-muted text-xs">fighters training</p>
+            <p className="text-victory-muted text-xs">{tx("ui.onboardingFlow.fightersTraining", "fighters training")}</p>
           </div>
         </div>
       )}
@@ -108,13 +109,13 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers, submitting }) => {
   const questions = [
     {
       id: "primary_goal",
-      question: "What brings you to Victory AI?",
-      subtitle: "Pick the one that matters most right now.",
-      options: GOALS.map((g, i) => ({ value: g, label: g, icon: GOAL_ICONS[i] })),
+      get question() { return tx("ui.onboardingFlow.whatBringsYouTo", "What brings you to Victory AI?"); },
+      get subtitle() { return tx("ui.onboardingFlow.pickTheOneThat", "Pick the one that matters most right now."); },
+      options: GOALS.map((g, i) => ({ value: g, label: goalLabel(g), icon: GOAL_ICONS[i] })),
     },
     {
       id: "biggest_frustration",
-      question: "What's held you back so far?",
+      get question() { return tx("ui.onboardingFlow.whatSHeldYou", "What's held you back so far?"); },
       subtitle: t("onboarding.biggest_frustration.subtitle"),
       options: [
         { value: "no_feedback", label: t("onboarding.biggest_frustration.no_feedback"), icon: "🤷" },
@@ -140,16 +141,16 @@ const WhyHookPhase = ({ onAnswer, currentQuestion, answers, submitting }) => {
       question: t("onboarding.favorite_fighter.question"),
       subtitle: t("onboarding.favorite_fighter.subtitle"),
       options: [
-        { value: "Muhammad Ali", label: "Muhammad Ali", icon: "👑" },
-        { value: "Mike Tyson", label: "Mike Tyson", icon: "🔥" },
-        { value: "Floyd Mayweather", label: "Floyd Mayweather", icon: "💰" },
-        { value: "Terence Crawford", label: "Terence Crawford", icon: "⚡" },
-        { value: "Usyk", label: "Usyk", icon: "🥊" },
-        { value: "Canelo Alvarez", label: "Canelo Alvarez", icon: "🌹" },
-        { value: "Manny Pacquiao", label: "Manny Pacquiao", icon: "🇵🇭" },
-        { value: "Artur Beterbiev", label: "Artur Beterbiev", icon: "💪" },
-        { value: "Dmitry Bivol", label: "Dmitry Bivol", icon: "🎯" },
-        { value: "Roberto Duran", label: "Roberto Duran", icon: "✊" },
+        { value: "Muhammad Ali", get label() { return tx("ui.onboardingFlow.muhammadAli", "Muhammad Ali"); }, icon: "👑" },
+        { value: "Mike Tyson", get label() { return tx("ui.onboardingFlow.mikeTyson", "Mike Tyson"); }, icon: "🔥" },
+        { value: "Floyd Mayweather", get label() { return tx("ui.onboardingFlow.floydMayweather", "Floyd Mayweather"); }, icon: "💰" },
+        { value: "Terence Crawford", get label() { return tx("ui.onboardingFlow.terenceCrawford", "Terence Crawford"); }, icon: "⚡" },
+        { value: "Usyk", get label() { return tx("ui.onboardingFlow.usyk", "Usyk"); }, icon: "🥊" },
+        { value: "Canelo Alvarez", get label() { return tx("ui.onboardingFlow.caneloAlvarez", "Canelo Alvarez"); }, icon: "🌹" },
+        { value: "Manny Pacquiao", get label() { return tx("ui.onboardingFlow.mannyPacquiao", "Manny Pacquiao"); }, icon: "🇵🇭" },
+        { value: "Artur Beterbiev", get label() { return tx("ui.onboardingFlow.arturBeterbiev", "Artur Beterbiev"); }, icon: "💪" },
+        { value: "Dmitry Bivol", get label() { return tx("ui.onboardingFlow.dmitryBivol", "Dmitry Bivol"); }, icon: "🎯" },
+        { value: "Roberto Duran", get label() { return tx("ui.onboardingFlow.robertoDuran", "Roberto Duran"); }, icon: "✊" },
         { value: OTHER_FIGHTER, label: t("onboarding.favorite_fighter.other", "Someone else"), icon: "✍️" },
       ],
     },
@@ -293,7 +294,7 @@ const PersonalizedAffirmation = ({ answers, onNext, onEdit }) => {
     <div className="animate-fade-in space-y-5">
       {/* L: say it back as a question (NEPQ verbal cue first), O: it's not their fault. */}
       <div className="victory-card p-4 space-y-2 border-victory-lime/40" data-testid="label-reflect">
-        <p className="section-label">Your partner</p>
+        <p className="section-label">{tx("ui.onboardingFlow.yourPartner", "Your partner")}</p>
         <p className="text-victory-text text-lg font-heading font-bold leading-snug">
           {withCue(label.reflect, `label:${answers.primary_goal}`)}
         </p>
@@ -307,9 +308,9 @@ const PersonalizedAffirmation = ({ answers, onNext, onEdit }) => {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <button onClick={onEdit} className="victory-btn-ghost min-h-[48px]" data-testid="label-not-quite">Not quite</button>
+        <button onClick={onEdit} className="victory-btn-ghost min-h-[48px]" data-testid="label-not-quite">{tx("ui.onboardingFlow.notQuite", "Not quite")}</button>
         <button onClick={onNext} className="victory-btn-primary min-h-[48px] flex items-center justify-center gap-1" data-testid="affirmation-continue">
-          That's me <ChevronRight className="w-4 h-4" />
+          {tx("ui.onboardingFlow.thatSMe", "That's me")} <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -541,8 +542,8 @@ const PartnerNamingPhase = ({ partnerData, styles, onComplete }) => {
 
       {/* Their partner's picture was a coin toss before; who you train with is your call. */}
       <div>
-        <p className="victory-label">Your partner is</p>
-        <div className="flex gap-2" role="radiogroup" aria-label="Your partner is">
+        <p className="victory-label">{tx("ui.onboardingFlow.yourPartnerIs", "Your partner is")}</p>
+        <div className="flex gap-2" role="radiogroup" aria-label={tx("ui.onboardingFlow.yourPartnerIs", "Your partner is")}>
           {[["male", "A man"], ["female", "A woman"]].map(([value, label]) => (
             <button
               key={value}
@@ -694,7 +695,7 @@ const YourPlanScreen = ({ partnerName, answers, onNext }) => {
   return (
     <div className="animate-fade-in space-y-5" data-testid="your-plan">
       <div>
-        <p className="section-label">Ready</p>
+        <p className="section-label">{tx("ui.onboardingFlow.ready", "Ready")}</p>
         <h1 className="text-2xl font-heading font-extrabold text-victory-text leading-tight">{plan.headline}</h1>
       </div>
       <ol className="space-y-3">
@@ -709,7 +710,7 @@ const YourPlanScreen = ({ partnerName, answers, onNext }) => {
         {withCue(`So, ${partnerName || "your partner"} is ready when you are. Want to see how to get all of it?`, `plan:${partnerName}`)}
       </p>
       <button onClick={onNext} className="victory-btn-primary flex items-center justify-center gap-2" data-testid="see-plan-options">
-        Show me <ChevronRight className="w-5 h-5" />
+        {tx("ui.onboardingFlow.showMe", "Show me")} <ChevronRight className="w-5 h-5" />
       </button>
     </div>
   );
@@ -778,7 +779,7 @@ export default function OnboardingFlow() {
       setPartnerStyles(res.data.styles);
     } catch (e) {
       console.error("Failed to fetch partner styles:", e);
-      toast.error("Couldn't load training partner styles — try again");
+      toast.error(tx("ui.onboardingFlow.couldnTLoadTraining", "Couldn't load training partner styles — try again"));
     }
   };
 

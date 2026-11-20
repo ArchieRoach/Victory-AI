@@ -4,6 +4,7 @@ import { IdCard } from "lucide-react";
 import { useAuth } from "@/App";
 import { analytics } from "@/lib/analytics";
 import { fighterCardContent } from "@/lib/fighterCard";
+import { tx } from "@/i18n/tx";
 
 const W = 1080, H = 1920;
 const BG = "#0A0A0F", LIME = "#E8FF47", TEAL = "#47E8C8", TEXT = "#F0F0F5", MUTED = "#8888A0";
@@ -126,14 +127,14 @@ export function FighterCardButton({ rewards, overall, liveStats }) {
       }
       analytics.capture("fighter_card_shared", { via });
     } catch {
-      toast.error("Couldn't make your card — try again");
+      toast.error(tx("ui.fighterCard.couldnTMakeYour", "Couldn't make your card — try again"));
     }
     setBusy(false);
   };
 
   return (
     <button onClick={make} disabled={busy} className="victory-btn-secondary w-full flex items-center justify-center gap-2 min-h-[48px] disabled:opacity-50" data-testid="fighter-card-btn">
-      <IdCard className="w-4 h-4" /> {busy ? "Making your card…" : "Share your fighter card"}
+      <IdCard className="w-4 h-4" /> {busy ? tx("ui.fighterCard.makingYourCard", "Making your card…") : tx("ui.fighterCard.shareYourFighterCard", "Share your fighter card")}
     </button>
   );
 }

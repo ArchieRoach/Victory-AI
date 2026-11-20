@@ -4,6 +4,7 @@ import axios from "axios";
 import { API } from "@/App";
 import { toast } from "sonner";
 import { ArrowLeft, Ban } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 export default function BlockedAccountsPage() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function BlockedAccountsPage() {
   useEffect(() => {
     axios.get(`${API}/users/me/blocked`)
       .then((res) => setUsers(res.data))
-      .catch(() => toast.error("Couldn't load blocked accounts."))
+      .catch(() => toast.error(tx("ui.blockedAccountsPage.couldnTLoadBlocked", "Couldn't load blocked accounts.")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -23,9 +24,9 @@ export default function BlockedAccountsPage() {
     try {
       await axios.delete(`${API}/users/${targetId}/block`);
       setUsers((prev) => prev.filter((u) => u.user_id !== targetId));
-      toast.success("Unblocked.");
+      toast.success(tx("ui.blockedAccountsPage.unblocked", "Unblocked."));
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't unblock.");
+      toast.error(err?.response?.data?.detail || tx("ui.blockedAccountsPage.couldnTUnblock", "Couldn't unblock."));
       setUnblocking((s) => ({ ...s, [targetId]: false }));
     }
   };
@@ -33,10 +34,10 @@ export default function BlockedAccountsPage() {
   return (
     <div className="min-h-screen bg-victory-bg">
       <header className="sticky top-0 z-10 material-header px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+        <button onClick={() => navigate(-1)} aria-label={tx("ui.blockedAccountsPage.goBack", "Go back")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-victory-text font-heading font-extrabold text-base">Blocked Accounts</h1>
+        <h1 className="text-victory-text font-heading font-extrabold text-base">{tx("ui.blockedAccountsPage.blockedAccounts", "Blocked Accounts")}</h1>
       </header>
 
       <div className="px-4 py-4 max-w-lg mx-auto space-y-3">
@@ -50,7 +51,7 @@ export default function BlockedAccountsPage() {
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Ban className="w-10 h-10 text-victory-muted mb-3" />
-            <p className="text-victory-muted text-sm">You haven't blocked anyone.</p>
+            <p className="text-victory-muted text-sm">{tx("ui.blockedAccountsPage.youHavenTBlocked", "You haven't blocked anyone.")}</p>
           </div>
         ) : (
           users.map((u) => (
@@ -70,7 +71,7 @@ export default function BlockedAccountsPage() {
                 disabled={unblocking[u.user_id]}
                 className="touch-target px-3 flex items-center justify-center rounded-xl text-xs font-bold border border-victory-border text-victory-muted hover:border-victory-lime/40 hover:text-victory-text disabled:opacity-50 flex-shrink-0"
               >
-                {unblocking[u.user_id] ? "…" : "Unblock"}
+                {unblocking[u.user_id] ? "…" : tx("ui.blockedAccountsPage.unblock", "Unblock")}
               </button>
             </div>
           ))

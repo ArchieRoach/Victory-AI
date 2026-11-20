@@ -1,4 +1,5 @@
 import { ArrowUp, ArrowDown, Users, Sparkles, Trophy, Circle } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 // Goal: the reason to play with friends — where you stand, right now.
 // Psychology: a small group you know (not a global table of strangers) makes rank changes
@@ -12,15 +13,15 @@ export function LeaguePanel({ league, movement }) {
         <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
           <Users className="w-8 h-8 text-victory-lime/60" />
         </div>
-        <p className="text-victory-text font-bold text-lg mb-1">No friends here yet</p>
-        <p className="text-victory-muted text-sm">Save your team and you'll see how you rank against your friends.</p>
+        <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.leaguePanel.noFriendsHereYet", "No friends here yet")}</p>
+        <p className="text-victory-muted text-sm">{tx("ui.leaguePanel.saveYourTeamAnd", "Save your team and you'll see how you rank against your friends.")}</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-1.5" data-testid="fantasy-league">
-      <p className="section-label mb-2">Who's winning</p>
+      <p className="section-label mb-2">{tx("ui.leaguePanel.whoSWinning", "Who's winning")}</p>
       {league.map((m) => {
         const move = movement[m.user_id];
         return (
@@ -31,7 +32,7 @@ export function LeaguePanel({ league, movement }) {
             <span className={`font-mono font-bold w-6 text-center ${m.rank === 1 ? "text-victory-lime" : "text-victory-muted"}`}>{m.rank}</span>
             <div className="flex-1 min-w-0">
               <p className="text-victory-text text-sm font-semibold truncate">
-                {m.isMe ? `${m.name} (you)` : m.name}
+                {m.isMe ? tx("ui.leaguePanel.you", "{{name}} (you)", { name: m.name }) : m.name}
                 {m.cosmetic && <CosmeticBadge style={m.cosmetic} />}
               </p>
               {m.team_name && <p className="text-victory-teal text-[10px] truncate">{m.team_name}</p>}
@@ -54,10 +55,10 @@ export function LeaguePanel({ league, movement }) {
 
 // Bought cosmetics are looks only: the badge never changes a score or a rank.
 const COSMETIC = {
-  gold: { Icon: Sparkles, className: "text-victory-orange", title: "Gold Gloves" },
-  belt: { Icon: Trophy, className: "text-victory-orange", title: "Title Belt" },
-  red: { Icon: Circle, className: "text-victory-danger fill-current", title: "Red Corner" },
-  blue: { Icon: Circle, className: "text-victory-teal fill-current", title: "Blue Corner" },
+  gold: { Icon: Sparkles, className: "text-victory-orange", get title() { return tx("ui.leaguePanel.goldGloves", "Gold Gloves"); } },
+  belt: { Icon: Trophy, className: "text-victory-orange", get title() { return tx("ui.leaguePanel.titleBelt", "Title Belt"); } },
+  red: { Icon: Circle, className: "text-victory-danger fill-current", get title() { return tx("ui.leaguePanel.redCorner", "Red Corner"); } },
+  blue: { Icon: Circle, className: "text-victory-teal fill-current", get title() { return tx("ui.leaguePanel.blueCorner", "Blue Corner"); } },
 };
 
 function CosmeticBadge({ style }) {

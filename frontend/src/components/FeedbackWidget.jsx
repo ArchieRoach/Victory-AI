@@ -8,6 +8,7 @@ import { HelpChat } from "@/components/HelpChat";
 import { useFeaturebase } from "featurebase-js/react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/App";
+import { tx } from "@/i18n/tx";
 
 const TYPES = [
   { key: "bug",     icon: Bug,          labelKey: "feedback.typeBug" },
@@ -114,7 +115,7 @@ export default function FeedbackWidget() {
           <>
             <div className="flex items-center justify-between">
               <h2 className="font-heading font-bold text-victory-text">{t("feedback.title")}</h2>
-              <button onClick={handleClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target rounded-full bg-victory-border text-victory-muted">
+              <button onClick={handleClose} aria-label={tx("ui.feedbackWidget.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target rounded-full bg-victory-border text-victory-muted">
                 <X className="w-4 h-4" />
               </button>
             </div>

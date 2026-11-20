@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { analytics } from "@/lib/analytics";
 import { FounderLockedCard } from "@/components/FounderPrice";
 import { founderTerms } from "@/lib/billing";
+import { tx } from "@/i18n/tx";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -93,7 +94,7 @@ export default function PaymentSuccess() {
             </p>
             {/* R: reinforce the decision straight away, so it feels like a smart call, not a cost. */}
             <p className="text-victory-text text-sm mb-4" data-testid="reinforce-decision">
-              Great call. {user?.training_partner?.name || "Your partner"} is ready, and your first round is one tap away.
+              {tx("ui.paymentSuccess.greatCall", "Great call.")} {user?.training_partner?.name || tx("ui.paymentSuccess.yourPartner", "Your partner")} {tx("ui.paymentSuccess.isReadyAndYour", "is ready, and your first round is one tap away.")}
             </p>
             {founderTerms(billing) ? (
               <div className="space-y-4">

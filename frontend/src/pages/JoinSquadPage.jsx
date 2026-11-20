@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Users } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { savePendingInvite } from "@/lib/pendingInvite";
+import { tx } from "@/i18n/tx";
 
 // Public landing for a squad invite. The brag comes first — the friend sees what their
 // mate just did before being asked for anything.
@@ -36,22 +37,22 @@ export default function JoinSquadPage() {
       navigate(`/squads/${data.squad_id}`, { replace: true });
     } catch (err) {
       setJoining(false);
-      toast.error(err?.response?.data?.detail || "Couldn't join — try again");
+      toast.error(err?.response?.data?.detail || tx("ui.joinSquadPage.couldnTJoinTry", "Couldn't join — try again"));
     }
   };
 
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6" data-testid="join-squad-page">
       <div className="w-full max-w-md text-center animate-fade-in">
-        <img src="/mascot-render.png" alt="Victory AI" className="h-40 w-auto mx-auto object-contain mb-6" />
+        <img src="/mascot-render.png" alt={tx("ui.joinSquadPage.victoryAi", "Victory AI")} className="h-40 w-auto mx-auto object-contain mb-6" />
 
         {invite === undefined && <div className="skeleton-shimmer h-48 rounded-lg" />}
 
         {invite === null && (
           <div className="victory-card p-6 space-y-3">
-            <p className="text-victory-text font-heading font-bold text-lg">This invite has expired</p>
-            <p className="text-victory-muted text-sm">Ask your mate to send a fresh one after their next session.</p>
-            <button onClick={() => navigate("/")} className="victory-btn-secondary w-full">Open Victory AI</button>
+            <p className="text-victory-text font-heading font-bold text-lg">{tx("ui.joinSquadPage.thisInviteHasExpired", "This invite has expired")}</p>
+            <p className="text-victory-muted text-sm">{tx("ui.joinSquadPage.askYourMateTo", "Ask your mate to send a fresh one after their next session.")}</p>
+            <button onClick={() => navigate("/")} className="victory-btn-secondary w-full">{tx("ui.joinSquadPage.openVictoryAi", "Open Victory AI")}</button>
           </div>
         )}
 
@@ -66,7 +67,7 @@ export default function JoinSquadPage() {
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-victory-muted text-xs">{invite.inviter_name} invited you to</p>
+                <p className="text-victory-muted text-xs">{invite.inviter_name} {tx("ui.joinSquadPage.invitedYouTo", "invited you to")}</p>
                 <p className="text-victory-text font-heading font-extrabold text-xl truncate">{invite.squad_name}</p>
               </div>
             </div>
@@ -75,10 +76,10 @@ export default function JoinSquadPage() {
               <Users className="w-3.5 h-3.5" /> <span className="font-mono">{invite.member_count}</span>/8 fighters · weekly leaderboard, callouts, round reactions
             </p>
             {invite.full ? (
-              <p className="text-victory-muted text-sm">This squad is full.</p>
+              <p className="text-victory-muted text-sm">{tx("ui.joinSquadPage.thisSquadIsFull", "This squad is full.")}</p>
             ) : (
               <button onClick={join} disabled={joining || loading} className="victory-btn-primary w-full disabled:opacity-50">
-                {joining ? "Joining…" : isAuthenticated ? "Join the squad" : "Sign up to join"}
+                {joining ? tx("ui.joinSquadPage.joining", "Joining…") : isAuthenticated ? tx("ui.joinSquadPage.joinTheSquad", "Join the squad") : tx("ui.joinSquadPage.signUpToJoin", "Sign up to join")}
               </button>
             )}
           </div>

@@ -8,6 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { FantasySidecar } from "@/components/fantasy/FantasySidecar";
 import { LeagueSwitcher } from "@/components/fantasy/LeagueSwitcher";
 import { CosmeticsSheet } from "@/components/fantasy/CosmeticsSheet";
+import { tx } from "@/i18n/tx";
 
 // Goal: a free fantasy game on every real UK show and world-title fight, with no admin
 //   needed for pro cards.
@@ -46,7 +47,7 @@ export default function FantasyPage() {
     setParams({}, { replace: true });
     setView("looks");
     axios.get(`${API}/fantasy/cosmetics/confirm`, { params: { session_id: sid } })
-      .then(({ data }) => (data.paid ? toast.success(`${data.name} is yours! Tap Use to show it off.`) : toast("Payment still processing: it'll appear shortly.")))
+      .then(({ data }) => (data.paid ? toast.success(tx("ui.fantasyPage.isYoursTapUse", "{{name}} is yours! Tap Use to show it off.", { name: data.name })) : toast(tx("ui.fantasyPage.paymentStillProcessingIt", "Payment still processing: it'll appear shortly."))))
       .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -72,13 +73,13 @@ export default function FantasyPage() {
     <div className="min-h-screen bg-victory-bg pb-nav">
       <div className="sticky top-0 z-20 material-header">
         <header className="p-4 flex items-center gap-2">
-          <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label="Back"
+          <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label={tx("ui.fantasyPage.back", "Back")}
             onClick={() => (cardId ? open(null) : navigate(-1))}>
             <ArrowLeft className="w-5 h-5 text-victory-text" />
           </button>
           <div className="min-w-0">
-            <h1 className="text-xl font-heading font-extrabold text-victory-text">Fantasy Boxing</h1>
-            <p className="text-victory-muted text-sm">Real fights. Free to play. No money, ever.</p>
+            <h1 className="text-xl font-heading font-extrabold text-victory-text">{tx("ui.fantasyPage.fantasyBoxing", "Fantasy Boxing")}</h1>
+            <p className="text-victory-muted text-sm">{tx("ui.fantasyPage.realFightsFreeTo", "Real fights. Free to play. No money, ever.")}</p>
           </div>
         </header>
       </div>
@@ -114,7 +115,7 @@ export default function FantasyPage() {
 
             <Link to="/fantasy/partners" className="victory-card p-3 flex items-center gap-3 active:scale-[0.99] transition-transform">
               <Handshake className="w-4 h-4 text-victory-teal flex-shrink-0" />
-              <span className="text-[11px] text-victory-muted">Promoter or brand? <span className="text-victory-text font-semibold">Feature your show or sponsor a league</span></span>
+              <span className="text-[11px] text-victory-muted">{tx("ui.fantasyPage.promoterOrBrand", "Promoter or brand?")} <span className="text-victory-text font-semibold">{tx("ui.fantasyPage.featureYourShowOr", "Feature your show or sponsor a league")}</span></span>
             </Link>
           </>
         )}
@@ -133,10 +134,10 @@ function CardList({ cards, onOpen, onCamp }) {
         <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
           <CalendarDays className="w-8 h-8 text-victory-lime/60" />
         </div>
-        <p className="text-victory-text font-bold text-lg mb-1">No fights this fortnight</p>
-        <p className="text-victory-muted text-sm">Real cards appear here up to two weeks before. Learn the game on a practice card while you wait.</p>
-        <button className="mt-4 victory-btn-primary w-auto px-6" onClick={() => onOpen(PRACTICE)}>Try a practice card</button>
-        <button className="mt-2 victory-btn-ghost w-auto px-6" onClick={onCamp}>Got a fight? Add it</button>
+        <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.fantasyPage.noFightsThisFortnight", "No fights this fortnight")}</p>
+        <p className="text-victory-muted text-sm">{tx("ui.fantasyPage.realCardsAppearHere", "Real cards appear here up to two weeks before. Learn the game on a practice card while you wait.")}</p>
+        <button className="mt-4 victory-btn-primary w-auto px-6" onClick={() => onOpen(PRACTICE)}>{tx("ui.fantasyPage.tryAPracticeCard", "Try a practice card")}</button>
+        <button className="mt-2 victory-btn-ghost w-auto px-6" onClick={onCamp}>{tx("ui.fantasyPage.gotAFightAdd", "Got a fight? Add it")}</button>
       </div>
     );
   }
@@ -151,17 +152,17 @@ function CardList({ cards, onOpen, onCamp }) {
           <div className="flex-1 min-w-0">
             <p className="text-victory-text text-sm font-semibold truncate">{c.title}</p>
             <p className="text-victory-muted text-[11px] truncate">
-              {formatDay(c.date)} · {c.location || REASON[c.reason]} · {c.bout_count} fights
+              {formatDay(c.date)} · {c.location || REASON[c.reason]} · {c.bout_count} {tx("ui.fantasyPage.fights", "fights")}
             </p>
             {(c.sponsor?.name || c.promoter) && (
-              <p className="text-victory-teal text-[10px] truncate">{c.sponsor?.name ? `Presented by ${c.sponsor.name}` : c.promoter}</p>
+              <p className="text-victory-teal text-[10px] truncate">{c.sponsor?.name ? tx("ui.fantasyPage.presentedBy", "Presented by {{name}}", { name: c.sponsor.name }) : c.promoter}</p>
             )}
           </div>
           <div className="text-right flex-shrink-0">
             <span className={`text-[10px] font-heading font-bold uppercase px-2 py-0.5 rounded-full ${
               c.status === "live" ? "bg-victory-danger/15 text-victory-danger" : c.status === "complete" ? "bg-victory-card-highlight text-victory-muted" : "bg-victory-lime/15 text-victory-lime"
             }`}>{STATUS[c.status]}</span>
-            {c.entered && <p className="text-[10px] text-victory-lime mt-1">Team in</p>}
+            {c.entered && <p className="text-[10px] text-victory-lime mt-1">{tx("ui.fantasyPage.teamIn", "Team in")}</p>}
           </div>
         </button>
       ))}
@@ -177,20 +178,20 @@ function Season({ season }) {
         <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
           <Trophy className="w-8 h-8 text-victory-lime/60" />
         </div>
-        <p className="text-victory-text font-bold text-lg mb-1">Season starts with your first fight</p>
-        <p className="text-victory-muted text-sm">Points from every card in the last {season.days || 90} days add up here.</p>
+        <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.fantasyPage.seasonStartsWithYour", "Season starts with your first fight")}</p>
+        <p className="text-victory-muted text-sm">{tx("ui.fantasyPage.pointsFromEveryCard", "Points from every card in the last")} {season.days || 90} {tx("ui.fantasyPage.daysAddUpHere", "days add up here.")}</p>
       </div>
     );
   }
   return (
     <div className="space-y-1.5" data-testid="fantasy-season">
-      <p className="section-label mb-2">Last {season.days} days</p>
+      <p className="section-label mb-2">{tx("ui.fantasyPage.last", "Last")} {season.days} {tx("ui.fantasyPage.days", "days")}</p>
       {season.standings.map((m) => (
         <div key={m.user_id} className={`victory-card px-3 py-2 flex items-center gap-3 ${m.isMe ? "border-victory-lime/40 bg-victory-lime/5" : ""}`}>
           <span className={`font-mono font-bold w-6 text-center ${m.rank === 1 ? "text-victory-lime" : "text-victory-muted"}`}>{m.rank}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-victory-text text-sm font-semibold truncate">{m.isMe ? `${m.name} (you)` : m.name}</p>
-            <p className="text-victory-muted text-[10px]">{m.cards} card{m.cards === 1 ? "" : "s"}</p>
+            <p className="text-victory-text text-sm font-semibold truncate">{m.isMe ? tx("ui.fantasyPage.you", "{{name}} (you)", { name: m.name }) : m.name}</p>
+            <p className="text-victory-muted text-[10px]">{m.cards} {tx("ui.fantasyPage.card", "card")}{m.cards === 1 ? "" : "s"}</p>
           </div>
           <span className="font-mono font-bold text-victory-text">{m.total}</span>
         </div>
@@ -205,9 +206,9 @@ function SeasonLocked({ onUpgrade }) {
       <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
         <Lock className="w-8 h-8 text-victory-lime/60" />
       </div>
-      <p className="text-victory-text font-bold text-lg mb-1">Season table is a Pro perk</p>
-      <p className="text-victory-muted text-sm">See who's best over every fight night, and make your own leagues. Playing stays free.</p>
-      <button className="mt-4 victory-btn-primary w-auto px-6" onClick={onUpgrade}>See Pro</button>
+      <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.fantasyPage.seasonTableIsA", "Season table is a Pro perk")}</p>
+      <p className="text-victory-muted text-sm">{tx("ui.fantasyPage.seeWhoSBest", "See who's best over every fight night, and make your own leagues. Playing stays free.")}</p>
+      <button className="mt-4 victory-btn-primary w-auto px-6" onClick={onUpgrade}>{tx("ui.fantasyPage.seePro", "See Pro")}</button>
     </div>
   );
 }

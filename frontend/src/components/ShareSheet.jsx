@@ -5,6 +5,7 @@ import { API, useAuth } from "@/App";
 import { toast } from "sonner";
 import { X, Share2, Link, Flame, Film } from "lucide-react";
 import { fetchVideoFile, shareVideoFile } from "@/lib/shareVideo";
+import { tx } from "@/i18n/tx";
 
 export function ShareSheet({ post, onClose, onShared }) {
   const { user } = useAuth();
@@ -28,9 +29,9 @@ export function ShareSheet({ post, onClose, onShared }) {
     try {
       const result = await shareVideoFile(videoFile, { title: post.caption || "Victory AI clip", text: "Caught this on Victory AI #boxing #VictoryAI" });
       if (result !== "cancelled") await recordShare();
-      if (result === "downloaded") toast.success("Saved — post it from your camera roll");
+      if (result === "downloaded") toast.success(tx("ui.shareSheet.savedPostItFrom", "Saved — post it from your camera roll"));
     } catch {
-      toast.error("Share failed");
+      toast.error(tx("ui.shareSheet.shareFailed", "Share failed"));
     }
     setSharing(false);
   };
@@ -59,7 +60,7 @@ export function ShareSheet({ post, onClose, onShared }) {
         await handleCopyLink();
       }
     } catch (err) {
-      if (err?.name !== "AbortError") toast.error("Share failed");
+      if (err?.name !== "AbortError") toast.error(tx("ui.shareSheet.shareFailed", "Share failed"));
     }
     setSharing(false);
   };
@@ -71,7 +72,7 @@ export function ShareSheet({ post, onClose, onShared }) {
       setTimeout(() => setCopied(false), 2000);
       await recordShare();
     } catch {
-      toast.error("Could not copy link");
+      toast.error(tx("ui.shareSheet.couldNotCopyLink", "Could not copy link"));
     }
   };
 
@@ -79,7 +80,7 @@ export function ShareSheet({ post, onClose, onShared }) {
   const isViral    = shareCount >= 50 || (post.share_count || 0) >= 50;
 
   return (
-    <BottomSheet onClose={onClose} label="Share" className="w-full max-w-lg mx-auto">
+    <BottomSheet onClose={onClose} label={tx("ui.shareSheet.share", "Share")} className="w-full max-w-lg mx-auto">
       {({ close }) => (
       <div className="overflow-y-auto min-h-0 flex-1">
 
@@ -87,14 +88,14 @@ export function ShareSheet({ post, onClose, onShared }) {
         <div className="flex items-center justify-between px-4 py-3 border-b border-victory-border">
           <div className="flex items-center gap-2">
             <Share2 className="w-4 h-4 text-victory-lime" />
-            <p className="text-victory-text font-bold text-sm">Share Clip</p>
+            <p className="text-victory-text font-bold text-sm">{tx("ui.shareSheet.shareClip", "Share Clip")}</p>
             {isViral && (
               <span className="flex items-center gap-1 bg-victory-orange/20 text-victory-orange text-[10px] font-bold px-2 py-0.5 rounded-full border border-victory-orange/30">
-                <Flame className="w-3 h-3" /> VIRAL
+                <Flame className="w-3 h-3" /> {tx("ui.shareSheet.viral", "VIRAL")}
               </span>
             )}
           </div>
-          <button onClick={() => close()} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={() => close()} aria-label={tx("ui.shareSheet.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -103,15 +104,15 @@ export function ShareSheet({ post, onClose, onShared }) {
         <div className="flex items-center gap-4 px-4 py-3 border-b border-victory-border">
           <div className="text-center">
             <p className="font-mono font-bold text-victory-text text-lg">{shareCount.toLocaleString()}</p>
-            <p className="text-victory-muted text-xs">shares</p>
+            <p className="text-victory-muted text-xs">{tx("ui.shareSheet.shares", "shares")}</p>
           </div>
           <div className="text-center">
             <p className="font-mono font-bold text-victory-text text-lg">{(post.like_count || 0).toLocaleString()}</p>
-            <p className="text-victory-muted text-xs">likes</p>
+            <p className="text-victory-muted text-xs">{tx("ui.shareSheet.likes", "likes")}</p>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-victory-muted text-xs truncate">{post.caption || "Clip"}</p>
-            <p className="text-victory-muted text-[10px] truncate">by {post.author?.display_name || post.author?.name || "Fighter"}</p>
+            <p className="text-victory-muted text-xs truncate">{post.caption || tx("ui.shareSheet.clip", "Clip")}</p>
+            <p className="text-victory-muted text-[10px] truncate">{tx("ui.shareSheet.by", "by")} {post.author?.display_name || post.author?.name || tx("ui.shareSheet.fighter", "Fighter")}</p>
           </div>
         </div>
 
@@ -124,7 +125,7 @@ export function ShareSheet({ post, onClose, onShared }) {
               className="w-full flex items-center gap-3 bg-victory-lime text-victory-bg font-bold py-3.5 px-4 rounded-xl disabled:opacity-50 transition-opacity"
             >
               <Film className="w-5 h-5 flex-shrink-0" />
-              <span className="flex-1 text-left">{videoFile ? "Share video to TikTok, Reels…" : "Preparing video…"}</span>
+              <span className="flex-1 text-left">{videoFile ? tx("ui.shareSheet.shareVideoToTiktok", "Share video to TikTok, Reels…") : tx("ui.shareSheet.preparingVideo", "Preparing video…")}</span>
             </button>
           )}
 
@@ -137,7 +138,7 @@ export function ShareSheet({ post, onClose, onShared }) {
             }`}
           >
             <Share2 className="w-5 h-5 flex-shrink-0" />
-            <span className="flex-1 text-left">{navigator.share ? "Send to…" : "Copy & Share"}</span>
+            <span className="flex-1 text-left">{navigator.share ? tx("ui.shareSheet.sendTo", "Send to…") : tx("ui.shareSheet.copyShare", "Copy & Share")}</span>
           </button>
 
           {/* Copy link */}
@@ -146,7 +147,7 @@ export function ShareSheet({ post, onClose, onShared }) {
             className="w-full flex items-center gap-3 bg-victory-card border border-victory-border text-victory-text font-semibold py-3.5 px-4 rounded-xl hover:border-victory-lime/40 transition-colors"
           >
             <Link className="w-5 h-5 flex-shrink-0 text-victory-muted" />
-            <span className="flex-1 text-left">{copied ? "Copied!" : "Copy link"}</span>
+            <span className="flex-1 text-left">{copied ? tx("ui.shareSheet.copied", "Copied!") : tx("ui.shareSheet.copyLink", "Copy link")}</span>
             {copied && <span className="text-victory-lime text-xs font-bold">✓</span>}
           </button>
         </div>

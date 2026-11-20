@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { tx } from "@/i18n/tx";
 
 const WEIGHT_CLASSES = [
   "Flyweight", "Bantamweight", "Featherweight", "Lightweight",
@@ -51,13 +52,13 @@ export default function FighterBuddyCreator() {
       setArchetypes(response.data.archetypes);
     } catch (error) {
       console.error("Failed to fetch archetypes:", error);
-      toast.error("Couldn't load fighter styles — try again");
+      toast.error(tx("ui.fighterBuddyCreator.couldnTLoadFighter", "Couldn't load fighter styles — try again"));
     }
   };
 
   const handleCreateBuddy = async () => {
     if (!buddyData.name || !buddyData.archetype) {
-      toast.error("Please complete all fields");
+      toast.error(tx("ui.fighterBuddyCreator.pleaseCompleteAllFields", "Please complete all fields"));
       return;
     }
 
@@ -87,10 +88,10 @@ export default function FighterBuddyCreator() {
       // Update user context
       setUser({ ...user, fighter_buddy: response.data });
 
-      toast.success(`${buddyData.name} is ready to train with you!`);
+      toast.success(tx("ui.fighterBuddyCreator.isReadyToTrain", "{{name}} is ready to train with you!", { name: buddyData.name }));
       navigate("/paywall", { replace: true });
     } catch (error) {
-      toast.error("Failed to create training partner");
+      toast.error(tx("ui.fighterBuddyCreator.failedToCreateTraining", "Failed to create training partner"));
     } finally {
       setLoading(false);
     }
@@ -110,10 +111,10 @@ export default function FighterBuddyCreator() {
           </div>
           <div>
             <h1 className="text-lg font-heading font-bold text-victory-text">
-              Create Your AI Training Partner
+              {tx("ui.fighterBuddyCreator.createYourAiTraining", "Create Your AI Training Partner")}
             </h1>
             <p className="text-victory-muted text-sm">
-              A training partner, not a coach — your AI sparring companion
+              {tx("ui.fighterBuddyCreator.aTrainingPartnerNot", "A training partner, not a coach — your AI sparring companion")}
             </p>
           </div>
         </div>
@@ -123,21 +124,21 @@ export default function FighterBuddyCreator() {
         {step === 1 ? (
           <div className="space-y-6 animate-fade-in">
             <div>
-              <label className="victory-label">Fighter Name</label>
+              <label className="victory-label">{tx("ui.fighterBuddyCreator.fighterName", "Fighter Name")}</label>
               <input
                 type="text"
                 value={buddyData.name}
                 onChange={(e) =>
                   setBuddyData({ ...buddyData, name: e.target.value })
                 }
-                placeholder="Give your buddy a name"
+                placeholder={tx("ui.fighterBuddyCreator.giveYourBuddyA", "Give your buddy a name")}
                 className="victory-input"
                 data-testid="buddy-name-input"
               />
             </div>
 
             <div>
-              <label className="victory-label">Weight Class</label>
+              <label className="victory-label">{tx("ui.fighterBuddyCreator.weightClass", "Weight Class")}</label>
               <Select
                 value={buddyData.weight_class}
                 onValueChange={(value) =>
@@ -162,7 +163,7 @@ export default function FighterBuddyCreator() {
             </div>
 
             <div>
-              <label className="victory-label">Stance</label>
+              <label className="victory-label">{tx("ui.fighterBuddyCreator.stance", "Stance")}</label>
               <div className="grid grid-cols-2 gap-3">
                 {STANCES.map((stance) => (
                   <button
@@ -182,7 +183,7 @@ export default function FighterBuddyCreator() {
             </div>
 
             <div>
-              <label className="victory-label">Favorite Punch</label>
+              <label className="victory-label">{tx("ui.fighterBuddyCreator.favoritePunch", "Favorite Punch")}</label>
               <Select
                 value={buddyData.favorite_punch}
                 onValueChange={(value) =>
@@ -212,7 +213,7 @@ export default function FighterBuddyCreator() {
               className="victory-btn-primary flex items-center justify-center gap-2"
               data-testid="next-step-btn"
             >
-              Choose Fighting Style
+              {tx("ui.fighterBuddyCreator.chooseFightingStyle", "Choose Fighting Style")}
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
@@ -222,11 +223,11 @@ export default function FighterBuddyCreator() {
               onClick={() => setStep(1)}
               className="text-victory-muted text-sm flex items-center gap-1 touch-target hover:text-victory-text mb-4"
             >
-              ← Back to details
+              {tx("ui.fighterBuddyCreator.backToDetails", "← Back to details")}
             </button>
 
             <h2 className="text-lg font-heading font-bold text-victory-text mb-4">
-              Choose {buddyData.name}'s Style
+              {tx("ui.fighterBuddyCreator.choose", "Choose")} {buddyData.name}{tx("ui.fighterBuddyCreator.sStyle", "'s Style")}
             </h2>
 
             <div className="space-y-3 max-h-[50vh] overflow-y-auto">
@@ -250,7 +251,7 @@ export default function FighterBuddyCreator() {
                     )}
                   </div>
                   <p className="text-victory-muted text-sm mb-2">
-                    Inspired by {archetype.inspired_by}
+                    {tx("ui.fighterBuddyCreator.inspiredBy", "Inspired by")} {archetype.inspired_by}
                   </p>
                   <p className="text-victory-text text-sm">
                     {archetype.personality}
@@ -263,13 +264,13 @@ export default function FighterBuddyCreator() {
             {selectedArchetype && (
               <div className="victory-card p-4 mt-4">
                 <h3 className="text-victory-lime font-semibold mb-2">
-                  {buddyData.name} Preview
+                  {buddyData.name} {tx("ui.fighterBuddyCreator.preview", "Preview")}
                 </h3>
                 <p className="text-victory-muted text-sm mb-2">
                   "{selectedArchetype.catchphrases?.[0]}"
                 </p>
                 <p className="text-victory-text text-sm">
-                  {buddyData.weight_class} • {buddyData.stance} • Loves the{" "}
+                  {buddyData.weight_class} • {buddyData.stance} {tx("ui.fighterBuddyCreator.lovesThe", "• Loves the")}{" "}
                   {buddyData.favorite_punch}
                 </p>
               </div>
@@ -284,12 +285,12 @@ export default function FighterBuddyCreator() {
               {loading ? (
                 <>
                   <span className="w-5 h-5 border-2 border-victory-bg border-t-transparent rounded-full animate-spin" />
-                  {generatingAvatar ? "Creating Avatar..." : "Creating..."}
+                  {generatingAvatar ? tx("ui.fighterBuddyCreator.creatingAvatar", "Creating Avatar...") : tx("ui.fighterBuddyCreator.creating", "Creating...")}
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  Create {buddyData.name || "Training Partner"}
+                  {tx("ui.fighterBuddyCreator.create", "Create")} {buddyData.name || tx("ui.fighterBuddyCreator.trainingPartner", "Training Partner")}
                 </>
               )}
             </button>

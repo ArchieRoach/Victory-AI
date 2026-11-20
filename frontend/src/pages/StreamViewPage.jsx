@@ -19,6 +19,7 @@ import { TokenPurchaseModal } from "@/components/streaming/TokenPurchaseModal";
 import { EmoteShop }          from "@/components/streaming/EmoteShop";
 import { HypeOverlay }        from "@/components/streaming/HypeOverlay";
 import { HighlightShareSheet } from "@/components/HighlightShareSheet";
+import { tx } from "@/i18n/tx";
 
 const TYPE_COLORS = {
   training: "bg-blue-500/20 text-blue-400",
@@ -91,7 +92,7 @@ export default function StreamViewPage() {
       } catch (err) {
         const status = err?.response?.status;
         if (status === 404) {
-          toast.error("Stream not found.");
+          toast.error(tx("ui.streamViewPage.streamNotFound", "Stream not found."));
           navigate("/live");
         } else if (status === 403) {
           setLoadError("This stream is private.");
@@ -151,7 +152,7 @@ export default function StreamViewPage() {
       setClipCaption(res.data.caption || "");
       setShowClipModal(true);
     } catch {
-      toast.error("Clip failed — try again.");
+      toast.error(tx("ui.streamViewPage.clipFailedTryAgain", "Clip failed — try again."));
     } finally {
       setClipping(false);
     }
@@ -165,7 +166,7 @@ export default function StreamViewPage() {
 
   const handleClipDismiss = () => {
     setShowClipModal(false);
-    toast.success("Clip saved to your profile!");
+    toast.success(tx("ui.streamViewPage.clipSavedToYour", "Clip saved to your profile!"));
   };
 
   // ── Follow / unfollow the streamer ───────────────────────────────────────
@@ -177,7 +178,7 @@ export default function StreamViewPage() {
       apply: () => setFollowing(!was),
       rollback: () => setFollowing(was),
       request: () => (was ? axios.delete(`${API}/follows/${stream.user_id}`) : axios.post(`${API}/follows/${stream.user_id}`)),
-      onError: (err) => toast.error(err?.response?.data?.detail || (was ? "Couldn't unfollow. Try again." : "Couldn't follow. Try again.")),
+      onError: (err) => toast.error(err?.response?.data?.detail || (was ? tx("ui.streamViewPage.couldnTUnfollowTry", "Couldn't unfollow. Try again.") : tx("ui.streamViewPage.couldnTFollowTry", "Couldn't follow. Try again."))),
     });
     setFollowBusy(false);
   };
@@ -202,12 +203,12 @@ export default function StreamViewPage() {
   if (!stream) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4 p-6 text-center">
-        <p className="text-victory-muted">{loadError || "Stream unavailable."}</p>
+        <p className="text-victory-muted">{loadError || tx("ui.streamViewPage.streamUnavailable", "Stream unavailable.")}</p>
         <button
           onClick={() => navigate("/live")}
           className="px-5 py-2 rounded-full bg-victory-lime text-black font-semibold"
         >
-          Back to live
+          {tx("ui.streamViewPage.backToLive", "Back to live")}
         </button>
       </div>
     );
@@ -235,10 +236,10 @@ export default function StreamViewPage() {
                 <Scissors className="w-5 h-5 text-victory-lime" />
               </div>
               <div>
-                <p className="text-victory-text font-bold">Clip saved!</p>
-                <p className="text-victory-muted text-xs">Share it to start trending</p>
+                <p className="text-victory-text font-bold">{tx("ui.streamViewPage.clipSaved", "Clip saved!")}</p>
+                <p className="text-victory-muted text-xs">{tx("ui.streamViewPage.shareItToStart", "Share it to start trending")}</p>
               </div>
-              <button onClick={handleClipDismiss} aria-label="Dismiss" className="w-11 h-11 -my-2.5 -mr-2 ml-auto flex items-center justify-center touch-target text-victory-muted">
+              <button onClick={handleClipDismiss} aria-label={tx("ui.streamViewPage.dismiss", "Dismiss")} className="w-11 h-11 -my-2.5 -mr-2 ml-auto flex items-center justify-center touch-target text-victory-muted">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -247,13 +248,13 @@ export default function StreamViewPage() {
                 onClick={handleClipShare}
                 className="flex-1 flex items-center justify-center gap-2 bg-victory-lime text-victory-bg font-bold py-3 rounded-xl"
               >
-                <Share2 className="w-4 h-4" /> Share Now
+                <Share2 className="w-4 h-4" /> {tx("ui.streamViewPage.shareNow", "Share Now")}
               </button>
               <button
                 onClick={handleClipDismiss}
                 className="flex-1 victory-btn-ghost py-3 text-sm"
               >
-                Later
+                {tx("ui.streamViewPage.later", "Later")}
               </button>
             </div>
           </div>
@@ -264,7 +265,7 @@ export default function StreamViewPage() {
       {showShareSheet && clipPost && (
         <ShareSheet
           post={clipPost}
-          onClose={() => { setShowShareSheet(false); toast.success("Clip shared!"); }}
+          onClose={() => { setShowShareSheet(false); toast.success(tx("ui.streamViewPage.clipShared", "Clip shared!")); }}
           onShared={() => {}}
         />
       )}
@@ -275,14 +276,14 @@ export default function StreamViewPage() {
 
       {/* ── Top bar ── */}
       <div className="flex items-center gap-3 px-4 py-3 bg-black/80">
-        <button onClick={() => navigate("/live")} aria-label="Go back" className="w-11 h-11 -mx-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text flex-shrink-0">
+        <button onClick={() => navigate("/live")} aria-label={tx("ui.streamViewPage.goBack", "Go back")} className="w-11 h-11 -mx-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text flex-shrink-0">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             {isLive && (
               <span className="flex items-center gap-1 bg-victory-danger text-white text-xs font-bold px-2 py-0.5 rounded">
-                <Radio className="w-3 h-3" /> LIVE
+                <Radio className="w-3 h-3" /> {tx("ui.streamViewPage.live", "LIVE")}
               </span>
             )}
             {stream.type && (
@@ -301,7 +302,7 @@ export default function StreamViewPage() {
         </div>
         <button
           onClick={() => setShowReport(true)}
-          aria-label="Report stream"
+          aria-label={tx("ui.streamViewPage.reportStream", "Report stream")}
           className="w-11 h-11 -mx-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-danger flex-shrink-0"
         >
           <Flag className="w-4 h-4" />
@@ -360,7 +361,7 @@ export default function StreamViewPage() {
                 }`}
               >
                 {following ? <UserCheck className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
-                {following ? "Following" : "Follow"}
+                {following ? tx("ui.streamViewPage.following", "Following") : tx("ui.streamViewPage.follow", "Follow")}
               </button>
             )}
 
@@ -379,7 +380,7 @@ export default function StreamViewPage() {
               className="flex items-center gap-1.5 touch-target border border-victory-border text-victory-text text-xs rounded-lg px-3 hover:border-victory-lime transition-colors"
             >
               <Smile className="w-3.5 h-3.5" />
-              Emotes
+              {tx("ui.streamViewPage.emotes", "Emotes")}
             </button>
 
             {isLive && user?.has_subscription && (
@@ -389,7 +390,7 @@ export default function StreamViewPage() {
                 className="flex items-center gap-1.5 touch-target border border-victory-border text-victory-text text-xs rounded-lg px-3 hover:border-victory-lime transition-colors disabled:opacity-50"
               >
                 <Scissors className="w-3.5 h-3.5" />
-                {clipping ? "Saving..." : "Clip 30s"}
+                {clipping ? tx("ui.streamViewPage.saving", "Saving...") : tx("ui.streamViewPage.clip30s", "Clip 30s")}
               </button>
             )}
           </div>
@@ -399,7 +400,7 @@ export default function StreamViewPage() {
       {/* ── Chat / Fantasy section ── */}
       <div className="flex-1 bg-victory-bg p-3 space-y-3">
         {showFantasy && (
-          <div className="flex gap-1.5" role="tablist" aria-label="Side panel">
+          <div className="flex gap-1.5" role="tablist" aria-label={tx("ui.streamViewPage.sidePanel", "Side panel")}>
             {[["chat", "Chat"], ["fantasy", "Fantasy"]].map(([key, label]) => (
               <button
                 key={key}
@@ -448,7 +449,7 @@ export default function StreamViewPage() {
             className="w-full touch-target rounded-xl border border-victory-lime/30 text-victory-lime text-xs font-semibold flex items-center justify-center gap-2 hover:bg-victory-lime/10 transition-colors"
           >
             <Zap className="w-3.5 h-3.5" />
-            Top up tokens to tip the streamer
+            {tx("ui.streamViewPage.topUpTokensTo", "Top up tokens to tip the streamer")}
           </button>
         )}
         </div>

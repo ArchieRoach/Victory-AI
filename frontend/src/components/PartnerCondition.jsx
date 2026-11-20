@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { TrendingDown, TrendingUp, Info, User } from "lucide-react";
 import { usePalette } from "@/hooks/useColorScheme";
 import { API } from "@/App";
+import { tx } from "@/i18n/tx";
 
 // Goal: fighters train a few times every week, and open the app to check on their partner.
 // Psychology: loss aversion and the endowment effect: we fight to keep what we've built.
@@ -45,7 +46,7 @@ export function PartnerCondition() {
                 <span className="font-mono font-bold text-victory-text text-lg flex items-center gap-1">
                   {c.stats[key]}
                   {drop ? <TrendingDown className="w-3.5 h-3.5 text-victory-orange" aria-label={`down ${-drop}`} />
-                    : c.change_7d > 0 ? <TrendingUp className="w-3.5 h-3.5 text-victory-lime" aria-label="rising" /> : null}
+                    : c.change_7d > 0 ? <TrendingUp className="w-3.5 h-3.5 text-victory-lime" aria-label={tx("ui.partnerCondition.rising", "rising")} /> : null}
                 </span>
                 <span className="text-victory-muted text-[10px]">{label}{drop ? ` (${drop})` : ""}</span>
               </div>
@@ -56,15 +57,15 @@ export function PartnerCondition() {
 
       <div className="px-3 pb-3 flex items-center gap-2">
         <button className={`${slipping || c.state === "new" ? "victory-btn-primary" : "victory-btn-secondary"} flex-1`} onClick={() => navigate("/train")}>
-          {c.state === "rusty" ? "Get them off the couch" : c.state === "waiting" ? "Back to the gym" : "Train together"}
+          {c.state === "rusty" ? tx("ui.partnerCondition.getThemOffThe", "Get them off the couch") : c.state === "waiting" ? tx("ui.partnerCondition.backToTheGym", "Back to the gym") : tx("ui.partnerCondition.trainTogether", "Train together")}
         </button>
-        <button aria-label="How these numbers work" className="w-11 h-11 rounded-full flex items-center justify-center text-victory-muted" onClick={() => setWhy((w) => !w)}>
+        <button aria-label={tx("ui.partnerCondition.howTheseNumbersWork", "How these numbers work")} className="w-11 h-11 rounded-full flex items-center justify-center text-victory-muted" onClick={() => setWhy((w) => !w)}>
           <Info className="w-4 h-4" />
         </button>
       </div>
       {why && (
         <p className="px-3 pb-3 text-[11px] text-victory-muted">
-          {c.note} {c.target ?? 3} sessions a week (the number you picked) keeps your partner in peak shape. Rest days are fine: your partner only slides after {c.waiting_after ?? 4} days without training.
+          {c.note} {c.target ?? 3} {tx("ui.partnerCondition.sessionsAWeekThe", "sessions a week (the number you picked) keeps your partner in peak shape. Rest days are fine: your partner only slides after")} {c.waiting_after ?? 4} {tx("ui.partnerCondition.daysWithoutTraining", "days without training.")}
         </p>
       )}
     </section>

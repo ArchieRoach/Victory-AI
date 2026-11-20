@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { DIMENSION_RUBRICS } from "@/pages/ScorePage";
 import { ReviewPromptModal, canShowReviewPrompt, reviewPromptAvailable } from "@/components/ReviewPromptModal";
+import { tx } from "@/i18n/tx";
 
 const JUDGE_DIMENSIONS = [
   "Jab", "Cross", "Left Hook", "Right Hook",
@@ -101,14 +102,14 @@ export default function CompetitionDetailPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-nav" data-testid="competition-detail-page">
       <header className="p-4 flex items-center gap-3 border-b border-victory-border">
-        <button onClick={() => navigate("/compete")} aria-label="Go back" className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
+        <button onClick={() => navigate("/compete")} aria-label={tx("ui.competitionDetailPage.goBack", "Go back")} className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-heading font-bold text-victory-text truncate">{comp.title}</h1>
           <div className="flex items-center gap-2 text-xs text-victory-muted">
             {isAI ? (
-              <span className="text-victory-lime font-semibold">AI {t("compete.judged")}</span>
+              <span className="text-victory-lime font-semibold">{tx("ui.competitionDetailPage.ai", "AI")} {t("compete.judged")}</span>
             ) : isOpen ? (
               <span className="text-victory-lime flex items-center gap-0.5">
                 <Clock className="w-3 h-3" />{timeLeft()}
@@ -235,7 +236,7 @@ export default function CompetitionDetailPage() {
                 <button
                   onClick={submitVote}
                   disabled={submitting}
-                  aria-label="Cast vote"
+                  aria-label={tx("ui.competitionDetailPage.castVote", "Cast vote")}
                   className="w-11 h-11 rounded-full bg-victory-lime flex items-center justify-center disabled:opacity-40 flex-shrink-0 touch-target"
                 >
                   {submitting ? (

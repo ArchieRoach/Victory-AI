@@ -2,6 +2,7 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { Lock, Zap, Sparkles } from "lucide-react";
 import { usePalette } from "@/hooks/useColorScheme";
 import { weekLabel } from "@/lib/progression";
+import { tx } from "@/i18n/tx";
 
 // Goal: visible progress that only ever goes up.
 // Psychology: goal-gradient (people speed up near a goal) and monitoring attachment (watching
@@ -13,22 +14,22 @@ export function LevelCard({ p }) {
     <section className="victory-card p-4 space-y-3" data-testid="level-card">
       <div className="flex items-end justify-between">
         <div>
-          <p className="section-label">Status</p>
+          <p className="section-label">{tx("ui.levelCard.status", "Status")}</p>
           <p className="text-victory-text font-heading font-extrabold text-2xl">
-            Level <span className="font-mono text-victory-lime">{p.level}</span>
+            {tx("ui.levelCard.level", "Level")} <span className="font-mono text-victory-lime">{p.level}</span>
             {p.title && <span className="ml-2 text-sm text-victory-teal font-semibold align-middle">{p.title}</span>}
           </p>
         </div>
         <p className="text-right text-[11px] text-victory-muted">
-          <span className="font-mono font-bold text-victory-text text-base">{p.status_points.toLocaleString()}</span><br />status points
+          <span className="font-mono font-bold text-victory-text text-base">{p.status_points.toLocaleString()}</span><br />{tx("ui.levelCard.statusPoints", "status points")}
         </p>
       </div>
       <div>
         <div className="h-2 rounded-full bg-victory-card-highlight overflow-hidden" role="progressbar"
-          aria-valuenow={p.pct} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to next level">
+          aria-valuenow={p.pct} aria-valuemin={0} aria-valuemax={100} aria-label={tx("ui.levelCard.progressToNextLevel", "Progress to next level")}>
           <div className="h-full bg-victory-lime rounded-full transition-all" style={{ width: `${p.pct}%` }} />
         </div>
-        <p className="text-[11px] text-victory-muted mt-1"><span className="font-mono text-victory-text">{p.to_next_level}</span> to level {p.level + 1}</p>
+        <p className="text-[11px] text-victory-muted mt-1"><span className="font-mono text-victory-text">{p.to_next_level}</span> {tx("ui.levelCard.toLevel", "to level")} {p.level + 1}</p>
       </div>
 
       {p.next_milestone && (
@@ -37,15 +38,15 @@ export function LevelCard({ p }) {
             <Lock className="w-4 h-4 text-victory-lime/70" />
           </div>
           <div className="min-w-0">
-            <p className="text-victory-text text-sm font-semibold">Level {p.next_milestone.level} unlocks {p.next_milestone.name}</p>
-            <p className="text-victory-muted text-[11px]">{p.next_milestone.desc} · {p.next_milestone.to_go} points to go</p>
+            <p className="text-victory-text text-sm font-semibold">{tx("ui.levelCard.level", "Level")} {p.next_milestone.level} {tx("ui.levelCard.unlocks", "unlocks")} {p.next_milestone.name}</p>
+            <p className="text-victory-muted text-[11px]">{p.next_milestone.desc} · {p.next_milestone.to_go} {tx("ui.levelCard.pointsToGo", "points to go")}</p>
           </div>
         </div>
       )}
 
       {p.boosters?.map((b) => (
         <div key={b.expires_at} className="flex items-center gap-2 text-[12px] text-victory-teal">
-          <Zap className="w-4 h-4" /> {b.label}: 2x status on your next {b.sessions_left > 1 ? `${b.sessions_left} sessions` : "session"}
+          <Zap className="w-4 h-4" /> {b.label}{tx("ui.levelCard.s2xStatusOnYour", ": 2x status on your next")} {b.sessions_left > 1 ? tx("ui.levelCard.sessions", "{{sessions_left}} sessions", { sessions_left: b.sessions_left }) : tx("ui.levelCard.session", "session")}
         </div>
       ))}
 
@@ -69,7 +70,7 @@ function WeeklyChart({ weeks }) {
   const data = weeks.map((w) => ({ ...w, label: weekLabel(w.week_id) }));
   return (
     <div>
-      <p className="section-label mb-1">Weekly points</p>
+      <p className="section-label mb-1">{tx("ui.levelCard.weeklyPoints", "Weekly points")}</p>
       <div className="h-28" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }} barCategoryGap={6}>
@@ -77,8 +78,8 @@ function WeeklyChart({ weeks }) {
             <Tooltip cursor={{ fill: `${palette.lime}14` }}
               content={({ active, payload }) => active && payload?.length ? (
                 <div className="bg-victory-card border border-victory-border rounded-lg px-3 py-2 text-[11px]">
-                  <p className="text-victory-text font-mono font-bold">{payload[0].payload.points} pts</p>
-                  <p className="text-victory-muted">{payload[0].payload.sessions} sessions</p>
+                  <p className="text-victory-text font-mono font-bold">{payload[0].payload.points} {tx("ui.levelCard.pts", "pts")}</p>
+                  <p className="text-victory-muted">{payload[0].payload.sessions} {tx("ui.levelCard.sessions2", "sessions")}</p>
                 </div>
               ) : null} />
             <Bar dataKey="points" fill={palette.lime} radius={[4, 4, 0, 0]} />
@@ -86,7 +87,7 @@ function WeeklyChart({ weeks }) {
         </ResponsiveContainer>
       </div>
       <ul className="sr-only">
-        {data.map((w) => <li key={w.week_id}>{w.label}: {w.points} points, {w.sessions} sessions</li>)}
+        {data.map((w) => <li key={w.week_id}>{w.label}: {w.points} {tx("ui.levelCard.points", "points,")} {w.sessions} {tx("ui.levelCard.sessions2", "sessions")}</li>)}
       </ul>
     </div>
   );

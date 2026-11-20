@@ -20,6 +20,7 @@ import { formatWeightClass, getWeightUnit } from "@/utils/weightClasses";
 import { ReportModal } from "@/components/ReportModal";
 import { FightFilm, FighterReputation } from "@/components/FightFilm";
 import { TrophyShelf } from "@/components/progress/TrophyShelf";
+import { tx } from "@/i18n/tx";
 
 // ── Follow list modal (followers / following) ─────────────────────────────────
 function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
@@ -47,7 +48,7 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
       apply: () => setFollowState((s) => ({ ...s, [targetId]: !currentlyFollowing })),
       rollback: () => setFollowState((s) => ({ ...s, [targetId]: currentlyFollowing })),
       request: () => (currentlyFollowing ? axios.delete(`${API}/follows/${targetId}`) : axios.post(`${API}/follows/${targetId}`)),
-      onError: () => toast.error(currentlyFollowing ? "Couldn't unfollow. Try again." : "Couldn't follow. Try again."),
+      onError: () => toast.error(currentlyFollowing ? tx("ui.publicProfilePage.couldnTUnfollowTry", "Couldn't unfollow. Try again.") : tx("ui.publicProfilePage.couldnTFollowTry", "Couldn't follow. Try again.")),
     });
     followInFlight.current.delete(targetId);
   };
@@ -71,7 +72,7 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
         <div className="flex items-center justify-between px-4 pt-3 pb-3 border-b border-victory-border">
           <div className="w-10 h-1 rounded-full bg-victory-border absolute top-2 left-1/2 -translate-x-1/2" />
           <p className="text-victory-text font-bold capitalize mt-1">{mode}</p>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={onClose} aria-label={tx("ui.publicProfilePage.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -84,9 +85,9 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
           ) : users.length === 0 ? (
             <div className="flex flex-col items-center text-center py-12 px-6">
               <Users className="w-8 h-8 text-victory-muted mb-3" />
-              <p className="text-victory-text font-bold">No {mode} yet</p>
+              <p className="text-victory-text font-bold">{tx("ui.publicProfilePage.no", "No")} {mode} {tx("ui.publicProfilePage.yet", "yet")}</p>
               <p className="text-victory-muted text-sm mt-1">
-                {mode === "followers" ? "When people follow this fighter, they'll show up here." : "Fighters this account follows will show up here."}
+                {mode === "followers" ? tx("ui.publicProfilePage.whenPeopleFollowThis", "When people follow this fighter, they'll show up here.") : tx("ui.publicProfilePage.fightersThisAccountFollows", "Fighters this account follows will show up here.")}
               </p>
             </div>
           ) : (
@@ -113,7 +114,7 @@ function FollowListModal({ userId, mode, onClose, weightUnit = "kg" }) {
                       : "border-victory-lime text-victory-lime hover:bg-victory-lime/10"
                   }`}
                 >
-                  {isFollowing(u) ? "Following" : "Follow"}
+                  {isFollowing(u) ? tx("ui.publicProfilePage.following", "Following") : tx("ui.publicProfilePage.follow", "Follow")}
                 </button>
               </div>
             ))
@@ -160,8 +161,8 @@ export function ClipsTab({ userId }) {
           <Clapperboard className="w-8 h-8 text-victory-muted" />
         </div>
         <div>
-          <p className="text-victory-text font-bold text-lg">No clips yet</p>
-          <p className="text-victory-muted text-sm mt-1">Clips will appear here once uploaded.</p>
+          <p className="text-victory-text font-bold text-lg">{tx("ui.publicProfilePage.noClipsYet", "No clips yet")}</p>
+          <p className="text-victory-muted text-sm mt-1">{tx("ui.publicProfilePage.clipsWillAppearHere", "Clips will appear here once uploaded.")}</p>
         </div>
       </div>
     );
@@ -182,11 +183,11 @@ export function ClipsTab({ userId }) {
           <button
             key={clip.post_id}
             onClick={() => setPlaying(playing === clip.post_id ? null : clip.post_id)}
-            aria-label={playing === clip.post_id ? "Pause clip" : "Play clip"}
+            aria-label={playing === clip.post_id ? tx("ui.publicProfilePage.pauseClip", "Pause clip") : tx("ui.publicProfilePage.playClip", "Play clip")}
             className="relative aspect-square bg-black overflow-hidden group"
           >
             {clip.thumbnail_url ? (
-              <img src={clip.thumbnail_url} alt={clip.caption || "Clip"}
+              <img src={clip.thumbnail_url} alt={clip.caption || tx("ui.publicProfilePage.clip", "Clip")}
                 className="w-full h-full object-cover group-hover:opacity-80 transition-opacity" />
             ) : (
               <video src={clip.video_url} className="w-full h-full object-cover" preload="none" />
@@ -235,7 +236,7 @@ export function ClipsTab({ userId }) {
                 className={`flex items-center gap-1.5 touch-target text-xs font-semibold transition-colors ${(clip.share_count || 0) > 0 ? "text-victory-orange" : "text-victory-muted hover:text-victory-orange"}`}
               >
                 <Share2 className="w-4 h-4" />
-                {clip.share_count > 0 ? clip.share_count : "Share"}
+                {clip.share_count > 0 ? clip.share_count : tx("ui.publicProfilePage.share", "Share")}
               </button>
             </div>
           </div>
@@ -270,7 +271,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!form.title.trim() || !form.scheduled_at) {
-      toast.error("Title and date/time are required");
+      toast.error(tx("ui.publicProfilePage.titleAndDateTime", "Title and date/time are required"));
       return;
     }
     setSaving(true);
@@ -279,13 +280,13 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
         ...form,
         scheduled_at: new Date(form.scheduled_at).toISOString(),
       });
-      toast.success("Stream scheduled!");
+      toast.success(tx("ui.publicProfilePage.streamScheduled", "Stream scheduled!"));
       setShowForm(false);
       setForm({ title: "", description: "", scheduled_at: "", category: "", weight_class: "" });
       fetch();
       onScheduleChange?.();
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not schedule stream");
+      toast.error(err?.response?.data?.detail || tx("ui.publicProfilePage.couldNotScheduleStream", "Could not schedule stream"));
     } finally {
       setSaving(false);
     }
@@ -300,7 +301,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
       setItems((prev) => prev.filter((i) => i.schedule_id !== id));
       onScheduleChange?.();
     } catch {
-      toast.error("Could not remove scheduled stream");
+      toast.error(tx("ui.publicProfilePage.couldNotRemoveScheduled", "Could not remove scheduled stream"));
     } finally {
       setDeletingId(null);
     }
@@ -320,18 +321,18 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
               className="w-full victory-btn-primary py-3 flex items-center justify-center gap-2 font-bold"
             >
               <CalendarDays className="w-4 h-4" />
-              Schedule a Stream
+              {tx("ui.publicProfilePage.scheduleAStream", "Schedule a Stream")}
             </button>
           ) : (
             <form onSubmit={handleCreate} className="space-y-3">
-              <p className="text-victory-text font-semibold text-sm">New Scheduled Stream</p>
+              <p className="text-victory-text font-semibold text-sm">{tx("ui.publicProfilePage.newScheduledStream", "New Scheduled Stream")}</p>
 
               <div>
-                <label className="victory-label">Stream Title</label>
+                <label className="victory-label">{tx("ui.publicProfilePage.streamTitle", "Stream Title")}</label>
                 <input
                   value={form.title}
                   onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                  placeholder="e.g. Saturday Morning Sparring Session"
+                  placeholder={tx("ui.publicProfilePage.eGSaturdayMorning", "e.g. Saturday Morning Sparring Session")}
                   className="victory-input"
                   maxLength={120}
                   required
@@ -339,7 +340,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
               </div>
 
               <div>
-                <label className="victory-label">Date &amp; Time</label>
+                <label className="victory-label">{tx("ui.publicProfilePage.dateTime", "Date & Time")}</label>
                 <input
                   type="datetime-local"
                   value={form.scheduled_at}
@@ -352,27 +353,27 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="victory-label">Category</label>
+                  <label className="victory-label">{tx("ui.publicProfilePage.category", "Category")}</label>
                   <select
                     value={form.category}
                     onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                     className="victory-input"
                   >
-                    <option value="">Any</option>
-                    <option value="Amateur">Amateur</option>
-                    <option value="Professional">Professional</option>
-                    <option value="Training">Training</option>
-                    <option value="Sparring">Sparring</option>
+                    <option value="">{tx("ui.publicProfilePage.any", "Any")}</option>
+                    <option value="Amateur">{tx("ui.publicProfilePage.amateur", "Amateur")}</option>
+                    <option value="Professional">{tx("ui.publicProfilePage.professional", "Professional")}</option>
+                    <option value="Training">{tx("ui.publicProfilePage.training", "Training")}</option>
+                    <option value="Sparring">{tx("ui.publicProfilePage.sparring", "Sparring")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="victory-label">Weight Class</label>
+                  <label className="victory-label">{tx("ui.publicProfilePage.weightClass", "Weight Class")}</label>
                   <select
                     value={form.weight_class}
                     onChange={(e) => setForm((f) => ({ ...f, weight_class: e.target.value }))}
                     className="victory-input"
                   >
-                    <option value="">Any</option>
+                    <option value="">{tx("ui.publicProfilePage.any", "Any")}</option>
                     {["Strawweight","Flyweight","Bantamweight","Featherweight","Lightweight","Welterweight","Middleweight","Light Heavyweight","Heavyweight"].map((w) => (
                       <option key={w} value={w}>{w}</option>
                     ))}
@@ -381,11 +382,11 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
               </div>
 
               <div>
-                <label className="victory-label">Description <span className="text-victory-muted font-normal">(optional)</span></label>
+                <label className="victory-label">{tx("ui.publicProfilePage.description", "Description")} <span className="text-victory-muted font-normal">{tx("ui.publicProfilePage.optional", "(optional)")}</span></label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  placeholder="What's this session about?"
+                  placeholder={tx("ui.publicProfilePage.whatSThisSession", "What's this session about?")}
                   rows={2}
                   maxLength={300}
                   className="victory-input resize-none"
@@ -395,11 +396,11 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
               <div className="flex gap-3">
                 <button type="button" onClick={() => setShowForm(false)}
                   className="flex-1 victory-btn-ghost py-3 text-sm font-semibold">
-                  Cancel
+                  {tx("ui.publicProfilePage.cancel", "Cancel")}
                 </button>
                 <button type="submit" disabled={saving}
                   className="flex-1 victory-btn-primary py-3 text-sm font-bold disabled:opacity-50">
-                  {saving ? "Saving…" : "Schedule"}
+                  {saving ? tx("ui.publicProfilePage.saving", "Saving…") : tx("ui.publicProfilePage.schedule", "Schedule")}
                 </button>
               </div>
             </form>
@@ -418,9 +419,9 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
             <CalendarDays className="w-8 h-8 text-victory-muted" />
           </div>
           <div>
-            <p className="text-victory-text font-bold text-lg">No scheduled streams</p>
+            <p className="text-victory-text font-bold text-lg">{tx("ui.publicProfilePage.noScheduledStreams", "No scheduled streams")}</p>
             <p className="text-victory-muted text-sm mt-1">
-              {isOwn ? "Schedule your next session above." : "This channel has no upcoming streams."}
+              {isOwn ? tx("ui.publicProfilePage.scheduleYourNextSession", "Schedule your next session above.") : tx("ui.publicProfilePage.thisChannelHasNo", "This channel has no upcoming streams.")}
             </p>
           </div>
         </div>
@@ -461,7 +462,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
                     {soon && (
                       <span className="flex items-center gap-1 text-[10px] text-victory-lime font-semibold">
                         <Clock className="w-3 h-3" />
-                        Soon
+                        {tx("ui.publicProfilePage.soon", "Soon")}
                       </span>
                     )}
                   </div>
@@ -483,7 +484,7 @@ export function ScheduleTab({ userId, isOwn, onScheduleChange, weightUnit = "kg"
                   >
                     {deletingId === item.schedule_id ? (
                       <span className="w-3 h-3 border-2 border-victory-muted border-t-transparent rounded-full animate-spin" />
-                    ) : "Remove"}
+                    ) : tx("ui.publicProfilePage.remove", "Remove")}
                   </button>
                 )}
               </div>
@@ -526,8 +527,8 @@ export default function PublicProfilePage() {
     window.history.replaceState(null, "", window.location.pathname);
     axios.get(`${API}/gloves/gift/confirm`, { params: { session_id: sid } })
       .then(({ data }) => {
-        if (data.paid) { toast.success("Gloves gifted. They'll see them on their shelf."); setShelfKey((k) => k + 1); }
-        else toast("Payment still processing: the gloves will appear shortly.");
+        if (data.paid) { toast.success(tx("ui.publicProfilePage.glovesGiftedTheyLl", "Gloves gifted. They'll see them on their shelf.")); setShelfKey((k) => k + 1); }
+        else toast(tx("ui.publicProfilePage.paymentStillProcessingThe", "Payment still processing: the gloves will appear shortly."));
       })
       .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -567,7 +568,7 @@ export default function PublicProfilePage() {
       apply: () => set(!was),
       rollback: () => set(was),
       request: () => (was ? axios.delete(`${API}/follows/${userId}`) : axios.post(`${API}/follows/${userId}`)),
-      onError: () => toast.error(was ? "Couldn't unfollow. Try again." : "Couldn't follow. Try again."),
+      onError: () => toast.error(was ? tx("ui.publicProfilePage.couldnTUnfollowTry", "Couldn't unfollow. Try again.") : tx("ui.publicProfilePage.couldnTFollowTry", "Couldn't follow. Try again.")),
     });
     setFollowLoading(false);
   };
@@ -634,7 +635,7 @@ export default function PublicProfilePage() {
   const hasVirtRecord  = profile.competition_wins > 0 || profile.competition_losses > 0;
 
   const TABS = [
-    { key: "home",     label: "Home" },
+    { key: "home",     get label() { return tx("ui.publicProfilePage.home", "Home"); } },
     { key: "clips",    label: `Clips${profile.clip_count > 0 ? ` (${profile.clip_count})` : ""}` },
     { key: "schedule", label: `Schedule${profile.upcoming_stream_count > 0 ? ` · ${profile.upcoming_stream_count}` : ""}` },
   ];
@@ -657,7 +658,7 @@ export default function PublicProfilePage() {
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <header className="p-4 flex items-center gap-3 relative">
-        <button onClick={() => navigate(-1)} aria-label="Go back"
+        <button onClick={() => navigate(-1)} aria-label={tx("ui.publicProfilePage.goBack", "Go back")}
           className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
@@ -674,7 +675,7 @@ export default function PublicProfilePage() {
         </button>
         <button
           onClick={() => setMenuOpen((v) => !v)}
-          aria-label="More options"
+          aria-label={tx("ui.publicProfilePage.moreOptions", "More options")}
           className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center touch-target flex-shrink-0"
         >
           <MoreVertical className="w-5 h-5 text-victory-muted" />
@@ -838,7 +839,7 @@ export default function PublicProfilePage() {
                 </div>
               </div>
               <p className={`text-center text-[11px] mt-3 ${profile.amateur_verified_by ? "text-victory-teal" : "text-victory-muted"}`}>
-                {profile.amateur_verified_by ? `Verified by ${profile.amateur_verified_by}` : "Self-reported"}
+                {profile.amateur_verified_by ? tx("ui.publicProfilePage.verifiedBy", "Verified by {{amateur_verified_by}}", { amateur_verified_by: profile.amateur_verified_by }) : tx("ui.publicProfilePage.selfReported", "Self-reported")}
               </p>
             </section>
           )}
@@ -867,7 +868,7 @@ export default function PublicProfilePage() {
           {profile.belts?.length > 0 && (
             <section className="px-4 pb-4">
               <h2 className="text-victory-text font-bold text-sm mb-3 flex items-center gap-2">
-                <span className="text-base">🏆</span> Belts &amp; Titles
+                <span className="text-base">🏆</span> {tx("ui.publicProfilePage.beltsTitles", "Belts & Titles")}
               </h2>
               <div className="flex flex-wrap gap-2">
                 {profile.belts.map((belt) => (

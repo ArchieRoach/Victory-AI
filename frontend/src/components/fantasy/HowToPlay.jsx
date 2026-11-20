@@ -1,13 +1,14 @@
 import { Users, Tv, Star } from "lucide-react";
 import { POINTS } from "@/lib/fantasyScoring";
+import { tx } from "@/i18n/tx";
 
 // The whole game in three steps and five point values, shown before the first pick.
 // Chunking (3 steps) and concrete numbers beat a rules page: people learn a game by
 // seeing what scores, not by reading how scoring works.
 const STEPS = [
-  { icon: Users, text: "Pick 3 boxers" },
-  { icon: Tv, text: "Watch them fight" },
-  { icon: Star, text: "Get points when they win" },
+  { icon: Users, get text() { return tx("ui.howToPlay.pick3Boxers", "Pick 3 boxers"); } },
+  { icon: Tv, get text() { return tx("ui.howToPlay.watchThemFight", "Watch them fight"); } },
+  { icon: Star, get text() { return tx("ui.howToPlay.getPointsWhenThey", "Get points when they win"); } },
 ];
 
 const SCORES = [

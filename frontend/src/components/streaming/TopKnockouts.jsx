@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { API } from "@/App";
 import { Trophy, ChevronDown, ChevronUp } from "lucide-react";
+import { tx } from "@/i18n/tx";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 const RANK_COLORS = ["text-yellow-400", "text-slate-300", "text-amber-600"];
@@ -62,7 +63,7 @@ export function TopKnockouts({ streamId, refreshTrigger }) {
       >
         <div className="flex items-center gap-2">
           <Trophy className="w-4 h-4 text-yellow-400" />
-          <span className="text-victory-text text-sm font-semibold">Top Knockouts</span>
+          <span className="text-victory-text text-sm font-semibold">{tx("ui.topKnockouts.topKnockouts", "Top Knockouts")}</span>
           {rows.length > 0 && !collapsed && (
             <div className="flex gap-2 ml-1">
               {["session", "lifetime"].map((s) => (
@@ -104,7 +105,7 @@ export function TopKnockouts({ streamId, refreshTrigger }) {
                 <p className="text-victory-text text-xs font-semibold truncate">{row.user_name}</p>
               </div>
               <span className={`text-xs font-mono font-bold ${RANK_COLORS[i]}`}>
-                {row.total.toLocaleString()} <span className="opacity-60 font-normal">tkn</span>
+                {row.total.toLocaleString()} <span className="opacity-60 font-normal">{tx("ui.topKnockouts.tkn", "tkn")}</span>
               </span>
             </div>
           ))}

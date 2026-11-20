@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import { ArrowLeft, Printer, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
+import { tx } from "@/i18n/tx";
 
 // Goal: more real gym sessions, and gyms that promote the app for us.
 // Psychology: a physical object is a prompt right where training happens (Fogg), and effort
@@ -19,7 +20,7 @@ export default function GymPosterPage() {
 
   useEffect(() => {
     axios.get(`${API}/gyms/${gymId}/checkin-poster`).then((r) => setPoster(r.data))
-      .catch((e) => { toast.error(e?.response?.data?.detail || "Couldn't load the poster"); navigate(`/gyms/${gymId}`); });
+      .catch((e) => { toast.error(e?.response?.data?.detail || tx("ui.gymPosterPage.couldnTLoadThe", "Couldn't load the poster")); navigate(`/gyms/${gymId}`); });
   }, [gymId, navigate]);
 
   useEffect(() => {
@@ -32,34 +33,34 @@ export default function GymPosterPage() {
     try {
       const { data } = await axios.post(`${API}/gyms/${gymId}/checkin-poster/new`);
       setPoster(data);
-      toast.success("New poster ready. Print it and swap the old one.");
+      toast.success(tx("ui.gymPosterPage.newPosterReadyPrint", "New poster ready. Print it and swap the old one."));
     } catch {
-      toast.error("Couldn't make a new poster");
+      toast.error(tx("ui.gymPosterPage.couldnTMakeA", "Couldn't make a new poster"));
     }
   };
 
   return (
     <div className="min-h-screen bg-victory-bg" data-testid="gym-poster-page">
       <header className="p-4 flex items-center gap-3 print:hidden">
-        <button onClick={() => navigate(`/gyms/${gymId}`)} aria-label="Go back"
+        <button onClick={() => navigate(`/gyms/${gymId}`)} aria-label={tx("ui.gymPosterPage.goBack", "Go back")}
           className="w-11 h-11 rounded-full bg-victory-card border border-victory-border flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
-        <h1 className="flex-1 text-lg font-heading font-bold text-victory-text">Check-in poster</h1>
+        <h1 className="flex-1 text-lg font-heading font-bold text-victory-text">{tx("ui.gymPosterPage.checkInPoster", "Check-in poster")}</h1>
       </header>
       <main className="max-w-md mx-auto p-4 space-y-4">
         {!poster ? <div className="skeleton-shimmer h-96 rounded-lg" /> : (
           <>
             <section className="rounded-2xl bg-white text-black p-6 text-center space-y-3 print:shadow-none">
-              <p className="text-xs font-bold uppercase tracking-[0.2em]">Victory AI</p>
-              <h2 className="text-2xl font-extrabold leading-tight">Training at {poster.gym}?</h2>
-              <p className="text-sm">Scan before you train. Your verified time today counts <b>{poster.multiplier}x</b> for the gym.</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em]">{tx("ui.gymPosterPage.victoryAi", "Victory AI")}</p>
+              <h2 className="text-2xl font-extrabold leading-tight">{tx("ui.gymPosterPage.trainingAt", "Training at")} {poster.gym}?</h2>
+              <p className="text-sm">{tx("ui.gymPosterPage.scanBeforeYouTrain", "Scan before you train. Your verified time today counts")} <b>{poster.multiplier}x</b> {tx("ui.gymPosterPage.forTheGym", "for the gym.")}</p>
               {qr ? <img src={qr} alt={`Check-in code for ${poster.gym}`} className="w-64 h-64 mx-auto" /> : <div className="w-64 h-64 mx-auto bg-gray-100" />}
-              <p className="text-[11px] text-gray-600">No location tracking. The code only tells us which gym.</p>
+              <p className="text-[11px] text-gray-600">{tx("ui.gymPosterPage.noLocationTrackingThe", "No location tracking. The code only tells us which gym.")}</p>
             </section>
             <div className="grid grid-cols-2 gap-2 print:hidden">
-              <button className="victory-btn-primary flex items-center justify-center gap-2" onClick={() => window.print()}><Printer className="w-4 h-4" /> Print</button>
-              <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={fresh}><RefreshCw className="w-4 h-4" /> New code</button>
+              <button className="victory-btn-primary flex items-center justify-center gap-2" onClick={() => window.print()}><Printer className="w-4 h-4" /> {tx("ui.gymPosterPage.print", "Print")}</button>
+              <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={fresh}><RefreshCw className="w-4 h-4" /> {tx("ui.gymPosterPage.newCode", "New code")}</button>
             </div>
           </>
         )}

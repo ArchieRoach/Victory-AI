@@ -6,6 +6,7 @@ import { ArrowLeft, BadgeCheck, Instagram, ShieldCheck, Swords, Trophy } from "l
 import { API, useAuth } from "@/App";
 import { MerchSheet } from "@/components/pro/MerchSheet";
 import { gbp } from "@/lib/proShop";
+import { tx } from "@/i18n/tx";
 
 // The Fighter Card: the alias is the headline, because that's the fighter's brand.
 export default function ProCardPage() {
@@ -20,7 +21,7 @@ export default function ProCardPage() {
     axios.get(`${API}/pros/${userId}`).then((r) => setData(r.data)).catch(() => setData(false));
   }, [userId]);
 
-  if (data === false) return <div className="min-h-screen bg-victory-bg p-6 text-victory-muted">Fighter not found.</div>;
+  if (data === false) return <div className="min-h-screen bg-victory-bg p-6 text-victory-muted">{tx("ui.proCardPage.fighterNotFound", "Fighter not found.")}</div>;
   if (!data) return <div className="min-h-screen bg-victory-bg p-6"><div className="skeleton-shimmer h-48 rounded-lg" /></div>;
   const f = data.fighter;
   const isMe = user?.user_id === f.user_id;
@@ -30,11 +31,11 @@ export default function ProCardPage() {
     try {
       await axios.post(`${API}/pro/${f.user_id}/train-with`);
       await refreshUser?.();
-      toast.success(`${f.alias} is now your training partner`);
+      toast.success(tx("ui.proCardPage.isNowYourTraining", "{{alias}} is now your training partner", { alias: f.alias }));
       navigate("/train");
     } catch (e) {
       if (e?.response?.status === 402) navigate("/paywall");
-      else toast.error(e?.response?.data?.detail || "Couldn't switch partner. Try again.");
+      else toast.error(e?.response?.data?.detail || tx("ui.proCardPage.couldnTSwitchPartner", "Couldn't switch partner. Try again."));
     }
     setBusy(false);
   };
@@ -42,14 +43,14 @@ export default function ProCardPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-10" data-testid="pro-card">
       <header className="p-4 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} aria-label="Back" className="w-11 h-11 flex items-center justify-center text-victory-muted"><ArrowLeft className="w-5 h-5" /></button>
-        {isMe && <button className="text-victory-lime text-sm font-semibold min-h-[44px]" onClick={() => navigate("/pro/dashboard")}>Manage</button>}
+        <button onClick={() => navigate(-1)} aria-label={tx("ui.proCardPage.back", "Back")} className="w-11 h-11 flex items-center justify-center text-victory-muted"><ArrowLeft className="w-5 h-5" /></button>
+        {isMe && <button className="text-victory-lime text-sm font-semibold min-h-[44px]" onClick={() => navigate("/pro/dashboard")}>{tx("ui.proCardPage.manage", "Manage")}</button>}
       </header>
       <main className="px-4 space-y-5">
         <section className="text-center space-y-2">
           {f.picture && <img src={f.picture} alt="" className="w-24 h-24 rounded-full object-cover mx-auto border-2 border-victory-lime" />}
           <h1 className="font-heading font-extrabold text-victory-lime text-3xl uppercase tracking-wide leading-none">{f.alias}</h1>
-          <p className="text-victory-text font-semibold flex items-center justify-center gap-1.5">{f.ring_name} {f.verified && <BadgeCheck className="w-4 h-4 text-victory-teal" aria-label="Verified pro" />}</p>
+          <p className="text-victory-text font-semibold flex items-center justify-center gap-1.5">{f.ring_name} {f.verified && <BadgeCheck className="w-4 h-4 text-victory-teal" aria-label={tx("ui.proCardPage.verifiedPro", "Verified pro")} />}</p>
           <p className="text-victory-muted text-sm">{f.division} · <span className="font-mono">{f.record}</span></p>
           {f.titles.length > 0 && (
             <div className="flex flex-wrap justify-center gap-1.5 pt-1">
@@ -59,7 +60,7 @@ export default function ProCardPage() {
           {f.bio && <p className="text-victory-text text-sm max-w-md mx-auto">{f.bio}</p>}
           <div className="flex justify-center gap-4 text-xs">
             {f.instagram && <a href={`https://instagram.com/${f.instagram}`} target="_blank" rel="noreferrer" className="text-victory-muted flex items-center gap-1 min-h-[44px]"><Instagram className="w-4 h-4" /> @{f.instagram}</a>}
-            {f.boxrec_url && <a href={f.boxrec_url} target="_blank" rel="noreferrer" className="text-victory-muted min-h-[44px] flex items-center">BoxRec</a>}
+            {f.boxrec_url && <a href={f.boxrec_url} target="_blank" rel="noreferrer" className="text-victory-muted min-h-[44px] flex items-center">{tx("ui.proCardPage.boxrec", "BoxRec")}</a>}
           </div>
         </section>
 
@@ -67,16 +68,16 @@ export default function ProCardPage() {
           <section className="victory-card p-4 flex items-center gap-3 border-victory-lime/40" data-testid="train-with">
             {f.alias_partner.avatar_url && <img src={f.alias_partner.avatar_url} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />}
             <div className="flex-1 min-w-0">
-              <p className="text-victory-text font-heading font-bold">Train with {f.alias}</p>
-              <p className="text-victory-muted text-xs">Make {f.alias} your AI training partner. A Pro feature.</p>
+              <p className="text-victory-text font-heading font-bold">{tx("ui.proCardPage.trainWith", "Train with")} {f.alias}</p>
+              <p className="text-victory-muted text-xs">{tx("ui.proCardPage.make", "Make")} {f.alias} {tx("ui.proCardPage.yourAiTrainingPartner", "your AI training partner. A Pro feature.")}</p>
             </div>
             <button className="victory-btn-primary w-auto px-4 min-h-[44px] text-sm" disabled={busy} onClick={trainWith}><Swords className="w-4 h-4" /></button>
           </section>
         )}
 
         <section className="space-y-2">
-          <p className="section-label">Shop</p>
-          {data.merch.length === 0 ? <p className="text-victory-muted text-sm">No merch yet.</p> : (
+          <p className="section-label">{tx("ui.proCardPage.shop", "Shop")}</p>
+          {data.merch.length === 0 ? <p className="text-victory-muted text-sm">{tx("ui.proCardPage.noMerchYet", "No merch yet.")}</p> : (
             <div className="grid grid-cols-2 gap-3">
               {data.merch.map((i) => (
                 <button key={i.item_id} onClick={() => setOpen(i)} className="victory-card overflow-hidden text-left">
@@ -84,7 +85,7 @@ export default function ProCardPage() {
                   <div className="p-2.5">
                     <p className="text-victory-text text-sm font-semibold truncate">{i.title}</p>
                     <p className="font-mono text-victory-lime text-sm font-bold">{gbp(i.price_gbp)}</p>
-                    <p className="text-victory-muted text-[10px] flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Buyer Protection</p>
+                    <p className="text-victory-muted text-[10px] flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> {tx("ui.proCardPage.buyerProtection", "Buyer Protection")}</p>
                   </div>
                 </button>
               ))}

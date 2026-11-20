@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight, Swords, Shield, Footprints } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { usePalette } from "@/hooks/useColorScheme";
+import { tx } from "@/i18n/tx";
 
 // Same 3-ring category pattern SessionResultsPage.jsx actually shows after a real
 // session — a real user complained the old 16-spoke radar chart here "doesn't really
@@ -28,7 +29,7 @@ export default function WelcomePage() {
         <div className="mb-8">
           <img
             src="/mascot-render.png"
-            alt="Victory AI"
+            alt={tx("ui.welcomePage.victoryAi", "Victory AI")}
             className="h-60 w-auto mx-auto object-contain"
             data-testid="app-logo"
           />
@@ -97,7 +98,7 @@ export default function WelcomePage() {
         </button>
 
         <button onClick={() => navigate("/style")} className="victory-btn-secondary mt-3" data-testid="style-quiz-link">
-          What kind of fighter are you? Take the quiz
+          {tx("ui.welcomePage.whatKindOfFighter", "What kind of fighter are you? Take the quiz")}
         </button>
 
         <p className="mt-6 text-victory-muted text-sm">

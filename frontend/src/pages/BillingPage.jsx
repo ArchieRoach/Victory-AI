@@ -9,6 +9,7 @@ import { analytics } from "@/lib/analytics";
 import { founderTerms, money, formatDate } from "@/lib/billing";
 import { isNativeShell } from "@/lib/nativeShell";
 import { nativeCustomerCenter } from "@/lib/nativeBridge";
+import { tx } from "@/i18n/tx";
 
 // Goal: keep founders subscribed without making cancelling any harder than one extra,
 // honest screen. Psychology: loss aversion — losing something you own hurts about twice as
@@ -38,9 +39,9 @@ export default function BillingPage() {
       setBilling(data);
       setStep("view");
       analytics.capture(action === "cancel" ? "subscription_cancel_confirmed" : "subscription_resumed", { founder: !!terms });
-      toast.success(action === "cancel" ? `Cancelled. You keep access until ${endsOn || "the end of this period"}.` : "You're staying. Founder price kept.");
+      toast.success(action === "cancel" ? `Cancelled. You keep access until ${endsOn || "the end of this period"}.` : tx("ui.billingPage.youReStayingFounder", "You're staying. Founder price kept."));
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Couldn't reach billing — try again");
+      toast.error(err?.response?.data?.detail || tx("ui.billingPage.couldnTReachBilling", "Couldn't reach billing — try again"));
     }
     setBusy(false);
   };
@@ -58,10 +59,10 @@ export default function BillingPage() {
   return (
     <div className="min-h-screen bg-victory-bg pb-nav">
       <header className="p-4 flex items-center gap-2 max-w-lg mx-auto">
-        <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 -ml-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+        <button onClick={() => navigate(-1)} aria-label={tx("ui.billingPage.goBack", "Go back")} className="w-11 h-11 -ml-2 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-xl font-heading font-extrabold text-victory-text">Subscription</h1>
+        <h1 className="text-xl font-heading font-extrabold text-victory-text">{tx("ui.billingPage.subscription", "Subscription")}</h1>
       </header>
 
       <main className="max-w-lg mx-auto px-4 space-y-4">
@@ -69,8 +70,8 @@ export default function BillingPage() {
 
         {billing && !billing.status && (
           <div className="victory-card p-4 space-y-3">
-            <p className="text-victory-text">You don't have a subscription.</p>
-            {!isNativeShell() && <button onClick={() => navigate("/paywall")} className="victory-btn-primary">See plans</button>}
+            <p className="text-victory-text">{tx("ui.billingPage.youDonTHave", "You don't have a subscription.")}</p>
+            {!isNativeShell() && <button onClick={() => navigate("/paywall")} className="victory-btn-primary">{tx("ui.billingPage.seePlans", "See plans")}</button>}
           </div>
         )}
 
@@ -78,23 +79,23 @@ export default function BillingPage() {
           <>
             <section className="victory-card p-4 space-y-3" data-testid="billing-summary">
               <div className="flex items-center justify-between">
-                <p className="section-label flex items-center gap-1.5"><CreditCard className="w-3 h-3" /> {billing.plan_id === "lifetime" ? "Lifetime" : billing.plan_id === "annual" ? "Annual" : "Monthly"} plan</p>
-                <span className="text-victory-muted text-xs capitalize">{billing.status === "trialing" ? "Free trial" : billing.status.replace("_", " ")}</span>
+                <p className="section-label flex items-center gap-1.5"><CreditCard className="w-3 h-3" /> {billing.plan_id === "lifetime" ? tx("ui.billingPage.lifetime", "Lifetime") : billing.plan_id === "annual" ? tx("ui.billingPage.annual", "Annual") : tx("ui.billingPage.monthly", "Monthly")} {tx("ui.billingPage.plan", "plan")}</p>
+                <span className="text-victory-muted text-xs capitalize">{billing.status === "trialing" ? tx("ui.billingPage.freeTrial", "Free trial") : billing.status.replace("_", " ")}</span>
               </div>
               {appStore ? (
-                <p className="text-victory-text text-sm">{billing.plan_id === "lifetime" ? "Bought once through the App Store: yours for life" : "Billed through the App Store"}</p>
+                <p className="text-victory-text text-sm">{billing.plan_id === "lifetime" ? tx("ui.billingPage.boughtOnceThroughThe", "Bought once through the App Store: yours for life") : tx("ui.billingPage.billedThroughTheApp", "Billed through the App Store")}</p>
               ) : <p className="font-heading font-extrabold text-2xl text-victory-text">
                 {money(billing.price, billing.currency)}<span className="text-victory-muted text-sm font-body font-normal">/{unit}</span>
                 {terms && <span className="ml-2 text-victory-muted text-sm font-body font-normal line-through">{terms.regular}</span>}
               </p>}
               {terms && (
                 <p className="text-victory-lime text-sm flex items-center gap-1.5" data-testid="founder-badge">
-                  <Lock className="w-3.5 h-3.5" /> Founder price, yours for life while you stay subscribed
+                  <Lock className="w-3.5 h-3.5" /> {tx("ui.billingPage.founderPriceYoursFor", "Founder price, yours for life while you stay subscribed")}
                 </p>
               )}
               {endsOn && (
                 <p className="text-victory-muted text-sm">
-                  {billing.cancel_at_period_end ? `Ends on ${endsOn}` : `${billing.status === "trialing" ? "First payment" : "Renews"} on ${endsOn}`}
+                  {billing.cancel_at_period_end ? tx("ui.billingPage.endsOn", "Ends on {{endsOn}}", { endsOn }) : `${billing.status === "trialing" ? "First payment" : "Renews"} on ${endsOn}`}
                 </p>
               )}
             </section>
@@ -102,12 +103,12 @@ export default function BillingPage() {
             {billing.cancel_at_period_end && (
               <section className="victory-card p-4 space-y-3 border-victory-orange/40" data-testid="cancel-pending">
                 <p className="text-victory-text text-sm">
-                  Your subscription ends on {endsOn || "the end of this period"}.
-                  {terms && <> Your founder price of {terms.now} ends with it and can't be got back afterwards.</>}
+                  {tx("ui.billingPage.yourSubscriptionEndsOn", "Your subscription ends on")} {endsOn || tx("ui.billingPage.theEndOfThis", "the end of this period")}.
+                  {terms && <> {tx("ui.billingPage.yourFounderPriceOf", "Your founder price of")} {terms.now} {tx("ui.billingPage.endsWithItAnd", "ends with it and can't be got back afterwards.")}</>}
                 </p>
                 {billing.manageable && !isNativeShell() && (
                   <button onClick={() => change("resume")} disabled={busy} className="victory-btn-primary disabled:opacity-50">
-                    {terms ? `Stay subscribed and keep ${terms.now}` : "Stay subscribed"}
+                    {terms ? tx("ui.billingPage.staySubscribedAndKeep", "Stay subscribed and keep {{now}}", { now: terms.now }) : tx("ui.billingPage.staySubscribed", "Stay subscribed")}
                   </button>
                 )}
               </section>
@@ -115,16 +116,16 @@ export default function BillingPage() {
 
             {appStore && isNativeShell() ? (
               <button onClick={() => nativeCustomerCenter()} className="victory-btn-ghost w-full" data-testid="customer-center">
-                Manage subscription
+                {tx("ui.billingPage.manageSubscription", "Manage subscription")}
               </button>
             ) : appStore ? (
-              <p className="text-victory-muted text-xs text-center">To change or cancel, open iPhone Settings, tap your name, then Subscriptions.</p>
+              <p className="text-victory-muted text-xs text-center">{tx("ui.billingPage.toChangeOrCancel", "To change or cancel, open iPhone Settings, tap your name, then Subscriptions.")}</p>
             ) : isNativeShell() ? (
-              <p className="text-victory-muted text-xs text-center">To change or cancel your subscription, sign in at victory-ai on the web.</p>
+              <p className="text-victory-muted text-xs text-center">{tx("ui.billingPage.toChangeOrCancel2", "To change or cancel your subscription, sign in at victory-ai on the web.")}</p>
             ) : (
               billing.manageable && !billing.cancel_at_period_end && (
                 <button onClick={startCancel} className="w-full text-victory-muted text-sm underline min-h-[44px]" data-testid="cancel-start">
-                  Cancel subscription
+                  {tx("ui.billingPage.cancelSubscription", "Cancel subscription")}
                 </button>
               )
             )}
@@ -138,27 +139,26 @@ export default function BillingPage() {
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 text-victory-orange flex-shrink-0 mt-0.5" />
                   <div className="space-y-2">
-                    <p className="text-victory-text font-heading font-bold">You'll lose your founder price</p>
+                    <p className="text-victory-text font-heading font-bold">{tx("ui.billingPage.youLlLoseYour", "You'll lose your founder price")}</p>
                     <p className="text-victory-text text-sm">
-                      You pay <span className="font-mono text-victory-lime">{terms.now}</span> for life. If you cancel, it's gone for
-                      good. Founder codes can only be used once, so coming back would cost{" "}
-                      <span className="font-mono">{terms.regular}</span>, about {terms.extraPerYear} more a year.
+                      {tx("ui.billingPage.youPay", "You pay")} <span className="font-mono text-victory-lime">{terms.now}</span> {tx("ui.billingPage.forLifeIfYou", "for life. If you cancel, it's gone for good. Founder codes can only be used once, so coming back would cost")}{" "}
+                      <span className="font-mono">{terms.regular}</span>{tx("ui.billingPage.about", ", about")} {terms.extraPerYear} {tx("ui.billingPage.moreAYear", "more a year.")}
                     </p>
                   </div>
                 </div>
-                <p className="text-victory-muted text-xs">If you cancel, you keep everything until {endsOn || "the end of this period"}.</p>
+                <p className="text-victory-muted text-xs">{tx("ui.billingPage.ifYouCancelYou", "If you cancel, you keep everything until")} {endsOn || tx("ui.billingPage.theEndOfThis", "the end of this period")}.</p>
               </>
             ) : (
               <p className="text-victory-text text-sm">
-                If you cancel, you keep access until {endsOn || "the end of this period"}, then your plan stops. Your training history stays.
+                {tx("ui.billingPage.ifYouCancelYou2", "If you cancel, you keep access until")} {endsOn || tx("ui.billingPage.theEndOfThis", "the end of this period")}{tx("ui.billingPage.thenYourPlanStops", ", then your plan stops. Your training history stays.")}
               </p>
             )}
             <div className="grid gap-2">
               <button onClick={keep} disabled={busy} className="victory-btn-primary disabled:opacity-50">
-                {terms ? "Keep my founder price" : "Keep my subscription"}
+                {terms ? tx("ui.billingPage.keepMyFounderPrice", "Keep my founder price") : tx("ui.billingPage.keepMySubscription", "Keep my subscription")}
               </button>
               <button onClick={() => change("cancel")} disabled={busy} className="victory-btn-ghost min-h-[48px] text-sm disabled:opacity-50" data-testid="cancel-confirm-btn">
-                {busy ? "Cancelling…" : "Cancel anyway"}
+                {busy ? tx("ui.billingPage.cancelling", "Cancelling…") : tx("ui.billingPage.cancelAnyway", "Cancel anyway")}
               </button>
             </div>
           </section>

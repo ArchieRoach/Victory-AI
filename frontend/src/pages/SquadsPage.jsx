@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Swords, Plus, Users, ChevronRight, X, Flame, Gavel, Check, Megaphone } from "lucide-react";
 import { stampByKey } from "@/lib/stamps";
 import { useTranslation } from "react-i18next";
+import { tx } from "@/i18n/tx";
 
 function CreateSquadModal({ onClose, onCreated }) {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ function CreateSquadModal({ onClose, onCreated }) {
       <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-heading font-bold text-victory-text">{t("squads.createTitle")}</h2>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={onClose} aria-label={tx("ui.squadsPage.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -72,7 +73,7 @@ function JoinSquadModal({ onClose, onJoined }) {
       <div className="victory-card w-full max-w-md p-6 space-y-4 rounded-2xl max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-heading font-bold text-victory-text">{t("squads.joinByCode")}</h2>
-          <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+          <button onClick={onClose} aria-label={tx("ui.squadsPage.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -80,7 +81,7 @@ function JoinSquadModal({ onClose, onJoined }) {
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           className="victory-input font-mono text-center tracking-widest text-xl uppercase"
-          placeholder="XXXXXXXX"
+          placeholder={tx("ui.squadsPage.xxxxxxxx", "XXXXXXXX")}
           maxLength={8}
         />
         <button onClick={submit} disabled={loading || !code.trim()} className="victory-btn-primary w-full">
@@ -153,8 +154,8 @@ export default function SquadsPage() {
               <Megaphone className="w-5 h-5 text-victory-lime" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-victory-text font-heading font-bold text-sm">Callouts</p>
-              <p className="text-victory-muted text-xs">Beat a squad mate's best within 7 days and take their title</p>
+              <p className="text-victory-text font-heading font-bold text-sm">{tx("ui.squadsPage.callouts", "Callouts")}</p>
+              <p className="text-victory-muted text-xs">{tx("ui.squadsPage.beatASquadMate", "Beat a squad mate's best within 7 days and take their title")}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-victory-muted flex-shrink-0" />
           </button>
@@ -162,7 +163,7 @@ export default function SquadsPage() {
 
         {toRate.length > 0 && (
           <section data-testid="rounds-to-rate">
-            <p className="section-label mb-2 flex items-center gap-1.5"><Gavel className="w-3 h-3" /> Rounds to rate</p>
+            <p className="section-label mb-2 flex items-center gap-1.5"><Gavel className="w-3 h-3" /> {tx("ui.squadsPage.roundsToRate", "Rounds to rate")}</p>
             <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
               {toRate.map((h) => {
                 const mine = h.my_stamp && stampByKey(h.my_stamp);
@@ -175,11 +176,11 @@ export default function SquadsPage() {
                     {h.thumbnail_url && <img src={h.thumbnail_url} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-victory-bg via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-2">
-                      <p className="text-victory-text text-xs font-semibold truncate">{h.streamer_name || "Squad mate"}</p>
+                      <p className="text-victory-text text-xs font-semibold truncate">{h.streamer_name || tx("ui.squadsPage.squadMate", "Squad mate")}</p>
                       {mine ? (
                         <p className="text-victory-muted text-[10px] flex items-center gap-1"><Check className="w-3 h-3 text-victory-lime" /> {mine.label}</p>
                       ) : (
-                        <p className="text-victory-lime text-[10px] font-heading font-bold">Rate it</p>
+                        <p className="text-victory-lime text-[10px] font-heading font-bold">{tx("ui.squadsPage.rateIt", "Rate it")}</p>
                       )}
                     </div>
                   </button>

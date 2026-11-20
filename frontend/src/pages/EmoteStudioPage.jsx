@@ -4,27 +4,28 @@ import axios from "axios";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, Trash2, Coins, RefreshCw, Palette, X, RotateCcw } from "lucide-react";
 import { API, useAuth } from "@/App";
+import { tx } from "@/i18n/tx";
 
 const REACTIONS = [
-  { key: "hype",     emoji: "🔥", label: "Hype"     },
-  { key: "ko",       emoji: "😵", label: "KO'd"     },
-  { key: "dodge",    emoji: "😏", label: "Slip"     },
-  { key: "uppercut", emoji: "💥", label: "Uppercut" },
-  { key: "combo",    emoji: "👊", label: "Combo"    },
-  { key: "gassed",   emoji: "😮‍💨", label: "Gassed"  },
-  { key: "love",     emoji: "❤️",  label: "Love"    },
-  { key: "dead",     emoji: "💀", label: "Dead"     },
-  { key: "respect",  emoji: "🫡", label: "Respect"  },
-  { key: "goat",     emoji: "🐐", label: "GOAT"     },
-  { key: "shocked",  emoji: "😱", label: "No Way"   },
-  { key: "clinch",   emoji: "🤝", label: "Clinch"   },
+  { key: "hype",     emoji: "🔥", get label() { return tx("ui.emoteStudioPage.hype", "Hype"); }     },
+  { key: "ko",       emoji: "😵", get label() { return tx("ui.emoteStudioPage.koD", "KO'd"); }     },
+  { key: "dodge",    emoji: "😏", get label() { return tx("ui.emoteStudioPage.slip", "Slip"); }     },
+  { key: "uppercut", emoji: "💥", get label() { return tx("ui.emoteStudioPage.uppercut", "Uppercut"); } },
+  { key: "combo",    emoji: "👊", get label() { return tx("ui.emoteStudioPage.combo", "Combo"); }    },
+  { key: "gassed",   emoji: "😮‍💨", get label() { return tx("ui.emoteStudioPage.gassed", "Gassed"); }  },
+  { key: "love",     emoji: "❤️",  get label() { return tx("ui.emoteStudioPage.love", "Love"); }    },
+  { key: "dead",     emoji: "💀", get label() { return tx("ui.emoteStudioPage.dead", "Dead"); }     },
+  { key: "respect",  emoji: "🫡", get label() { return tx("ui.emoteStudioPage.respect", "Respect"); }  },
+  { key: "goat",     emoji: "🐐", get label() { return tx("ui.emoteStudioPage.goat", "GOAT"); }     },
+  { key: "shocked",  emoji: "😱", get label() { return tx("ui.emoteStudioPage.noWay", "No Way"); }   },
+  { key: "clinch",   emoji: "🤝", get label() { return tx("ui.emoteStudioPage.clinch", "Clinch"); }   },
 ];
 
 const PRICES = [
-  { value: 0,   label: "Free (subscribers)" },
-  { value: 50,  label: "50 tokens" },
-  { value: 100, label: "100 tokens" },
-  { value: 200, label: "200 tokens" },
+  { value: 0,   get label() { return tx("ui.emoteStudioPage.freeSubscribers", "Free (subscribers)"); } },
+  { value: 50,  get label() { return tx("ui.emoteStudioPage.s50Tokens", "50 tokens"); } },
+  { value: 100, get label() { return tx("ui.emoteStudioPage.s100Tokens", "100 tokens"); } },
+  { value: 200, get label() { return tx("ui.emoteStudioPage.s200Tokens", "200 tokens"); } },
 ];
 
 function EmoteImage({ src, emoji, alt, className }) {
@@ -57,7 +58,7 @@ function EmoteCard({ emote, onDelete }) {
       await axios.delete(`${API}/emotes/${emote.emote_id}`);
       onDelete(emote.emote_id);
     } catch {
-      toast.error("Could not delete emote.");
+      toast.error(tx("ui.emoteStudioPage.couldNotDeleteEmote", "Could not delete emote."));
     } finally {
       setDeleting(false);
     }
@@ -73,15 +74,15 @@ function EmoteCard({ emote, onDelete }) {
       <span className="text-victory-text text-xs font-bold text-center leading-tight">{emote.name}</span>
       <span className="text-victory-muted text-[10px]">{emote.emoji} {emote.label}</span>
       <span className="text-victory-lime text-[10px]">
-        {emote.token_price === 0 ? "Free" : `${emote.token_price} tokens`}
+        {emote.token_price === 0 ? tx("ui.emoteStudioPage.free", "Free") : tx("ui.emoteStudioPage.tokens", "{{token_price}} tokens", { token_price: emote.token_price })}
       </span>
-      <span className="text-victory-muted text-[10px]">{emote.unlock_count} unlocks</span>
+      <span className="text-victory-muted text-[10px]">{emote.unlock_count} {tx("ui.emoteStudioPage.unlocks", "unlocks")}</span>
       <button
         onClick={handleDelete}
         disabled={deleting}
         className="mt-auto w-full touch-target flex items-center justify-center gap-1 rounded-lg border border-red-500/30 text-red-400 text-xs hover:bg-red-500/10 transition-colors disabled:opacity-40"
       >
-        <Trash2 className="w-3 h-3" /> Delete
+        <Trash2 className="w-3 h-3" /> {tx("ui.emoteStudioPage.delete", "Delete")}
       </button>
     </div>
   );
@@ -107,17 +108,17 @@ export default function EmoteStudioPage() {
   const partner = user?.training_partner;
 
   const GENDERS = [
-    { value: "male",       label: "Male",       icon: "♂" },
-    { value: "female",     label: "Female",     icon: "♀" },
-    { value: "non-binary", label: "Non-binary", icon: "⚧" },
+    { value: "male",       get label() { return tx("ui.emoteStudioPage.male", "Male"); },       icon: "♂" },
+    { value: "female",     get label() { return tx("ui.emoteStudioPage.female", "Female"); },     icon: "♀" },
+    { value: "non-binary", get label() { return tx("ui.emoteStudioPage.nonBinary", "Non-binary"); }, icon: "⚧" },
   ];
 
   const SKIN_TONES = [
-    { value: "light",        label: "Light",        color: "#FDDBB4" },
-    { value: "medium-light", label: "Medium-light",  color: "#E8B88A" },
-    { value: "medium",       label: "Medium",        color: "#C68642" },
-    { value: "medium-dark",  label: "Medium-dark",   color: "#8D5524" },
-    { value: "dark",         label: "Dark",          color: "#4A2912" },
+    { value: "light",        get label() { return tx("ui.emoteStudioPage.light", "Light"); },        color: "#FDDBB4" },
+    { value: "medium-light", get label() { return tx("ui.emoteStudioPage.mediumLight", "Medium-light"); },  color: "#E8B88A" },
+    { value: "medium",       get label() { return tx("ui.emoteStudioPage.medium", "Medium"); },        color: "#C68642" },
+    { value: "medium-dark",  get label() { return tx("ui.emoteStudioPage.mediumDark", "Medium-dark"); },   color: "#8D5524" },
+    { value: "dark",         get label() { return tx("ui.emoteStudioPage.dark", "Dark"); },          color: "#4A2912" },
   ];
 
   const openAppearance = () => {
@@ -144,9 +145,9 @@ export default function EmoteStudioPage() {
         },
       }));
       setShowAppearance(false);
-      toast.success("Character updated!");
+      toast.success(tx("ui.emoteStudioPage.characterUpdated", "Character updated!"));
     } catch {
-      toast.error("Could not regenerate avatar. Try again.");
+      toast.error(tx("ui.emoteStudioPage.couldNotRegenerateAvatar", "Could not regenerate avatar. Try again."));
     } finally {
       setRegenerating(false);
     }
@@ -164,7 +165,7 @@ export default function EmoteStudioPage() {
   }, []);
 
   const handleGenerate = async () => {
-    if (!emoteName.trim()) { toast.error("Give your emote a name first."); return; }
+    if (!emoteName.trim()) { toast.error(tx("ui.emoteStudioPage.giveYourEmoteA", "Give your emote a name first.")); return; }
     setGenerating(true);
     setPreview(null);
     try {
@@ -175,9 +176,9 @@ export default function EmoteStudioPage() {
       });
       setPreview(res.data);
       setMyEmotes((prev) => [res.data, ...prev]);
-      toast.success("Emote created!");
+      toast.success(tx("ui.emoteStudioPage.emoteCreated", "Emote created!"));
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Generation failed.");
+      toast.error(err?.response?.data?.detail || tx("ui.emoteStudioPage.generationFailed", "Generation failed."));
     } finally {
       setGenerating(false);
     }
@@ -186,19 +187,19 @@ export default function EmoteStudioPage() {
   const handleDelete = (emoteId) => {
     setMyEmotes((prev) => prev.filter((e) => e.emote_id !== emoteId));
     if (preview?.emote_id === emoteId) setPreview(null);
-    toast.success("Emote deleted.");
+    toast.success(tx("ui.emoteStudioPage.emoteDeleted", "Emote deleted."));
   };
 
   return (
     <div className="min-h-screen bg-victory-bg pb-24">
       {/* Header */}
       <div className="sticky top-0 z-20 material-header px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Go back" className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
+        <button onClick={() => navigate(-1)} aria-label={tx("ui.emoteStudioPage.goBack", "Go back")} className="w-11 h-11 flex items-center justify-center touch-target text-victory-muted hover:text-victory-text">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-victory-text font-bold text-base">Emote Studio</h1>
-          <p className="text-victory-muted text-xs">Generate custom emotes from your AI training partner</p>
+          <h1 className="text-victory-text font-bold text-base">{tx("ui.emoteStudioPage.emoteStudio", "Emote Studio")}</h1>
+          <p className="text-victory-muted text-xs">{tx("ui.emoteStudioPage.generateCustomEmotesFrom", "Generate custom emotes from your AI training partner")}</p>
         </div>
       </div>
 
@@ -215,33 +216,33 @@ export default function EmoteStudioPage() {
             <div className="flex-1 min-w-0">
               <p className="text-victory-text font-bold">{partner.name}</p>
               <p className="text-victory-muted text-xs capitalize">{partner.style_name || partner.style}</p>
-              <p className="text-victory-lime text-xs mt-0.5">Your emote character</p>
+              <p className="text-victory-lime text-xs mt-0.5">{tx("ui.emoteStudioPage.yourEmoteCharacter", "Your emote character")}</p>
             </div>
             <button
               onClick={openAppearance}
               className="flex-shrink-0 flex items-center gap-1.5 touch-target px-3 rounded-xl bg-victory-bg border border-victory-border text-victory-muted text-xs hover:border-victory-lime/40 hover:text-victory-lime transition-colors"
             >
               <Palette className="w-3.5 h-3.5" />
-              Customize
+              {tx("ui.emoteStudioPage.customize", "Customize")}
             </button>
           </div>
         ) : (
           <div className="bg-victory-card border border-victory-danger/30 rounded-2xl p-4 text-center">
-            <p className="text-victory-danger text-sm font-medium">No training partner yet</p>
-            <p className="text-victory-muted text-xs mt-1">Create your AI partner in the Train section first.</p>
+            <p className="text-victory-danger text-sm font-medium">{tx("ui.emoteStudioPage.noTrainingPartnerYet", "No training partner yet")}</p>
+            <p className="text-victory-muted text-xs mt-1">{tx("ui.emoteStudioPage.createYourAiPartner", "Create your AI partner in the Train section first.")}</p>
             <button onClick={() => navigate("/train")} className="mt-3 touch-target flex items-center justify-center mx-auto text-xs text-victory-lime underline">
-              Go to Train
+              {tx("ui.emoteStudioPage.goToTrain", "Go to Train")}
             </button>
           </div>
         )}
 
         {/* Generator form */}
         <div className="bg-victory-card border border-victory-border rounded-2xl p-4 space-y-4">
-          <h2 className="text-victory-text font-semibold text-sm">Create New Emote</h2>
+          <h2 className="text-victory-text font-semibold text-sm">{tx("ui.emoteStudioPage.createNewEmote", "Create New Emote")}</h2>
 
           {/* Reaction picker */}
           <div>
-            <p className="text-victory-muted text-xs mb-2">Reaction type</p>
+            <p className="text-victory-muted text-xs mb-2">{tx("ui.emoteStudioPage.reactionType", "Reaction type")}</p>
             <div className="grid grid-cols-4 gap-2">
               {REACTIONS.map((r) => (
                 <button
@@ -262,20 +263,20 @@ export default function EmoteStudioPage() {
 
           {/* Emote name */}
           <div>
-            <p className="text-victory-muted text-xs mb-1.5">Emote name</p>
+            <p className="text-victory-muted text-xs mb-1.5">{tx("ui.emoteStudioPage.emoteName", "Emote name")}</p>
             <input
               value={emoteName}
               onChange={(e) => setEmoteName(e.target.value.toUpperCase().slice(0, 20))}
-              placeholder="e.g. GOGOHYPE"
+              placeholder={tx("ui.emoteStudioPage.eGGogohype", "e.g. GOGOHYPE")}
               maxLength={20}
               className="w-full bg-victory-bg border border-victory-border rounded-xl px-3 py-2.5 text-victory-text text-sm placeholder:text-victory-muted focus:outline-none focus:border-victory-lime uppercase tracking-wide"
             />
-            <p className="text-victory-muted text-[10px] mt-1">{emoteName.length}/20 · Will appear as :{emoteName || "NAME"}:</p>
+            <p className="text-victory-muted text-[10px] mt-1">{emoteName.length}/20 · Will appear as :{emoteName || tx("ui.emoteStudioPage.name", "NAME")}:</p>
           </div>
 
           {/* Token price */}
           <div>
-            <p className="text-victory-muted text-xs mb-1.5">Price for viewers</p>
+            <p className="text-victory-muted text-xs mb-1.5">{tx("ui.emoteStudioPage.priceForViewers", "Price for viewers")}</p>
             <div className="grid grid-cols-2 gap-2">
               {PRICES.map((p) => (
                 <button
@@ -301,7 +302,7 @@ export default function EmoteStudioPage() {
               <div>
                 <p className="text-victory-text font-bold text-sm">{preview.name}</p>
                 <p className="text-victory-muted text-xs">{preview.emoji} {preview.label}</p>
-                <p className="text-victory-lime text-xs mt-0.5">Saved to your collection</p>
+                <p className="text-victory-lime text-xs mt-0.5">{tx("ui.emoteStudioPage.savedToYourCollection", "Saved to your collection")}</p>
               </div>
             </div>
           )}
@@ -312,9 +313,9 @@ export default function EmoteStudioPage() {
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-victory-lime text-victory-bg font-bold text-sm disabled:opacity-40 transition-opacity active:scale-95"
           >
             {generating ? (
-              <><RefreshCw className="w-4 h-4 animate-spin" /> Generating…</>
+              <><RefreshCw className="w-4 h-4 animate-spin" /> {tx("ui.emoteStudioPage.generating", "Generating…")}</>
             ) : (
-              <><Sparkles className="w-4 h-4" /> Generate Emote</>
+              <><Sparkles className="w-4 h-4" /> {tx("ui.emoteStudioPage.generateEmote", "Generate Emote")}</>
             )}
           </button>
         </div>
@@ -322,7 +323,7 @@ export default function EmoteStudioPage() {
         {/* My emotes grid */}
         <div>
           <h2 className="text-victory-text font-semibold text-sm mb-3">
-            My Emotes <span className="text-victory-muted font-normal">({myEmotes.length})</span>
+            {tx("ui.emoteStudioPage.myEmotes", "My Emotes")} <span className="text-victory-muted font-normal">({myEmotes.length})</span>
           </h2>
           {loading ? (
             <div className="flex justify-center py-8">
@@ -331,8 +332,8 @@ export default function EmoteStudioPage() {
           ) : myEmotes.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
               <Palette className="w-8 h-8 text-victory-muted/60" />
-              <p className="text-victory-text text-sm font-semibold">No emotes yet</p>
-              <p className="text-victory-muted text-xs">Generate your first one above.</p>
+              <p className="text-victory-text text-sm font-semibold">{tx("ui.emoteStudioPage.noEmotesYet", "No emotes yet")}</p>
+              <p className="text-victory-muted text-xs">{tx("ui.emoteStudioPage.generateYourFirstOne", "Generate your first one above.")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-3">
@@ -350,15 +351,15 @@ export default function EmoteStudioPage() {
           <div className="absolute inset-0 bg-black/60" onClick={() => setShowAppearance(false)} />
           <div className="relative bg-victory-card border-t border-victory-border rounded-t-2xl p-5 space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold text-victory-text">Customise Character</h2>
-              <button onClick={() => setShowAppearance(false)} aria-label="Close" className="w-11 h-11 flex items-center justify-center touch-target rounded-full bg-victory-bg border border-victory-border text-victory-muted">
+              <h2 className="font-bold text-victory-text">{tx("ui.emoteStudioPage.customiseCharacter", "Customise Character")}</h2>
+              <button onClick={() => setShowAppearance(false)} aria-label={tx("ui.emoteStudioPage.close", "Close")} className="w-11 h-11 flex items-center justify-center touch-target rounded-full bg-victory-bg border border-victory-border text-victory-muted">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Gender */}
             <div>
-              <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">Gender</p>
+              <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-2">{tx("ui.emoteStudioPage.gender", "Gender")}</p>
               <div className="flex gap-2">
                 {GENDERS.map(({ value, label, icon }) => (
                   <button
@@ -378,7 +379,7 @@ export default function EmoteStudioPage() {
 
             {/* Skin tone */}
             <div>
-              <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-3">Skin Tone</p>
+              <p className="text-victory-muted text-xs font-semibold uppercase tracking-wider mb-3">{tx("ui.emoteStudioPage.skinTone", "Skin Tone")}</p>
               <div className="flex gap-3 justify-between">
                 {SKIN_TONES.map(({ value, label, color }) => (
                   <button
@@ -405,12 +406,12 @@ export default function EmoteStudioPage() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-victory-lime text-victory-bg font-bold text-sm disabled:opacity-40"
             >
               {regenerating ? (
-                <><RotateCcw className="w-4 h-4 animate-spin" /> Generating…</>
+                <><RotateCcw className="w-4 h-4 animate-spin" /> {tx("ui.emoteStudioPage.generating", "Generating…")}</>
               ) : (
-                <><RotateCcw className="w-4 h-4" /> Regenerate Avatar</>
+                <><RotateCcw className="w-4 h-4" /> {tx("ui.emoteStudioPage.regenerateAvatar", "Regenerate Avatar")}</>
               )}
             </button>
-            <p className="text-victory-muted text-[11px] text-center">This replaces your current character image everywhere in the app</p>
+            <p className="text-victory-muted text-[11px] text-center">{tx("ui.emoteStudioPage.thisReplacesYourCurrent", "This replaces your current character image everywhere in the app")}</p>
           </div>
         </div>
       )}

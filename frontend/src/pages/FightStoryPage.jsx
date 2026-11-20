@@ -4,6 +4,7 @@ import axios from "axios";
 import { ArrowLeft, Download, Printer, BookOpen, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { API } from "@/App";
+import { tx } from "@/i18n/tx";
 
 // Your boxing on Victory AI, yours to keep. Reasoning: see "Fight Story" in backend/server.py.
 export default function FightStoryPage() {
@@ -30,29 +31,29 @@ export default function FightStoryPage() {
     e.preventDefault();
     try {
       await axios.put(`${API}/users/me/history`, { years_boxing: Number(form.years_boxing) || 0, sessions_per_week: Number(form.sessions_per_week) || 0 });
-      toast.success("Your history is on your Fight Story");
+      toast.success(tx("ui.fightStoryPage.yourHistoryIsOn", "Your history is on your Fight Story"));
       load();
     } catch {
-      toast.error("Couldn't save that, check the numbers");
+      toast.error(tx("ui.fightStoryPage.couldnTSaveThat", "Couldn't save that, check the numbers"));
     }
   };
 
   if (story === false) {
-    return <div className="min-h-screen bg-victory-bg p-6 text-victory-muted">Couldn't load your Fight Story. Check your connection.</div>;
+    return <div className="min-h-screen bg-victory-bg p-6 text-victory-muted">{tx("ui.fightStoryPage.couldnTLoadYour", "Couldn't load your Fight Story. Check your connection.")}</div>;
   }
 
   return (
     <div className="min-h-screen bg-victory-bg pb-16" data-testid="fight-story">
       <header className="p-4 flex items-center gap-2 border-b border-victory-border print:hidden">
-        <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label="Back" onClick={() => navigate(-1)}>
+        <button className="w-11 h-11 rounded-full flex items-center justify-center -ml-2" aria-label={tx("ui.fightStoryPage.back", "Back")} onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-victory-text" />
         </button>
         <div>
-          <h1 className="text-xl font-heading font-extrabold text-victory-text">Your Fight Story</h1>
-          <p className="text-victory-muted text-sm">Everything you've built here. Yours to keep.</p>
+          <h1 className="text-xl font-heading font-extrabold text-victory-text">{tx("ui.fightStoryPage.yourFightStory", "Your Fight Story")}</h1>
+          <p className="text-victory-muted text-sm">{tx("ui.fightStoryPage.everythingYouVeBuilt", "Everything you've built here. Yours to keep.")}</p>
         </div>
         <button className="ml-auto text-[12px] text-victory-lime font-semibold flex items-center gap-1 min-h-[44px]" onClick={() => navigate("/wrapped")}>
-          <Sparkles className="w-3.5 h-3.5" /> Season Wrapped
+          <Sparkles className="w-3.5 h-3.5" /> {tx("ui.fightStoryPage.seasonWrapped", "Season Wrapped")}
         </button>
       </header>
 
@@ -62,7 +63,7 @@ export default function FightStoryPage() {
             <BookOpen className="w-6 h-6 text-victory-lime mx-auto mb-2" />
             <p className="text-victory-text font-heading font-extrabold text-2xl">{story.name}</p>
             {story.style && <p className="text-victory-teal text-sm font-semibold">{story.style}</p>}
-            <p className="text-victory-muted text-[12px] mt-1">{story.since ? `Training on Victory AI since ${story.since}` : "Your story starts with your first session"}</p>
+            <p className="text-victory-muted text-[12px] mt-1">{story.since ? tx("ui.fightStoryPage.trainingOnVictoryAi", "Training on Victory AI since {{since}}", { since: story.since }) : tx("ui.fightStoryPage.yourStoryStartsWith", "Your story starts with your first session")}</p>
           </section>
 
           <section className="grid grid-cols-3 gap-2">
@@ -76,12 +77,12 @@ export default function FightStoryPage() {
           </section>
 
           {story.mastery.tier && (
-            <p className="text-sm text-victory-text"><span className="text-victory-teal font-semibold">{story.mastery.tier}</span> on the road to 10,000 proven hours.</p>
+            <p className="text-sm text-victory-text"><span className="text-victory-teal font-semibold">{story.mastery.tier}</span> {tx("ui.fightStoryPage.onTheRoadTo", "on the road to 10,000 proven hours.")}</p>
           )}
 
           {Object.keys(story.personal_bests).length > 0 && (
             <section className="victory-card p-4">
-              <p className="section-label mb-2">Personal bests</p>
+              <p className="section-label mb-2">{tx("ui.fightStoryPage.personalBests", "Personal bests")}</p>
               <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
                 {Object.entries(story.personal_bests).map(([k, v]) => (
                   <li key={k} className="flex justify-between text-[12px]"><span className="text-victory-muted">{k}</span><span className="font-mono text-victory-text">{v}</span></li>
@@ -92,35 +93,35 @@ export default function FightStoryPage() {
 
           {(story.gloves.length > 0 || story.crowns.length > 0 || story.belts.length > 0) && (
             <section className="victory-card p-4">
-              <p className="section-label mb-2">Honours</p>
+              <p className="section-label mb-2">{tx("ui.fightStoryPage.honours", "Honours")}</p>
               <p className="text-[12px] text-victory-text">{[...story.gloves.map((g) => g.name), ...story.crowns.map((c) => `${c.name} (${c.week_id})`), ...story.belts.map((b) => b.name)].join(" · ")}</p>
             </section>
           )}
 
           <section className="victory-card p-4 space-y-2 print:hidden">
-            <p className="section-label">Boxing before Victory AI</p>
-            <p className="text-[11px] text-victory-muted">Shown on your Fight Story as self-reported. It never counts as proven hours or levels.</p>
+            <p className="section-label">{tx("ui.fightStoryPage.boxingBeforeVictoryAi", "Boxing before Victory AI")}</p>
+            <p className="text-[11px] text-victory-muted">{tx("ui.fightStoryPage.shownOnYourFight", "Shown on your Fight Story as self-reported. It never counts as proven hours or levels.")}</p>
             <form onSubmit={saveHistory} className="grid grid-cols-2 gap-2">
-              <label className="text-[11px] text-victory-muted">Years boxing
+              <label className="text-[11px] text-victory-muted">{tx("ui.fightStoryPage.yearsBoxing", "Years boxing")}
                 <input type="number" min={0} max={60} className="victory-input mt-1" value={form.years_boxing}
                   onChange={(e) => setForm({ ...form, years_boxing: e.target.value })} />
               </label>
-              <label className="text-[11px] text-victory-muted">Sessions a week
+              <label className="text-[11px] text-victory-muted">{tx("ui.fightStoryPage.sessionsAWeek", "Sessions a week")}
                 <input type="number" min={0} max={21} className="victory-input mt-1" value={form.sessions_per_week}
                   onChange={(e) => setForm({ ...form, sessions_per_week: e.target.value })} />
               </label>
-              <button type="submit" className="victory-btn-secondary col-span-2">Save my history</button>
+              <button type="submit" className="victory-btn-secondary col-span-2">{tx("ui.fightStoryPage.saveMyHistory", "Save my history")}</button>
             </form>
           </section>
           {story.prior_experience?.years_boxing > 0 && (
-            <p className="text-[12px] text-victory-muted">Boxing for {story.prior_experience.years_boxing} years before joining, about {story.prior_experience.sessions_per_week} sessions a week (self-reported).</p>
+            <p className="text-[12px] text-victory-muted">{tx("ui.fightStoryPage.boxingFor", "Boxing for")} {story.prior_experience.years_boxing} {tx("ui.fightStoryPage.yearsBeforeJoiningAbout", "years before joining, about")} {story.prior_experience.sessions_per_week} {tx("ui.fightStoryPage.sessionsAWeekSelf", "sessions a week (self-reported).")}</p>
           )}
 
           <div className="grid grid-cols-2 gap-2 print:hidden">
-            <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={() => window.print()}><Printer className="w-4 h-4" /> Print or PDF</button>
-            <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={download}><Download className="w-4 h-4" /> Download</button>
+            <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={() => window.print()}><Printer className="w-4 h-4" /> {tx("ui.fightStoryPage.printOrPdf", "Print or PDF")}</button>
+            <button className="victory-btn-ghost flex items-center justify-center gap-2" onClick={download}><Download className="w-4 h-4" /> {tx("ui.fightStoryPage.download", "Download")}</button>
           </div>
-          <p className="text-[11px] text-victory-muted print:hidden">Want everything, including every post and message? Use "Download my data" on your Profile.</p>
+          <p className="text-[11px] text-victory-muted print:hidden">{tx("ui.fightStoryPage.wantEverythingIncludingEvery", "Want everything, including every post and message? Use \"Download my data\" on your Profile.")}</p>
         </main>
       )}
     </div>

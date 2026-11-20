@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Bell, ShieldAlert } from "lucide-react";
 import { API } from "@/App";
 import { ResultRow } from "@/pages/FantasyAdminPage";
+import { tx } from "@/i18n/tx";
 
 // The promoter's private results desk for their own show (link emailed when the card is
 // published). Results come from the people at ringside, at no data-feed cost, and players'
@@ -29,7 +30,7 @@ export default function FantasyResultsPage() {
       load();
     } catch (e) {
       const d = e?.response?.data?.detail;
-      toast.error(typeof d === "string" ? d : "That didn't save — try again");
+      toast.error(typeof d === "string" ? d : tx("ui.fantasyResultsPage.thatDidnTSave", "That didn't save — try again"));
     }
   };
 
@@ -39,8 +40,8 @@ export default function FantasyResultsPage() {
         <div className="w-16 h-16 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center mb-4">
           <ShieldAlert className="w-8 h-8 text-victory-lime/60" />
         </div>
-        <p className="text-victory-text font-bold text-lg mb-1">Link not recognised</p>
-        <p className="text-victory-muted text-sm">Use the link from your Victory Fantasy email, or email hello@victoryai.co.uk.</p>
+        <p className="text-victory-text font-bold text-lg mb-1">{tx("ui.fantasyResultsPage.linkNotRecognised", "Link not recognised")}</p>
+        <p className="text-victory-muted text-sm">{tx("ui.fantasyResultsPage.useTheLinkFrom", "Use the link from your Victory Fantasy email, or email hello@victoryai.co.uk.")}</p>
       </div>
     );
   }
@@ -51,20 +52,20 @@ export default function FantasyResultsPage() {
       <div className="sticky top-0 z-20 material-header">
         <header className="p-4">
           <h1 className="text-xl font-heading font-extrabold text-victory-text">{card.title}</h1>
-          <p className="text-victory-muted text-sm">Results desk · {card.status === "upcoming" ? "picks open" : card.status === "live" ? "picks locked" : "finished"}</p>
+          <p className="text-victory-muted text-sm">{tx("ui.fantasyResultsPage.resultsDesk", "Results desk ·")} {card.status === "upcoming" ? tx("ui.fantasyResultsPage.picksOpen", "picks open") : card.status === "live" ? tx("ui.fantasyResultsPage.picksLocked", "picks locked") : tx("ui.fantasyResultsPage.finished", "finished")}</p>
         </header>
       </div>
       <main className="max-w-lg mx-auto px-4 py-4 space-y-3">
-        {card.hidden && <p className="victory-card p-3 text-[12px] text-victory-muted">We're still checking your card. You'll get an email when it's live.</p>}
+        {card.hidden && <p className="victory-card p-3 text-[12px] text-victory-muted">{tx("ui.fantasyResultsPage.weReStillChecking", "We're still checking your card. You'll get an email when it's live.")}</p>}
         {!card.hidden && card.status === "upcoming" && (
           <button className="victory-btn-primary w-full flex items-center justify-center gap-2" onClick={() => post("/start", {}, "Picks locked — good luck tonight")}>
-            <Bell className="w-4 h-4" /> First bell — lock picks
+            <Bell className="w-4 h-4" /> {tx("ui.fantasyResultsPage.firstBellLockPicks", "First bell — lock picks")}
           </button>
         )}
         {!card.hidden && card.status !== "upcoming" && card.bouts.map((b) => (
           <ResultRow key={b.bout_id} bout={b} onSave={(body) => post(`/bouts/${b.bout_id}/result`, body, "Result saved")} />
         ))}
-        <p className="text-[11px] text-victory-muted">Keep this link private: anyone with it can enter results. Made a mistake? Save the right result again, or email hello@victoryai.co.uk.</p>
+        <p className="text-[11px] text-victory-muted">{tx("ui.fantasyResultsPage.keepThisLinkPrivate", "Keep this link private: anyone with it can enter results. Made a mistake? Save the right result again, or email hello@victoryai.co.uk.")}</p>
       </main>
     </div>
   );
