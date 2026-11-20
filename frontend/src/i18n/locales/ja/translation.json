@@ -882,14 +882,16 @@
       "goLive": "ライブ配信",
       "tokens": "トークン",
       "emotes2": "エモート",
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "free": "無料"
     },
     "streamCard": {
       "live": "ライブ"
     },
     "discoverPage": {
       "live": "ライブ",
-      "dismiss": "閉じる"
+      "dismiss": "閉じる",
+      "sessions": "セッション"
     },
     "streamViewPage": {
       "live": "ライブ",
@@ -1002,7 +1004,8 @@
       "delete": "削除",
       "close": "閉じる",
       "combo": "コンボ",
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "free": "無料"
     },
     "birthDateCard": {
       "enterYourDateOf": "生年月日を入力",
@@ -1040,7 +1043,8 @@
       "tokens": "トークン",
       "goBack": "戻る",
       "stayInTheFight": "戦い続けよう",
-      "fighter": "ファイター"
+      "fighter": "ファイター",
+      "openingCheckout": "決済を開いています…"
     },
     "bookNextRound": {
       "pickATimeBetween": "午前5時から午後10時の間で選んでください",
@@ -1085,7 +1089,8 @@
     },
     "emoteShop": {
       "close": "閉じる",
-      "tokens": "トークン"
+      "tokens": "トークン",
+      "free": "無料"
     },
     "giftSubModal": {
       "close": "閉じる"
@@ -1104,7 +1109,9 @@
     "timerPage": {
       "close": "閉じる",
       "tryAgain": "もう一度試す",
-      "done": "完了"
+      "done": "完了",
+      "couldnTSaveThat": "保存できませんでした",
+      "bagPadsCircuitsHiit": "サンドバッグ、ミット、サーキット、HIIT。同じ画面で撮影。"
     },
     "fightFilm": {
       "fightFilm": "ファイトフィルム",
@@ -1265,7 +1272,8 @@
       "sessions": "セッション中。"
     },
     "fantasyPage": {
-      "seePro": "Proを見る"
+      "seePro": "Proを見る",
+      "you": "{{name}}（あなた）"
     },
     "goldenGloves": {
       "day": "日"
@@ -1357,7 +1365,8 @@
     "fightCampPage": {
       "dismiss": "閉じる",
       "share": "共有",
-      "vs": "vs"
+      "vs": "vs",
+      "couldnTSaveThat": "保存できませんでした"
     },
     "streakShareButton": {
       "share": "共有",
@@ -1365,7 +1374,9 @@
       "makingIt": "作成中…"
     },
     "styleQuizPage": {
-      "share": "共有"
+      "share": "共有",
+      "copiedPasteItAnywhere": "コピーしました。どこにでも貼り付けられます。",
+      "couldnTShareThat": "シェアできませんでした"
     },
     "fighterBuddyCreator": {
       "choose": "選択"
@@ -1406,7 +1417,8 @@
     },
     "levelCard": {
       "status": "ステータス",
-      "level": "レベル"
+      "level": "レベル",
+      "sessions2": "セッション"
     },
     "trophyShelf": {
       "level": "レベル",
@@ -1429,21 +1441,158 @@
     },
     "scorecardPanel": {
       "of": "/",
-      "fight": "試合"
+      "fight": "試合",
+      "noTeamYet": "まだチームがありません",
+      "goToPickChoose": "「選ぶ」でボクサーを3人選び、最初の試合までにチームを保存しよう。",
+      "yourTeam": "あなたのチーム",
+      "fightsFinished": "試合終了",
+      "points": "ポイント",
+      "fighting": "試合中",
+      "fightingNow": "試合中"
     },
     "trainPage": {
       "freestyle": "フリースタイル"
     },
     "merchSheet": {
       "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",
-      "couldnTStartCheckout": "決済を開始できませんでした。もう一度お試しください。"
+      "couldnTStartCheckout": "決済を開始できませんでした。もう一度お試しください。",
+      "size": "サイズ",
+      "item": "商品",
+      "delivery": "配送",
+      "free": "無料",
+      "buyerProtection": "購入者保護",
+      "total": "合計",
+      "buyerProtectionWeHold": "購入者保護：届いたことを確認するまで代金をお預かりします。届かない、または説明と違う場合は返金されます。",
+      "pickASize": "サイズを選ぶ",
+      "openingCheckout": "決済を開いています…"
     },
     "fantasySidecar": {
       "fantasyBoxing": "ファンタジーボクシング",
       "freeGameNoMoney": "無料ゲーム · お金は一切なし · 友達と楽しむだけ",
       "pickNow": "今すぐ選ぶ",
       "fightsOn": "試合中",
-      "finished": "終了"
+      "finished": "終了",
+      "practiceCardMadeUp": "練習カード：架空のボクサーで、ゲームを覚えるためのものです。",
+      "playAgain": "もう一度遊ぶ",
+      "fightsOn2": "試合中…",
+      "startTheFights": "試合を始める",
+      "pickYourTeamBelow": "下でチームを選んでから試合を始めよう。",
+      "presentedBy": "提供",
+      "s1Pick": "1. 選ぶ",
+      "s2MyTeam": "2. マイチーム",
+      "s3Friends": "3. 友達",
+      "admin": "管理"
+    },
+    "leaguePanel": {
+      "noFriendsHereYet": "まだ友達はいません",
+      "saveYourTeamAnd": "チームを保存すると、友達との順位がわかります。",
+      "whoSWinning": "誰が勝っている？",
+      "you": "{{name}}（あなた）",
+      "goldGloves": "ゴールデングローブ",
+      "titleBelt": "タイトルベルト",
+      "redCorner": "赤コーナー",
+      "blueCorner": "青コーナー"
+    },
+    "leagueSwitcher": {
+      "leagueMadeShareCode": "リーグを作成しました！コード{{code}}を友達にシェアしよう。",
+      "youJoined": "{{name}}に参加しました！",
+      "thatDidnTWork": "うまくいきませんでした。もう一度お試しください。",
+      "codeCopied": "コードをコピーしました",
+      "join": "参加",
+      "newLeague": "新しいリーグ",
+      "inviteCode": "招待コード",
+      "leagueName": "リーグ名",
+      "make": "作成"
+    },
+    "checkinPage": {
+      "join": "参加"
+    },
+    "proCardPage": {
+      "make": "作成",
+      "buyerProtection": "購入者保護"
+    },
+    "comingUp": {
+      "comingUp": "今後の予定",
+      "yourPartnerSPrediction": "パートナーの予想",
+      "wrappedIsHere": "まとめが届きました",
+      "yourSeasonToldFrom": "あなたのシーズンを、あなた自身のトレーニングから。",
+      "hide": "隠す"
+    },
+    "welcomeBack": {
+      "hide": "隠す",
+      "welcomeBack": "おかえりなさい",
+      "easeBackInOne": "ゆっくり再開：1ラウンド"
+    },
+    "driveCards": {
+      "resetMyHome": "ホームをリセット",
+      "yourRank": "あなたの順位",
+      "boss": "ボス：{{name}}",
+      "triesLeft": "{{line}}。残り{{attempts_left}}回。",
+      "trySomethingNew": "新しいことに挑戦",
+      "aFreestyleRoundNo": "フリースタイルラウンド：スコアなし、あなたと音楽だけ。",
+      "buildACombination": "コンビネーションを作る",
+      "putYourOwnCombo": "自分だけのコンボを組んで練習しよう。"
+    },
+    "epicWinCard": {
+      "lockedInOnlyYou": "記録しました。見られるのはあなただけです。",
+      "couldnTSaveThat": "保存できませんでした",
+      "yourBigWin": "あなたの大きな目標",
+      "aWeekInWhat": "1週間たちました。本当は何のためにトレーニングしている？",
+      "orWriteYourOwn": "または自分で書く",
+      "whatGetsInYour": "何が邪魔している？最大3つ選んでください。",
+      "saveMyBigWin": "大きな目標を保存",
+      "privateYourCoachMentions": "非公開。コーチは本当の勝利の後にだけ触れます。",
+      "change": "変更"
+    },
+    "weekPlanCard": {
+      "couldnTSaveThat": "保存できませんでした",
+      "change": "変更",
+      "reminderOff": "リマインダーをオフにしました。",
+      "pickYourWeek": "今週を選ぶ",
+      "howManySessionsThis": "今週は何セッション？あなたが決めます。パートナーがペースを合わせます。",
+      "sessions": "セッション",
+      "oneSkillToWork": "取り組むスキル1つ（任意）",
+      "lockInMyWeek": "今週を確定",
+      "yourWeek": "あなたの1週間",
+      "weekDoneExtraSessions": "今週は達成。追加セッションはボーナスで、必須ではありません。",
+      "workingOn": "· 取り組み中：",
+      "nudgeMe": "リマインドして",
+      "whenToNudgeYou": "リマインドのタイミング",
+      "never": "しない"
+    },
+    "newcomerCards": {
+      "thanksTheyLlKnow": "ありがとう。役に立ったと伝わります。",
+      "thanksForTellingUs": "お知らせありがとうございます。確認します。",
+      "aTipForYou": "あなたへのヒント",
+      "helpful": "役に立った",
+      "reportThisTip": "このヒントを報告",
+      "tipSavedANewcomer": "ヒントを保存しました。もうすぐ初心者が見ます。",
+      "couldnTSaveThat": "ヒントを保存できませんでした",
+      "passItOn": "受け継ごう",
+      "whatDoYouWish": "最初の週に誰かに教えてほしかったことは？",
+      "oneShortTrainingTip": "短いトレーニングのヒントを1つ。名前、リンク、連絡先はなし。",
+      "yourTip": "あなたのヒント",
+      "shareAnonymously": "匿名でシェア",
+      "leaveATipFor": "初心者にヒントを残す"
+    },
+    "oneRoundButton": {
+      "justOneRound3": "1ラウンドだけ · 3分"
+    },
+    "timerCard": {
+      "timerCircuits": "タイマーとサーキット",
+      "bagPadsCircuitsHiit": "サンドバッグ、ミット、サーキット、HIIT。同じ画面で撮影。"
+    },
+    "fighterMarketPage": {
+      "buyerProtection": "購入者保護"
+    },
+    "bragButton": {
+      "copiedPasteItAnywhere": "コピーしました。どこにでも貼り付けられます。",
+      "sharingIsnTAvailable": "このデバイスではシェアできません",
+      "couldnTShareThat": "シェアできませんでした"
+    },
+    "cornerSurprise": {
+      "cornerSurprise": "コーナーサプライズ",
+      "seeTheOdds": "オッズを見る"
     }
   },
   "feedback": {

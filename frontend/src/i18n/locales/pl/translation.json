@@ -882,14 +882,16 @@
       "goLive": "Nadawaj na żywo",
       "tokens": "tokenów",
       "emotes2": "Emotki",
-      "goBack": "Wróć"
+      "goBack": "Wróć",
+      "free": "Za darmo"
     },
     "streamCard": {
       "live": "NA ŻYWO"
     },
     "discoverPage": {
       "live": "NA ŻYWO",
-      "dismiss": "Odrzuć"
+      "dismiss": "Odrzuć",
+      "sessions": "sesje"
     },
     "streamViewPage": {
       "live": "NA ŻYWO",
@@ -1002,7 +1004,8 @@
       "delete": "Usuń",
       "close": "Zamknij",
       "combo": "Kombo",
-      "goBack": "Wróć"
+      "goBack": "Wróć",
+      "free": "Za darmo"
     },
     "birthDateCard": {
       "enterYourDateOf": "Podaj datę urodzenia",
@@ -1040,7 +1043,8 @@
       "tokens": "tokenów",
       "goBack": "Wróć",
       "stayInTheFight": "Zostań w walce",
-      "fighter": "Zawodnik"
+      "fighter": "Zawodnik",
+      "openingCheckout": "Otwieranie płatności…"
     },
     "bookNextRound": {
       "pickATimeBetween": "Wybierz godzinę między 5:00 a 22:00",
@@ -1085,7 +1089,8 @@
     },
     "emoteShop": {
       "close": "Zamknij",
-      "tokens": "tokenów"
+      "tokens": "tokenów",
+      "free": "Za darmo"
     },
     "giftSubModal": {
       "close": "Zamknij"
@@ -1104,7 +1109,9 @@
     "timerPage": {
       "close": "Zamknij",
       "tryAgain": "Spróbuj ponownie",
-      "done": "Gotowe"
+      "done": "Gotowe",
+      "couldnTSaveThat": "Nie udało się zapisać",
+      "bagPadsCircuitsHiit": "Worek, tarcze, obwody, HIIT. Nagrywaj na tym samym ekranie."
     },
     "fightFilm": {
       "fightFilm": "Film walki",
@@ -1265,7 +1272,8 @@
       "sessions": "sesji."
     },
     "fantasyPage": {
-      "seePro": "Zobacz Pro"
+      "seePro": "Zobacz Pro",
+      "you": "{{name}} (ty)"
     },
     "goldenGloves": {
       "day": "dzień"
@@ -1357,7 +1365,8 @@
     "fightCampPage": {
       "dismiss": "Odrzuć",
       "share": "Udostępnij",
-      "vs": "vs"
+      "vs": "vs",
+      "couldnTSaveThat": "Nie udało się zapisać"
     },
     "streakShareButton": {
       "share": "Udostępnij",
@@ -1365,7 +1374,9 @@
       "makingIt": "Tworzenie…"
     },
     "styleQuizPage": {
-      "share": "Udostępnij"
+      "share": "Udostępnij",
+      "copiedPasteItAnywhere": "Skopiowano. Wklej gdziekolwiek.",
+      "couldnTShareThat": "Nie udało się udostępnić"
     },
     "fighterBuddyCreator": {
       "choose": "Wybierz"
@@ -1406,7 +1417,8 @@
     },
     "levelCard": {
       "status": "Status",
-      "level": "Poziom"
+      "level": "Poziom",
+      "sessions2": "sesje"
     },
     "trophyShelf": {
       "level": "Poziom",
@@ -1429,21 +1441,158 @@
     },
     "scorecardPanel": {
       "of": "z",
-      "fight": "Walka"
+      "fight": "Walka",
+      "noTeamYet": "Brak drużyny",
+      "goToPickChoose": "Wejdź w Wybierz, wybierz 3 bokserów i zapisz drużynę przed pierwszą walką.",
+      "yourTeam": "Twoja drużyna",
+      "fightsFinished": "walk zakończonych",
+      "points": "punktów",
+      "fighting": "walczy",
+      "fightingNow": "Walczy teraz"
     },
     "trainPage": {
       "freestyle": "Freestyle"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link skopiowany: wyślij go rodzicowi",
-      "couldnTStartCheckout": "Nie udało się rozpocząć płatności. Spróbuj ponownie."
+      "couldnTStartCheckout": "Nie udało się rozpocząć płatności. Spróbuj ponownie.",
+      "size": "Rozmiar",
+      "item": "Produkt",
+      "delivery": "Dostawa",
+      "free": "Za darmo",
+      "buyerProtection": "Ochrona Kupującego",
+      "total": "Razem",
+      "buyerProtectionWeHold": "Ochrona Kupującego: trzymamy twoje pieniądze, dopóki nie potwierdzisz odbioru. Jeśli nie dotrze lub nie zgadza się z opisem, dostaniesz zwrot.",
+      "pickASize": "Wybierz rozmiar",
+      "openingCheckout": "Otwieranie płatności…"
     },
     "fantasySidecar": {
       "fantasyBoxing": "Boks Fantasy",
       "freeGameNoMoney": "Darmowa gra · nigdy pieniędzy · tylko zabawa ze znajomymi",
       "pickNow": "Wybierz teraz",
       "fightsOn": "Walki trwają",
-      "finished": "Zakończone"
+      "finished": "Zakończone",
+      "practiceCardMadeUp": "Karta treningowa: zmyśleni bokserzy, tylko do nauki gry.",
+      "playAgain": "Zagraj jeszcze raz",
+      "fightsOn2": "Walki trwają…",
+      "startTheFights": "Rozpocznij walki",
+      "pickYourTeamBelow": "Wybierz drużynę poniżej, a potem rozpocznij walki.",
+      "presentedBy": "Prezentuje",
+      "s1Pick": "1. Wybierz",
+      "s2MyTeam": "2. Moja drużyna",
+      "s3Friends": "3. Znajomi",
+      "admin": "Admin"
+    },
+    "leaguePanel": {
+      "noFriendsHereYet": "Brak znajomych",
+      "saveYourTeamAnd": "Zapisz drużynę, a zobaczysz swoje miejsce wśród znajomych.",
+      "whoSWinning": "Kto wygrywa",
+      "you": "{{name}} (ty)",
+      "goldGloves": "Złote Rękawice",
+      "titleBelt": "Pas mistrzowski",
+      "redCorner": "Czerwony narożnik",
+      "blueCorner": "Niebieski narożnik"
+    },
+    "leagueSwitcher": {
+      "leagueMadeShareCode": "Liga utworzona! Udostępnij kod {{code}} znajomym.",
+      "youJoined": "Dołączyłeś do {{name}}!",
+      "thatDidnTWork": "Nie zadziałało. Spróbuj ponownie.",
+      "codeCopied": "Kod skopiowany",
+      "join": "Dołącz",
+      "newLeague": "Nowa liga",
+      "inviteCode": "Kod zaproszenia",
+      "leagueName": "Nazwa ligi",
+      "make": "Utwórz"
+    },
+    "checkinPage": {
+      "join": "Dołącz"
+    },
+    "proCardPage": {
+      "make": "Utwórz",
+      "buyerProtection": "Ochrona Kupującego"
+    },
+    "comingUp": {
+      "comingUp": "Wkrótce",
+      "yourPartnerSPrediction": "Przewidywanie partnera",
+      "wrappedIsHere": "Podsumowanie już jest",
+      "yourSeasonToldFrom": "Twój sezon opowiedziany przez twoje treningi.",
+      "hide": "Ukryj"
+    },
+    "welcomeBack": {
+      "hide": "Ukryj",
+      "welcomeBack": "Witaj z powrotem",
+      "easeBackInOne": "Wróć spokojnie: jedna runda"
+    },
+    "driveCards": {
+      "resetMyHome": "Resetuj ekran główny",
+      "yourRank": "Twoje miejsce",
+      "boss": "Boss: {{name}}",
+      "triesLeft": "{{line}}. Zostało prób: {{attempts_left}}.",
+      "trySomethingNew": "Spróbuj czegoś nowego",
+      "aFreestyleRoundNo": "Runda freestyle: bez oceny, tylko ty i twoja muzyka.",
+      "buildACombination": "Zbuduj kombinację",
+      "putYourOwnCombo": "Ułóż własne kombo i je przećwicz."
+    },
+    "epicWinCard": {
+      "lockedInOnlyYou": "Zapisane. Widzisz to tylko ty.",
+      "couldnTSaveThat": "Nie udało się zapisać",
+      "yourBigWin": "Twój wielki cel",
+      "aWeekInWhat": "Minął tydzień. Do czego naprawdę trenujesz?",
+      "orWriteYourOwn": "Albo wpisz własny",
+      "whatGetsInYour": "Co ci przeszkadza? Wybierz do 3.",
+      "saveMyBigWin": "Zapisz mój wielki cel",
+      "privateYourCoachMentions": "Prywatne. Trener wspomni o tym tylko po prawdziwej wygranej.",
+      "change": "Zmień"
+    },
+    "weekPlanCard": {
+      "couldnTSaveThat": "Nie udało się zapisać",
+      "change": "Zmień",
+      "reminderOff": "Przypomnienie wyłączone.",
+      "pickYourWeek": "Wybierz swój tydzień",
+      "howManySessionsThis": "Ile sesji w tym tygodniu? Ty wybierasz. Partner dotrzyma ci kroku.",
+      "sessions": "sesje",
+      "oneSkillToWork": "Jedna umiejętność do pracy (opcjonalnie)",
+      "lockInMyWeek": "Zatwierdź tydzień",
+      "yourWeek": "Twój tydzień",
+      "weekDoneExtraSessions": "Tydzień zaliczony. Dodatkowe sesje to bonus, nie obowiązek.",
+      "workingOn": "· praca nad",
+      "nudgeMe": "Przypomnij mi",
+      "whenToNudgeYou": "Kiedy ci przypomnieć",
+      "never": "Nigdy"
+    },
+    "newcomerCards": {
+      "thanksTheyLlKnow": "Dzięki. Będą wiedzieć, że pomogło.",
+      "thanksForTellingUs": "Dzięki za informację. Sprawdzimy to.",
+      "aTipForYou": "Wskazówka dla ciebie",
+      "helpful": "Pomocne",
+      "reportThisTip": "Zgłoś tę wskazówkę",
+      "tipSavedANewcomer": "Wskazówka zapisana. Nowicjusz wkrótce ją zobaczy.",
+      "couldnTSaveThat": "Nie udało się zapisać wskazówki",
+      "passItOn": "Przekaż dalej",
+      "whatDoYouWish": "Co chciałbyś usłyszeć w pierwszym tygodniu?",
+      "oneShortTrainingTip": "Jedna krótka wskazówka treningowa. Bez imion, linków i kontaktów.",
+      "yourTip": "Twoja wskazówka",
+      "shareAnonymously": "Udostępnij anonimowo",
+      "leaveATipFor": "Zostaw wskazówkę nowicjuszowi"
+    },
+    "oneRoundButton": {
+      "justOneRound3": "Tylko jedna runda · 3 min"
+    },
+    "timerCard": {
+      "timerCircuits": "Timer i obwody",
+      "bagPadsCircuitsHiit": "Worek, tarcze, obwody, HIIT. Nagrywaj na tym samym ekranie."
+    },
+    "fighterMarketPage": {
+      "buyerProtection": "Ochrona Kupującego"
+    },
+    "bragButton": {
+      "copiedPasteItAnywhere": "Skopiowano. Wklej gdziekolwiek.",
+      "sharingIsnTAvailable": "Udostępnianie niedostępne na tym urządzeniu",
+      "couldnTShareThat": "Nie udało się udostępnić"
+    },
+    "cornerSurprise": {
+      "cornerSurprise": "Niespodzianka z narożnika",
+      "seeTheOdds": "Zobacz szanse"
     }
   },
   "feedback": {

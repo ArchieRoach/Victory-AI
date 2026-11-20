@@ -882,14 +882,16 @@
       "goLive": "Live gehen",
       "tokens": "Tokens",
       "emotes2": "Emotes",
-      "goBack": "Zurück"
+      "goBack": "Zurück",
+      "free": "Kostenlos"
     },
     "streamCard": {
       "live": "LIVE"
     },
     "discoverPage": {
       "live": "LIVE",
-      "dismiss": "Ausblenden"
+      "dismiss": "Ausblenden",
+      "sessions": "Einheiten"
     },
     "streamViewPage": {
       "live": "LIVE",
@@ -1002,7 +1004,8 @@
       "delete": "Löschen",
       "close": "Schließen",
       "combo": "Kombi",
-      "goBack": "Zurück"
+      "goBack": "Zurück",
+      "free": "Kostenlos"
     },
     "birthDateCard": {
       "enterYourDateOf": "Gib dein Geburtsdatum ein",
@@ -1040,7 +1043,8 @@
       "tokens": "Tokens",
       "goBack": "Zurück",
       "stayInTheFight": "Bleib im Kampf",
-      "fighter": "Kämpfer"
+      "fighter": "Kämpfer",
+      "openingCheckout": "Kasse wird geöffnet…"
     },
     "bookNextRound": {
       "pickATimeBetween": "Wähle eine Zeit zwischen 5 und 22 Uhr",
@@ -1085,7 +1089,8 @@
     },
     "emoteShop": {
       "close": "Schließen",
-      "tokens": "Tokens"
+      "tokens": "Tokens",
+      "free": "Kostenlos"
     },
     "giftSubModal": {
       "close": "Schließen"
@@ -1104,7 +1109,9 @@
     "timerPage": {
       "close": "Schließen",
       "tryAgain": "Erneut versuchen",
-      "done": "Fertig"
+      "done": "Fertig",
+      "couldnTSaveThat": "Konnte nicht gespeichert werden",
+      "bagPadsCircuitsHiit": "Sack, Pratzen, Zirkel, HIIT. Film es auf demselben Bildschirm."
     },
     "fightFilm": {
       "fightFilm": "Fight Film",
@@ -1265,7 +1272,8 @@
       "sessions": "Einheiten."
     },
     "fantasyPage": {
-      "seePro": "Pro ansehen"
+      "seePro": "Pro ansehen",
+      "you": "{{name}} (du)"
     },
     "goldenGloves": {
       "day": "Tag"
@@ -1357,7 +1365,8 @@
     "fightCampPage": {
       "dismiss": "Ausblenden",
       "share": "Teilen",
-      "vs": "vs"
+      "vs": "vs",
+      "couldnTSaveThat": "Konnte nicht gespeichert werden"
     },
     "streakShareButton": {
       "share": "Teilen",
@@ -1365,7 +1374,9 @@
       "makingIt": "Wird erstellt…"
     },
     "styleQuizPage": {
-      "share": "Teilen"
+      "share": "Teilen",
+      "copiedPasteItAnywhere": "Kopiert. Füg es irgendwo ein.",
+      "couldnTShareThat": "Konnte nicht geteilt werden"
     },
     "fighterBuddyCreator": {
       "choose": "Wähle"
@@ -1406,7 +1417,8 @@
     },
     "levelCard": {
       "status": "Status",
-      "level": "Level"
+      "level": "Level",
+      "sessions2": "Einheiten"
     },
     "trophyShelf": {
       "level": "Level",
@@ -1429,21 +1441,158 @@
     },
     "scorecardPanel": {
       "of": "von",
-      "fight": "Kampf"
+      "fight": "Kampf",
+      "noTeamYet": "Noch kein Team",
+      "goToPickChoose": "Geh zu Wählen, nimm 3 Boxer und speichere dein Team vor dem ersten Kampf.",
+      "yourTeam": "Dein Team",
+      "fightsFinished": "Kämpfe beendet",
+      "points": "Punkte",
+      "fighting": "kämpft",
+      "fightingNow": "Kämpft gerade"
     },
     "trainPage": {
       "freestyle": "Freestyle"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link kopiert: schick ihn einem Elternteil",
-      "couldnTStartCheckout": "Bezahlung konnte nicht gestartet werden. Versuch es noch mal."
+      "couldnTStartCheckout": "Bezahlung konnte nicht gestartet werden. Versuch es noch mal.",
+      "size": "Größe",
+      "item": "Artikel",
+      "delivery": "Versand",
+      "free": "Kostenlos",
+      "buyerProtection": "Käuferschutz",
+      "total": "Gesamt",
+      "buyerProtectionWeHold": "Käuferschutz: Wir halten dein Geld zurück, bis du bestätigst, dass es angekommen ist. Kommt es nicht an oder entspricht nicht der Beschreibung, bekommst du dein Geld zurück.",
+      "pickASize": "Wähle eine Größe",
+      "openingCheckout": "Kasse wird geöffnet…"
     },
     "fantasySidecar": {
       "fantasyBoxing": "Fantasy-Boxen",
       "freeGameNoMoney": "Kostenloses Spiel · niemals Geld · nur Spaß mit Freunden",
       "pickNow": "Jetzt wählen",
       "fightsOn": "Kämpfe laufen",
-      "finished": "Beendet"
+      "finished": "Beendet",
+      "practiceCardMadeUp": "Übungskarte: erfundene Boxer, nur um das Spiel zu lernen.",
+      "playAgain": "Nochmal spielen",
+      "fightsOn2": "Kämpfe laufen…",
+      "startTheFights": "Kämpfe starten",
+      "pickYourTeamBelow": "Wähle unten dein Team und starte dann die Kämpfe.",
+      "presentedBy": "Präsentiert von",
+      "s1Pick": "1. Wählen",
+      "s2MyTeam": "2. Mein Team",
+      "s3Friends": "3. Freunde",
+      "admin": "Admin"
+    },
+    "leaguePanel": {
+      "noFriendsHereYet": "Noch keine Freunde hier",
+      "saveYourTeamAnd": "Speichere dein Team und sieh, wo du im Vergleich zu deinen Freunden stehst.",
+      "whoSWinning": "Wer gewinnt",
+      "you": "{{name}} (du)",
+      "goldGloves": "Goldene Handschuhe",
+      "titleBelt": "Titelgürtel",
+      "redCorner": "Rote Ecke",
+      "blueCorner": "Blaue Ecke"
+    },
+    "leagueSwitcher": {
+      "leagueMadeShareCode": "Liga erstellt! Teile den Code {{code}} mit Freunden.",
+      "youJoined": "Du bist {{name}} beigetreten!",
+      "thatDidnTWork": "Hat nicht geklappt. Versuch es noch mal.",
+      "codeCopied": "Code kopiert",
+      "join": "Beitreten",
+      "newLeague": "Neue Liga",
+      "inviteCode": "Einladungscode",
+      "leagueName": "Liganame",
+      "make": "Erstellen"
+    },
+    "checkinPage": {
+      "join": "Beitreten"
+    },
+    "proCardPage": {
+      "make": "Erstellen",
+      "buyerProtection": "Käuferschutz"
+    },
+    "comingUp": {
+      "comingUp": "Demnächst",
+      "yourPartnerSPrediction": "Die Vorhersage deines Partners",
+      "wrappedIsHere": "Dein Rückblick ist da",
+      "yourSeasonToldFrom": "Deine Saison, erzählt aus deinem eigenen Training.",
+      "hide": "Ausblenden"
+    },
+    "welcomeBack": {
+      "hide": "Ausblenden",
+      "welcomeBack": "Willkommen zurück",
+      "easeBackInOne": "Locker wieder rein: eine Runde"
+    },
+    "driveCards": {
+      "resetMyHome": "Startseite zurücksetzen",
+      "yourRank": "Dein Rang",
+      "boss": "Boss: {{name}}",
+      "triesLeft": "{{line}}. Noch {{attempts_left}} Versuche.",
+      "trySomethingNew": "Probier was Neues",
+      "aFreestyleRoundNo": "Eine Freestyle-Runde: keine Bewertung, nur du und deine Musik.",
+      "buildACombination": "Bau eine Kombination",
+      "putYourOwnCombo": "Stell deine eigene Kombi zusammen und drill sie."
+    },
+    "epicWinCard": {
+      "lockedInOnlyYou": "Festgehalten. Nur du kannst das sehen.",
+      "couldnTSaveThat": "Konnte nicht gespeichert werden",
+      "yourBigWin": "Dein großes Ziel",
+      "aWeekInWhat": "Eine Woche dabei. Wofür trainierst du wirklich?",
+      "orWriteYourOwn": "Oder schreib dein eigenes",
+      "whatGetsInYour": "Was steht dir im Weg? Wähle bis zu 3.",
+      "saveMyBigWin": "Mein großes Ziel speichern",
+      "privateYourCoachMentions": "Privat. Dein Coach erwähnt es nur nach einem echten Erfolg.",
+      "change": "Ändern"
+    },
+    "weekPlanCard": {
+      "couldnTSaveThat": "Konnte nicht gespeichert werden",
+      "change": "Ändern",
+      "reminderOff": "Erinnerung aus.",
+      "pickYourWeek": "Wähle deine Woche",
+      "howManySessionsThis": "Wie viele Einheiten diese Woche? Du entscheidest. Dein Partner hält mit.",
+      "sessions": "Einheiten",
+      "oneSkillToWork": "Eine Fähigkeit zum Üben (optional)",
+      "lockInMyWeek": "Meine Woche festlegen",
+      "yourWeek": "Deine Woche",
+      "weekDoneExtraSessions": "Woche geschafft. Extra-Einheiten sind ein Bonus, kein Muss.",
+      "workingOn": "· Fokus auf",
+      "nudgeMe": "Erinnere mich",
+      "whenToNudgeYou": "Wann wir dich erinnern",
+      "never": "Nie"
+    },
+    "newcomerCards": {
+      "thanksTheyLlKnow": "Danke. Sie werden wissen, dass es geholfen hat.",
+      "thanksForTellingUs": "Danke für den Hinweis. Wir prüfen es.",
+      "aTipForYou": "Ein Tipp für dich",
+      "helpful": "Hilfreich",
+      "reportThisTip": "Diesen Tipp melden",
+      "tipSavedANewcomer": "Tipp gespeichert. Ein Neuling sieht ihn bald.",
+      "couldnTSaveThat": "Tipp konnte nicht gespeichert werden",
+      "passItOn": "Gib es weiter",
+      "whatDoYouWish": "Was hättest du gern in deiner ersten Woche gehört?",
+      "oneShortTrainingTip": "Ein kurzer Trainingstipp. Keine Namen, Links oder Kontaktdaten.",
+      "yourTip": "Dein Tipp",
+      "shareAnonymously": "Anonym teilen",
+      "leaveATipFor": "Hinterlass einem Neuling einen Tipp"
+    },
+    "oneRoundButton": {
+      "justOneRound3": "Nur eine Runde · 3 Min"
+    },
+    "timerCard": {
+      "timerCircuits": "Timer & Zirkel",
+      "bagPadsCircuitsHiit": "Sack, Pratzen, Zirkel, HIIT. Film es auf demselben Bildschirm."
+    },
+    "fighterMarketPage": {
+      "buyerProtection": "Käuferschutz"
+    },
+    "bragButton": {
+      "copiedPasteItAnywhere": "Kopiert. Füg es irgendwo ein.",
+      "sharingIsnTAvailable": "Teilen ist auf diesem Gerät nicht verfügbar",
+      "couldnTShareThat": "Konnte nicht geteilt werden"
+    },
+    "cornerSurprise": {
+      "cornerSurprise": "Überraschung aus der Ecke",
+      "seeTheOdds": "Quoten ansehen"
     }
   },
   "feedback": {

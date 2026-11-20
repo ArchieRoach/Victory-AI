@@ -882,14 +882,16 @@
       "goLive": "开始直播",
       "tokens": "代币",
       "emotes2": "表情",
-      "goBack": "返回"
+      "goBack": "返回",
+      "free": "免费"
     },
     "streamCard": {
       "live": "直播中"
     },
     "discoverPage": {
       "live": "直播中",
-      "dismiss": "关闭"
+      "dismiss": "关闭",
+      "sessions": "次训练"
     },
     "streamViewPage": {
       "live": "直播中",
@@ -1002,7 +1004,8 @@
       "delete": "删除",
       "close": "关闭",
       "combo": "组合拳",
-      "goBack": "返回"
+      "goBack": "返回",
+      "free": "免费"
     },
     "birthDateCard": {
       "enterYourDateOf": "输入你的出生日期",
@@ -1040,7 +1043,8 @@
       "tokens": "代币",
       "goBack": "返回",
       "stayInTheFight": "保持战斗状态",
-      "fighter": "拳手"
+      "fighter": "拳手",
+      "openingCheckout": "正在打开结账…"
     },
     "bookNextRound": {
       "pickATimeBetween": "请选择早上 5 点到晚上 10 点之间的时间",
@@ -1085,7 +1089,8 @@
     },
     "emoteShop": {
       "close": "关闭",
-      "tokens": "代币"
+      "tokens": "代币",
+      "free": "免费"
     },
     "giftSubModal": {
       "close": "关闭"
@@ -1104,7 +1109,9 @@
     "timerPage": {
       "close": "关闭",
       "tryAgain": "重试",
-      "done": "完成"
+      "done": "完成",
+      "couldnTSaveThat": "无法保存",
+      "bagPadsCircuitsHiit": "沙袋、手靶、循环、HIIT。在同一屏幕上录制。"
     },
     "fightFilm": {
       "fightFilm": "战斗影集",
@@ -1265,7 +1272,8 @@
       "sessions": "次训练中。"
     },
     "fantasyPage": {
-      "seePro": "查看 Pro"
+      "seePro": "查看 Pro",
+      "you": "{{name}}（你）"
     },
     "goldenGloves": {
       "day": "天"
@@ -1357,7 +1365,8 @@
     "fightCampPage": {
       "dismiss": "关闭",
       "share": "分享",
-      "vs": "对"
+      "vs": "对",
+      "couldnTSaveThat": "无法保存"
     },
     "streakShareButton": {
       "share": "分享",
@@ -1365,7 +1374,9 @@
       "makingIt": "生成中…"
     },
     "styleQuizPage": {
-      "share": "分享"
+      "share": "分享",
+      "copiedPasteItAnywhere": "已复制。粘贴到任何地方。",
+      "couldnTShareThat": "无法分享"
     },
     "fighterBuddyCreator": {
       "choose": "选择"
@@ -1406,7 +1417,8 @@
     },
     "levelCard": {
       "status": "身份",
-      "level": "等级"
+      "level": "等级",
+      "sessions2": "次训练"
     },
     "trophyShelf": {
       "level": "等级",
@@ -1429,21 +1441,158 @@
     },
     "scorecardPanel": {
       "of": "/",
-      "fight": "比赛"
+      "fight": "比赛",
+      "noTeamYet": "还没有队伍",
+      "goToPickChoose": "前往“选人”，选 3 名拳手，并在第一场比赛前保存队伍。",
+      "yourTeam": "你的队伍",
+      "fightsFinished": "场比赛已结束",
+      "points": "积分",
+      "fighting": "比赛中",
+      "fightingNow": "正在比赛"
     },
     "trainPage": {
       "freestyle": "自由练"
     },
     "merchSheet": {
       "linkCopiedSendIt": "链接已复制：发给家长",
-      "couldnTStartCheckout": "无法开始付款，请重试。"
+      "couldnTStartCheckout": "无法开始付款，请重试。",
+      "size": "尺码",
+      "item": "商品",
+      "delivery": "运费",
+      "free": "免费",
+      "buyerProtection": "买家保障",
+      "total": "合计",
+      "buyerProtectionWeHold": "买家保障：在你确认收货前，我们会替你保管货款。如果没收到或与描述不符，你将获得退款。",
+      "pickASize": "选择尺码",
+      "openingCheckout": "正在打开结账…"
     },
     "fantasySidecar": {
       "fantasyBoxing": "梦幻拳击",
       "freeGameNoMoney": "免费游戏 · 永不涉及金钱 · 只为和朋友一起玩",
       "pickNow": "现在选择",
       "fightsOn": "比赛进行中",
-      "finished": "已结束"
+      "finished": "已结束",
+      "practiceCardMadeUp": "练习卡：虚构的拳手，只为学习玩法。",
+      "playAgain": "再玩一次",
+      "fightsOn2": "比赛进行中…",
+      "startTheFights": "开始比赛",
+      "pickYourTeamBelow": "在下方选好你的队伍，然后开始比赛。",
+      "presentedBy": "赞助方",
+      "s1Pick": "1. 选人",
+      "s2MyTeam": "2. 我的队伍",
+      "s3Friends": "3. 好友",
+      "admin": "管理"
+    },
+    "leaguePanel": {
+      "noFriendsHereYet": "这里还没有好友",
+      "saveYourTeamAnd": "保存你的队伍，就能看到你在好友中的排名。",
+      "whoSWinning": "谁在领先",
+      "you": "{{name}}（你）",
+      "goldGloves": "金手套",
+      "titleBelt": "冠军腰带",
+      "redCorner": "红角",
+      "blueCorner": "蓝角"
+    },
+    "leagueSwitcher": {
+      "leagueMadeShareCode": "联赛已创建！把代码 {{code}} 分享给好友。",
+      "youJoined": "你加入了 {{name}}！",
+      "thatDidnTWork": "没有成功，请重试。",
+      "codeCopied": "代码已复制",
+      "join": "加入",
+      "newLeague": "新联赛",
+      "inviteCode": "邀请码",
+      "leagueName": "联赛名称",
+      "make": "创建"
+    },
+    "checkinPage": {
+      "join": "加入"
+    },
+    "proCardPage": {
+      "make": "创建",
+      "buyerProtection": "买家保障"
+    },
+    "comingUp": {
+      "comingUp": "即将开始",
+      "yourPartnerSPrediction": "你搭档的预测",
+      "wrappedIsHere": "年度回顾来了",
+      "yourSeasonToldFrom": "你的赛季，由你自己的训练讲述。",
+      "hide": "隐藏"
+    },
+    "welcomeBack": {
+      "hide": "隐藏",
+      "welcomeBack": "欢迎回来",
+      "easeBackInOne": "慢慢回归：一个回合"
+    },
+    "driveCards": {
+      "resetMyHome": "重置我的首页",
+      "yourRank": "你的排名",
+      "boss": "Boss：{{name}}",
+      "triesLeft": "{{line}}。还剩 {{attempts_left}} 次机会。",
+      "trySomethingNew": "试试新东西",
+      "aFreestyleRoundNo": "自由回合：不评分，只有你和你的音乐。",
+      "buildACombination": "组建组合拳",
+      "putYourOwnCombo": "编排你自己的组合拳并反复练习。"
+    },
+    "epicWinCard": {
+      "lockedInOnlyYou": "已锁定。只有你能看到。",
+      "couldnTSaveThat": "无法保存",
+      "yourBigWin": "你的大目标",
+      "aWeekInWhat": "一周过去了。你真正在为什么而训练？",
+      "orWriteYourOwn": "或者写下你自己的",
+      "whatGetsInYour": "什么在阻碍你？最多选 3 个。",
+      "saveMyBigWin": "保存我的大目标",
+      "privateYourCoachMentions": "私密。只有在真正取得进步后，教练才会提起。",
+      "change": "更改"
+    },
+    "weekPlanCard": {
+      "couldnTSaveThat": "无法保存",
+      "change": "更改",
+      "reminderOff": "提醒已关闭。",
+      "pickYourWeek": "选择你的一周",
+      "howManySessionsThis": "这周训练几次？你来决定。你的搭档会跟上你的节奏。",
+      "sessions": "次训练",
+      "oneSkillToWork": "一项要练的技能（可选）",
+      "lockInMyWeek": "锁定我的一周",
+      "yourWeek": "你的一周",
+      "weekDoneExtraSessions": "本周完成。额外训练是加分项，不是必须。",
+      "workingOn": "· 正在练",
+      "nudgeMe": "提醒我",
+      "whenToNudgeYou": "何时提醒你",
+      "never": "从不"
+    },
+    "newcomerCards": {
+      "thanksTheyLlKnow": "谢谢。他们会知道这帮到了你。",
+      "thanksForTellingUs": "谢谢告诉我们。我们会核查。",
+      "aTipForYou": "给你的小贴士",
+      "helpful": "有用",
+      "reportThisTip": "举报这条贴士",
+      "tipSavedANewcomer": "贴士已保存。新手很快就会看到。",
+      "couldnTSaveThat": "无法保存贴士",
+      "passItOn": "传下去",
+      "whatDoYouWish": "在你的第一周，你希望有人告诉你什么？",
+      "oneShortTrainingTip": "一条简短的训练贴士。不要写名字、链接或联系方式。",
+      "yourTip": "你的贴士",
+      "shareAnonymously": "匿名分享",
+      "leaveATipFor": "给新手留一条贴士"
+    },
+    "oneRoundButton": {
+      "justOneRound3": "只需一个回合 · 3 分钟"
+    },
+    "timerCard": {
+      "timerCircuits": "计时器和循环训练",
+      "bagPadsCircuitsHiit": "沙袋、手靶、循环、HIIT。在同一屏幕上录制。"
+    },
+    "fighterMarketPage": {
+      "buyerProtection": "买家保障"
+    },
+    "bragButton": {
+      "copiedPasteItAnywhere": "已复制。粘贴到任何地方。",
+      "sharingIsnTAvailable": "此设备不支持分享",
+      "couldnTShareThat": "无法分享"
+    },
+    "cornerSurprise": {
+      "cornerSurprise": "角落惊喜",
+      "seeTheOdds": "查看概率"
     }
   },
   "feedback": {

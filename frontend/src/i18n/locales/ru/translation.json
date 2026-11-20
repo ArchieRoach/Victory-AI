@@ -882,14 +882,16 @@
       "goLive": "Выйти в эфир",
       "tokens": "токенов",
       "emotes2": "Эмодзи",
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "free": "Бесплатно"
     },
     "streamCard": {
       "live": "ЭФИР"
     },
     "discoverPage": {
       "live": "ЭФИР",
-      "dismiss": "Скрыть"
+      "dismiss": "Скрыть",
+      "sessions": "тренировок"
     },
     "streamViewPage": {
       "live": "ЭФИР",
@@ -1002,7 +1004,8 @@
       "delete": "Удалить",
       "close": "Закрыть",
       "combo": "Комбо",
-      "goBack": "Назад"
+      "goBack": "Назад",
+      "free": "Бесплатно"
     },
     "birthDateCard": {
       "enterYourDateOf": "Укажи дату рождения",
@@ -1040,7 +1043,8 @@
       "tokens": "токенов",
       "goBack": "Назад",
       "stayInTheFight": "Оставайся в бою",
-      "fighter": "Боец"
+      "fighter": "Боец",
+      "openingCheckout": "Открываем оплату…"
     },
     "bookNextRound": {
       "pickATimeBetween": "Выбери время с 5:00 до 22:00",
@@ -1085,7 +1089,8 @@
     },
     "emoteShop": {
       "close": "Закрыть",
-      "tokens": "токенов"
+      "tokens": "токенов",
+      "free": "Бесплатно"
     },
     "giftSubModal": {
       "close": "Закрыть"
@@ -1104,7 +1109,9 @@
     "timerPage": {
       "close": "Закрыть",
       "tryAgain": "Попробовать снова",
-      "done": "Готово"
+      "done": "Готово",
+      "couldnTSaveThat": "Не удалось сохранить",
+      "bagPadsCircuitsHiit": "Мешок, лапы, круговые, HIIT. Снимай на том же экране."
     },
     "fightFilm": {
       "fightFilm": "Фильм боя",
@@ -1265,7 +1272,8 @@
       "sessions": "тренировок."
     },
     "fantasyPage": {
-      "seePro": "Смотреть Pro"
+      "seePro": "Смотреть Pro",
+      "you": "{{name}} (ты)"
     },
     "goldenGloves": {
       "day": "день"
@@ -1357,7 +1365,8 @@
     "fightCampPage": {
       "dismiss": "Скрыть",
       "share": "Поделиться",
-      "vs": "против"
+      "vs": "против",
+      "couldnTSaveThat": "Не удалось сохранить"
     },
     "streakShareButton": {
       "share": "Поделиться",
@@ -1365,7 +1374,9 @@
       "makingIt": "Делаем…"
     },
     "styleQuizPage": {
-      "share": "Поделиться"
+      "share": "Поделиться",
+      "copiedPasteItAnywhere": "Скопировано. Вставь куда угодно.",
+      "couldnTShareThat": "Не удалось поделиться"
     },
     "fighterBuddyCreator": {
       "choose": "Выбери"
@@ -1406,7 +1417,8 @@
     },
     "levelCard": {
       "status": "Статус",
-      "level": "Уровень"
+      "level": "Уровень",
+      "sessions2": "тренировок"
     },
     "trophyShelf": {
       "level": "Уровень",
@@ -1429,21 +1441,158 @@
     },
     "scorecardPanel": {
       "of": "из",
-      "fight": "Бой"
+      "fight": "Бой",
+      "noTeamYet": "Команды пока нет",
+      "goToPickChoose": "Зайди в «Выбор», возьми 3 боксёров и сохрани команду до первого боя.",
+      "yourTeam": "Твоя команда",
+      "fightsFinished": "боёв завершено",
+      "points": "очков",
+      "fighting": "в бою",
+      "fightingNow": "Сейчас в бою"
     },
     "trainPage": {
       "freestyle": "Свободный"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Ссылка скопирована: отправь её родителю",
-      "couldnTStartCheckout": "Не удалось начать оплату. Попробуй ещё раз."
+      "couldnTStartCheckout": "Не удалось начать оплату. Попробуй ещё раз.",
+      "size": "Размер",
+      "item": "Товар",
+      "delivery": "Доставка",
+      "free": "Бесплатно",
+      "buyerProtection": "Защита покупателя",
+      "total": "Итого",
+      "buyerProtectionWeHold": "Защита покупателя: мы держим твои деньги, пока ты не подтвердишь получение. Если товар не пришёл или не соответствует описанию, деньги вернутся.",
+      "pickASize": "Выбери размер",
+      "openingCheckout": "Открываем оплату…"
     },
     "fantasySidecar": {
       "fantasyBoxing": "Фэнтези-бокс",
       "freeGameNoMoney": "Бесплатная игра · никаких денег · просто весело с друзьями",
       "pickNow": "Выбирай сейчас",
       "fightsOn": "Бои идут",
-      "finished": "Завершено"
+      "finished": "Завершено",
+      "practiceCardMadeUp": "Тренировочная карта: выдуманные боксёры, просто чтобы освоить игру.",
+      "playAgain": "Сыграть ещё",
+      "fightsOn2": "Бои идут…",
+      "startTheFights": "Начать бои",
+      "pickYourTeamBelow": "Выбери команду ниже, затем начни бои.",
+      "presentedBy": "При поддержке",
+      "s1Pick": "1. Выбор",
+      "s2MyTeam": "2. Моя команда",
+      "s3Friends": "3. Друзья",
+      "admin": "Админ"
+    },
+    "leaguePanel": {
+      "noFriendsHereYet": "Друзей здесь пока нет",
+      "saveYourTeamAnd": "Сохрани команду и увидишь своё место среди друзей.",
+      "whoSWinning": "Кто впереди",
+      "you": "{{name}} (ты)",
+      "goldGloves": "Золотые перчатки",
+      "titleBelt": "Чемпионский пояс",
+      "redCorner": "Красный угол",
+      "blueCorner": "Синий угол"
+    },
+    "leagueSwitcher": {
+      "leagueMadeShareCode": "Лига создана! Поделись кодом {{code}} с друзьями.",
+      "youJoined": "Ты вступил в {{name}}!",
+      "thatDidnTWork": "Не получилось. Попробуй ещё раз.",
+      "codeCopied": "Код скопирован",
+      "join": "Вступить",
+      "newLeague": "Новая лига",
+      "inviteCode": "Код приглашения",
+      "leagueName": "Название лиги",
+      "make": "Создать"
+    },
+    "checkinPage": {
+      "join": "Вступить"
+    },
+    "proCardPage": {
+      "make": "Создать",
+      "buyerProtection": "Защита покупателя"
+    },
+    "comingUp": {
+      "comingUp": "Скоро",
+      "yourPartnerSPrediction": "Прогноз твоего партнёра",
+      "wrappedIsHere": "Итоги готовы",
+      "yourSeasonToldFrom": "Твой сезон по твоим собственным тренировкам.",
+      "hide": "Скрыть"
+    },
+    "welcomeBack": {
+      "hide": "Скрыть",
+      "welcomeBack": "С возвращением",
+      "easeBackInOne": "Вкатывайся спокойно: один раунд"
+    },
+    "driveCards": {
+      "resetMyHome": "Сбросить главную",
+      "yourRank": "Твоё место",
+      "boss": "Босс: {{name}}",
+      "triesLeft": "{{line}}. Осталось попыток: {{attempts_left}}.",
+      "trySomethingNew": "Попробуй новое",
+      "aFreestyleRoundNo": "Свободный раунд: без оценки, только ты и твоя музыка.",
+      "buildACombination": "Собери комбинацию",
+      "putYourOwnCombo": "Составь свою комбинацию и отработай её."
+    },
+    "epicWinCard": {
+      "lockedInOnlyYou": "Зафиксировано. Видишь только ты.",
+      "couldnTSaveThat": "Не удалось сохранить",
+      "yourBigWin": "Твоя большая цель",
+      "aWeekInWhat": "Прошла неделя. Ради чего ты на самом деле тренируешься?",
+      "orWriteYourOwn": "Или напиши свою",
+      "whatGetsInYour": "Что мешает? Выбери до 3.",
+      "saveMyBigWin": "Сохранить мою цель",
+      "privateYourCoachMentions": "Приватно. Тренер упомянет это только после настоящей победы.",
+      "change": "Изменить"
+    },
+    "weekPlanCard": {
+      "couldnTSaveThat": "Не удалось сохранить",
+      "change": "Изменить",
+      "reminderOff": "Напоминание выключено.",
+      "pickYourWeek": "Выбери свою неделю",
+      "howManySessionsThis": "Сколько тренировок на этой неделе? Решаешь ты. Партнёр подстроится.",
+      "sessions": "тренировок",
+      "oneSkillToWork": "Один навык для работы (необязательно)",
+      "lockInMyWeek": "Зафиксировать неделю",
+      "yourWeek": "Твоя неделя",
+      "weekDoneExtraSessions": "Неделя выполнена. Лишние тренировки — бонус, а не обязаловка.",
+      "workingOn": "· работаем над",
+      "nudgeMe": "Напомни мне",
+      "whenToNudgeYou": "Когда напоминать",
+      "never": "Никогда"
+    },
+    "newcomerCards": {
+      "thanksTheyLlKnow": "Спасибо. Автор узнает, что помогло.",
+      "thanksForTellingUs": "Спасибо, что сообщил. Мы проверим.",
+      "aTipForYou": "Совет для тебя",
+      "helpful": "Полезно",
+      "reportThisTip": "Пожаловаться на совет",
+      "tipSavedANewcomer": "Совет сохранён. Скоро его увидит новичок.",
+      "couldnTSaveThat": "Не удалось сохранить совет",
+      "passItOn": "Передай дальше",
+      "whatDoYouWish": "Что бы ты хотел услышать в первую неделю?",
+      "oneShortTrainingTip": "Один короткий совет по тренировкам. Без имён, ссылок и контактов.",
+      "yourTip": "Твой совет",
+      "shareAnonymously": "Поделиться анонимно",
+      "leaveATipFor": "Оставь совет новичку"
+    },
+    "oneRoundButton": {
+      "justOneRound3": "Всего один раунд · 3 мин"
+    },
+    "timerCard": {
+      "timerCircuits": "Таймер и круговые",
+      "bagPadsCircuitsHiit": "Мешок, лапы, круговые, HIIT. Снимай на том же экране."
+    },
+    "fighterMarketPage": {
+      "buyerProtection": "Защита покупателя"
+    },
+    "bragButton": {
+      "copiedPasteItAnywhere": "Скопировано. Вставь куда угодно.",
+      "sharingIsnTAvailable": "На этом устройстве нельзя поделиться",
+      "couldnTShareThat": "Не удалось поделиться"
+    },
+    "cornerSurprise": {
+      "cornerSurprise": "Сюрприз из угла",
+      "seeTheOdds": "Смотреть шансы"
     }
   },
   "feedback": {

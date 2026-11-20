@@ -882,14 +882,16 @@
       "goLive": "ابدأ البث",
       "tokens": "رموز",
       "emotes2": "رموز تعبيرية",
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "free": "مجاني"
     },
     "streamCard": {
       "live": "مباشر"
     },
     "discoverPage": {
       "live": "مباشر",
-      "dismiss": "تجاهل"
+      "dismiss": "تجاهل",
+      "sessions": "جلسات"
     },
     "streamViewPage": {
       "live": "مباشر",
@@ -1002,7 +1004,8 @@
       "delete": "حذف",
       "close": "إغلاق",
       "combo": "تركيبة",
-      "goBack": "رجوع"
+      "goBack": "رجوع",
+      "free": "مجاني"
     },
     "birthDateCard": {
       "enterYourDateOf": "أدخل تاريخ ميلادك",
@@ -1040,7 +1043,8 @@
       "tokens": "رموز",
       "goBack": "رجوع",
       "stayInTheFight": "ابقَ في المعركة",
-      "fighter": "ملاكم"
+      "fighter": "ملاكم",
+      "openingCheckout": "جارٍ فتح الدفع…"
     },
     "bookNextRound": {
       "pickATimeBetween": "اختر وقتًا بين 5 صباحًا و10 مساءً",
@@ -1085,7 +1089,8 @@
     },
     "emoteShop": {
       "close": "إغلاق",
-      "tokens": "رموز"
+      "tokens": "رموز",
+      "free": "مجاني"
     },
     "giftSubModal": {
       "close": "إغلاق"
@@ -1104,7 +1109,9 @@
     "timerPage": {
       "close": "إغلاق",
       "tryAgain": "حاول مرة أخرى",
-      "done": "تم"
+      "done": "تم",
+      "couldnTSaveThat": "تعذّر الحفظ",
+      "bagPadsCircuitsHiit": "الكيس، الوسائد، الدوائر، HIIT. صوّرها على الشاشة نفسها."
     },
     "fightFilm": {
       "fightFilm": "فيلم القتال",
@@ -1265,7 +1272,8 @@
       "sessions": "جلسات."
     },
     "fantasyPage": {
-      "seePro": "اعرض Pro"
+      "seePro": "اعرض Pro",
+      "you": "{{name}} (أنت)"
     },
     "goldenGloves": {
       "day": "يوم"
@@ -1357,7 +1365,8 @@
     "fightCampPage": {
       "dismiss": "تجاهل",
       "share": "مشاركة",
-      "vs": "ضد"
+      "vs": "ضد",
+      "couldnTSaveThat": "تعذّر الحفظ"
     },
     "streakShareButton": {
       "share": "مشاركة",
@@ -1365,7 +1374,9 @@
       "makingIt": "جارٍ الإنشاء…"
     },
     "styleQuizPage": {
-      "share": "مشاركة"
+      "share": "مشاركة",
+      "copiedPasteItAnywhere": "تم النسخ. الصقه في أي مكان.",
+      "couldnTShareThat": "تعذّرت المشاركة"
     },
     "fighterBuddyCreator": {
       "choose": "اختر"
@@ -1406,7 +1417,8 @@
     },
     "levelCard": {
       "status": "الحالة",
-      "level": "المستوى"
+      "level": "المستوى",
+      "sessions2": "جلسات"
     },
     "trophyShelf": {
       "level": "المستوى",
@@ -1429,21 +1441,158 @@
     },
     "scorecardPanel": {
       "of": "من",
-      "fight": "نزال"
+      "fight": "نزال",
+      "noTeamYet": "لا يوجد فريق بعد",
+      "goToPickChoose": "اذهب إلى اختر، واختر 3 ملاكمين، واحفظ فريقك قبل النزال الأول.",
+      "yourTeam": "فريقك",
+      "fightsFinished": "نزالات انتهت",
+      "points": "نقاط",
+      "fighting": "يتنافس",
+      "fightingNow": "يتنافس الآن"
     },
     "trainPage": {
       "freestyle": "حر"
     },
     "merchSheet": {
       "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",
-      "couldnTStartCheckout": "تعذّر بدء الدفع. حاول مرة أخرى."
+      "couldnTStartCheckout": "تعذّر بدء الدفع. حاول مرة أخرى.",
+      "size": "المقاس",
+      "item": "المنتج",
+      "delivery": "التوصيل",
+      "free": "مجاني",
+      "buyerProtection": "حماية المشتري",
+      "total": "الإجمالي",
+      "buyerProtectionWeHold": "حماية المشتري: نحتفظ بأموالك حتى تؤكد الاستلام. إن لم يصل، أو لم يكن كما وُصف، تسترد أموالك.",
+      "pickASize": "اختر مقاسًا",
+      "openingCheckout": "جارٍ فتح الدفع…"
     },
     "fantasySidecar": {
       "fantasyBoxing": "ملاكمة فانتازي",
       "freeGameNoMoney": "لعبة مجانية · بلا أموال أبدًا · للمتعة مع الأصدقاء فقط",
       "pickNow": "اختر الآن",
       "fightsOn": "النزالات جارية",
-      "finished": "انتهى"
+      "finished": "انتهى",
+      "practiceCardMadeUp": "بطاقة تدريبية: ملاكمون وهميون، فقط لتعلم اللعبة.",
+      "playAgain": "العب مرة أخرى",
+      "fightsOn2": "النزالات جارية…",
+      "startTheFights": "ابدأ النزالات",
+      "pickYourTeamBelow": "اختر فريقك أدناه ثم ابدأ النزالات.",
+      "presentedBy": "برعاية",
+      "s1Pick": "1. اختر",
+      "s2MyTeam": "2. فريقي",
+      "s3Friends": "3. الأصدقاء",
+      "admin": "المشرف"
+    },
+    "leaguePanel": {
+      "noFriendsHereYet": "لا يوجد أصدقاء هنا بعد",
+      "saveYourTeamAnd": "احفظ فريقك وسترى ترتيبك بين أصدقائك.",
+      "whoSWinning": "من يتصدر",
+      "you": "{{name}} (أنت)",
+      "goldGloves": "القفازات الذهبية",
+      "titleBelt": "حزام اللقب",
+      "redCorner": "الزاوية الحمراء",
+      "blueCorner": "الزاوية الزرقاء"
+    },
+    "leagueSwitcher": {
+      "leagueMadeShareCode": "تم إنشاء الدوري! شارك الرمز {{code}} مع أصدقائك.",
+      "youJoined": "انضممت إلى {{name}}!",
+      "thatDidnTWork": "لم ينجح ذلك. حاول مرة أخرى.",
+      "codeCopied": "تم نسخ الرمز",
+      "join": "انضم",
+      "newLeague": "دوري جديد",
+      "inviteCode": "رمز الدعوة",
+      "leagueName": "اسم الدوري",
+      "make": "إنشاء"
+    },
+    "checkinPage": {
+      "join": "انضم"
+    },
+    "proCardPage": {
+      "make": "إنشاء",
+      "buyerProtection": "حماية المشتري"
+    },
+    "comingUp": {
+      "comingUp": "قريبًا",
+      "yourPartnerSPrediction": "توقع شريكك",
+      "wrappedIsHere": "الملخص وصل",
+      "yourSeasonToldFrom": "موسمك، مرويًا من تدريبك أنت.",
+      "hide": "إخفاء"
+    },
+    "welcomeBack": {
+      "hide": "إخفاء",
+      "welcomeBack": "مرحبًا بعودتك",
+      "easeBackInOne": "عُد بهدوء: جولة واحدة"
+    },
+    "driveCards": {
+      "resetMyHome": "إعادة ضبط الرئيسية",
+      "yourRank": "ترتيبك",
+      "boss": "الزعيم: {{name}}",
+      "triesLeft": "{{line}}. متبقٍ {{attempts_left}} محاولات.",
+      "trySomethingNew": "جرّب شيئًا جديدًا",
+      "aFreestyleRoundNo": "جولة حرة: بلا تقييم، أنت وموسيقاك فقط.",
+      "buildACombination": "ابنِ تركيبة",
+      "putYourOwnCombo": "ركّب تركيبتك الخاصة وتمرّن عليها."
+    },
+    "epicWinCard": {
+      "lockedInOnlyYou": "تم التثبيت. أنت فقط من يراه.",
+      "couldnTSaveThat": "تعذّر الحفظ",
+      "yourBigWin": "هدفك الكبير",
+      "aWeekInWhat": "مرّ أسبوع. لماذا تتدرب حقًا؟",
+      "orWriteYourOwn": "أو اكتب هدفك",
+      "whatGetsInYour": "ما الذي يعيقك؟ اختر حتى 3.",
+      "saveMyBigWin": "احفظ هدفي الكبير",
+      "privateYourCoachMentions": "خاص. مدربك يذكره فقط بعد فوز حقيقي.",
+      "change": "تغيير"
+    },
+    "weekPlanCard": {
+      "couldnTSaveThat": "تعذّر الحفظ",
+      "change": "تغيير",
+      "reminderOff": "التذكير متوقف.",
+      "pickYourWeek": "اختر أسبوعك",
+      "howManySessionsThis": "كم جلسة هذا الأسبوع؟ أنت تختار. شريكك يواكبك.",
+      "sessions": "جلسات",
+      "oneSkillToWork": "مهارة واحدة للعمل عليها (اختياري)",
+      "lockInMyWeek": "ثبّت أسبوعي",
+      "yourWeek": "أسبوعك",
+      "weekDoneExtraSessions": "انتهى الأسبوع. الجلسات الإضافية مكافأة وليست واجبًا.",
+      "workingOn": "· العمل على",
+      "nudgeMe": "ذكّرني",
+      "whenToNudgeYou": "متى نذكّرك",
+      "never": "أبدًا"
+    },
+    "newcomerCards": {
+      "thanksTheyLlKnow": "شكرًا. سيعرفون أنها ساعدت.",
+      "thanksForTellingUs": "شكرًا لإخبارنا. سنتحقق من ذلك.",
+      "aTipForYou": "نصيحة لك",
+      "helpful": "مفيدة",
+      "reportThisTip": "أبلغ عن هذه النصيحة",
+      "tipSavedANewcomer": "تم حفظ النصيحة. سيراها مبتدئ قريبًا.",
+      "couldnTSaveThat": "تعذّر حفظ النصيحة",
+      "passItOn": "مرّرها",
+      "whatDoYouWish": "ما الذي تمنيت أن يخبرك به أحد في أسبوعك الأول؟",
+      "oneShortTrainingTip": "نصيحة تدريب قصيرة. بلا أسماء أو روابط أو بيانات اتصال.",
+      "yourTip": "نصيحتك",
+      "shareAnonymously": "شارك دون الكشف عن هويتك",
+      "leaveATipFor": "اترك نصيحة لمبتدئ"
+    },
+    "oneRoundButton": {
+      "justOneRound3": "جولة واحدة فقط · 3 دقائق"
+    },
+    "timerCard": {
+      "timerCircuits": "المؤقت والدوائر",
+      "bagPadsCircuitsHiit": "الكيس، الوسائد، الدوائر، HIIT. صوّرها على الشاشة نفسها."
+    },
+    "fighterMarketPage": {
+      "buyerProtection": "حماية المشتري"
+    },
+    "bragButton": {
+      "copiedPasteItAnywhere": "تم النسخ. الصقه في أي مكان.",
+      "sharingIsnTAvailable": "المشاركة غير متاحة على هذا الجهاز",
+      "couldnTShareThat": "تعذّرت المشاركة"
+    },
+    "cornerSurprise": {
+      "cornerSurprise": "مفاجأة الزاوية",
+      "seeTheOdds": "اعرض الاحتمالات"
     }
   },
   "feedback": {
