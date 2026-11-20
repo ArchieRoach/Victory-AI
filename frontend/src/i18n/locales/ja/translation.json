@@ -3011,6 +3011,29 @@
     },
     "mascotIntro": {
       "tapHim": "Victory AI。タップするとワンツーを打つよ"
+    },
+    "partnerBuddy": {
+      "askPlaceholder": "{{name}}に何でも聞いてね",
+      "send": "送信",
+      "yourPartner": "あなたのパートナー",
+      "offline": "今は答えられないよ。少ししたらもう一度聞いてね。",
+      "greetingNamed": "やあ{{first}}。今日は何を練習する？",
+      "greeting": "やあ。今日は何を練習する？",
+      "wake": "{{name}}を起こす",
+      "goodUseIt": "いいね。さあ、やってみよう。",
+      "askAnotherWay": "わかった。別の言い方で聞いてみて。",
+      "trainNow": "今すぐトレーニング",
+      "diggingDeeper": "{{name}}がもっと深く考えています…",
+      "thinking": "{{name}}が最近のラウンドを見ています…",
+      "didThatHelp": "役に立った？",
+      "noDeeper": "いいえ、もっと詳しく",
+      "no": "いいえ",
+      "yes": "はい",
+      "sleepTitle": "必要なときに起こしてね",
+      "tapMe": "タップしてね",
+      "starterWork": "何を練習すればいい？",
+      "starterDrill": "10分のドリルをちょうだい",
+      "starterHands": "手が下がるのを直すには？"
     }
   },
   "feedback": {

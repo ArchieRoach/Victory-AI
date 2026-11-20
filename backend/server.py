@@ -66,6 +66,7 @@ import earnings as ern
 import jobs
 import launch_email as launch_mail
 import help_assistant as helpbot
+import partner_chat as pchat
 from cache import cache
 from concurrent.futures import ThreadPoolExecutor
 # One breaker per third-party service (see resilience.py for why).
@@ -6842,6 +6843,64 @@ async def help_handoff(data: HelpAsk, user: dict = Depends(get_current_user)):
         payload["reply_to"] = user["email"]
     await _queue_email(payload)
     return {"ok": True, "reply_to": user.get("email")}
+
+
+class PartnerAsk(BaseModel):
+    messages: List[HelpMessage] = Field(default_factory=list, max_length=30)
+    deeper: bool = False
+
+
+PARTNER_FALLBACK = "I can't answer that right now. Ask me again in a minute."
+
+
+async def _partner_reply(system: str, history: List[dict], deeper: bool) -> str:
+    from google.genai import types
+    contents = [types.Content(role="model" if m["role"] == "assistant" else "user", parts=[types.Part(text=m["text"])])
+                for m in history]
+    config = types.GenerateContentConfig(system_instruction=system, temperature=0.6,
+                                         max_output_tokens=500 if deeper else 300)
+    response = await _gemini().aio.models.generate_content(model=GEMINI_HELP_MODEL, contents=contents, config=config)
+    return (response.text or "").strip()
+
+
+@api_router.post("/partner/ask")
+async def partner_ask(data: PartnerAsk, user: dict = Depends(get_current_user)):
+    history = pchat.clean_history([m.model_dump() for m in data.messages])
+    if not history:
+        raise HTTPException(400, "Ask me something")
+    partner = user.get("training_partner") or {}
+    name = partner.get("name") or "Coach"
+    if _rate_limited(f"partner:{user['user_id']}", 40, 3600):
+        return {"name": name, "bubbles": ["Let's leave it there for now. Go and get a round in, then come back to me."]}
+    if await is_content_flagged(history[-1]["text"]):
+        return {"name": name, "bubbles": ["I can't help with that one. Ask me about your boxing."]}
+    if not GEMINI_API_KEY:
+        return {"name": name, "bubbles": [PARTNER_FALLBACK], "offline": True}
+    sessions = await db.sessions.find(
+        {"user_id": user["user_id"]},
+        {"_id": 0, "date": 1, "overall_score": 1, "dimension_scores": 1, "live_stats": 1},
+    ).sort("date", -1).to_list(20)
+    system = pchat.system_prompt(partner, pchat.facts(user, sessions), deeper=data.deeper)
+    try:
+        out = pchat.bubbles(await _partner_reply(system, history, data.deeper))
+    except Exception as e:
+        logger.warning(f"Partner chat failed: {type(e).__name__}: {e}")
+        return {"name": name, "bubbles": [PARTNER_FALLBACK], "offline": True}
+    return {"name": name, "bubbles": out or [PARTNER_FALLBACK]}
+
+
+class PartnerFeedback(BaseModel):
+    helpful: bool
+    deeper: bool = False
+
+
+@api_router.post("/partner/feedback")
+async def partner_feedback(data: PartnerFeedback, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"partner_fb:{user['user_id']}", 60, 3600):
+        return {"ok": True}
+    await db.partner_feedback.insert_one({"user_id": user["user_id"], "helpful": data.helpful, "deeper": data.deeper,
+                                          "created_at": datetime.now(timezone.utc)})
+    return {"ok": True}
 
 
 @api_router.post("/feedback")
