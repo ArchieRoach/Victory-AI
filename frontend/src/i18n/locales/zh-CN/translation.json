@@ -2999,6 +2999,15 @@
       "speed": "速度",
       "flipMe": "镜像我",
       "flipNote": "左架对右架？把你的视频镜像一下，你们就朝同一个方向了。"
+    },
+    "streakFlame": {
+      "dayStreakOne": "天连续",
+      "dayStreak": "天连续",
+      "keepAlive": "保持火焰燃烧。今天去训练！",
+      "light": "点燃火焰。今天去训练！",
+      "current": "目前已连续 {{count}} 天。休息一天绝不会中断。",
+      "trainedToday": "今天已训练 ✓",
+      "trainToday": "今天训练"
     }
   },
   "feedback": {

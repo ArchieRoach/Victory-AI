@@ -2999,6 +2999,15 @@
       "speed": "速度",
       "flipMe": "反転",
       "flipNote": "サウスポー対オーソドックス？動画を反転すれば同じ向きになります。"
+    },
+    "streakFlame": {
+      "dayStreakOne": "日連続",
+      "dayStreak": "日連続",
+      "keepAlive": "炎を絶やさないで。今日もトレーニング！",
+      "light": "炎をともそう。今日トレーニング！",
+      "current": "現在{{count}}日連続。休みが1日なら途切れません。",
+      "trainedToday": "今日はトレーニング済み ✓",
+      "trainToday": "今日トレーニングする"
     }
   },
   "feedback": {

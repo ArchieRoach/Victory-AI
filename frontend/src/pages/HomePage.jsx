@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { ShareSheet } from "@/components/ShareSheet";
 import { Walkthrough } from "@/components/Walkthrough";
+import { StreakFlame } from "@/components/StreakFlame";
 import { ReportModal } from "@/components/ReportModal";
 import { PartnerCondition } from "@/components/PartnerCondition";
 import { JourneyCard } from "@/components/JourneyCard";
@@ -634,6 +635,7 @@ export default function HomePage() {
           <CoachMark id="home_one_round" position="bottom" block hold={!unlocks?.newcomer}>
             <OneRoundButton />
           </CoachMark>
+          {unlocks && !unlocks.newcomer && <StreakFlame />}
           {unlocks && !unlocks.newcomer && <TimerCard />}
           <CoachMark id="home_partner" position="bottom" block hold={!unlocks?.newcomer}>
             <PartnerCondition />

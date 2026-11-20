@@ -2999,6 +2999,15 @@
       "speed": "Velocidade",
       "flipMe": "Espelhar",
       "flipNote": "Canhoto contra destro? Espelhe seu vídeo para ficarem virados para o mesmo lado."
+    },
+    "streakFlame": {
+      "dayStreakOne": "dia de sequência",
+      "dayStreak": "dias de sequência",
+      "keepAlive": "Mantenha o fogo aceso. Treine hoje!",
+      "light": "Acenda o fogo. Treine hoje!",
+      "current": "Sequência de {{count}} dias até agora. Um dia de descanso nunca a quebra.",
+      "trainedToday": "Treinou hoje ✓",
+      "trainToday": "Treinar hoje"
     }
   },
   "feedback": {
