@@ -941,14 +941,30 @@
       "exhaleSharplyOnEvery": "Exhala fuerte en cada golpe. Activa el core y reajusta tu respiración automáticamente.",
       "eyesOnTheChest": "Mira al pecho",
       "watchTheChestNot": "Mira al pecho, no a los ojos. El pecho delata cada golpe y verás todo el cuerpo con la visión periférica.",
-      "returnToGuard": "Vuelve a la guardia"
+      "returnToGuard": "Vuelve a la guardia",
+      "everyCombinationShouldEnd": "Cada combinación debe terminar con las dos manos de vuelta en la barbilla. Golpear y bajarlas te sale caro.",
+      "useYourLegs": "Usa las piernas",
+      "powerComesFromThe": "La potencia nace del suelo — empuja con el pie trasero en el directo, gira sobre el adelantado en el gancho.",
+      "headMovement": "Movimiento de cabeza",
+      "afterYouPunchMove": "Después de golpear, mueve la cabeza. Un luchador quieto es un blanco fácil."
     },
     "liveFeedPage": {
       "goLive": "Emitir en vivo",
       "live": "EN VIVO",
       "all": "Todos",
       "recent": "Recientes",
-      "liveBoxingSession": "Sesión de boxeo en vivo"
+      "liveBoxingSession": "Sesión de boxeo en vivo",
+      "openStream": "Abrir emisión",
+      "streamUnavailable": "Emisión no disponible",
+      "unmute": "Activar sonido",
+      "mute": "Silenciar",
+      "nobodySLiveYet": "Nadie en vivo todavía",
+      "beTheFirstIn": "Sé el primero en el gimnasio hoy.",
+      "goLiveNow": "Emitir en vivo ahora",
+      "fantasy": "Fantasy",
+      "live2": "en vivo",
+      "goLive2": "Emitir en vivo",
+      "live3": "🔴 En vivo"
     },
     "streamerDashboardPage": {
       "goLive": "Emitir en vivo",
@@ -1015,7 +1031,27 @@
     },
     "onboardingFlow": {
       "ready": "Listo",
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "fightersTraining": "luchadores entrenando",
+      "yourPartner": "Tu compañero",
+      "notQuite": "No del todo",
+      "thatSMe": "Ese soy yo",
+      "yourPartnerIs": "Tu compañero es",
+      "showMe": "Muéstramelo",
+      "couldnTLoadTraining": "No se pudieron cargar los estilos de compañero — inténtalo de nuevo",
+      "whatBringsYouTo": "¿Qué te trae a Victory AI?",
+      "pickTheOneThat": "Elige lo que más te importa ahora.",
+      "whatSHeldYou": "¿Qué te ha frenado hasta ahora?",
+      "muhammadAli": "Muhammad Ali",
+      "mikeTyson": "Mike Tyson",
+      "floydMayweather": "Floyd Mayweather",
+      "terenceCrawford": "Terence Crawford",
+      "usyk": "Usyk",
+      "caneloAlvarez": "Canelo Álvarez",
+      "mannyPacquiao": "Manny Pacquiao",
+      "arturBeterbiev": "Artur Beterbiev",
+      "dmitryBivol": "Dmitry Bivol",
+      "robertoDuran": "Roberto Durán"
     },
     "publicProfilePage": {
       "streamTitle": "Título de la emisión",
@@ -1531,13 +1567,31 @@
       "couldnTSendThat": "No se pudo enviar. Inténtalo de nuevo.",
       "send": "Enviar",
       "back": "Atrás",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "thanksTheFighterS": "¡Gracias! Se ha pagado al luchador.",
+      "couldnTUpdateThat": "No se pudo actualizar. Inténtalo de nuevo.",
+      "gotItWeLl": "Entendido. Lo solucionaremos.",
+      "yourOrders": "Tus pedidos",
+      "noOrdersYet": "Aún no hay pedidos",
+      "visitTheFighterMarket": "Visita el Mercado de luchadores",
+      "tracking": "Seguimiento:",
+      "thereSAProblem": "Hay un problema",
+      "gotItAllGood": "Recibido, todo bien",
+      "reportAProblem": "Informar de un problema",
+      "whatSWrong": "¿Qué pasa?",
+      "yourMoneyStaysHeld": "Tu dinero sigue retenido hasta que se resuelva."
     },
     "proApplyPage": {
       "couldnTSendThat": "No se pudo enviar. Inténtalo de nuevo.",
       "sending": "Enviando…",
       "back": "Atrás",
-      "getYourFighterCard": "Consigue tu Tarjeta de Luchador"
+      "getYourFighterCard": "Consigue tu Tarjeta de Luchador",
+      "sentWeLlCheck": "¡Enviado! Lo revisaremos y te avisaremos.",
+      "forProfessionalBoxersOnce": "Para boxeadores profesionales. Cuando comprobemos que eres tú, tendrás una Tarjeta de Luchador verificada con tu alias, récord y cinturones, tu propia tienda de merch, y los fans podrán entrenar con tu alias.",
+      "division": "División",
+      "howCanWeCheck": "¿Cómo podemos comprobar que eres tú?",
+      "eGDmUs": "p. ej. escríbenos por DM desde tu Instagram verificado, o el email de tu promotor",
+      "sendForVerification": "Enviar para verificación"
     },
     "mentorPanel": {
       "send": "Enviar",
@@ -1645,7 +1699,10 @@
       "left": "restante",
       "setUpPayouts": "Configurar cobros",
       "back": "Atrás",
-      "getYourFighterCard": "Consigue tu Tarjeta de Luchador"
+      "getYourFighterCard": "Consigue tu Tarjeta de Luchador",
+      "photoUploadFailed": "Error al subir la foto: {{message}}",
+      "listedInTheFighter": "Publicado en el Mercado de luchadores",
+      "markedShippedTheBuyer": "Marcado como enviado. Se ha avisado al comprador."
     },
     "legendCard": {
       "watchBreakdown": "Ver análisis"
@@ -1782,7 +1839,8 @@
       "goBack": "Volver",
       "subscription": "Suscripción",
       "blockedAccounts": "Cuentas bloqueadas",
-      "emoteStudio": "Estudio de emotes"
+      "emoteStudio": "Estudio de emotes",
+      "yourOrders": "Tus pedidos"
     },
     "rateRoundPage": {
       "goBack": "Volver",
@@ -2163,7 +2221,17 @@
     "proCardPage": {
       "make": "Crear",
       "buyerProtection": "Protección al Comprador",
-      "back": "Atrás"
+      "back": "Atrás",
+      "fighterNotFound": "Luchador no encontrado.",
+      "isNowYourTraining": "{{alias}} es ahora tu compañero de entrenamiento",
+      "couldnTSwitchPartner": "No se pudo cambiar de compañero. Inténtalo de nuevo.",
+      "manage": "Gestionar",
+      "verifiedPro": "Profesional verificado",
+      "boxrec": "BoxRec",
+      "trainWith": "Entrena con",
+      "yourAiTrainingPartner": "tu compañero de entrenamiento IA. Una función Pro.",
+      "shop": "Tienda",
+      "noMerchYet": "Aún no hay merch."
     },
     "comingUp": {
       "comingUp": "Próximamente",
@@ -2270,7 +2338,18 @@
       "onlyRoundsTheAi": "Solo cuentan los asaltos que la IA ha visto en vídeo. La escalera llega hasta 10.000 horas, la marca de un experto."
     },
     "paywallPage": {
-      "session": "sesión"
+      "session": "sesión",
+      "yourTrainingSoFar": "Tu entrenamiento hasta ahora",
+      "bestScore": " · mejor puntuación {{best}}",
+      "proScoresEveryRound": "Pro puntúa cada asalto a partir de ahora, sin límite mensual.",
+      "notNowStartFree": "Ahora no, empezar gratis",
+      "startYourDayFree": "Empieza tu prueba gratis de {{trialDays}} días",
+      "foundingMember": "Miembro fundador:",
+      "offPro": "% de descuento en Pro",
+      "lockedInForLife": ", asegurado de por vida",
+      "yoursForAsLong": "Tuyo mientras sigas suscrito. Si cancelas, se pierde para siempre.",
+      "daysFreeThenYour": "{{trialDays}} días gratis, luego tu plan se renueva automáticamente. Cancela antes y no pagas nada.",
+      "startDayFreeTrial": "Empezar prueba gratis de {{trialDays}} días"
     },
     "rankBoard": {
       "couldNotLoadRanks": "No se pudo cargar la clasificación. Revisa tu conexión.",
@@ -2383,16 +2462,45 @@
       "createPost": "Crear publicación"
     },
     "joinSquadPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "couldnTJoinTry": "No se pudo unir — inténtalo de nuevo",
+      "thisInviteHasExpired": "Esta invitación ha caducado",
+      "askYourMateTo": "Pide a tu colega que te envíe una nueva tras su próxima sesión.",
+      "openVictoryAi": "Abrir Victory AI",
+      "invitedYouTo": "te invitó a",
+      "thisSquadIsFull": "Este squad está lleno.",
+      "joining": "Uniéndote…",
+      "joinTheSquad": "Unirse al squad",
+      "signUpToJoin": "Regístrate para unirte"
     },
     "loginPage": {
       "victoryAi": "Victory AI"
     },
     "notFoundPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "pageNotFound": "Página no encontrada",
+      "thisPageDoesnT": "Esta página no existe. Volvamos a entrenar.",
+      "goHome": "Ir al inicio"
     },
     "welcomePage": {
       "victoryAi": "Victory AI"
+    },
+    "leaderboardPage": {
+      "statusOnlyGoesUp": "El estatus solo sube. Las clasificaciones se reinician cada lunes.",
+      "yourNextStep": "Tu siguiente paso",
+      "buildYourOwnCombination": "Crea tu propia combinación para esta semana",
+      "youReOn": "Estás en"
+    },
+    "libraryPage": {
+      "failedToLoadTechniques": "No se pudieron cargar las técnicas — inténtalo de nuevo",
+      "techniquesWillAppearHere": "Las técnicas aparecerán aquí cuando estén disponibles.",
+      "noTechniquesMatchThe": "Ninguna técnica coincide con el filtro \"{{activeFilter}}\" — prueba Todas.",
+      "showAllTechniques": "Mostrar todas las técnicas"
+    },
+    "paymentSuccess": {
+      "yourPartner": "Tu compañero",
+      "greatCall": "Buena elección.",
+      "isReadyAndYour": "está listo, y tu primer asalto está a un toque."
     }
   },
   "feedback": {
@@ -2410,5 +2518,10 @@
     "chat": "Hablar con el equipo",
     "thanksDesc": "Tu mensaje nos ayuda a mejorar Victory AI para cada luchador.",
     "ask": "Pregunta a Victory: respuestas rápidas"
+  },
+  "lib": {
+    "pitch": {
+      "yourPartner": "Tu compañero"
+    }
   }
 }

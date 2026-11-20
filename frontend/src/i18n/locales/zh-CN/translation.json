@@ -941,14 +941,30 @@
       "exhaleSharplyOnEvery": "每出一拳都用力呼气。这能调动核心，并自动调整你的呼吸节奏。",
       "eyesOnTheChest": "盯住胸口",
       "watchTheChestNot": "看胸口，不看眼睛。胸口会暴露每一拳，用余光就能看到整个身体。",
-      "returnToGuard": "回到防守"
+      "returnToGuard": "回到防守",
+      "everyCombinationShouldEnd": "每套组合拳结束时双手都要回到下巴。出拳后放下手会让你吃亏。",
+      "useYourLegs": "用上你的腿",
+      "powerComesFromThe": "力量从地面而来 — 后手直拳时蹬后脚，勾拳时以前脚为轴转动。",
+      "headMovement": "头部移动",
+      "afterYouPunchMove": "出拳后要移动头部。站着不动的拳手是活靶子。"
     },
     "liveFeedPage": {
       "goLive": "开始直播",
       "live": "直播中",
       "all": "全部",
       "recent": "最近",
-      "liveBoxingSession": "拳击训练直播"
+      "liveBoxingSession": "拳击训练直播",
+      "openStream": "打开直播",
+      "streamUnavailable": "直播不可用",
+      "unmute": "取消静音",
+      "mute": "静音",
+      "nobodySLiveYet": "还没有人在直播",
+      "beTheFirstIn": "成为今天拳馆里的第一个。",
+      "goLiveNow": "立即开播",
+      "fantasy": "Fantasy",
+      "live2": "直播",
+      "goLive2": "开播",
+      "live3": "🔴 直播中"
     },
     "streamerDashboardPage": {
       "goLive": "开始直播",
@@ -1015,7 +1031,27 @@
     },
     "onboardingFlow": {
       "ready": "就绪",
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "fightersTraining": "名拳手正在训练",
+      "yourPartner": "你的搭档",
+      "notQuite": "不太对",
+      "thatSMe": "就是我",
+      "yourPartnerIs": "你的搭档是",
+      "showMe": "给我看看",
+      "couldnTLoadTraining": "无法加载搭档风格 — 请重试",
+      "whatBringsYouTo": "是什么让你来到 Victory AI？",
+      "pickTheOneThat": "选出现在对你最重要的一项。",
+      "whatSHeldYou": "到目前为止，是什么阻碍了你？",
+      "muhammadAli": "穆罕默德·阿里",
+      "mikeTyson": "迈克·泰森",
+      "floydMayweather": "弗洛伊德·梅威瑟",
+      "terenceCrawford": "特伦斯·克劳福德",
+      "usyk": "乌西克",
+      "caneloAlvarez": "卡内洛·阿尔瓦雷斯",
+      "mannyPacquiao": "曼尼·帕奎奥",
+      "arturBeterbiev": "阿图尔·贝特比耶夫",
+      "dmitryBivol": "德米特里·比沃尔",
+      "robertoDuran": "罗伯托·杜兰"
     },
     "publicProfilePage": {
       "streamTitle": "直播标题",
@@ -1531,13 +1567,31 @@
       "couldnTSendThat": "无法发送，请重试。",
       "send": "发送",
       "back": "返回",
-      "cancel": "取消"
+      "cancel": "取消",
+      "thanksTheFighterS": "谢谢！款项已付给拳手。",
+      "couldnTUpdateThat": "无法更新，请重试。",
+      "gotItWeLl": "收到。我们会处理。",
+      "yourOrders": "你的订单",
+      "noOrdersYet": "还没有订单",
+      "visitTheFighterMarket": "逛逛拳手市场",
+      "tracking": "物流：",
+      "thereSAProblem": "有问题",
+      "gotItAllGood": "收到了，一切正常",
+      "reportAProblem": "报告问题",
+      "whatSWrong": "出了什么问题？",
+      "yourMoneyStaysHeld": "问题解决前，你的钱会一直被保管。"
     },
     "proApplyPage": {
       "couldnTSendThat": "无法发送，请重试。",
       "sending": "发送中…",
       "back": "返回",
-      "getYourFighterCard": "获取你的拳手卡"
+      "getYourFighterCard": "获取你的拳手卡",
+      "sentWeLlCheck": "已发送！我们会核查并通知你。",
+      "forProfessionalBoxersOnce": "面向职业拳手。确认是你本人后，你将获得一张带有你的绰号、战绩和腰带的认证拳手卡、自己的周边商店，粉丝还可以和你的绰号形象一起训练。",
+      "division": "级别",
+      "howCanWeCheck": "我们如何确认是你本人？",
+      "eGDmUs": "例如从你的认证 Instagram 私信我们，或你推广方的邮箱",
+      "sendForVerification": "提交认证"
     },
     "mentorPanel": {
       "send": "发送",
@@ -1645,7 +1699,10 @@
       "left": "剩余",
       "setUpPayouts": "设置收款",
       "back": "返回",
-      "getYourFighterCard": "获取你的拳手卡"
+      "getYourFighterCard": "获取你的拳手卡",
+      "photoUploadFailed": "照片上传失败：{{message}}",
+      "listedInTheFighter": "已在拳手市场上架",
+      "markedShippedTheBuyer": "已标记为发货。已通知买家。"
     },
     "legendCard": {
       "watchBreakdown": "观看分析"
@@ -1782,7 +1839,8 @@
       "goBack": "返回",
       "subscription": "订阅",
       "blockedAccounts": "已屏蔽的账户",
-      "emoteStudio": "表情工作室"
+      "emoteStudio": "表情工作室",
+      "yourOrders": "你的订单"
     },
     "rateRoundPage": {
       "goBack": "返回",
@@ -2163,7 +2221,17 @@
     "proCardPage": {
       "make": "创建",
       "buyerProtection": "买家保障",
-      "back": "返回"
+      "back": "返回",
+      "fighterNotFound": "未找到拳手。",
+      "isNowYourTraining": "{{alias}} 现在是你的训练搭档",
+      "couldnTSwitchPartner": "无法更换搭档，请重试。",
+      "manage": "管理",
+      "verifiedPro": "认证职业拳手",
+      "boxrec": "BoxRec",
+      "trainWith": "一起训练：",
+      "yourAiTrainingPartner": "你的 AI 训练搭档。Pro 功能。",
+      "shop": "商店",
+      "noMerchYet": "还没有周边。"
     },
     "comingUp": {
       "comingUp": "即将开始",
@@ -2270,7 +2338,18 @@
       "onlyRoundsTheAi": "只计入 AI 在视频中看过的回合。阶梯一直到 10,000 小时，那是专家的标志。"
     },
     "paywallPage": {
-      "session": "次训练"
+      "session": "次训练",
+      "yourTrainingSoFar": "你目前的训练",
+      "bestScore": " · 最佳评分 {{best}}",
+      "proScoresEveryRound": "从现在起 Pro 为每个回合评分，无月度上限。",
+      "notNowStartFree": "以后再说，先免费开始",
+      "startYourDayFree": "开始 {{trialDays}} 天免费试用",
+      "foundingMember": "创始会员：",
+      "offPro": "% Pro 折扣",
+      "lockedInForLife": "，终身锁定",
+      "yoursForAsLong": "只要你持续订阅就归你。如果取消，就永远失去了。",
+      "daysFreeThenYour": "免费 {{trialDays}} 天，之后方案自动续订。在此之前随时取消，不收任何费用。",
+      "startDayFreeTrial": "开始 {{trialDays}} 天免费试用"
     },
     "rankBoard": {
       "couldNotLoadRanks": "无法加载排名。请检查网络。",
@@ -2383,16 +2462,45 @@
       "createPost": "发帖"
     },
     "joinSquadPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "couldnTJoinTry": "无法加入 — 请重试",
+      "thisInviteHasExpired": "这个邀请已过期",
+      "askYourMateTo": "请你的朋友在下次训练后再发一个新的。",
+      "openVictoryAi": "打开 Victory AI",
+      "invitedYouTo": "邀请你加入",
+      "thisSquadIsFull": "这个小队已满。",
+      "joining": "加入中…",
+      "joinTheSquad": "加入小队",
+      "signUpToJoin": "注册后加入"
     },
     "loginPage": {
       "victoryAi": "Victory AI"
     },
     "notFoundPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "pageNotFound": "页面未找到",
+      "thisPageDoesnT": "这个页面不存在。带你回去训练吧。",
+      "goHome": "回到首页"
     },
     "welcomePage": {
       "victoryAi": "Victory AI"
+    },
+    "leaderboardPage": {
+      "statusOnlyGoesUp": "身份只升不降。排名每周一重置。",
+      "yourNextStep": "你的下一步",
+      "buildYourOwnCombination": "为本周编排你自己的组合拳",
+      "youReOn": "你正在"
+    },
+    "libraryPage": {
+      "failedToLoadTechniques": "无法加载技术 — 请重试",
+      "techniquesWillAppearHere": "技术上线后会显示在这里。",
+      "noTechniquesMatchThe": "没有符合“{{activeFilter}}”筛选的技术 — 试试“全部”。",
+      "showAllTechniques": "显示全部技术"
+    },
+    "paymentSuccess": {
+      "yourPartner": "你的搭档",
+      "greatCall": "好选择。",
+      "isReadyAndYour": "已准备好，你的第一个回合只需轻点一下。"
     }
   },
   "feedback": {
@@ -2410,5 +2518,10 @@
     "chat": "与团队聊天",
     "thanksDesc": "你的消息帮助我们为每位拳手改进 Victory AI。",
     "ask": "问问 Victory：快速解答"
+  },
+  "lib": {
+    "pitch": {
+      "yourPartner": "你的搭档"
+    }
   }
 }

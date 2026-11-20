@@ -941,14 +941,30 @@
       "exhaleSharplyOnEvery": "ازفر بقوة مع كل لكمة. يشغّل ذلك عضلات الجذع ويعيد ضبط إيقاع تنفسك تلقائيًا.",
       "eyesOnTheChest": "العينان على الصدر",
       "watchTheChestNot": "راقب الصدر لا العينين. الصدر يكشف كل لكمة وسترى الجسم كله بالرؤية الجانبية.",
-      "returnToGuard": "عُد إلى الحماية"
+      "returnToGuard": "عُد إلى الحماية",
+      "everyCombinationShouldEnd": "يجب أن تنتهي كل تركيبة بعودة اليدين إلى الذقن. اللكم ثم إنزالهما يكلفك.",
+      "useYourLegs": "استخدم ساقيك",
+      "powerComesFromThe": "القوة تأتي من الأرض — ادفع بقدمك الخلفية في الكروس، ودُر على قدمك الأمامية في الخطاف.",
+      "headMovement": "حركة الرأس",
+      "afterYouPunchMove": "بعد اللكم، حرّك رأسك. الملاكم الثابت هدف سهل."
     },
     "liveFeedPage": {
       "goLive": "ابدأ البث",
       "live": "مباشر",
       "all": "الكل",
       "recent": "الأحدث",
-      "liveBoxingSession": "جلسة ملاكمة مباشرة"
+      "liveBoxingSession": "جلسة ملاكمة مباشرة",
+      "openStream": "افتح البث",
+      "streamUnavailable": "البث غير متاح",
+      "unmute": "إلغاء الكتم",
+      "mute": "كتم",
+      "nobodySLiveYet": "لا أحد مباشر بعد",
+      "beTheFirstIn": "كن الأول في النادي اليوم.",
+      "goLiveNow": "ابدأ البث الآن",
+      "fantasy": "Fantasy",
+      "live2": "مباشر",
+      "goLive2": "ابدأ البث",
+      "live3": "🔴 مباشر"
     },
     "streamerDashboardPage": {
       "goLive": "ابدأ البث",
@@ -1015,7 +1031,27 @@
     },
     "onboardingFlow": {
       "ready": "جاهز",
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "fightersTraining": "ملاكمون يتدربون",
+      "yourPartner": "شريكك",
+      "notQuite": "ليس تمامًا",
+      "thatSMe": "هذا أنا",
+      "yourPartnerIs": "شريكك هو",
+      "showMe": "أرني",
+      "couldnTLoadTraining": "تعذّر تحميل أساليب الشريك — حاول مرة أخرى",
+      "whatBringsYouTo": "ما الذي جاء بك إلى Victory AI؟",
+      "pickTheOneThat": "اختر الأهم بالنسبة لك الآن.",
+      "whatSHeldYou": "ما الذي أعاقك حتى الآن؟",
+      "muhammadAli": "محمد علي",
+      "mikeTyson": "مايك تايسون",
+      "floydMayweather": "فلويد مايويذر",
+      "terenceCrawford": "تيرينس كروفورد",
+      "usyk": "أوسيك",
+      "caneloAlvarez": "كانيلو ألفاريز",
+      "mannyPacquiao": "ماني باكياو",
+      "arturBeterbiev": "أرتور بيتربييف",
+      "dmitryBivol": "دميتري بيفول",
+      "robertoDuran": "روبرتو دوران"
     },
     "publicProfilePage": {
       "streamTitle": "عنوان البث",
@@ -1531,13 +1567,31 @@
       "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
       "send": "إرسال",
       "back": "رجوع",
-      "cancel": "إلغاء"
+      "cancel": "إلغاء",
+      "thanksTheFighterS": "شكرًا! تم الدفع للملاكم.",
+      "couldnTUpdateThat": "تعذّر التحديث. حاول مرة أخرى.",
+      "gotItWeLl": "فهمنا. سنحل الأمر.",
+      "yourOrders": "طلباتك",
+      "noOrdersYet": "لا طلبات بعد",
+      "visitTheFighterMarket": "زر سوق الملاكمين",
+      "tracking": "التتبع:",
+      "thereSAProblem": "هناك مشكلة",
+      "gotItAllGood": "وصلني، كل شيء جيد",
+      "reportAProblem": "أبلغ عن مشكلة",
+      "whatSWrong": "ما المشكلة؟",
+      "yourMoneyStaysHeld": "تبقى أموالك محتجزة حتى يُحل الأمر."
     },
     "proApplyPage": {
       "couldnTSendThat": "تعذّر الإرسال. حاول مرة أخرى.",
       "sending": "جارٍ الإرسال…",
       "back": "رجوع",
-      "getYourFighterCard": "احصل على بطاقة الملاكم"
+      "getYourFighterCard": "احصل على بطاقة الملاكم",
+      "sentWeLlCheck": "تم الإرسال! سنتحقق ونخبرك.",
+      "forProfessionalBoxersOnce": "للملاكمين المحترفين. بعد أن نتأكد أنك أنت، تحصل على بطاقة ملاكم موثقة باسمك المستعار وسجلك وأحزمتك، ومتجر منتجات خاص بك، ويمكن للمعجبين التدرب مع اسمك المستعار.",
+      "division": "الفئة",
+      "howCanWeCheck": "كيف نتأكد أنك أنت؟",
+      "eGDmUs": "مثل راسلنا من حسابك الموثق على إنستغرام، أو بريد منظّم نزالاتك",
+      "sendForVerification": "أرسل للتوثيق"
     },
     "mentorPanel": {
       "send": "إرسال",
@@ -1645,7 +1699,10 @@
       "left": "متبقٍ",
       "setUpPayouts": "إعداد المدفوعات",
       "back": "رجوع",
-      "getYourFighterCard": "احصل على بطاقة الملاكم"
+      "getYourFighterCard": "احصل على بطاقة الملاكم",
+      "photoUploadFailed": "فشل رفع الصورة: {{message}}",
+      "listedInTheFighter": "مدرج في سوق الملاكمين",
+      "markedShippedTheBuyer": "تم التحديد كمشحون. تم إبلاغ المشتري."
     },
     "legendCard": {
       "watchBreakdown": "شاهد التحليل"
@@ -1782,7 +1839,8 @@
       "goBack": "رجوع",
       "subscription": "الاشتراك",
       "blockedAccounts": "الحسابات المحظورة",
-      "emoteStudio": "استوديو الرموز التعبيرية"
+      "emoteStudio": "استوديو الرموز التعبيرية",
+      "yourOrders": "طلباتك"
     },
     "rateRoundPage": {
       "goBack": "رجوع",
@@ -2163,7 +2221,17 @@
     "proCardPage": {
       "make": "إنشاء",
       "buyerProtection": "حماية المشتري",
-      "back": "رجوع"
+      "back": "رجوع",
+      "fighterNotFound": "لم يُعثر على الملاكم.",
+      "isNowYourTraining": "{{alias}} أصبح الآن شريك تدريبك",
+      "couldnTSwitchPartner": "تعذّر تغيير الشريك. حاول مرة أخرى.",
+      "manage": "إدارة",
+      "verifiedPro": "محترف موثق",
+      "boxrec": "BoxRec",
+      "trainWith": "تدرّب مع",
+      "yourAiTrainingPartner": "شريك تدريبك بالذكاء الاصطناعي. ميزة Pro.",
+      "shop": "المتجر",
+      "noMerchYet": "لا منتجات بعد."
     },
     "comingUp": {
       "comingUp": "قريبًا",
@@ -2270,7 +2338,18 @@
       "onlyRoundsTheAi": "تُحتسب فقط الجولات التي شاهدها الذكاء الاصطناعي بالفيديو. يصل السلّم إلى 10,000 ساعة، علامة الخبير."
     },
     "paywallPage": {
-      "session": "جلسة"
+      "session": "جلسة",
+      "yourTrainingSoFar": "تدريبك حتى الآن",
+      "bestScore": " · أفضل تقييم {{best}}",
+      "proScoresEveryRound": "Pro يقيّم كل جولة من الآن، بلا حد شهري.",
+      "notNowStartFree": "ليس الآن، ابدأ مجانًا",
+      "startYourDayFree": "ابدأ تجربتك المجانية لمدة {{trialDays}} أيام",
+      "foundingMember": "عضو مؤسس:",
+      "offPro": "% خصم على Pro",
+      "lockedInForLife": "، مثبّت مدى الحياة",
+      "yoursForAsLong": "لك طالما بقيت مشتركًا. إذا ألغيت، يضيع للأبد.",
+      "daysFreeThenYour": "{{trialDays}} أيام مجانًا، ثم تتجدد خطتك تلقائيًا. ألغِ قبل ذلك ولن تدفع شيئًا.",
+      "startDayFreeTrial": "ابدأ التجربة المجانية لمدة {{trialDays}} أيام"
     },
     "rankBoard": {
       "couldNotLoadRanks": "تعذّر تحميل التصنيفات. تحقق من اتصالك.",
@@ -2383,16 +2462,45 @@
       "createPost": "إنشاء منشور"
     },
     "joinSquadPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "couldnTJoinTry": "تعذّر الانضمام — حاول مرة أخرى",
+      "thisInviteHasExpired": "انتهت صلاحية هذه الدعوة",
+      "askYourMateTo": "اطلب من صديقك إرسال دعوة جديدة بعد جلسته القادمة.",
+      "openVictoryAi": "افتح Victory AI",
+      "invitedYouTo": "دعاك إلى",
+      "thisSquadIsFull": "هذا الفريق ممتلئ.",
+      "joining": "جارٍ الانضمام…",
+      "joinTheSquad": "انضم إلى الفريق",
+      "signUpToJoin": "سجّل للانضمام"
     },
     "loginPage": {
       "victoryAi": "Victory AI"
     },
     "notFoundPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "pageNotFound": "الصفحة غير موجودة",
+      "thisPageDoesnT": "هذه الصفحة غير موجودة. لنُعِدك إلى التدريب.",
+      "goHome": "العودة للرئيسية"
     },
     "welcomePage": {
       "victoryAi": "Victory AI"
+    },
+    "leaderboardPage": {
+      "statusOnlyGoesUp": "الحالة ترتفع فقط. التصنيفات تُعاد كل يوم اثنين.",
+      "yourNextStep": "خطوتك التالية",
+      "buildYourOwnCombination": "ابنِ تركيبتك الخاصة لهذا الأسبوع",
+      "youReOn": "أنت في"
+    },
+    "libraryPage": {
+      "failedToLoadTechniques": "تعذّر تحميل التقنيات — حاول مرة أخرى",
+      "techniquesWillAppearHere": "ستظهر التقنيات هنا عند توفرها.",
+      "noTechniquesMatchThe": "لا تقنيات تطابق عامل التصفية \"{{activeFilter}}\" — جرّب الكل.",
+      "showAllTechniques": "اعرض كل التقنيات"
+    },
+    "paymentSuccess": {
+      "yourPartner": "شريكك",
+      "greatCall": "اختيار رائع.",
+      "isReadyAndYour": "جاهز، وجولتك الأولى على بُعد ضغطة."
     }
   },
   "feedback": {
@@ -2410,5 +2518,10 @@
     "chat": "تحدّث مع الفريق",
     "thanksDesc": "رسالتك تساعدنا على تحسين Victory AI لكل ملاكم.",
     "ask": "اسأل Victory: إجابات سريعة"
+  },
+  "lib": {
+    "pitch": {
+      "yourPartner": "شريكك"
+    }
   }
 }

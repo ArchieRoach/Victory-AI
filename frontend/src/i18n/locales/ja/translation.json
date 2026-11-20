@@ -941,14 +941,30 @@
       "exhaleSharplyOnEvery": "パンチのたびに鋭く息を吐こう。体幹が締まり、呼吸のリズムも自然に整います。",
       "eyesOnTheChest": "胸を見る",
       "watchTheChestNot": "目ではなく胸を見よう。胸はすべてのパンチを予告し、周辺視野で全身が見えます。",
-      "returnToGuard": "ガードに戻す"
+      "returnToGuard": "ガードに戻す",
+      "everyCombinationShouldEnd": "どのコンビネーションも、最後は両手をアゴに戻すこと。打って手を下げると代償を払います。",
+      "useYourLegs": "脚を使おう",
+      "powerComesFromThe": "パワーは地面から — クロスでは後ろ足で蹴り、フックでは前足で回転。",
+      "headMovement": "ヘッドムーブ",
+      "afterYouPunchMove": "打ったら頭を動かそう。止まっているファイターは格好の的です。"
     },
     "liveFeedPage": {
       "goLive": "ライブ配信",
       "live": "ライブ",
       "all": "すべて",
       "recent": "最近",
-      "liveBoxingSession": "ライブボクシングセッション"
+      "liveBoxingSession": "ライブボクシングセッション",
+      "openStream": "配信を開く",
+      "streamUnavailable": "配信は利用できません",
+      "unmute": "ミュート解除",
+      "mute": "ミュート",
+      "nobodySLiveYet": "まだ誰もライブしていません",
+      "beTheFirstIn": "今日ジムで一番乗りしよう。",
+      "goLiveNow": "今すぐライブ配信",
+      "fantasy": "Fantasy",
+      "live2": "ライブ",
+      "goLive2": "ライブ配信",
+      "live3": "🔴 ライブ"
     },
     "streamerDashboardPage": {
       "goLive": "ライブ配信",
@@ -1015,7 +1031,27 @@
     },
     "onboardingFlow": {
       "ready": "準備完了",
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "fightersTraining": "人のファイターがトレーニング中",
+      "yourPartner": "あなたのパートナー",
+      "notQuite": "ちょっと違う",
+      "thatSMe": "まさに私",
+      "yourPartnerIs": "あなたのパートナーは",
+      "showMe": "見せて",
+      "couldnTLoadTraining": "パートナースタイルを読み込めませんでした — もう一度お試しください",
+      "whatBringsYouTo": "Victory AIを始めたきっかけは？",
+      "pickTheOneThat": "今いちばん大事なものを選んでください。",
+      "whatSHeldYou": "これまで何が壁になっていましたか？",
+      "muhammadAli": "モハメド・アリ",
+      "mikeTyson": "マイク・タイソン",
+      "floydMayweather": "フロイド・メイウェザー",
+      "terenceCrawford": "テレンス・クロフォード",
+      "usyk": "ウシク",
+      "caneloAlvarez": "カネロ・アルバレス",
+      "mannyPacquiao": "マニー・パッキャオ",
+      "arturBeterbiev": "アルツール・ベテルビエフ",
+      "dmitryBivol": "ドミトリー・ビボル",
+      "robertoDuran": "ロベルト・デュラン"
     },
     "publicProfilePage": {
       "streamTitle": "配信タイトル",
@@ -1531,13 +1567,31 @@
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
       "send": "送信",
       "back": "戻る",
-      "cancel": "キャンセル"
+      "cancel": "キャンセル",
+      "thanksTheFighterS": "ありがとうございます！ファイターに支払われました。",
+      "couldnTUpdateThat": "更新できませんでした。もう一度お試しください。",
+      "gotItWeLl": "了解です。対応します。",
+      "yourOrders": "注文履歴",
+      "noOrdersYet": "まだ注文はありません",
+      "visitTheFighterMarket": "ファイターマーケットへ",
+      "tracking": "追跡：",
+      "thereSAProblem": "問題があります",
+      "gotItAllGood": "受け取りました、問題なし",
+      "reportAProblem": "問題を報告",
+      "whatSWrong": "何が問題ですか？",
+      "yourMoneyStaysHeld": "解決するまで代金はお預かりします。"
     },
     "proApplyPage": {
       "couldnTSendThat": "送信できませんでした。もう一度お試しください。",
       "sending": "送信中…",
       "back": "戻る",
-      "getYourFighterCard": "ファイターカードを手に入れよう"
+      "getYourFighterCard": "ファイターカードを手に入れよう",
+      "sentWeLlCheck": "送信しました！確認してお知らせします。",
+      "forProfessionalBoxersOnce": "プロボクサー向け。本人確認後、リングネーム・戦績・ベルト入りの認証ファイターカード、自分のグッズショップが手に入り、ファンがあなたのリングネームと一緒にトレーニングできます。",
+      "division": "階級",
+      "howCanWeCheck": "本人確認の方法は？",
+      "eGDmUs": "例：認証済みInstagramからDM、またはプロモーターのメール",
+      "sendForVerification": "認証に送る"
     },
     "mentorPanel": {
       "send": "送信",
@@ -1645,7 +1699,10 @@
       "left": "残り",
       "setUpPayouts": "支払いを設定",
       "back": "戻る",
-      "getYourFighterCard": "ファイターカードを手に入れよう"
+      "getYourFighterCard": "ファイターカードを手に入れよう",
+      "photoUploadFailed": "写真のアップロードに失敗：{{message}}",
+      "listedInTheFighter": "ファイターマーケットに掲載済み",
+      "markedShippedTheBuyer": "発送済みにしました。購入者に通知しました。"
     },
     "legendCard": {
       "watchBreakdown": "分析を見る"
@@ -1782,7 +1839,8 @@
       "goBack": "戻る",
       "subscription": "サブスクリプション",
       "blockedAccounts": "ブロックしたアカウント",
-      "emoteStudio": "エモートスタジオ"
+      "emoteStudio": "エモートスタジオ",
+      "yourOrders": "注文履歴"
     },
     "rateRoundPage": {
       "goBack": "戻る",
@@ -2163,7 +2221,17 @@
     "proCardPage": {
       "make": "作成",
       "buyerProtection": "購入者保護",
-      "back": "戻る"
+      "back": "戻る",
+      "fighterNotFound": "ファイターが見つかりません。",
+      "isNowYourTraining": "{{alias}}があなたのトレーニングパートナーになりました",
+      "couldnTSwitchPartner": "パートナーを変更できませんでした。もう一度お試しください。",
+      "manage": "管理",
+      "verifiedPro": "認証済みプロ",
+      "boxrec": "BoxRec",
+      "trainWith": "一緒にトレーニング：",
+      "yourAiTrainingPartner": "あなたのAIトレーニングパートナー。Pro機能。",
+      "shop": "ショップ",
+      "noMerchYet": "まだグッズはありません。"
     },
     "comingUp": {
       "comingUp": "今後の予定",
@@ -2270,7 +2338,18 @@
       "onlyRoundsTheAi": "AIが動画で見たラウンドだけがカウントされます。はしごは専門家の証である10,000時間まで続きます。"
     },
     "paywallPage": {
-      "session": "セッション"
+      "session": "セッション",
+      "yourTrainingSoFar": "これまでのトレーニング",
+      "bestScore": " · ベストスコア{{best}}",
+      "proScoresEveryRound": "Proならこれから毎ラウンド採点、月間上限なし。",
+      "notNowStartFree": "今はしない、無料で始める",
+      "startYourDayFree": "{{trialDays}}日間の無料トライアルを始める",
+      "foundingMember": "創設メンバー：",
+      "offPro": "% Proがお得",
+      "lockedInForLife": "、ずっと固定",
+      "yoursForAsLong": "購読を続ける限りあなたのもの。解約すると永久に失われます。",
+      "daysFreeThenYour": "{{trialDays}}日間無料、その後プランは自動更新されます。それまでに解約すれば料金はかかりません。",
+      "startDayFreeTrial": "{{trialDays}}日間の無料トライアルを開始"
     },
     "rankBoard": {
       "couldNotLoadRanks": "ランキングを読み込めませんでした。接続を確認してください。",
@@ -2383,16 +2462,45 @@
       "createPost": "投稿を作成"
     },
     "joinSquadPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "couldnTJoinTry": "参加できませんでした — もう一度お試しください",
+      "thisInviteHasExpired": "この招待は期限切れです",
+      "askYourMateTo": "次のセッション後に新しい招待を送ってもらってください。",
+      "openVictoryAi": "Victory AIを開く",
+      "invitedYouTo": "から招待されました：",
+      "thisSquadIsFull": "このスクワッドは満員です。",
+      "joining": "参加中…",
+      "joinTheSquad": "スクワッドに参加",
+      "signUpToJoin": "登録して参加"
     },
     "loginPage": {
       "victoryAi": "Victory AI"
     },
     "notFoundPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "pageNotFound": "ページが見つかりません",
+      "thisPageDoesnT": "このページは存在しません。トレーニングに戻りましょう。",
+      "goHome": "ホームへ"
     },
     "welcomePage": {
       "victoryAi": "Victory AI"
+    },
+    "leaderboardPage": {
+      "statusOnlyGoesUp": "ステータスは上がるだけ。ランキングは毎週月曜にリセット。",
+      "yourNextStep": "次のステップ",
+      "buildYourOwnCombination": "今週の自分だけのコンビネーションを作ろう",
+      "youReOn": "現在："
+    },
+    "libraryPage": {
+      "failedToLoadTechniques": "テクニックを読み込めませんでした — もう一度お試しください",
+      "techniquesWillAppearHere": "テクニックは利用可能になるとここに表示されます。",
+      "noTechniquesMatchThe": "「{{activeFilter}}」に一致するテクニックはありません — すべてを試してください。",
+      "showAllTechniques": "すべてのテクニックを表示"
+    },
+    "paymentSuccess": {
+      "yourPartner": "あなたのパートナー",
+      "greatCall": "いい選択です。",
+      "isReadyAndYour": "の準備ができました。最初のラウンドはワンタップで始められます。"
     }
   },
   "feedback": {
@@ -2410,5 +2518,10 @@
     "chat": "チームとチャット",
     "thanksDesc": "あなたのメッセージがVictory AIをすべてのファイターのために良くします。",
     "ask": "Victoryに聞く：すぐに回答"
+  },
+  "lib": {
+    "pitch": {
+      "yourPartner": "あなたのパートナー"
+    }
   }
 }

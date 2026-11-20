@@ -941,14 +941,30 @@
       "exhaleSharplyOnEvery": "Резко выдыхай на каждом ударе. Это включает кор и сам выравнивает дыхание.",
       "eyesOnTheChest": "Смотри в грудь",
       "watchTheChestNot": "Смотри в грудь, а не в глаза. Грудь выдаёт каждый удар, а всё тело ты видишь периферийным зрением.",
-      "returnToGuard": "Возвращай руки в защиту"
+      "returnToGuard": "Возвращай руки в защиту",
+      "everyCombinationShouldEnd": "Каждая комбинация должна заканчиваться обеими руками у подбородка. Ударил и опустил — заплатишь.",
+      "useYourLegs": "Работай ногами",
+      "powerComesFromThe": "Сила идёт от земли — толкайся задней ногой на кроссе, разворачивайся на передней на боковом.",
+      "headMovement": "Движения головой",
+      "afterYouPunchMove": "После удара двигай головой. Неподвижный боец — лёгкая мишень."
     },
     "liveFeedPage": {
       "goLive": "Выйти в эфир",
       "live": "ЭФИР",
       "all": "Все",
       "recent": "Недавние",
-      "liveBoxingSession": "Прямой эфир тренировки"
+      "liveBoxingSession": "Прямой эфир тренировки",
+      "openStream": "Открыть эфир",
+      "streamUnavailable": "Эфир недоступен",
+      "unmute": "Включить звук",
+      "mute": "Выключить звук",
+      "nobodySLiveYet": "Пока никто не в эфире",
+      "beTheFirstIn": "Будь первым в зале сегодня.",
+      "goLiveNow": "Выйти в эфир сейчас",
+      "fantasy": "Fantasy",
+      "live2": "в эфире",
+      "goLive2": "Выйти в эфир",
+      "live3": "🔴 Эфир"
     },
     "streamerDashboardPage": {
       "goLive": "Выйти в эфир",
@@ -1015,7 +1031,27 @@
     },
     "onboardingFlow": {
       "ready": "Готово",
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "fightersTraining": "бойцов тренируются",
+      "yourPartner": "Твой партнёр",
+      "notQuite": "Не совсем",
+      "thatSMe": "Это я",
+      "yourPartnerIs": "Твой партнёр —",
+      "showMe": "Покажи",
+      "couldnTLoadTraining": "Не удалось загрузить стили партнёров — попробуй ещё раз",
+      "whatBringsYouTo": "Что привело тебя в Victory AI?",
+      "pickTheOneThat": "Выбери то, что важнее всего сейчас.",
+      "whatSHeldYou": "Что тебя сдерживало до сих пор?",
+      "muhammadAli": "Мухаммед Али",
+      "mikeTyson": "Майк Тайсон",
+      "floydMayweather": "Флойд Мейвезер",
+      "terenceCrawford": "Теренс Кроуфорд",
+      "usyk": "Усик",
+      "caneloAlvarez": "Сауль «Канело» Альварес",
+      "mannyPacquiao": "Мэнни Пакьяо",
+      "arturBeterbiev": "Артур Бетербиев",
+      "dmitryBivol": "Дмитрий Бивол",
+      "robertoDuran": "Роберто Дуран"
     },
     "publicProfilePage": {
       "streamTitle": "Название эфира",
@@ -1531,13 +1567,31 @@
       "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
       "send": "Отправить",
       "back": "Назад",
-      "cancel": "Отмена"
+      "cancel": "Отмена",
+      "thanksTheFighterS": "Спасибо! Боец получил оплату.",
+      "couldnTUpdateThat": "Не удалось обновить. Попробуй ещё раз.",
+      "gotItWeLl": "Поняли. Разберёмся.",
+      "yourOrders": "Твои заказы",
+      "noOrdersYet": "Заказов пока нет",
+      "visitTheFighterMarket": "Зайди на Рынок бойцов",
+      "tracking": "Отслеживание:",
+      "thereSAProblem": "Есть проблема",
+      "gotItAllGood": "Получил, всё хорошо",
+      "reportAProblem": "Сообщить о проблеме",
+      "whatSWrong": "Что не так?",
+      "yourMoneyStaysHeld": "Деньги остаются удержанными, пока вопрос не решится."
     },
     "proApplyPage": {
       "couldnTSendThat": "Не удалось отправить. Попробуй ещё раз.",
       "sending": "Отправка…",
       "back": "Назад",
-      "getYourFighterCard": "Получи карточку бойца"
+      "getYourFighterCard": "Получи карточку бойца",
+      "sentWeLlCheck": "Отправлено! Мы проверим и сообщим.",
+      "forProfessionalBoxersOnce": "Для профессиональных боксёров. Когда мы убедимся, что это ты, получишь подтверждённую карточку бойца с прозвищем, рекордом и поясами, свой магазин мерча, а фанаты смогут тренироваться с твоим прозвищем.",
+      "division": "Дивизион",
+      "howCanWeCheck": "Как нам убедиться, что это ты?",
+      "eGDmUs": "напр. напиши нам в директ с подтверждённого Instagram или письмо от промоутера",
+      "sendForVerification": "Отправить на проверку"
     },
     "mentorPanel": {
       "send": "Отправить",
@@ -1645,7 +1699,10 @@
       "left": "остался",
       "setUpPayouts": "Настроить выплаты",
       "back": "Назад",
-      "getYourFighterCard": "Получи карточку бойца"
+      "getYourFighterCard": "Получи карточку бойца",
+      "photoUploadFailed": "Не удалось загрузить фото: {{message}}",
+      "listedInTheFighter": "Выставлено на Рынке бойцов",
+      "markedShippedTheBuyer": "Отмечено как отправленное. Покупатель уведомлён."
     },
     "legendCard": {
       "watchBreakdown": "Смотреть разбор"
@@ -1782,7 +1839,8 @@
       "goBack": "Назад",
       "subscription": "Подписка",
       "blockedAccounts": "Заблокированные аккаунты",
-      "emoteStudio": "Студия эмодзи"
+      "emoteStudio": "Студия эмодзи",
+      "yourOrders": "Твои заказы"
     },
     "rateRoundPage": {
       "goBack": "Назад",
@@ -2163,7 +2221,17 @@
     "proCardPage": {
       "make": "Создать",
       "buyerProtection": "Защита покупателя",
-      "back": "Назад"
+      "back": "Назад",
+      "fighterNotFound": "Боец не найден.",
+      "isNowYourTraining": "{{alias}} теперь твой партнёр по тренировкам",
+      "couldnTSwitchPartner": "Не удалось сменить партнёра. Попробуй ещё раз.",
+      "manage": "Управлять",
+      "verifiedPro": "Проверенный профи",
+      "boxrec": "BoxRec",
+      "trainWith": "Тренируйся с",
+      "yourAiTrainingPartner": "твоим ИИ-партнёром. Функция Pro.",
+      "shop": "Магазин",
+      "noMerchYet": "Мерча пока нет."
     },
     "comingUp": {
       "comingUp": "Скоро",
@@ -2270,7 +2338,18 @@
       "onlyRoundsTheAi": "Засчитываются только раунды, которые ИИ видел на видео. Лестница идёт до 10 000 часов — отметки эксперта."
     },
     "paywallPage": {
-      "session": "тренировку"
+      "session": "тренировку",
+      "yourTrainingSoFar": "Твои тренировки на сегодня",
+      "bestScore": " · лучшая оценка {{best}}",
+      "proScoresEveryRound": "Pro оценивает каждый раунд с этого момента, без месячного лимита.",
+      "notNowStartFree": "Не сейчас, начать бесплатно",
+      "startYourDayFree": "Начни бесплатный период на {{trialDays}} дн.",
+      "foundingMember": "Участник-основатель:",
+      "offPro": "% скидки на Pro",
+      "lockedInForLife": ", навсегда",
+      "yoursForAsLong": "Твоя, пока активна подписка. Если отменишь — её не вернуть.",
+      "daysFreeThenYour": "{{trialDays}} дн. бесплатно, затем план продлится автоматически. Отмени до этого — и ничего не заплатишь.",
+      "startDayFreeTrial": "Начать бесплатный период на {{trialDays}} дн."
     },
     "rankBoard": {
       "couldNotLoadRanks": "Не удалось загрузить рейтинги. Проверь соединение.",
@@ -2383,16 +2462,45 @@
       "createPost": "Создать пост"
     },
     "joinSquadPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "couldnTJoinTry": "Не удалось вступить — попробуй ещё раз",
+      "thisInviteHasExpired": "Срок приглашения истёк",
+      "askYourMateTo": "Попроси друга прислать новое после его следующей тренировки.",
+      "openVictoryAi": "Открыть Victory AI",
+      "invitedYouTo": "приглашает тебя в",
+      "thisSquadIsFull": "Эта команда заполнена.",
+      "joining": "Вступаем…",
+      "joinTheSquad": "Вступить в команду",
+      "signUpToJoin": "Зарегистрируйся, чтобы вступить"
     },
     "loginPage": {
       "victoryAi": "Victory AI"
     },
     "notFoundPage": {
-      "victoryAi": "Victory AI"
+      "victoryAi": "Victory AI",
+      "pageNotFound": "Страница не найдена",
+      "thisPageDoesnT": "Такой страницы нет. Вернём тебя к тренировкам.",
+      "goHome": "На главную"
     },
     "welcomePage": {
       "victoryAi": "Victory AI"
+    },
+    "leaderboardPage": {
+      "statusOnlyGoesUp": "Статус только растёт. Рейтинги обнуляются каждый понедельник.",
+      "yourNextStep": "Твой следующий шаг",
+      "buildYourOwnCombination": "Собери свою комбинацию на эту неделю",
+      "youReOn": "Ты на"
+    },
+    "libraryPage": {
+      "failedToLoadTechniques": "Не удалось загрузить техники — попробуй ещё раз",
+      "techniquesWillAppearHere": "Техники появятся здесь, когда будут доступны.",
+      "noTechniquesMatchThe": "Нет техник по фильтру «{{activeFilter}}» — попробуй «Все».",
+      "showAllTechniques": "Показать все техники"
+    },
+    "paymentSuccess": {
+      "yourPartner": "Твой партнёр",
+      "greatCall": "Отличный выбор.",
+      "isReadyAndYour": "готов, и твой первый раунд — в одном касании."
     }
   },
   "feedback": {
@@ -2410,5 +2518,10 @@
     "chat": "Написать команде",
     "thanksDesc": "Твоё сообщение помогает нам делать Victory AI лучше для каждого бойца.",
     "ask": "Спроси Victory: быстрые ответы"
+  },
+  "lib": {
+    "pitch": {
+      "yourPartner": "Твой партнёр"
+    }
   }
 }
