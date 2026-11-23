@@ -13,19 +13,20 @@ export const CALL_LEVELS = [
   // Every combo is punches plus movement, the way a coach calls pads: get in, throw, then get out
   // of the way. A combo never ends on a jab; it ends on power or on a move: head movement (slip,
   // roll, bob and weave, pull back), footwork (step in, step back) or an angle (pivot, angle out).
+  // Body shots ("1b", "3b"…) are in every level, often as body-then-head: "hook to the body, hook".
   // Higher levels put the movement in the middle too, so you punch off the slip or the pivot.
   { name: "Warm-up", gapMs: 5000,
-    combos: ["1-2-back", "1-2-slip", "1-1-2-roll", "in-1-2-back", "2-pull", "1-2-angle"] },
+    combos: ["1-2-back", "1-2-slip", "1-1-2-roll", "in-1-2-back", "1b-2-pull", "1-2-angle", "1-2-3b-back"] },
   { name: "Basics", gapMs: 4500,
-    combos: ["1-2-3-roll", "1-2-bob", "in-1-2-slip", "1-1-2-pivot", "2-3-pull", "1-2-3-back"] },
+    combos: ["1-2-3-roll", "1-2-bob", "in-1-2-slip", "1-1-2-pivot", "1b-2-3-pull", "3b-3-back", "1-2-3b-3-roll"] },
   { name: "Sharp", gapMs: 4000,
-    combos: ["1-2-3-2-roll", "slip-2-3-back", "1-6-3-angle", "in-1-2-3-pivot", "1-2-pull-2", "3-2-3-bob"] },
+    combos: ["1-2-3-2-roll", "slip-2-3b-3-back", "1-6-3-angle", "in-1b-2-3-pivot", "1-2-pull-2", "3b-3-2-bob", "2b-3-2-slip"] },
   { name: "Fast hands", gapMs: 3500,
-    combos: ["1-2-3-2-slip-2", "1-1-2-3-roll-3", "in-1-2-5-2-angle", "2-3-2-bob-2-3", "1-2-pull-2-3-back", "1-2-3-pivot-2"] },
+    combos: ["1-2-3-2-slip-2", "1-1-2-3b-3-roll", "in-1-2-5-2-angle", "2-3-2-bob-2-3", "1b-2-3b-3-back", "1-2-3-pivot-2", "1-2-4b-3-roll"] },
   { name: "Pro pace", gapMs: 3200,
-    combos: ["1-2-slip-2-3-2-roll", "in-1-2-3-4-3-angle", "1-1-2-3-2-bob-3-2", "slip-2-3-2-pivot-3", "1-6-3-2-pull-2-back", "3-6-3-2-roll-2-angle"] },
+    combos: ["1-2-slip-2-3b-3-roll", "in-1-2-3-4b-3-angle", "1-1-2-3-2-bob-3b-3", "slip-2-3-2-pivot-3", "1-6-3-2-pull-2-back", "1b-2b-3-2-roll-2-angle"] },
   { name: "Ring general", gapMs: 3000,
-    combos: ["in-1-2-roll-2-3-2-pivot", "1-1-2-slip-2-3-angle-2", "2-3-2-pivot-3-2-back", "1-2-5-6-3-2-bob-3", "1-6-3-2-roll-2-3-angle", "angle-5-2-3-4-slip-2-back"] },
+    combos: ["in-1-2-roll-2-3b-3-pivot", "1-1-2-slip-2-3-angle-2", "2-3-2-pivot-3b-3-back", "1-2-5-6-3-2-bob-3", "1b-2-3b-3-2-roll-2-angle", "angle-5-2-3-4b-slip-2-back"] },
 ];
 
 // Where calls start and the lowest they can drop to, by experience. An advanced fighter
@@ -53,7 +54,8 @@ export const RESULTS_WINDOW = 5;
 export const LEVEL_KEY = "victory_caller_level";
 
 // Only numbered moves are punches the camera can count; "slip" or "pivot" in a combo aren't.
-export const punchCount = (combo) => Math.max(1, combo.split("-").filter((m) => /^[1-6]$/.test(m)).length);
+// "3b" is the same punch to the body (a left hook to the body for an orthodox fighter).
+export const punchCount = (combo) => Math.max(1, combo.split("-").filter((m) => /^[1-6]b?$/.test(m)).length);
 // Your weekly combo (from the combo builder) is called every third time.
 export const WEEKLY_EVERY = 3;
 export const landWindowMs = (n) => 1200 + n * 450;
@@ -146,7 +148,9 @@ export function punchName(n, stance) {
 export function comboWords(combo, stance) {
   const words = [];
   for (const m of String(combo).split("-")) {
-    const w = MOVE_WORDS[m] || punchName(Number(m), stance) || m;
+    const body = /^[1-6]b$/.test(m);
+    const name = punchName(Number(body ? m.slice(0, -1) : m), stance);
+    const w = MOVE_WORDS[m] || (name && body ? `${name} to the body` : name) || m;
     if (w === "Jab" && words[words.length - 1] === "Jab") words[words.length - 1] = "Double jab";
     else words.push(w);
   }
@@ -177,7 +181,7 @@ export function setCallsNumbers(on) {
 }
 
 export function comboSpeech(combo, stance, numbers = callsNumbers()) {
-  return numbers ? combo.split("-").map((m) => MOVE_WORDS[m] || m).join(", ") : comboWords(combo, stance).join(", ");
+  return numbers ? combo.split("-").map((m) => MOVE_WORDS[m] || (/^[1-6]b$/.test(m) ? `${m.slice(0, -1)} body` : m)).join(", ") : comboWords(combo, stance).join(", ");
 }
 
 export function sayCombo(combo, stance) {
