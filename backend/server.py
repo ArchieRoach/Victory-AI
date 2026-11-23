@@ -1216,14 +1216,34 @@ async def analyze_round_video(public_id: str, round_number: int, partner_name: s
                                  types.MediaResolution.MEDIA_RESOLUTION_LOW),
     )
     contents = [video, video_analysis_prompt(round_number, partner_name, tone, focus_areas, combo)]
-    try:
-        response = await _gemini().aio.models.generate_content(model=GEMINI_VIDEO_MODEL, contents=contents, config=config)
-    except genai_errors.ClientError as e:
-        if getattr(e, "code", None) != 404:
-            raise
-        logger.warning(f"{GEMINI_VIDEO_MODEL} not found — falling back to {GEMINI_VIDEO_FALLBACK_MODEL}")
-        response = await _gemini().aio.models.generate_content(model=GEMINI_VIDEO_FALLBACK_MODEL, contents=contents, config=config)
+    response = await _score_with_retries(contents, config, genai_errors)
     return clean_video_analysis(json.loads(response.text))
+
+
+# When Google's model is busy (503 "high demand") or rate-limited (429), a round used to go
+# unscored after one try. Now: try again after a short wait, then the backup models. All within
+# about 30 seconds, so the phone (which waits 90) still gets the score.
+VIDEO_SCORING_PLAN = [(GEMINI_VIDEO_MODEL, 0), (GEMINI_VIDEO_MODEL, 3), (GEMINI_VIDEO_FALLBACK_MODEL, 4), ("gemini-2.5-flash-lite", 6)]
+
+
+def _busy(err, genai_errors) -> bool:
+    code = getattr(err, "code", None)
+    return isinstance(err, genai_errors.ServerError) or code in (429, 500, 502, 503, 504)
+
+
+async def _score_with_retries(contents, config, genai_errors, plan=None, sleep=asyncio.sleep):
+    last = None
+    for model, wait in (plan or VIDEO_SCORING_PLAN):
+        if wait:
+            await sleep(wait)
+        try:
+            return await _gemini().aio.models.generate_content(model=model, contents=contents, config=config)
+        except (genai_errors.ServerError, genai_errors.ClientError) as e:
+            if not (_busy(e, genai_errors) or getattr(e, "code", None) == 404):
+                raise
+            logger.warning(f"Video scoring: {model} unavailable ({getattr(e, 'code', '?')}), trying again")
+            last = e
+    raise last
 
 
 _CLOUDINARY_VIDEO_RE = re.compile(r"^https://res\.cloudinary\.com/([^/]+)/video/upload/(?:v\d+/)?([^?#]+?)\.[A-Za-z0-9]+$")
