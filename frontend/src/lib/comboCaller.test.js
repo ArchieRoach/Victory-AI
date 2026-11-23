@@ -122,3 +122,16 @@ test("no call ends on a jab, and defence finishes are called in words", () => {
   expect(comboSpeech("1-2-bob", "orthodox", true)).toBe("1, 2, Bob and weave");
   expect(punchCount("1-2-bob")).toBe(2);
 });
+
+test("combos mix punches with head movement, footwork and angles", () => {
+  const { comboWords } = require("./comboCaller");
+  const moves = ["slip", "roll", "bob", "pull", "in", "back", "pivot", "angle"];
+  const all = CALL_LEVELS.flatMap((l) => l.combos);
+  moves.forEach((m) => expect(all.some((c) => c.split("-").includes(m))).toBe(true));
+  for (const level of CALL_LEVELS) {
+    expect(level.combos.every((c) => c.split("-").some((m) => moves.includes(m)))).toBe(true);
+  }
+  expect(comboWords("in-1-2-angle", "orthodox")).toEqual(["Step in", "Jab", "Cross", "Angle out"]);
+  expect(comboWords("1-2-pull-2-back", "orthodox")).toEqual(["Jab", "Cross", "Pull back", "Cross", "Step back"]);
+  expect(punchCount("in-1-2-angle")).toBe(2);
+});
