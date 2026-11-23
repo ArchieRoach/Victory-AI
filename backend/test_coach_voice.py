@@ -58,8 +58,22 @@ def test_lines_are_tidied_and_capped():
 def test_no_key_means_no_clips_and_no_error():
     setup()
     server.ELEVENLABS_API_KEY = ""
+    server.OPENAI_API_KEY = ""
     out = clips_for({"user_id": "e"}, ["Something new"])
     assert out["clips"] == {}
+
+
+def test_without_elevenlabs_the_openai_voice_is_used():
+    setup()
+    made.clear()
+    server.ELEVENLABS_API_KEY = ""
+    server.OPENAI_API_KEY = "sk-test"
+    out = clips_for({"user_id": "f"}, ["Jab, Jab, Cross"])
+    assert out["clips"] and made == [("openai:onyx", "Jab, Jab, Cross")]
+    her = clips_for({"user_id": "g", "training_partner": {"appearance_gender": "female"}}, ["Jab, Jab, Cross"])
+    assert made[-1] == ("openai:nova", "Jab, Jab, Cross"), "a different voice is a different clip"
+    assert her["clips"]["Jab, Jab, Cross"] != out["clips"]["Jab, Jab, Cross"]
+    server.OPENAI_API_KEY = ""
 
 
 if __name__ == "__main__":

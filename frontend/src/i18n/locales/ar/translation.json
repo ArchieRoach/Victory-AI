@@ -2537,7 +2537,14 @@
       "hypeMotivate": "هيا",
       "hypeJoke": "مزاح",
       "hypeTip": "نصيحة",
-      "hypeValidate": "عمل رائع"
+      "hypeValidate": "عمل رائع",
+      "cantSwitchCamera": "تعذّر تبديل الكاميرا على هذا الهاتف.",
+      "callSpeed": "سرعة الأوامر",
+      "paceSlow": "بطيء",
+      "paceNormal": "عادي",
+      "paceFast": "سريع",
+      "useBackCamera": "استخدم الكاميرا الخلفية",
+      "useFrontCamera": "استخدم الكاميرا الأمامية"
     },
     "merchSheet": {
       "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",

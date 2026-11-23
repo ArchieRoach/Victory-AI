@@ -12,12 +12,12 @@ export function useCoachSpeaking() {
   return on;
 }
 
-export function CornerOrb({ thinking, paused, resting, watching, complete, size = 56, label }) {
+export function CornerOrb({ thinking, paused, resting, watching, complete, size = 56, label, compact = false }) {
   const speaking = useCoachSpeaking();
   const mood = orbMood({ thinking, speaking, paused, resting, watching, complete });
   const tone = MOOD_TONE[mood];
   return (
-    <div className="relative flex items-center justify-center mb-3" style={{ width: size * 1.8, height: size * 1.8 }}
+    <div className={`relative flex items-center justify-center ${compact ? "" : "mb-3"}`} style={{ width: size * 1.8, height: size * 1.8 }}
       data-testid="corner-orb" data-mood={mood} role="img" aria-label={label}>
       {mood === "talk" && [0, 0.5].map((d) => (
         <span key={d} className="absolute rounded-full orb-wave" style={{ width: size, height: size, boxShadow: `0 0 0 2px ${C(tone, 0.55)}`, animationDelay: `${d}s` }} />

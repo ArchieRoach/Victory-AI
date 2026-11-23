@@ -2537,7 +2537,14 @@
       "hypeMotivate": "Pousse",
       "hypeJoke": "Blague",
       "hypeTip": "Conseil",
-      "hypeValidate": "Bon travail"
+      "hypeValidate": "Bon travail",
+      "cantSwitchCamera": "Impossible de changer de caméra sur ce téléphone.",
+      "callSpeed": "Vitesse des annonces",
+      "paceSlow": "Lente",
+      "paceNormal": "Normale",
+      "paceFast": "Rapide",
+      "useBackCamera": "Utiliser la caméra arrière",
+      "useFrontCamera": "Utiliser la caméra avant"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Lien copié : envoie-le à un parent",

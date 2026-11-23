@@ -2537,7 +2537,14 @@
       "hypeMotivate": "加油",
       "hypeJoke": "玩笑",
       "hypeTip": "提示",
-      "hypeValidate": "干得好"
+      "hypeValidate": "干得好",
+      "cantSwitchCamera": "无法在这部手机上切换摄像头。",
+      "callSpeed": "口令速度",
+      "paceSlow": "慢",
+      "paceNormal": "正常",
+      "paceFast": "快",
+      "useBackCamera": "使用后置摄像头",
+      "useFrontCamera": "使用前置摄像头"
     },
     "merchSheet": {
       "linkCopiedSendIt": "链接已复制：发给家长",

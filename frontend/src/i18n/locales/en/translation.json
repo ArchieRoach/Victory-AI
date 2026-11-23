@@ -2879,7 +2879,14 @@
       "hypeMotivate": "Push",
       "hypeJoke": "Banter",
       "hypeTip": "Tip",
-      "hypeValidate": "Good work"
+      "hypeValidate": "Good work",
+      "cantSwitchCamera": "Couldn't switch camera on this phone.",
+      "callSpeed": "Call speed",
+      "paceSlow": "Slow",
+      "paceNormal": "Normal",
+      "paceFast": "Fast",
+      "useBackCamera": "Use back camera",
+      "useFrontCamera": "Use front camera"
     },
     "trendingClipsPage": {
       "viral": "VIRAL",

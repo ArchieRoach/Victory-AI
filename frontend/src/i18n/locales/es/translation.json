@@ -2537,7 +2537,14 @@
       "hypeMotivate": "Dale",
       "hypeJoke": "Broma",
       "hypeTip": "Consejo",
-      "hypeValidate": "Buen trabajo"
+      "hypeValidate": "Buen trabajo",
+      "cantSwitchCamera": "No se pudo cambiar de cámara en este móvil.",
+      "callSpeed": "Velocidad de las órdenes",
+      "paceSlow": "Lenta",
+      "paceNormal": "Normal",
+      "paceFast": "Rápida",
+      "useBackCamera": "Usar cámara trasera",
+      "useFrontCamera": "Usar cámara frontal"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Enlace copiado: envíaselo a un padre o madre",

@@ -2537,7 +2537,14 @@
       "hypeMotivate": "Gib Gas",
       "hypeJoke": "Spaß",
       "hypeTip": "Tipp",
-      "hypeValidate": "Gute Arbeit"
+      "hypeValidate": "Gute Arbeit",
+      "cantSwitchCamera": "Kamera konnte auf diesem Handy nicht gewechselt werden.",
+      "callSpeed": "Tempo der Ansagen",
+      "paceSlow": "Langsam",
+      "paceNormal": "Normal",
+      "paceFast": "Schnell",
+      "useBackCamera": "Rückkamera verwenden",
+      "useFrontCamera": "Frontkamera verwenden"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link kopiert: schick ihn einem Elternteil",

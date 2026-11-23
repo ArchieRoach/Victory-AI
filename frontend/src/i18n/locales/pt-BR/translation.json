@@ -2537,7 +2537,14 @@
       "hypeMotivate": "Força",
       "hypeJoke": "Zoeira",
       "hypeTip": "Dica",
-      "hypeValidate": "Bom trabalho"
+      "hypeValidate": "Bom trabalho",
+      "cantSwitchCamera": "Não foi possível trocar a câmera neste celular.",
+      "callSpeed": "Velocidade dos comandos",
+      "paceSlow": "Devagar",
+      "paceNormal": "Normal",
+      "paceFast": "Rápido",
+      "useBackCamera": "Usar câmera traseira",
+      "useFrontCamera": "Usar câmera frontal"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link copiado: envie para um responsável",
