@@ -18,6 +18,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
 import { newerVersionLive, safeToReload } from "@/lib/appVersion";
+import { sendsToken } from "@/lib/authTarget";
 import { FeaturebaseProvider, useFeaturebase } from "featurebase-js/react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalCrashReporting } from "@/utils/crashReporter";
@@ -151,6 +152,8 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const id = axios.interceptors.request.use(async (config) => {
       try {
+        const url = config.baseURL && !/^https?:/i.test(config.url || "") ? `${config.baseURL}${config.url || ""}` : config.url;
+        if (!sendsToken(url, BACKEND_URL)) return config;
         const token = mobileToken || await getTokenRef.current();
         if (token) config.headers.Authorization = `Bearer ${token}`;
       } catch (e) {}
