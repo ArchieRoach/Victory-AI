@@ -151,6 +151,55 @@ def test_competition_result_uses_only_seen_skills():
     assert res["highlight"].startswith("Footwork 10/10")
 
 
+def test_a_busy_model_is_retried_then_the_backup_is_used():
+    from google.genai import errors as genai_errors
+    busy = genai_errors.ServerError(503, {"error": {"code": 503, "message": "high demand", "status": "UNAVAILABLE"}})
+
+    class Flaky:
+        def __init__(self, fails):
+            self.fails, self.models = fails, []
+
+        async def generate_content(self, model, contents, config):
+            self.models.append(model)
+            if len(self.models) <= self.fails:
+                raise busy
+            return SimpleNamespace(text=json.dumps(GOOD))
+
+    waits = []
+
+    async def no_sleep(s):
+        waits.append(s)
+
+    flaky = Flaky(fails=2)
+    server._genai_client = SimpleNamespace(aio=SimpleNamespace(models=flaky))
+    run(server._score_with_retries(["v"], None, genai_errors, sleep=no_sleep))
+    assert flaky.models == [server.GEMINI_VIDEO_MODEL, server.GEMINI_VIDEO_MODEL, server.GEMINI_VIDEO_FALLBACK_MODEL]
+    assert sum(waits) <= 30
+
+    always = Flaky(fails=99)
+    server._genai_client = SimpleNamespace(aio=SimpleNamespace(models=always))
+    try:
+        run(server._score_with_retries(["v"], None, genai_errors, sleep=no_sleep))
+        assert False, "should give up after the plan"
+    except genai_errors.ServerError:
+        pass
+    assert len(always.models) == len(server.VIDEO_SCORING_PLAN)
+
+    bad = genai_errors.ClientError(400, {"error": {"code": 400, "message": "bad request", "status": "INVALID_ARGUMENT"}})
+
+    class Broken:
+        models = []
+        async def generate_content(self, model, contents, config):
+            Broken.models.append(model)
+            raise bad
+    server._genai_client = SimpleNamespace(aio=SimpleNamespace(models=Broken()))
+    try:
+        run(server._score_with_retries(["v"], None, genai_errors, sleep=no_sleep))
+    except genai_errors.ClientError:
+        pass
+    assert len(Broken.models) == 1, "a real error isn't retried"
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:
