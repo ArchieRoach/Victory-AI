@@ -21,7 +21,7 @@ import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
 import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, callsNumbers, setCallsNumbers, callPace, setCallPace, CALL_PACES, CALL_LEVELS } from "@/lib/comboCaller";
-import { unlockSpeech, setVoiceSource, primeVoice, sayNatural, say, hasClip } from "@/lib/speech";
+import { unlockSpeech, setVoiceSource, primeVoice, sayNatural, say, hasClip, waitForVoice } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
 import { TimerCard } from "@/components/home/TimerCard";
 import { withCue } from "@/lib/verbalCues";
@@ -39,6 +39,10 @@ const DEFAULT_ROUND_SECONDS = 120;
 const FIXED_ROUND_SECONDS = 180;
 // Long enough for a typical upload and score; a slow network still reaches the results.
 const FINISH_WAIT_MS = 75_000;
+const ROUND_VIDEO_BITRATE = 1_800_000;
+// 720p at up to 30 fps: plenty for scoring, and light enough that the phone can film, show the
+// preview and run the punch counter at once without the picture freezing.
+const cameraConstraints = (facingMode) => ({ facingMode, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } });
 // Video scoring runs as a background job; check back every 2s for up to 90s, then carry on
 // without it (the score still lands on the round when the job finishes).
 const waitForJob = async (jobId, { everyMs = 2000, maxMs = 90_000 } = {}) => {
@@ -234,6 +238,8 @@ export default function TrainPage() {
   const cameraStreamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
+  const recordedSizeRef = useRef(0);
+  const recordedTypeRef = useRef("");
   const videoPreviewRef = useRef(null);
 
   const coach = useLiveCoach({
@@ -368,7 +374,7 @@ export default function TrainPage() {
       return false;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: cameraConstraints(facing), audio: false });
       cameraStreamRef.current = stream;
       setCameraReady(true);
       setCameraError(null);
@@ -395,7 +401,7 @@ export default function TrainPage() {
     const next = facing === "user" ? "environment" : "user";
     let stream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: next }, audio: false });
+      stream = await navigator.mediaDevices.getUserMedia({ video: cameraConstraints(next), audio: false });
     } catch {
       toast.error(tx("ui.trainPage.cantSwitchCamera", "Couldn't switch camera on this phone."));
       return;
@@ -414,9 +420,13 @@ export default function TrainPage() {
     const stream = cameraStreamRef.current;
     if (!stream) return;
     recordedChunksRef.current = [];
-    const mimeType = ["video/webm;codecs=vp9", "video/webm"].find((t) => window.MediaRecorder?.isTypeSupported?.(t));
+    // iPhones record MP4; others WebM. A capped bitrate keeps a 3-minute round around 40 MB
+    // (an iPhone's default can pass Cloudinary's 100 MB limit, and the upload then fails).
+    const mimeType = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"].find((t) => window.MediaRecorder?.isTypeSupported?.(t));
     try {
-      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      const options = { videoBitsPerSecond: ROUND_VIDEO_BITRATE, ...(mimeType ? { mimeType } : {}) };
+      let recorder;
+      try { recorder = new MediaRecorder(stream, options); } catch { recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream); }
       recorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunksRef.current.push(e.data); };
       recorder.start();
       mediaRecorderRef.current = recorder;
@@ -431,6 +441,8 @@ export default function TrainPage() {
     if (!recorder || recorder.state === "inactive") { resolve(null); return; }
     recorder.onstop = () => {
       const blob = new Blob(recordedChunksRef.current, { type: recorder.mimeType || "video/webm" });
+      recordedSizeRef.current = blob.size;
+      recordedTypeRef.current = blob.type;
       recordedChunksRef.current = [];
       resolve(blob.size > 0 ? blob : null);
     };
@@ -442,16 +454,15 @@ export default function TrainPage() {
     const { cloud_name, api_key, signature, timestamp, folder } = sigRes.data;
     if (!cloud_name || !api_key) throw new Error("Cloudinary not configured");
     const formData = new FormData();
-    formData.append("file", blob, "round.webm");
+    formData.append("file", blob, /mp4/.test(blob.type) ? "round.mp4" : "round.webm");
     formData.append("api_key", api_key);
     formData.append("timestamp", timestamp);
     formData.append("signature", signature);
     formData.append("folder", folder);
-    const uploadRes = await axios.post(
-      `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+    const send = () => axios.post(`https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`, formData,
+      { headers: { "Content-Type": "multipart/form-data" }, timeout: 120_000 });
+    // One retry: a gym's Wi-Fi often drops for a moment.
+    const uploadRes = await send().catch(() => send());
     return { video_url: uploadRes.data.secure_url, public_id: uploadRes.data.public_id };
   };
 
@@ -501,7 +512,8 @@ export default function TrainPage() {
           if (!videoAnalysis) problem("no analysis came back in time");
         }
       } catch (err) {
-        problem(err?.response ? `${err.response.status} ${JSON.stringify(err.response.data || "").slice(0, 200)}` : err?.message);
+        const size = recordedSizeRef.current ? ` (${(recordedSizeRef.current / 1e6).toFixed(1)} MB, ${recordedTypeRef.current})` : "";
+        problem((err?.response ? `${err.response.status} ${JSON.stringify(err.response.data || "").slice(0, 200)}` : err?.message) + size);
       }
     }
 
@@ -592,7 +604,8 @@ export default function TrainPage() {
     callerRef.current = callsOn && canCall && kind !== "boss"
       ? createComboCaller({ level: startingLevel(user?.experience_level), floor: levelRange(user?.experience_level).floor, gapScale: CALL_PACES[pace] * (kind === "freestyle" ? 1.4 : 1), weekly: weeklyCombo?.label || null })
       : null;
-    if (liveCoach) await preloadLiveCoach();
+    // Start once the punch counter and the coach's natural voice are ready (each waits a few seconds at most).
+    await Promise.all([liveCoach ? preloadLiveCoach() : null, voiceEnabled ? waitForVoice(10000) : null]);
     if (liveCoach) {
       axios.get(`${API}/training/ghost`, { params: { round_duration: roundDuration } })
         .then((r) => setGhost(r.data?.timeline?.length ? r.data : null))
