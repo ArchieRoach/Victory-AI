@@ -3168,6 +3168,62 @@ async def health_services():
     }
 
 
+VOICE_TEST_LINE = "Hands up, chin down. Let's work."
+
+
+# Makes (or finds) one real coach clip and says which step failed, with the provider's status
+# code only. The line is fixed, so after the first success it costs nothing.
+@api_router.get("/health/voice-test")
+async def health_voice_test(request: Request):
+    ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"voicetest:{ip}", 6, 3600):
+        raise HTTPException(429, "Try again later")
+    voice_id = coach_voice_id("male")
+    if not voice_id:
+        return {"ok": False, "stage": "no voice key"}
+    key = voice_clip_key(voice_id, VOICE_TEST_LINE)
+    found = await db.voice_clips.find_one({"key": key}, {"_id": 0, "url": 1})
+    if found:
+        return {"ok": True, "stage": "already made", "provider": "openai" if voice_id.startswith("openai:") else "elevenlabs", "url": found["url"]}
+    provider = "openai" if voice_id.startswith("openai:") else "elevenlabs"
+    try:
+        if provider == "elevenlabs":
+            async with httpx.AsyncClient(timeout=30) as client:
+                r = await client.post(
+                    f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128",
+                    headers={"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"},
+                    json={"text": VOICE_TEST_LINE, "model_id": COACH_VOICE_MODEL})
+            if r.status_code != 200:
+                reason = ""
+                try:
+                    reason = str((r.json().get("detail") or {}).get("status") or "")[:60]
+                except Exception:
+                    pass
+                return {"ok": False, "stage": "voice provider", "provider": provider, "status": r.status_code, "reason": reason}
+            audio = r.content
+        else:
+            async with httpx.AsyncClient(timeout=30) as client:
+                r = await client.post("https://api.openai.com/v1/audio/speech",
+                                      headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"},
+                                      json={"model": OPENAI_VOICE_MODEL, "voice": voice_id.split(":", 1)[1], "input": VOICE_TEST_LINE,
+                                            "instructions": OPENAI_VOICE_STYLE, "response_format": "mp3"})
+            if r.status_code != 200:
+                return {"ok": False, "stage": "voice provider", "provider": provider, "status": r.status_code}
+            audio = r.content
+    except Exception as e:
+        return {"ok": False, "stage": "voice provider", "provider": provider, "error": type(e).__name__}
+    try:
+        up = await asyncio.to_thread(cloudinary.uploader.upload, "data:audio/mpeg;base64," + base64.b64encode(audio).decode(),
+                                     resource_type="video", public_id=f"coach_voice/{key}", overwrite=False)
+    except Exception as e:
+        return {"ok": False, "stage": "storage", "provider": provider, "error": type(e).__name__, "message": str(e)[:120]}
+    url = up.get("secure_url")
+    if url:
+        await db.voice_clips.update_one({"key": key}, {"$setOnInsert": {"key": key, "url": url, "voice": "male", "text": VOICE_TEST_LINE,
+                                                                         "created_at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
+    return {"ok": bool(url), "stage": "made" if url else "storage", "provider": provider, "url": url}
+
+
 class VideoProblem(BaseModel):
     round_number: int = Field(1, ge=1, le=50)
     stage: str = Field("", max_length=30)

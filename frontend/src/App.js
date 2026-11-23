@@ -17,6 +17,7 @@ if (storedLang === "ar") {
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { ClerkProvider, useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
+import { newerVersionLive, safeToReload } from "@/lib/appVersion";
 import { FeaturebaseProvider, useFeaturebase } from "featurebase-js/react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalCrashReporting } from "@/utils/crashReporter";
@@ -538,6 +539,21 @@ function AnalyticsTracker() {
   useEffect(() => {
     analytics.pageview(location.pathname);
   }, [location.pathname]);
+
+  // Reload into the newest version at a safe moment (lib/appVersion.js).
+  useEffect(() => {
+    const path = location.pathname;
+    if (!safeToReload(path)) return;
+    newerVersionLive().then((newer) => { if (newer && safeToReload(window.location.pathname)) window.location.reload(); });
+  }, [location.pathname]);
+  useEffect(() => {
+    const onShow = () => {
+      if (document.visibilityState !== "visible" || !safeToReload(window.location.pathname)) return;
+      newerVersionLive().then((newer) => { if (newer && safeToReload(window.location.pathname)) window.location.reload(); });
+    };
+    document.addEventListener("visibilitychange", onShow);
+    return () => document.removeEventListener("visibilitychange", onShow);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated && user?.user_id && !identified.current) {

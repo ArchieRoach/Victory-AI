@@ -10,14 +10,22 @@ import { say } from "@/lib/speech";
 //   Without the camera nothing can be checked, so the level stays where it is.
 
 export const CALL_LEVELS = [
-  // A combo never ends on a jab (a coach finishes with power or gets out of the way), and most
-  // end with defence: slip, roll, or bob and weave, so fighters learn to punch and move.
-  { name: "Warm-up", combos: ["1-2", "1-1-2", "1-2-slip", "2-roll"], gapMs: 5000 },
-  { name: "Basics", combos: ["1-2-3", "1-1-2-roll", "2-3-slip", "1-2-bob", "1-2"], gapMs: 4500 },
-  { name: "Sharp", combos: ["1-2-3-2", "1-6-3-slip", "3-2-3-roll", "1-2-3-bob", "1-2-slip-2"], gapMs: 4000 },
-  { name: "Fast hands", combos: ["1-2-3-2-slip", "1-2-5-2", "1-1-2-3-roll", "2-3-2-bob", "1-2-3-2"], gapMs: 3500 },
-  { name: "Pro pace", combos: ["1-2-3-2-roll", "1-2-3-4-3-slip", "1-1-2-3-2-bob", "1-6-3-2-3", "1-2-slip-2-3-2", "3-6-3-2-roll"], gapMs: 3200 },
-  { name: "Ring general", combos: ["1-2-roll-2-3-2", "1-1-2-slip-2-3", "2-3-2-pivot-3-2", "1-2-5-6-3-2-bob", "1-6-3-2-roll-2", "5-2-3-4-slip"], gapMs: 3000 },
+  // Every combo is punches plus movement, the way a coach calls pads: get in, throw, then get out
+  // of the way. A combo never ends on a jab; it ends on power or on a move: head movement (slip,
+  // roll, bob and weave, pull back), footwork (step in, step back) or an angle (pivot, angle out).
+  // Higher levels put the movement in the middle too, so you punch off the slip or the pivot.
+  { name: "Warm-up", gapMs: 5000,
+    combos: ["1-2-back", "1-2-slip", "1-1-2-roll", "in-1-2-back", "2-pull", "1-2-angle"] },
+  { name: "Basics", gapMs: 4500,
+    combos: ["1-2-3-roll", "1-2-bob", "in-1-2-slip", "1-1-2-pivot", "2-3-pull", "1-2-3-back"] },
+  { name: "Sharp", gapMs: 4000,
+    combos: ["1-2-3-2-roll", "slip-2-3-back", "1-6-3-angle", "in-1-2-3-pivot", "1-2-pull-2", "3-2-3-bob"] },
+  { name: "Fast hands", gapMs: 3500,
+    combos: ["1-2-3-2-slip-2", "1-1-2-3-roll-3", "in-1-2-5-2-angle", "2-3-2-bob-2-3", "1-2-pull-2-3-back", "1-2-3-pivot-2"] },
+  { name: "Pro pace", gapMs: 3200,
+    combos: ["1-2-slip-2-3-2-roll", "in-1-2-3-4-3-angle", "1-1-2-3-2-bob-3-2", "slip-2-3-2-pivot-3", "1-6-3-2-pull-2-back", "3-6-3-2-roll-2-angle"] },
+  { name: "Ring general", gapMs: 3000,
+    combos: ["in-1-2-roll-2-3-2-pivot", "1-1-2-slip-2-3-angle-2", "2-3-2-pivot-3-2-back", "1-2-5-6-3-2-bob-3", "1-6-3-2-roll-2-3-angle", "angle-5-2-3-4-slip-2-back"] },
 ];
 
 // Where calls start and the lowest they can drop to, by experience. An advanced fighter
@@ -94,8 +102,8 @@ export function createComboCaller({ level = 0, floor = 0, gapScale = 1, pick = M
       const combo = useWeekly ? weekly : options[Math.floor(pick() * options.length) % options.length];
       const n = punchCount(combo);
       pending = { combo, n, punches: 0, deadline: now + landWindowMs(n) };
-      // Longer combos get longer to throw before the next call (half a second per extra move).
-      nextAt = now + (CALL_LEVELS[lvl].gapMs + 500 * (n - 1)) * gapScale;
+      // Longer combos get longer before the next call: half a second per extra punch or move.
+      nextAt = now + (CALL_LEVELS[lvl].gapMs + 500 * (combo.split("-").length - 1)) * gapScale;
       last = combo;
       stats.calls += 1;
       return { combo, level: lvl, levelName: useWeekly ? "Your weekly combo" : CALL_LEVELS[lvl].name };
@@ -118,7 +126,11 @@ export function createComboCaller({ level = 0, floor = 0, gapScale = 1, pick = M
 // With a known stance the hooks and uppercuts say left or right, the way coaches call them;
 // switch-hitters and unknown stances hear lead and rear. Numbers stay as an opt-in for
 // fighters who were taught them.
-const MOVE_WORDS = { slip: "Slip", roll: "Roll", bob: "Bob and weave", pivot: "Pivot" };
+// Head movement, footwork and angles, called the way a coach says them on the pads.
+const MOVE_WORDS = {
+  slip: "Slip", roll: "Roll", bob: "Bob and weave", pull: "Pull back",
+  in: "Step in", back: "Step back", pivot: "Pivot", angle: "Angle out",
+};
 const SIDES = {
   orthodox: { lead: "Left", rear: "Right" },
   southpaw: { lead: "Right", rear: "Left" },

@@ -43,6 +43,30 @@ def test_services_say_yes_or_no_and_never_show_a_key():
     assert client.get("/api/health/services").json()["coach_voice"]["ready"] is False
 
 
+def test_voice_test_reports_the_failing_step():
+    import asyncio
+    from types import SimpleNamespace
+    server.ELEVENLABS_API_KEY, server.OPENAI_API_KEY = "", ""
+    assert client.get("/api/health/voice-test").json() == {"ok": False, "stage": "no voice key"}
+    server.ELEVENLABS_API_KEY = "el-secret"
+
+    class FakeClient:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def post(self, *a, **k):
+            return SimpleNamespace(status_code=401, content=b"", json=lambda: {"detail": {"status": "quota_exceeded"}})
+    real = server.httpx.AsyncClient
+    server.httpx.AsyncClient = FakeClient
+    try:
+        r = client.get("/api/health/voice-test")
+    finally:
+        server.httpx.AsyncClient = real
+    assert r.json() == {"ok": False, "stage": "voice provider", "provider": "elevenlabs", "status": 401, "reason": "quota_exceeded"}
+    assert "secret" not in r.text
+    server.ELEVENLABS_API_KEY = ""
+
+
 def test_a_video_problem_is_recorded():
     current["user"] = {"user_id": "u3"}
     import asyncio
