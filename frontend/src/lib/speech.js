@@ -32,9 +32,25 @@ export function setVoiceSource(fn) {
   source = fn;
 }
 
-export async function primeVoice(texts) {
+const inflight = new Set();
+
+// Waits (up to `ms`) for clips already being made, so the round can start once the coach's
+// lines are ready instead of the first calls coming out in the phone's voice.
+export async function waitForVoice(ms = 10000) {
+  if (!inflight.size) return;
+  await Promise.race([Promise.allSettled([...inflight]), new Promise((r) => setTimeout(r, ms))]);
+}
+
+export function primeVoice(texts) {
   const want = [...new Set((texts || []).filter((t) => t && !clips.has(t) && !pending.has(t)))];
-  if (!want.length || !source) return;
+  if (!want.length || !source) return Promise.resolve();
+  const job = fetchClips(want);
+  inflight.add(job);
+  job.finally(() => inflight.delete(job));
+  return job;
+}
+
+async function fetchClips(want) {
   want.forEach((t) => pending.add(t));
   try {
     for (let i = 0; i < want.length; i += BATCH) {
@@ -167,12 +183,29 @@ export function say(text, { rate = 1.05, interrupt = false } = {}) {
 
 // For lines that aren't timed to the round (feedback between rounds): wait briefly for the
 // natural clip rather than reading it in the phone's voice.
-export async function sayNatural(text, waitMs = 6000) {
-  if (!text) return;
-  if (!clips.has(text)) {
-    await Promise.race([primeVoice([text]), new Promise((r) => setTimeout(r, waitMs))]);
+// Natural clips are made one short line at a time (the server takes up to 160 letters), so a long
+// line is split into sentences, each made naturally and played one after another.
+export function splitForVoice(text, max = 150) {
+  const out = [];
+  for (const sentence of String(text || "").match(/[^.!?]+[.!?]*/g) || []) {
+    let s = sentence.trim();
+    while (s.length > max) {
+      const cut = s.lastIndexOf(" ", max) > 40 ? s.lastIndexOf(" ", max) : max;
+      out.push(s.slice(0, cut).trim());
+      s = s.slice(cut).trim();
+    }
+    if (s) out.push(s);
   }
-  say(text);
+  return out;
+}
+
+export async function sayNatural(text, waitMs = 6000) {
+  const parts = splitForVoice(text);
+  if (!parts.length) return;
+  if (parts.some((p) => !clips.has(p))) {
+    await Promise.race([primeVoice(parts), new Promise((r) => setTimeout(r, waitMs))]);
+  }
+  parts.forEach((p) => say(p));
 }
 
 export const _resetSpeech = () => {
@@ -183,4 +216,5 @@ export const _resetSpeech = () => {
   queue = [];
   clips.clear();
   pending.clear();
+  inflight.clear();
 };

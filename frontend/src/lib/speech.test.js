@@ -79,3 +79,12 @@ describe("natural voice clips", () => {
     expect(pickFallbackVoice([])).toBeNull();
   });
 });
+
+test("long coach notes are split into short sentences, each made in the natural voice", () => {
+  const { splitForVoice } = require("./speech");
+  const parts = splitForVoice("Okay. Keep your right hand glued to your chin when you throw the jab, because you dropped it a lot in that round. Good work!");
+  expect(parts[0]).toBe("Okay.");
+  expect(parts.every((p) => p.length <= 150)).toBe(true);
+  expect(parts[parts.length - 1]).toBe("Good work!");
+  expect(splitForVoice("")).toEqual([]);
+});
