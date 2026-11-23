@@ -3,6 +3,7 @@
     MONGO_URL=x DB_NAME=t python3 backend/test_launch_email.py
 """
 import asyncio
+import os
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
@@ -16,7 +17,7 @@ import server
 server.db = AsyncMongoMockClient()["test"]
 db = server.db
 server.RESEND_API_KEY = "re_test"
-server.LAUNCH_EMAIL_AT = "2026-11-30T08:00:00+00:00"
+server.LAUNCH_EMAIL_AT = "2027-01-04T08:00:00+00:00"
 client = TestClient(server.app)
 sent = []
 
@@ -43,8 +44,8 @@ def run(coro):
     return asyncio.get_event_loop().run_until_complete(coro)
 
 
-BEFORE = datetime(2026, 11, 30, 7, 0, tzinfo=timezone.utc)
-AFTER = datetime(2026, 11, 30, 8, 0, tzinfo=timezone.utc)
+BEFORE = datetime(2027, 1, 4, 7, 0, tzinfo=timezone.utc)
+AFTER = datetime(2027, 1, 4, 8, 0, tzinfo=timezone.utc)
 
 
 def setup():
@@ -101,20 +102,31 @@ def test_joining_sends_the_welcome_email_and_no_longer_calls_n8n():
     welcome = [body for url, body in new if url.endswith("/emails")]
     assert len(welcome) == 1 and welcome[0]["subject"] == launch_email.WELCOME_SUBJECT
     assert "You're on the list, Nia." in welcome[0]["html"] and "nia@example.com" in welcome[0]["html"]
-    server.LAUNCH_EMAIL_AT = "2026-11-30T08:00:00+00:00"
+    server.LAUNCH_EMAIL_AT = "2027-01-04T08:00:00+00:00"
 
 
 def test_people_who_join_after_launch_get_the_youre_in_email_straight_away():
     before = len(sent)
     server.LAUNCH_EMAIL_AT = "2026-01-01T00:00:00+00:00"
+    os.environ["SEASON_ONE_STARTS"] = "2026-01-12"  # launch already happened, for this test only
     r = client.post("/api/waitlist/signup", json={"name": "Late", "email": "late2@example.com"})
+    del os.environ["SEASON_ONE_STARTS"]
     assert r.status_code == 200
     run(jobs.drain(db))
     subjects = [body["subject"] for url, body in sent[before:] if url.endswith("/emails")]
     assert subjects == [launch_email.SUBJECT]
     assert run(server.send_launch_emails(AFTER)) == 1, "only Nia (who joined before launch) is still owed one"
     assert run(db.waitlist.find_one({"email": "late2@example.com"}))["launch_email_at"]
+    server.LAUNCH_EMAIL_AT = "2027-01-04T08:00:00+00:00"
+
+
+def test_an_old_launch_date_cant_send_before_early_access_opens():
     server.LAUNCH_EMAIL_AT = "2026-11-30T08:00:00+00:00"
+    assert not server._launch_due(datetime(2026, 11, 30, 9, 0, tzinfo=timezone.utc)), "launch moved to January"
+    assert server._launch_due(datetime(2027, 1, 4, 9, 0, tzinfo=timezone.utc))
+    d = launch_email.launch_dates()
+    assert (d["early_access"], d["season_one"], d["season_two"]) == ("4 January", "11 January", "22 February")
+    server.LAUNCH_EMAIL_AT = "2027-01-04T08:00:00+00:00"
 
 
 def test_founder_wording_with_a_discount():

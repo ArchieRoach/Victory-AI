@@ -2662,8 +2662,14 @@ async def founder_spots() -> dict:
 def launch_info(today: Optional[date] = None) -> dict:
     """Launch day for the waitlist site's countdown: the day Season 1 and the first Golden Gloves open."""
     today = today or datetime.now(timezone.utc).date()
+    words = launch_mail.launch_dates()
+    early = SEASON_EPOCH - timedelta(days=7)
+    # The site shows these words as they are, so moving launch never leaves an old date on it.
     return {"date": SEASON_EPOCH.isoformat(), "days_to_go": max(0, (SEASON_EPOCH - today).days),
-            "launched": today >= SEASON_EPOCH}
+            "launched": today >= SEASON_EPOCH,
+            "early_access_date": early.isoformat(), "early_access_days_to_go": max(0, (early - today).days),
+            "early_access_label": words["early_access"], "season_one_label": words["season_one"],
+            "founding_until_label": words["season_two"]}
 
 
 async def _new_founder_code() -> Optional[str]:
@@ -2873,6 +2879,10 @@ async def _deliver_email_batch(payload: dict) -> dict:
 
 def _launch_due(now: datetime) -> bool:
     if not RESEND_API_KEY or LAUNCH_EMAIL_AT.strip().lower() in ("", "off"):
+        return False
+    # Never before early access opens (a week before Season 1), even if LAUNCH_EMAIL_AT still holds
+    # an older date from before launch was moved.
+    if now.date() < launch_mail.launch_dates()["early_access_date"]:
         return False
     try:
         return now >= datetime.fromisoformat(LAUNCH_EMAIL_AT)
@@ -9061,12 +9071,12 @@ def compute_pb_changes(pbs: dict, overall: Optional[float], dims: list) -> dict:
 def _season_one_starts() -> date:
     # Season 1 starts on public launch day. Set SEASON_ONE_STARTS (YYYY-MM-DD, a Monday) on
     # Railway to move launch without a code change; weekly boards reset on Mondays.
-    raw = os.environ.get("SEASON_ONE_STARTS", "2026-12-07").strip()
+    raw = os.environ.get("SEASON_ONE_STARTS", launch_mail.DEFAULT_SEASON_ONE).strip()
     try:
         d = date.fromisoformat(raw)
     except ValueError:
-        logger.warning(f"SEASON_ONE_STARTS={raw!r} isn't a date; using 2026-12-07")
-        d = date(2026, 12, 7)
+        logger.warning(f"SEASON_ONE_STARTS={raw!r} isn't a date; using {launch_mail.DEFAULT_SEASON_ONE}")
+        d = date.fromisoformat(launch_mail.DEFAULT_SEASON_ONE)
     if d.weekday() != 0:
         logger.warning(f"SEASON_ONE_STARTS={d} isn't a Monday; weekly boards will reset mid-season-week")
     return d

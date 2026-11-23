@@ -8,7 +8,7 @@ import { tx } from "@/i18n/tx";
 const GUIDE = [
   { key: "gloves", name: "Golden Gloves", how: "Train 20 hours the AI has seen in one season." },
   { key: "title", name: "Titles", how: "Train to level up. New titles unlock at set levels." },
-  { key: "founder", name: "Founding Fighter", how: "Join before Season 2 starts on 18 January." },
+  { key: "founder", name: "Founding Fighter", how: "Join before Season 2 starts on 22 February." },
   { key: "crown", name: "Crowns", how: "Top the week: Weekly No. 1 overall, or Squad Crown in your squad." },
   { key: "belt", name: "Belts", how: "Milestones like your first session, 10 sessions or a 7-day streak." },
   { key: "recruiter", name: "Recruiter badges", how: "Friends join from your invites: 1, 10 or 100." },

@@ -71,5 +71,5 @@ Export at 886 × 1920, H.264.
   card in search before launch day. ([Apple](https://developer.apple.com/app-store/in-app-events/))
 - **Product page optimisation**: once live with ~1,000 page views a week, A/B test picture 1 (benefit
   headline vs. a real gym photo) in App Store Connect.
-- **Promotional text** can change any time without review: use it for "Season 1 starts 7 December", then
+- **Promotional text** can change any time without review: use it for "Season 1 starts 11 January", then
   "Season 1 is live".

@@ -2,7 +2,7 @@
 They replace the old n8n workflow, so everything lives in one place and costs nothing extra.
 
 Goal: turn waitlist sign-ups into people who train in the first week (activation).
-Psychology: a promise kept builds trust ("we said 30 November, here it is"). The welcome email
+Psychology: a promise kept builds trust ("we said early access opens then, here it is"). The welcome email
   confirms the choice they just made (commitment and consistency) and tells them exactly what
   happens next, so the wait feels short. One clear next step beats a menu (choice overload), and the
   first session is framed as small and doable ("one round"). Founders see the perk they were
@@ -16,6 +16,25 @@ import hmac
 import html
 from typing import Optional
 from urllib.parse import quote
+
+import os
+from datetime import date, timedelta
+
+DEFAULT_SEASON_ONE = "2027-01-11"
+
+
+def launch_dates() -> dict:
+    """Every date in the emails comes from one setting (SEASON_ONE_STARTS, the same one the
+    server's seasons use), so moving launch never leaves an old date in an email."""
+    try:
+        season_one = date.fromisoformat(os.environ.get("SEASON_ONE_STARTS", DEFAULT_SEASON_ONE).strip())
+    except ValueError:
+        season_one = date.fromisoformat(DEFAULT_SEASON_ONE)
+    words = lambda d: f"{d.day} {d.strftime('%B')}"
+    return {"early_access": words(season_one - timedelta(days=7)), "season_one": words(season_one),
+            "season_two": words(season_one + timedelta(days=42)),
+            "early_access_date": season_one - timedelta(days=7)}
+
 
 SUBJECT = "You're in. Victory AI is open for you"
 WELCOME_SUBJECT = "You're on the Victory AI waitlist"
@@ -66,11 +85,12 @@ def render(name: Optional[str], email: str, founder: bool, app_url: str, unsub_u
            trial_days: int, founder_trial_days: int, app_store_url: Optional[str] = None,
            promo_code: Optional[str] = None, percent_off: Optional[float] = None) -> dict:
     first = _first(name)
+    d = launch_dates()
     perk = founder_perk(founder, promo_code, percent_off, trial_days, founder_trial_days)
-    perk += " Sign up before Season 2 and the Founding Fighter title is yours for good."
+    perk += f" Sign up before Season 2 ({d['season_two']}) and the Founding Fighter title is yours for good."
     store = (f'<p style="margin:0 0 18px;color:#8888A0;font-size:14px">On iPhone? '
              f'<a href="{html.escape(app_store_url)}" style="color:#E8FF47">Get the app</a>.</p>') if app_store_url else ""
-    inner = f"""<p style="margin:0 0 18px;font-size:16px;line-height:1.5">We said 30 November, so here it is: Victory AI is open for you, a week before everyone else.</p>
+    inner = f"""<p style="margin:0 0 18px;font-size:16px;line-height:1.5">We said {d['early_access']}, so here it is: Victory AI is open for you, a week before everyone else.</p>
   <div style="background:#12121A;border:1px solid #2A2A3A;border-radius:16px;padding:18px;margin:0 0 20px">
     <p style="margin:0 0 10px;font-weight:700;font-size:16px">Your first session is one round.</p>
     <p style="margin:0;color:#8888A0;font-size:15px;line-height:1.5">Prop your phone up, press start, and box. Your coach calls the combos and tells you one thing you did well.</p>
@@ -79,30 +99,32 @@ def render(name: Optional[str], email: str, founder: bool, app_url: str, unsub_u
   {P}Sign up with <b>{html.escape(email)}</b>, so your waitlist perks find you.</p>
   {P}{html.escape(perk)}</p>
   {store}
-  <p style="margin:0 0 26px;font-size:15px;line-height:1.5">Season 1 starts on 7 December. This week is your warm-up.</p>"""
-    text = (f"You're in, {first}.\n\nWe said 30 November, so here it is: Victory AI is open for you, a week before everyone else.\n\n"
+  <p style="margin:0 0 26px;font-size:15px;line-height:1.5">Season 1 starts on {d['season_one']}. This week is your warm-up.</p>"""
+    text = (f"You're in, {first}.\n\nWe said {d['early_access']}, so here it is: Victory AI is open for you, a week before everyone else.\n\n"
             f"Your first session is one round. Prop your phone up, press start, and box.\n\nStart training: {app_url}\n\n"
             f"Sign up with {email}, so your waitlist perks find you. {perk}\n\n"
             + (f"On iPhone? {app_store_url}\n\n" if app_store_url else "")
-            + "Season 1 starts on 7 December. This week is your warm-up.\n\n"
+            + f"Season 1 starts on {d['season_one']}. This week is your warm-up.\n\n"
             f"Unsubscribe: {unsub_url}\n")
     return {"subject": SUBJECT, "html": _shell("Early access", f"You're in, {html.escape(first)}.", inner, unsub_url), "text": text}
 
 
 def render_welcome(name: Optional[str], email: str, founder: bool, unsub_url: str, trial_days: int,
                    founder_trial_days: int, promo_code: Optional[str] = None,
-                   percent_off: Optional[float] = None, early_access: str = "30 November") -> dict:
+                   percent_off: Optional[float] = None, early_access: Optional[str] = None) -> dict:
     first = _first(name)
+    d = launch_dates()
+    early_access = early_access or d["early_access"]
     perk = founder_perk(founder, promo_code, percent_off, trial_days, founder_trial_days)
     inner = f"""<p style="margin:0 0 18px;font-size:16px;line-height:1.5">Good call. On {early_access} we'll email you your early-access link, a week before everyone else.</p>
   <div style="background:#12121A;border:1px solid #2A2A3A;border-radius:16px;padding:18px;margin:0 0 20px">
     <p style="margin:0 0 10px;font-weight:700;font-size:16px">What you get</p>
-    <p style="margin:0;color:#8888A0;font-size:15px;line-height:1.5">{html.escape(perk)} Sign up before Season 2 (18 January) and the Founding Fighter title is yours for good.</p>
+    <p style="margin:0;color:#8888A0;font-size:15px;line-height:1.5">{html.escape(perk)} Sign up before Season 2 ({d['season_two']}) and the Founding Fighter title is yours for good.</p>
   </div>
   {P}When it opens, sign up with <b>{html.escape(email)}</b> so your perks find you.</p>
   <p style="margin:0 0 26px;font-size:15px;line-height:1.5">Your first session will be one round with your AI coach. That's it.</p>"""
     text = (f"You're on the list, {first}.\n\nGood call. On {early_access} we'll email you your early-access link, a week before everyone else.\n\n"
-            f"What you get: {perk} Sign up before Season 2 (18 January) and the Founding Fighter title is yours for good.\n\n"
+            f"What you get: {perk} Sign up before Season 2 ({d['season_two']}) and the Founding Fighter title is yours for good.\n\n"
             f"When it opens, sign up with {email} so your perks find you.\n\n"
             "Your first session will be one round with your AI coach. That's it.\n\n"
             f"Unsubscribe: {unsub_url}\n")

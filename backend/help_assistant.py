@@ -11,11 +11,14 @@ Design: a short guide of real facts (below), a cheap fast model, short answers, 
 """
 from typing import List
 
+from launch_email import launch_dates
+
+_D = launch_dates()
 HANDOFF_TOKEN = "[TEAM]"
 MAX_TURNS = 10
 MAX_CHARS = 500
 
-GUIDE = """
+GUIDE = f"""
 VICTORY AI: WHAT IT IS
 - A boxing training app. Prop your phone up, press start, and an AI coach (your "training partner") talks you through each round.
 - Website and web app: app.victoryai.co.uk. Support email: hello@victoryai.co.uk.
@@ -34,9 +37,9 @@ TRAINING
 SQUADS, STREAKS AND SEASONS
 - Squads are friend groups: weekly squad missions, cheers and stamps (no private messages).
 - Weekly streak: train on 2 different days in a week to keep it going.
-- Seasons last six weeks with ranks (Bronze, Silver, Gold, Platinum, Diamond, Champion). Season 1 starts on 7 December 2026 and runs to 18 January 2027.
+- Seasons last six weeks with ranks (Bronze, Silver, Gold, Platinum, Diamond, Champion). Waitlist members get in early on {_D['early_access']}. Season 1 starts on {_D['season_one']} and runs to {_D['season_two']}.
 - Golden Gloves: one prize per season, earned with 20 hours of training the AI has seen.
-- Founding Fighter: a title for everyone who joins before Season 2 (18 January 2027).
+- Founding Fighter: a title for everyone who joins before Season 2 ({_D['season_two']}).
 
 FREE AND PRO
 - Free: training with your partner, the round and workout timer, live streaming, the community feed, leaderboards, your fighter profile, and a monthly allowance of AI feedback.
