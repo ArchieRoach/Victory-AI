@@ -56,7 +56,9 @@ def test_seasons_roll_every_six_weeks_from_launch_day():
     assert current_season(SEASON_EPOCH + timedelta(days=41))["season_id"] == "S1"
     s2 = current_season(SEASON_EPOCH + timedelta(days=42))
     assert s2["season_id"] == "S2" and s2["starts"] == (SEASON_EPOCH + timedelta(days=42)).isoformat()
-    assert launch_info(SEASON_EPOCH - timedelta(days=3)) == {"date": SEASON_EPOCH.isoformat(), "days_to_go": 3, "launched": False}
+    info = launch_info(SEASON_EPOCH - timedelta(days=3))
+    assert {k: info[k] for k in ("date", "days_to_go", "launched")} == {"date": SEASON_EPOCH.isoformat(), "days_to_go": 3, "launched": False}
+    assert info["early_access_days_to_go"] == 0 and info["early_access_label"] and info["founding_until_label"]
     assert launch_info(SEASON_EPOCH)["launched"]
 
 

@@ -28,7 +28,7 @@ workout,punch,combo,sparring,round timer,heavy bag,hiit,circuit,shadowboxing,kic
 ## Promotional text (170 max, can change any time without a new review)
 
 ```
-Season 1 starts 7 December. Film a round, hear your combos called out loud, and see your score. Train with your squad and chase the first Golden Gloves.
+Season 1 starts 11 January. Film a round, hear your combos called out loud, and see your score. Train with your squad and chase the first Golden Gloves.
 ```
 
 ## Description
@@ -94,7 +94,7 @@ the app. Apple allows up to 5 live at once. ([Apple: in-app events](https://deve
 | Short description (50 max) | `Six weeks of ranks, squads and one prize to earn.` (49) |
 | Long description (120 max) | `Our first season. Train, climb the ranks with your squad, and earn the Golden Gloves with 20 hours the AI has seen.` (115) |
 | Badge | New Season |
-| Event dates | 7 December 2026 to 18 January 2027 |
+| Event dates | 11 January 2027 to 22 February 2027 |
 | Publish date | 23 November 2026 (shows "upcoming" for two weeks) |
 | Priority | High |
 | Purpose | Attract new users and bring back lapsed ones |
