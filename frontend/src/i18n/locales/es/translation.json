@@ -2533,7 +2533,18 @@
       "returnYourHandsTo": "Vuelve a la guardia después de cada combinación.",
       "stayBalancedThroughYour": "Mantén el equilibrio durante tus combinaciones.",
       "myCircuitsAreOverheating": "Mis circuitos se sobrecalientan solo de verte. Aprieta más.",
-      "callsLikeWords": "Llamadas como \"{{example}}\". Actívalo si tu entrenador te enseñó números."
+      "callsLikeWords": "Llamadas como \"{{example}}\". Actívalo si tu entrenador te enseñó números.",
+      "hypeMotivate": "Dale",
+      "hypeJoke": "Broma",
+      "hypeTip": "Consejo",
+      "hypeValidate": "Buen trabajo",
+      "cantSwitchCamera": "No se pudo cambiar de cámara en este móvil.",
+      "callSpeed": "Velocidad de las órdenes",
+      "paceSlow": "Lenta",
+      "paceNormal": "Normal",
+      "paceFast": "Rápida",
+      "useBackCamera": "Usar cámara trasera",
+      "useFrontCamera": "Usar cámara frontal"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Enlace copiado: envíaselo a un padre o madre",

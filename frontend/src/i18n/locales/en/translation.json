@@ -2875,7 +2875,18 @@
       "returnYourHandsTo": "Return your hands to guard after every combination.",
       "stayBalancedThroughYour": "Stay balanced through your combinations.",
       "myCircuitsAreOverheating": "My circuits are overheating just watching you. Push harder.",
-      "callsLikeWords": "Calls like \"{{example}}\". Switch on if your coach taught you numbers."
+      "callsLikeWords": "Calls like \"{{example}}\". Switch on if your coach taught you numbers.",
+      "hypeMotivate": "Push",
+      "hypeJoke": "Banter",
+      "hypeTip": "Tip",
+      "hypeValidate": "Good work",
+      "cantSwitchCamera": "Couldn't switch camera on this phone.",
+      "callSpeed": "Call speed",
+      "paceSlow": "Slow",
+      "paceNormal": "Normal",
+      "paceFast": "Fast",
+      "useBackCamera": "Use back camera",
+      "useFrontCamera": "Use front camera"
     },
     "trendingClipsPage": {
       "viral": "VIRAL",

@@ -2533,7 +2533,18 @@
       "returnYourHandsTo": "每套组合拳后双手回到防守位置。",
       "stayBalancedThroughYour": "打组合拳时保持平衡。",
       "myCircuitsAreOverheating": "光是看你，我的电路都要过热了。再加把劲。",
-      "callsLikeWords": "像“{{example}}”这样喊。如果教练教过你数字口令就打开。"
+      "callsLikeWords": "像“{{example}}”这样喊。如果教练教过你数字口令就打开。",
+      "hypeMotivate": "加油",
+      "hypeJoke": "玩笑",
+      "hypeTip": "提示",
+      "hypeValidate": "干得好",
+      "cantSwitchCamera": "无法在这部手机上切换摄像头。",
+      "callSpeed": "口令速度",
+      "paceSlow": "慢",
+      "paceNormal": "正常",
+      "paceFast": "快",
+      "useBackCamera": "使用后置摄像头",
+      "useFrontCamera": "使用前置摄像头"
     },
     "merchSheet": {
       "linkCopiedSendIt": "链接已复制：发给家长",

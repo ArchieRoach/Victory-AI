@@ -2533,7 +2533,18 @@
       "returnYourHandsTo": "Ramène les mains en garde après chaque enchaînement.",
       "stayBalancedThroughYour": "Reste équilibré pendant tes enchaînements.",
       "myCircuitsAreOverheating": "Mes circuits surchauffent rien qu'à te regarder. Pousse plus fort.",
-      "callsLikeWords": "Des annonces comme « {{example}} ». Active si ton coach t'a appris les numéros."
+      "callsLikeWords": "Des annonces comme « {{example}} ». Active si ton coach t'a appris les numéros.",
+      "hypeMotivate": "Pousse",
+      "hypeJoke": "Blague",
+      "hypeTip": "Conseil",
+      "hypeValidate": "Bon travail",
+      "cantSwitchCamera": "Impossible de changer de caméra sur ce téléphone.",
+      "callSpeed": "Vitesse des annonces",
+      "paceSlow": "Lente",
+      "paceNormal": "Normale",
+      "paceFast": "Rapide",
+      "useBackCamera": "Utiliser la caméra arrière",
+      "useFrontCamera": "Utiliser la caméra avant"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Lien copié : envoie-le à un parent",

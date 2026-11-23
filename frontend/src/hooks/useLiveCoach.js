@@ -26,7 +26,15 @@ function loadLandmarker() {
   return landmarkerPromise;
 }
 
-const nativeMotion = (action) => window.webkit?.messageHandlers?.victoryMotion?.postMessage({ action });
+// Loading the pose model is heavy on a phone and can freeze the screen for a few seconds, so
+// TrainPage starts it on the setup screen and waits for it before the round clock starts.
+// Gives up after `waitMs` so a slow connection never blocks the round (counting starts late).
+export function preloadLiveCoach(waitMs = 8000) {
+  const loaded = loadLandmarker().then(() => true, () => false);
+  return Promise.race([loaded, new Promise((r) => setTimeout(() => r(false), waitMs))]);
+}
+
+const nativeMotion =(action) => window.webkit?.messageHandlers?.victoryMotion?.postMessage({ action });
 
 const speak = (text) => say(text);
 

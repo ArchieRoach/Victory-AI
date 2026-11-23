@@ -1260,7 +1260,7 @@ async def analyze_video_with_vision(request: Request, user: dict = Depends(get_c
     if not video_url.startswith("https://res.cloudinary.com/"):
         raise HTTPException(status_code=400, detail="video_url must be a Cloudinary URL")
 
-    training_partner = user.get("training_partner", {})
+    training_partner = user.get("training_partner") or {}
     partner_name = training_partner.get("name", "Coach")
     feedback_tone = training_partner.get("feedback_tone", "encouraging")
     focus_areas = training_partner.get("focus_areas", ["Guard Position", "Head Movement"])
@@ -1334,7 +1334,7 @@ async def generate_round_feedback(request: Request, user: dict = Depends(get_cur
     total_rounds = body.get("total_rounds", 3)
     video_analysis = body.get("video_analysis")
     
-    training_partner = user.get("training_partner", {})
+    training_partner = user.get("training_partner") or {}
     partner_name = training_partner.get("name", "Coach")
     feedback_tone = training_partner.get("feedback_tone", "encouraging")
     phrases = training_partner.get("phrases", ["Keep it up!"])
@@ -3201,6 +3201,12 @@ COACH_VOICES = {
     "female": os.environ.get("COACH_VOICE_FEMALE", "").strip() or "Xb7hH8MSUJpSbSDYk0k2",  # Alice: clear, British
 }
 COACH_VOICE_MODEL = os.environ.get("COACH_VOICE_MODEL", "").strip() or "eleven_multilingual_v2"
+# Backup natural voice when there's no ElevenLabs key: OpenAI's speech model, told to sound like
+# a real coach in the gym (not a narrator), so calls never fall back to the phone's robot voice.
+OPENAI_VOICES = {"male": "onyx", "female": "nova"}
+OPENAI_VOICE_MODEL = os.environ.get("OPENAI_VOICE_MODEL", "").strip() or "gpt-4o-mini-tts"
+OPENAI_VOICE_STYLE = ("A British boxing coach on the pads: warm, punchy and natural, short and energetic, "
+                      "like talking to a fighter mid-round. Never sound like a narrator or a robot.")
 VOICE_CLIP_MAX_CHARS = 160
 VOICE_CLIPS_PER_REQUEST = 60
 VOICE_NEW_CLIPS_PER_DAY = 200
@@ -3223,7 +3229,30 @@ def clean_voice_lines(texts: List[str]) -> List[str]:
     return out[:VOICE_CLIPS_PER_REQUEST]
 
 
+def coach_voice_id(voice: str) -> Optional[str]:
+    if ELEVENLABS_API_KEY:
+        return COACH_VOICES[voice]
+    if OPENAI_API_KEY:
+        return f"openai:{OPENAI_VOICES[voice]}"
+    return None
+
+
 async def _make_voice_clip(voice_id: str, text: str, key: str) -> Optional[str]:
+    if voice_id.startswith("openai:"):
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(
+                "https://api.openai.com/v1/audio/speech",
+                headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"},
+                json={"model": OPENAI_VOICE_MODEL, "voice": voice_id.split(":", 1)[1], "input": text,
+                      "instructions": OPENAI_VOICE_STYLE, "response_format": "mp3"},
+            )
+        if r.status_code != 200:
+            logger.warning(f"Coach voice clip (OpenAI) failed: {r.status_code}")
+            return None
+        data_uri = "data:audio/mpeg;base64," + base64.b64encode(r.content).decode()
+        up = await asyncio.to_thread(cloudinary.uploader.upload, data_uri, resource_type="video",
+                                     public_id=f"coach_voice/{key}", overwrite=False)
+        return up.get("secure_url")
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(
             f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128",
@@ -3247,13 +3276,13 @@ class VoiceClipsIn(BaseModel):
 @api_router.post("/voice/clips")
 async def voice_clips(data: VoiceClipsIn, user: dict = Depends(get_current_user)):
     voice = coach_voice_key(user)
-    voice_id = COACH_VOICES[voice]
+    voice_id = coach_voice_id(voice) or COACH_VOICES[voice]
     texts = clean_voice_lines(data.texts)
     keys = {t: voice_clip_key(voice_id, t) for t in texts}
     found = {d["key"]: d["url"] for d in await db.voice_clips.find({"key": {"$in": list(keys.values())}}, {"_id": 0}).to_list(len(keys) or 1)}
     clips = {t: found[k] for t, k in keys.items() if k in found}
     missing = [t for t in texts if t not in clips]
-    if missing and ELEVENLABS_API_KEY:
+    if missing and coach_voice_id(voice):
         sem = asyncio.Semaphore(4)
 
         async def make(t):
@@ -3346,7 +3375,7 @@ async def get_session_replay(session_id: str, user: dict = Depends(get_current_u
         raise HTTPException(status_code=404, detail="Session not found")
 
     videos = await db.round_videos.find({"session_id": session_id, "user_id": user["user_id"]}, {"_id": 0}).sort("round_number", 1).to_list(20)
-    training_partner = user.get("training_partner", {})
+    training_partner = user.get("training_partner") or {}
     partner_name = training_partner.get("name", "Coach")
 
     rounds = []

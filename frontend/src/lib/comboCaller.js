@@ -92,7 +92,8 @@ export function createComboCaller({ level = 0, floor = 0, gapScale = 1, pick = M
       const combo = useWeekly ? weekly : options[Math.floor(pick() * options.length) % options.length];
       const n = punchCount(combo);
       pending = { combo, n, punches: 0, deadline: now + landWindowMs(n) };
-      nextAt = now + CALL_LEVELS[lvl].gapMs * gapScale;
+      // Longer combos get longer to throw before the next call (half a second per extra move).
+      nextAt = now + (CALL_LEVELS[lvl].gapMs + 500 * (n - 1)) * gapScale;
       last = combo;
       stats.calls += 1;
       return { combo, level: lvl, levelName: useWeekly ? "Your weekly combo" : CALL_LEVELS[lvl].name };
@@ -136,6 +137,19 @@ export function comboWords(combo, stance) {
     else words.push(w);
   }
   return words;
+}
+
+// How fast calls come. The default leaves room to throw, breathe and reset your guard;
+// fast is the old pace for people who want it.
+export const CALL_PACES = { slow: 1.6, normal: 1.25, fast: 1 };
+export const PACE_KEY = "victory_call_pace";
+
+export function callPace() {
+  try { const v = localStorage.getItem(PACE_KEY); return CALL_PACES[v] ? v : "normal"; } catch { return "normal"; }
+}
+
+export function setCallPace(pace) {
+  try { if (CALL_PACES[pace]) localStorage.setItem(PACE_KEY, pace); } catch {}
 }
 
 export const NUMBERS_KEY = "victory_call_numbers";

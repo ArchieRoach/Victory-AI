@@ -2533,7 +2533,18 @@
       "returnYourHandsTo": "Возвращай руки в защиту после каждой комбинации.",
       "stayBalancedThroughYour": "Держи баланс в комбинациях.",
       "myCircuitsAreOverheating": "Мои схемы перегреваются, просто глядя на тебя. Жми сильнее.",
-      "callsLikeWords": "Подсказки вроде «{{example}}». Включи, если тренер учил тебя номерам."
+      "callsLikeWords": "Подсказки вроде «{{example}}». Включи, если тренер учил тебя номерам.",
+      "hypeMotivate": "Давай",
+      "hypeJoke": "Шутка",
+      "hypeTip": "Совет",
+      "hypeValidate": "Отлично",
+      "cantSwitchCamera": "Не удалось переключить камеру на этом телефоне.",
+      "callSpeed": "Скорость команд",
+      "paceSlow": "Медленно",
+      "paceNormal": "Обычно",
+      "paceFast": "Быстро",
+      "useBackCamera": "Задняя камера",
+      "useFrontCamera": "Фронтальная камера"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Ссылка скопирована: отправь её родителю",

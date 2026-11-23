@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
-  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye, Skull, Music, Megaphone, Swords, Hash,
+  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye, Skull, Music, Megaphone, Swords, Hash, SwitchCamera,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
@@ -16,11 +16,11 @@ import { getVideoPref, setVideoPref } from "@/lib/videoPref";
 import { analytics } from "@/lib/analytics";
 import { FirstUseTip } from "@/components/FirstUseTip";
 import { CoachMark } from "@/components/CoachMark";
-import { useLiveCoach, CUES as COACH_CUES } from "@/hooks/useLiveCoach";
+import { useLiveCoach, preloadLiveCoach, CUES as COACH_CUES } from "@/hooks/useLiveCoach";
 import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
-import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, callsNumbers, setCallsNumbers, CALL_LEVELS } from "@/lib/comboCaller";
+import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, callsNumbers, setCallsNumbers, callPace, setCallPace, CALL_PACES, CALL_LEVELS } from "@/lib/comboCaller";
 import { unlockSpeech, setVoiceSource, primeVoice, sayNatural } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
 import { TimerCard } from "@/components/home/TimerCard";
@@ -91,9 +91,17 @@ const HYPE_LINES = [
 
 const HYPE_COLORS = {
   motivate: "text-victory-lime",
-  joke:     "text-amber-400",
-  tip: "text-sky-400",
-  validate: "text-violet-400",
+  joke:     "text-victory-orange",
+  tip:      "text-victory-teal",
+  validate: "text-victory-lime",
+};
+
+// What the fighter reads next to the coach's name (the type keys above are code, not words).
+const HYPE_LABEL = {
+  get motivate() { return tx("ui.trainPage.hypeMotivate", "Push"); },
+  get joke() { return tx("ui.trainPage.hypeJoke", "Banter"); },
+  get tip() { return tx("ui.trainPage.hypeTip", "Tip"); },
+  get validate() { return tx("ui.trainPage.hypeValidate", "Good work"); },
 };
 
 const HYPE_EMOJI = {
@@ -137,6 +145,7 @@ export default function TrainPage() {
   // The combo you chose in the combo builder this week: shown here and called during rounds.
   const [weeklyCombo, setWeeklyCombo] = useState(null);
   const [numbersOn, setNumbersOn] = useState(callsNumbers);
+  const [pace, setPace] = useState(callPace);
   const stance = user?.stance;
 
   // Natural voice clips for every line the coach can say this session, fetched before the
@@ -185,6 +194,7 @@ export default function TrainPage() {
   const [ghost,         setGhost]         = useState(null);
   const [lastLiveRound, setLastLiveRound] = useState(null);
   const [cameraReady,   setCameraReady]   = useState(false);
+  const [facing,        setFacing]        = useState("user");
   const [cameraError,   setCameraError]   = useState(null);
   const [startingSession, setStartingSession] = useState(false);
 
@@ -208,6 +218,7 @@ export default function TrainPage() {
 
   const audioRef    = useRef(null);
   const intervalRef = useRef(null);
+  const endsAtRef = useRef(null);
   const hypeTimerRef = useRef(null);
   const cameraStreamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -276,12 +287,19 @@ export default function TrainPage() {
     };
   }, []);
 
+  // Start loading the punch counter while the fighter is still on the setup screen.
+  useEffect(() => {
+    if (isConfiguring && liveCoach) preloadLiveCoach();
+  }, [isConfiguring, liveCoach]);
+
   // Attach the live stream once the preview <video> actually exists — it only
   // mounts on the active-session screen, which appears after the stream is
   // already obtained on the configuring screen.
   useEffect(() => {
     if (videoPreviewRef.current && cameraStreamRef.current) {
-      videoPreviewRef.current.srcObject = cameraStreamRef.current;
+      const v = videoPreviewRef.current;
+      if (v.srcObject !== cameraStreamRef.current) v.srcObject = cameraStreamRef.current;
+      v.play?.().catch(() => {});
     }
   }, [cameraReady, isConfiguring]);
 
@@ -339,7 +357,7 @@ export default function TrainPage() {
       return false;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
       cameraStreamRef.current = stream;
       setCameraReady(true);
       setCameraError(null);
@@ -358,6 +376,27 @@ export default function TrainPage() {
     cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
     cameraStreamRef.current = null;
     setCameraReady(false);
+  };
+
+  // Front camera (you can see yourself) or back camera (better picture). Recording restarts
+  // on the new camera; Live Coach keeps counting from the same preview.
+  const flipCamera = async () => {
+    const next = facing === "user" ? "environment" : "user";
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: next }, audio: false });
+    } catch {
+      toast.error(tx("ui.trainPage.cantSwitchCamera", "Couldn't switch camera on this phone."));
+      return;
+    }
+    const wasRecording = mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive";
+    if (wasRecording) { try { mediaRecorderRef.current.stop(); } catch {} }
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
+    cameraStreamRef.current = stream;
+    setFacing(next);
+    const v = videoPreviewRef.current;
+    if (v) { v.srcObject = stream; v.play?.().catch(() => {}); }
+    if (wasRecording && !isResting) startRoundRecording();
   };
 
   const startRoundRecording = () => {
@@ -527,8 +566,9 @@ export default function TrainPage() {
       if (!granted && kind === "boss") toast.error(tx("ui.trainPage.bossRoundsNeedThe", "Boss Rounds need the camera to count. This try won't count."));
     }
     callerRef.current = callsOn && canCall && kind !== "boss"
-      ? createComboCaller({ level: startingLevel(user?.experience_level), floor: levelRange(user?.experience_level).floor, gapScale: kind === "freestyle" ? 1.6 : 1, weekly: weeklyCombo?.label || null })
+      ? createComboCaller({ level: startingLevel(user?.experience_level), floor: levelRange(user?.experience_level).floor, gapScale: CALL_PACES[pace] * (kind === "freestyle" ? 1.4 : 1), weekly: weeklyCombo?.label || null })
       : null;
+    if (liveCoach) await preloadLiveCoach();
     if (liveCoach) {
       axios.get(`${API}/training/ghost`, { params: { round_duration: roundDuration } })
         .then((r) => setGhost(r.data?.timeline?.length ? r.data : null))
@@ -555,13 +595,17 @@ export default function TrainPage() {
       if (intervalRef.current) clearInterval(intervalRef.current);
       return;
     }
+    // The clock follows real time (a deadline), not a count of ticks: if the phone freezes for a
+    // moment, or the screen locks, the round still ends on time instead of stalling.
+    endsAtRef.current = Date.now() + timeLeft * 1000;
     intervalRef.current = setInterval(() => {
+      const left = Math.max(0, Math.ceil((endsAtRef.current - Date.now()) / 1000));
       setTimeLeft((prev) => {
-        if (!isResting && prev === 11) {
+        if (!isResting && prev > 10 && left <= 10 && left > 0) {
           setShowTenSecWarning(true);
           setTimeout(() => setShowTenSecWarning(false), 3500);
         }
-        if (prev <= 1) {
+        if (left <= 0) {
           playBell();
           if (isResting) {
             if (currentRound < totalRounds) {
@@ -589,9 +633,9 @@ export default function TrainPage() {
             }
           }
         }
-        return prev - 1;
+        return left;
       });
-    }, 1000);
+    }, 250);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isPaused, isComplete, isConfiguring, isResting, currentRound, totalRounds, roundDuration, restDuration]);
 
@@ -688,10 +732,28 @@ export default function TrainPage() {
   };
 
   const partner = user?.training_partner;
+  const showCam = (recordVideo || liveCoach) && cameraReady;
+  // One cue at a time keeps the fighter in flow. With the camera on it sits right under the
+  // picture, so you can watch yourself and read the call without looking away.
+  const comboCall = (!isResting && !isPaused && currentCall && (
+              <div className="w-full max-w-sm mb-4 text-center" data-testid="combo-call" aria-live="polite">
+                {numbersOn ? (
+                  <p className="font-mono text-5xl font-extrabold text-victory-lime leading-none">{currentCall.combo}</p>
+                ) : (
+                  <>
+                    <p className="font-heading text-3xl font-extrabold text-victory-lime leading-tight">{comboWords(currentCall.combo, stance).join(" · ")}</p>
+                    <p className="font-mono text-victory-muted text-xs mt-1">{currentCall.combo}</p>
+                  </>
+                )}
+                <p className="text-victory-muted text-[11px] mt-2">
+                  {kind === "freestyle" ? tx("ui.trainPage.riffOnIt", "Riff on it") : `${currentCall.levelName}${adaptiveCalls ? " · adapts to you" : ""}`}
+                </p>
+              </div>
+            ));
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className={`min-h-screen bg-victory-bg pb-nav flex flex-col ${flashClass}`} data-testid="train-page">
+    <div className={`min-h-screen bg-victory-bg ${isConfiguring ? "pb-nav" : "safe-bottom"} flex flex-col ${flashClass}`} data-testid="train-page">
       {clip && (
         <video key={clip} src={clip} autoPlay playsInline onEnded={() => setClip(null)} onError={() => setClip(null)}
           className="fixed right-4 bottom-28 w-32 aspect-[9/16] object-cover rounded-2xl shadow-2xl z-40 border border-victory-lime/40"
@@ -795,6 +857,20 @@ export default function TrainPage() {
                   <ToggleRow on={numbersOn} iconOn={Hash} title={tx("ui.trainPage.callNumbers", "Call numbers")}
                     onToggle={(next) => { setNumbersOn(next); setCallsNumbers(next); }}
                     description={numbersOn ? tx("ui.trainPage.callsLike12", "Calls like \"1, 2, 3\".") : tx("ui.trainPage.callsLikeWords", "Calls like \"{{example}}\". Switch on if your coach taught you numbers.", { example: comboSpeech("1-2-3", stance, false) })} />
+                )}
+                {callsOn && (
+                  <div className="mt-3" data-testid="call-pace">
+                    <p className="text-victory-text text-sm font-semibold">{tx("ui.trainPage.callSpeed", "Call speed")}</p>
+                    <div className="grid grid-cols-3 gap-2 mt-2" role="radiogroup" aria-label={tx("ui.trainPage.callSpeed", "Call speed")}>
+                      {[["slow", tx("ui.trainPage.paceSlow", "Slow")], ["normal", tx("ui.trainPage.paceNormal", "Normal")], ["fast", tx("ui.trainPage.paceFast", "Fast")]].map(([key, label]) => (
+                        <button key={key} type="button" role="radio" aria-checked={pace === key}
+                          onClick={() => { setPace(key); setCallPace(key); }}
+                          className={`min-h-[40px] rounded-full text-sm font-semibold ${pace === key ? "bg-victory-lime text-victory-bg" : "bg-victory-card-highlight text-victory-muted"}`}>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
               </CoachMark>
@@ -1054,16 +1130,21 @@ export default function TrainPage() {
             {/* Live camera preview — only when the fighter opted in on the config
                 screen. Mirrored like a gym mirror; visibly on so recording is never
                 a surprise. */}
-            {(recordVideo || liveCoach) && cameraReady && (
-              <div className="relative w-full max-w-sm aspect-video rounded-xl overflow-hidden bg-black mb-4">
+            {showCam && (
+              <div className="relative w-full max-w-sm aspect-video rounded-xl overflow-hidden bg-black mb-3">
                 <video
                   ref={videoPreviewRef}
                   autoPlay
                   muted
                   playsInline
                   className="w-full h-full object-cover"
-                  style={{ transform: "scaleX(-1)" }}
+                  style={facing === "user" ? { transform: "scaleX(-1)" } : undefined}
                 />
+                <button type="button" onClick={flipCamera} data-testid="flip-camera"
+                  aria-label={facing === "user" ? tx("ui.trainPage.useBackCamera", "Use back camera") : tx("ui.trainPage.useFrontCamera", "Use front camera")}
+                  className="absolute top-2 right-2 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm text-white flex items-center justify-center active:scale-90 transition-transform">
+                  <SwitchCamera className="w-5 h-5" />
+                </button>
                 {!isResting && recordVideo && (
                   <span className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
                     <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
@@ -1086,8 +1167,10 @@ export default function TrainPage() {
               </div>
             )}
 
+            {showCam && <div className="w-full max-w-sm min-h-[72px] flex items-start justify-center">{comboCall}</div>}
+
             {/* Round dots */}
-            <div className="flex items-center gap-2 mb-6">
+            <div className={`flex items-center gap-2 ${showCam ? "mb-3" : "mb-6"}`}>
               {Array.from({ length: totalRounds }).map((_, i) => {
                 const isDone = i < currentRound - 1;
                 const isCurrent = i === currentRound - 1;
@@ -1106,43 +1189,37 @@ export default function TrainPage() {
               </span>
             </div>
 
-            <CornerOrb thinking={loadingFeedback} paused={isPaused} resting={isResting} complete={isComplete}
-              watching={liveCoach && coach.status === "ready"} label={partner?.name || tx("ui.trainPage.coach", "Coach")} />
+            {!showCam && (
+              <CornerOrb thinking={loadingFeedback} paused={isPaused} resting={isResting} complete={isComplete}
+                watching={liveCoach && coach.status === "ready"} label={partner?.name || tx("ui.trainPage.coach", "Coach")} size={40} />
+            )}
 
-            {/* Phase label */}
-            <p className={`text-sm uppercase tracking-[0.2em] mb-3 font-bold ${isResting ? "text-victory-teal" : "text-victory-lime"}`}>
-              {isResting ? t("train.restLabel") : t("train.roundLabel")}
-            </p>
+            {/* Phase label (with the coach's orb beside it when the camera takes the space) */}
+            <div className={`flex items-center gap-2 ${showCam ? "mb-1" : "mb-3"}`}>
+              {showCam && (
+                <CornerOrb compact thinking={loadingFeedback} paused={isPaused} resting={isResting} complete={isComplete}
+                  watching={liveCoach && coach.status === "ready"} label={partner?.name || tx("ui.trainPage.coach", "Coach")} size={18} />
+              )}
+              <p className={`text-sm uppercase tracking-[0.2em] font-bold ${isResting ? "text-victory-teal" : "text-victory-lime"}`}>
+                {isResting ? t("train.restLabel") : t("train.roundLabel")}
+              </p>
+            </div>
 
             {/* Timer */}
-            <div className={`timer-display mb-2 transition-colors ${isResting ? "text-victory-teal" : "text-victory-text"}`} data-testid="timer-display">
+            <div className={`timer-display mb-2 transition-colors ${isResting ? "text-victory-teal" : "text-victory-text"}`} data-testid="timer-display"
+              style={showCam ? { fontSize: "clamp(52px, 17vw, 76px)" } : undefined}>
               {formatTime(timeLeft)}
             </div>
 
             {/* Goal gradient effect: proximity to the finish should read as more
                 urgent/motivating the closer the fighter actually is to it. */}
-            <p className={`text-sm mb-6 ${!isResting && currentRound === totalRounds ? "text-victory-lime font-bold" : "text-victory-muted"}`}>
+            <p className={`text-sm ${showCam ? "mb-3" : "mb-6"} ${!isResting && currentRound === totalRounds ? "text-victory-lime font-bold" : "text-victory-muted"}`}>
               {!isResting && currentRound === totalRounds
                 ? t("train.finalRound")
                 : t("train.roundOf", { current: currentRound, total: totalRounds })}
             </p>
 
-            {/* ── Combo call: one cue at a time keeps the fighter in flow ─────── */}
-            {!isResting && !isPaused && currentCall && (
-              <div className="w-full max-w-sm mb-4 text-center" data-testid="combo-call" aria-live="polite">
-                {numbersOn ? (
-                  <p className="font-mono text-5xl font-extrabold text-victory-lime leading-none">{currentCall.combo}</p>
-                ) : (
-                  <>
-                    <p className="font-heading text-3xl font-extrabold text-victory-lime leading-tight">{comboWords(currentCall.combo, stance).join(" · ")}</p>
-                    <p className="font-mono text-victory-muted text-xs mt-1">{currentCall.combo}</p>
-                  </>
-                )}
-                <p className="text-victory-muted text-[11px] mt-2">
-                  {kind === "freestyle" ? tx("ui.trainPage.riffOnIt", "Riff on it") : `${currentCall.levelName}${adaptiveCalls ? " · adapts to you" : ""}`}
-                </p>
-              </div>
-            )}
+            {!showCam && comboCall}
 
             {kind === "boss" && boss && !isResting && (
               <p className="text-victory-orange text-sm font-semibold mb-4" data-testid="boss-goal">{boss.name}: {boss.target.line}</p>
@@ -1165,7 +1242,7 @@ export default function TrainPage() {
                   <div className="min-w-0">
                     <p className="text-victory-muted text-[11px] font-semibold mb-1">
                       {partner?.name || tx("ui.trainPage.coach", "Coach")} · <span className={`${HYPE_COLORS[currentHype.type] || "text-victory-lime"}`}>
-                        {currentHype.type}
+                        {HYPE_LABEL[currentHype.type] || ""}
                       </span>
                     </p>
                     <p className="text-victory-text text-sm leading-snug">
@@ -1286,7 +1363,7 @@ export default function TrainPage() {
                 onClick={togglePause}
                 className={`w-20 h-20 rounded-full flex items-center justify-center touch-target transition-all active:scale-90 shadow-xl ${
                   isPaused
-                    ? "bg-victory-lime text-victory-bg shadow-victory-lime/25 hover:bg-[#D4E630]"
+                    ? "bg-victory-lime text-victory-bg shadow-victory-lime/25 hover:bg-victory-lime/90"
                     : "bg-victory-card border-2 border-victory-lime text-victory-lime hover:bg-victory-lime/10"
                 }`}
                 aria-label={isPaused ? tx("ui.trainPage.resume", "Resume") : tx("ui.trainPage.pause", "Pause")}
@@ -1298,7 +1375,7 @@ export default function TrainPage() {
               <FirstUseTip id="train_end_btn" position="top" hold={!isPaused && !isResting}>
                 <button
                   onClick={endTimer}
-                  className="w-14 h-14 rounded-full bg-victory-card border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/10 touch-target transition-all active:scale-90"
+                  className="w-14 h-14 rounded-full bg-victory-card border border-victory-danger/40 flex items-center justify-center text-victory-danger hover:bg-victory-danger/10 touch-target transition-all active:scale-90"
                   aria-label={tx("ui.trainPage.endSession", "End session")}
                 >
                   <Square className="w-6 h-6" />
@@ -1314,7 +1391,7 @@ export default function TrainPage() {
         </div>
       )}
 
-      <BottomNav />
+      {isConfiguring && <BottomNav />}
     </div>
   );
 }

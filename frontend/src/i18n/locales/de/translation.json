@@ -2533,7 +2533,18 @@
       "returnYourHandsTo": "Nach jeder Kombination die Hände zurück in die Deckung.",
       "stayBalancedThroughYour": "Bleib in deinen Kombinationen im Gleichgewicht.",
       "myCircuitsAreOverheating": "Meine Schaltkreise überhitzen schon beim Zusehen. Leg nach.",
-      "callsLikeWords": "Ansagen wie \"{{example}}\". Einschalten, wenn dein Coach dir Zahlen beigebracht hat."
+      "callsLikeWords": "Ansagen wie \"{{example}}\". Einschalten, wenn dein Coach dir Zahlen beigebracht hat.",
+      "hypeMotivate": "Gib Gas",
+      "hypeJoke": "Spaß",
+      "hypeTip": "Tipp",
+      "hypeValidate": "Gute Arbeit",
+      "cantSwitchCamera": "Kamera konnte auf diesem Handy nicht gewechselt werden.",
+      "callSpeed": "Tempo der Ansagen",
+      "paceSlow": "Langsam",
+      "paceNormal": "Normal",
+      "paceFast": "Schnell",
+      "useBackCamera": "Rückkamera verwenden",
+      "useFrontCamera": "Frontkamera verwenden"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link kopiert: schick ihn einem Elternteil",

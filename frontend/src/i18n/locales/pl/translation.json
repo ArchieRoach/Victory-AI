@@ -2533,7 +2533,18 @@
       "returnYourHandsTo": "Wracaj rękami do gardy po każdej kombinacji.",
       "stayBalancedThroughYour": "Zachowaj równowagę w kombinacjach.",
       "myCircuitsAreOverheating": "Moje obwody się przegrzewają od samego patrzenia. Mocniej.",
-      "callsLikeWords": "Komendy w stylu „{{example}}”. Włącz, jeśli trener uczył cię numerów."
+      "callsLikeWords": "Komendy w stylu „{{example}}”. Włącz, jeśli trener uczył cię numerów.",
+      "hypeMotivate": "Dawaj",
+      "hypeJoke": "Żart",
+      "hypeTip": "Wskazówka",
+      "hypeValidate": "Dobra robota",
+      "cantSwitchCamera": "Nie udało się przełączyć kamery na tym telefonie.",
+      "callSpeed": "Tempo komend",
+      "paceSlow": "Wolno",
+      "paceNormal": "Normalnie",
+      "paceFast": "Szybko",
+      "useBackCamera": "Użyj tylnej kamery",
+      "useFrontCamera": "Użyj przedniej kamery"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link skopiowany: wyślij go rodzicowi",
