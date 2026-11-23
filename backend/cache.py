@@ -12,8 +12,15 @@ import os
 import time
 from typing import Any, Awaitable, Callable, Dict, Optional, Tuple
 
+import demo_mode
+
 logger = logging.getLogger("cache")
 PREFIX = "vai:"
+
+
+def _k(key: str) -> str:
+    # The demo filming account gets its own drawer, so a demo answer is never served to real users.
+    return f"demo:{key}" if demo_mode.active() else key
 
 
 class Cache:
@@ -36,6 +43,7 @@ class Cache:
             self._warned = True
 
     async def get(self, key: str) -> Any:
+        key = _k(key)
         try:
             r = self._client()
             if r is not None:
@@ -49,6 +57,7 @@ class Cache:
             return None
 
     async def set(self, key: str, value: Any, ttl: int):
+        key = _k(key)
         raw = json.dumps(value, default=str)
         try:
             r = self._client()
@@ -62,6 +71,7 @@ class Cache:
             self._warn(e)
 
     async def delete(self, key: str):
+        key = _k(key)
         self._local.pop(key, None)
         try:
             r = self._client()

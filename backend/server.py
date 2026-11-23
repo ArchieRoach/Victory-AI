@@ -41,7 +41,10 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ.get('MONGO_URL', '')
 # Fail fast when the database is unreachable: the default is a 30-second hang per request.
 client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000)
-db = client[os.environ.get('DB_NAME', 'victoryai')]
+import demo_mode
+# Real data, plus a separate database for the promo filming account (demo_mode.py).
+db = demo_mode.DbRouter(client[os.environ.get('DB_NAME', 'victoryai')],
+                        client[os.environ.get('DB_NAME', 'victoryai') + "_demo"])
 
 # JWT Settings
 JWT_SECRET = os.environ.get('JWT_SECRET', 'victory-ai-secret-key-change-in-prod')
@@ -691,7 +694,10 @@ async def get_current_user(request: Request) -> dict:
         # Try Clerk verification first
         clerk_user_id = await verify_clerk_token(token)
         if clerk_user_id:
-            return await get_or_create_clerk_user(clerk_user_id)
+            user = await get_or_create_clerk_user(clerk_user_id)
+            if demo_mode.is_demo_email(user.get("email")):
+                return await _enter_demo(request, user)
+            return user
         # Fallback: legacy JWT
         payload = decode_jwt_token(token)
         if payload:
@@ -720,6 +726,20 @@ async def get_current_user(request: Request) -> dict:
                 return user
 
     raise HTTPException(status_code=401, detail="Not authenticated")
+
+async def _enter_demo(request: Request, real_user: dict) -> dict:
+    """Switches this request to the demo database and returns the filming account's demo copy,
+    building its sample history the first time (demo_mode.py)."""
+    if demo_mode.blocks_money(request.url.path):
+        raise HTTPException(403, "This is a demo account, so payments are switched off.")
+    demo_mode.enter(True)
+    uid = demo_mode.demo_id(real_user["user_id"])
+    user = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0})
+    if not user:
+        await seed_demo_account(real_user)
+        user = await db.users.find_one({"user_id": uid}, {"_id": 0, "password": 0})
+    return user
+
 
 async def get_current_user_with_subscription(request: Request) -> dict:
     user = await get_current_user(request)
@@ -14012,6 +14032,168 @@ async def migrate_square_partner_avatars():
     logger.info(f"Migration: {n} partner avatars remade at 4:5")
 
 
+# ============== DEMO FILMING ACCOUNT (demo_mode.py) ==============
+# Everything below only ever runs in the demo database. Sample people are clearly sample
+# ("demo_" ids, no emails, no logins) and exist nowhere else.
+
+DEMO_PRO_ALIAS = os.environ.get("DEMO_PRO_ALIAS", "The Victory Kid").strip()[:30]
+DEMO_SQUAD = [("demo_bot_jay", "Jay Marsh"), ("demo_bot_mia", "Mia Kaur"), ("demo_bot_kofi", "Kofi Asante"),
+              ("demo_bot_sam", "Sam Reyes")]
+DEMO_MERCH = [
+    ("Fight Night Hoodie", 45.0, 4.5, "Heavyweight hoodie from fight night.", ["S", "M", "L", "XL"],
+     "black boxing hoodie with lime green VICTORY lettering, product photo on plain grey background"),
+    ("Signed Training Gloves", 120.0, 6.0, "The gloves from camp, signed.", [],
+     "pair of red leather boxing gloves with a marker signature, product photo on plain grey background"),
+    ("Corner Cap", 22.0, 3.0, "Embroidered cap.", ["One size"],
+     "black baseball cap with a small lime green boxing glove logo, product photo on plain grey background"),
+]
+
+
+def _demo_scores(day: int, total: int, rng) -> list:
+    """Scores that climb over the month, with real-looking ups and downs."""
+    base = 5.6 + 2.2 * (day / max(1, total - 1))
+    return [{"dimension_name": d, "score": max(3, min(10, round(base + rng.uniform(-1.3, 1.3)))),
+             "evidence": "sample round"} for d in DIMENSIONS]
+
+
+async def _demo_person(uid: str, name: str, *, real: Optional[dict] = None, **extra) -> dict:
+    doc = {"user_id": uid, "name": name, "display_name": name, "demo": True, "onboarding_completed": True,
+           "experience_level": "6_18_months", "stance": "orthodox", "primary_goal": "Get fight-ready",
+           "is_public": True, "birth_date": "1998-06-15", "token_balance": 0,
+           "created_at": (datetime.now(timezone.utc) - timedelta(days=45)).isoformat(),
+           "training_partner": {"partner_id": f"partner_{uid}", "name": "Rocco", "style": "tough_love",
+                                "style_name": TRAINING_PARTNER_STYLES["tough_love"]["name"],
+                                "personality": TRAINING_PARTNER_STYLES["tough_love"]["personality"],
+                                "feedback_tone": "direct", "phrases": TRAINING_PARTNER_STYLES["tough_love"]["phrases"],
+                                "focus_areas": ["Guard Position", "Footwork"], "accountability_level": "high",
+                                "avatar_url": None}}
+    if real:
+        doc.update({"email": real.get("email"), "picture": real.get("picture"), "avatar_url": real.get("avatar_url"),
+                    "clerk_id": real.get("clerk_id"), "access_granted": True})
+    doc.update(extra)
+    await db.users.update_one({"user_id": uid}, {"$set": doc}, upsert=True)
+    return doc
+
+
+async def _demo_train(user: dict, days: int, rng) -> None:
+    """A month of real-shaped sessions, run through the same rewards code as a real session, so
+    streaks, belts, ranks and status come from the app's own rules."""
+    today = datetime.now(timezone.utc).date()
+    for i in range(days):
+        day = today - timedelta(days=days - 1 - i)
+        dims = _demo_scores(i, days, rng)
+        scored = [d["score"] for d in dims]
+        punches = rng.randint(160, 320)
+        session = {"session_id": f"session_{user['user_id']}_{i}", "user_id": user["user_id"], "date": day.isoformat(),
+                   "overall_score": round(sum(scored) / len(scored), 1), "scored": True, "record_video": True,
+                   "dimension_scores": dims, "kind": "standard", "demo": True,
+                   "training_config": {"round_duration": 180, "rest_duration": 60, "total_rounds": 3},
+                   "live_stats": {"rounds": 3, "punches": punches, "best_round_punches": punches // 3 + 12,
+                                  "best_combo": rng.randint(4, 7), "guard_drops": rng.randint(2, 9),
+                                  "head_moves": rng.randint(10, 30), "guard_pct": rng.randint(78, 94), "airpods": False},
+                   "created_at": f"{day.isoformat()}T18:00:00+00:00", "completed_at": f"{day.isoformat()}T18:12:00+00:00"}
+        await db.sessions.update_one({"session_id": session["session_id"]}, {"$set": session}, upsert=True)
+        try:
+            await apply_session_rewards(user, session, trusted_scores=True)
+        except Exception as e:
+            logger.warning(f"Demo seed: rewards step skipped ({type(e).__name__}: {e})")
+    await check_and_award_belts(user["user_id"])
+
+
+async def seed_demo_account(real_user: dict) -> str:
+    """Builds the filming account's sample world in the demo database (call only in demo mode)."""
+    import random as _random
+    assert demo_mode.active(), "demo seed must run in demo mode"
+    rng = _random.Random(42)
+    star_id = demo_mode.demo_id(real_user["user_id"])
+    first_demo = (demo_mode.demo_emails() or [""])[0]
+    is_star = (real_user.get("email") or "").strip().lower() == first_demo
+    name = real_user.get("display_name") or real_user.get("name") or "Fighter"
+
+    if not is_star:
+        # A second filming phone: a fan with tokens to tip, who's in the squad.
+        fan = await _demo_person(star_id, name, real=real_user, token_balance=2500)
+        await db.squads.update_one({"squad_id": "squad_demo"}, {"$addToSet": {"members": star_id}})
+        await _demo_train(fan, 6, rng)
+        return star_id
+
+    star = await _demo_person(star_id, name, real=real_user, stance="orthodox", token_balance=500,
+                              pro={"status": "verified", "alias": DEMO_PRO_ALIAS, "ring_name": name,
+                                   "division": "Super Lightweight", "record": "12-1-0",
+                                   "titles": ["Area Champion"], "bio": "Southside born. Fights behind the jab.",
+                                   "instagram": "", "boxrec_url": "", "payouts_ready": True,
+                                   "verified_at": datetime.now(timezone.utc).isoformat()})
+    await db.subscriptions.update_one({"user_id": star_id, "source": "demo"},
+                                      {"$set": {"subscription_id": f"demo_{star_id}", "status": "active",
+                                                "subscription_active": True, "plan_id": "pro_demo"}}, upsert=True)
+    await _demo_train(star, 31, rng)
+
+    for i, (bot_id, bot_name) in enumerate(DEMO_SQUAD):
+        bot = await _demo_person(bot_id, bot_name)
+        await _demo_train(bot, rng.randint(8, 20), rng)
+        await db.follows.update_one({"follower_id": star_id, "following_id": bot_id},
+                                    {"$set": {"follower_id": star_id, "following_id": bot_id,
+                                              "created_at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
+
+    members = [star_id] + [b for b, _ in DEMO_SQUAD]
+    await db.squads.update_one({"squad_id": "squad_demo"}, {"$set": {
+        "squad_id": "squad_demo", "name": "Dawn Patrol", "owner_id": star_id, "members": members,
+        "invite_code": "DEMO0001", "created_at": (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()}}, upsert=True)
+
+    await db.gyms.update_one({"gym_id": "gym_demo"}, {"$set": {
+        "gym_id": "gym_demo", "name": "Victory Boxing Club", "description": "Early mornings, hard rounds.",
+        "style": "boxing", "city": "London", "member_cap": GYM_DEFAULT_CAP, "owner_id": star_id, "members": members,
+        "is_public": True, "invite_code": "DEMOGYM1", "avg_score": 7.1, "total_sessions": 120,
+        "member_count": len(members), "created_at": (datetime.now(timezone.utc) - timedelta(days=40)).isoformat()}}, upsert=True)
+    await db.users.update_many({"user_id": {"$in": members}}, {"$set": {"gym_id": "gym_demo"}})
+    await db.run_clubs.update_one({"club_id": "rc_demo"}, {"$set": {
+        "club_id": "rc_demo", "gym_id": "gym_demo", "name": "Sunday Roadwork", "description": "Easy 5k, then pads.",
+        "weekday": 6, "time": "08:30", "meeting_point": "Gym front door", "distance_km": 5.0, "created_by": star_id,
+        "members": members, "rsvps": {}, "invite_code": "DEMORUN1",
+        "created_at": (datetime.now(timezone.utc) - timedelta(days=21)).isoformat()}}, upsert=True)
+
+    for title, price, ship, desc, sizes, prompt in DEMO_MERCH:
+        item_id = "merch_demo_" + hashlib.sha1(title.encode()).hexdigest()[:8]
+        await db.merch_items.update_one({"item_id": item_id}, {"$set": {
+            "item_id": item_id, "seller_id": star_id, "alias": DEMO_PRO_ALIAS, "title": title, "description": desc,
+            "price_gbp": price, "shipping_gbp": ship, "sizes": sizes, "stock": 10, "active": True, "spotlight_until": None,
+            "image_url": pollinations_portrait(prompt, item_id).replace("width=512&height=640", "width=640&height=640"),
+            "created_at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
+
+    now = datetime.now(timezone.utc)
+    for i, (source, pence, days_ago) in enumerate([("tip", 800, 2), ("emote", 240, 5), ("gift_sub", 1600, 9),
+                                                   ("tip", 2400, 18), ("tip", 1200, 24)]):
+        created = now - timedelta(days=days_ago)
+        await db.stream_earnings.update_one({"earning_id": f"demo_earn_{i}"}, {"$set": {
+            "earning_id": f"demo_earn_{i}", "user_id": star_id, "source": source, "share_pence": pence,
+            "status": "held", "created_at": created.isoformat(),
+            "available_at": (created + timedelta(days=ern.HOLD_DAYS)).isoformat()}}, upsert=True)
+    for i, (status, gbp) in enumerate([("shipped", 49.5), ("received", 126.0)]):
+        await db.merch_orders.update_one({"order_id": f"demo_order_{i}"}, {"$set": {
+            "order_id": f"demo_order_{i}", "seller_id": star_id, "buyer_id": "demo_bot_mia", "status": status,
+            "title": DEMO_MERCH[i][0], "seller_gets_gbp": gbp, "transfer_id": "demo_transfer" if status == "received" else None,
+            "created_at": (now - timedelta(days=4 + i)).isoformat()}}, upsert=True)
+    return star_id
+
+
+async def _demo_job_worker():
+    # Background jobs (video scoring) for the filming account run against the demo database.
+    demo_mode.enter(True)
+    await jobs.worker(db)
+
+
+@api_router.post("/admin/demo/reset")
+async def reset_demo_account(user: dict = Depends(get_current_user)):
+    """Wipes and rebuilds the filming account's sample world (only from the demo account itself)."""
+    if not demo_mode.active():
+        raise HTTPException(403, "Only the demo filming account can do this")
+    real_id = user["user_id"][len(demo_mode.DEMO_ID_PREFIX):] if demo_mode.is_demo_id(user["user_id"]) else user["user_id"]
+    for name in await db.list_collection_names():
+        await db[name].delete_many({})
+    await seed_demo_account({**user, "user_id": real_id})
+    return {"ok": True}
+
+
 @app.on_event("startup")
 async def startup():
     import asyncio as _aio
@@ -14025,6 +14207,8 @@ async def startup():
     _aio.create_task(ensure_indexes())
     _aio.create_task(_merch_release_loop())
     jobs.start_workers(db, int(os.environ.get("JOB_WORKERS", "2")))
+    if demo_mode.demo_emails():
+        _aio.create_task(_demo_job_worker())
     _aio.create_task(_scheduled_stream_reminder_loop())
     _aio.create_task(_retention_cleanup_loop())
     _aio.create_task(_reengagement_loop())
