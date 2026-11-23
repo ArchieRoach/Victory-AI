@@ -2333,7 +2333,9 @@
       "theBreakdownComesFrom": "Analiza pochodzi z wideo twoich rund. Włącz wideo w następnej sesji, a AI oceni 16 elementów twojego boksu.",
       "offense": "Atak",
       "defense": "Obrona",
-      "movement": "Poruszanie się"
+      "movement": "Poruszanie się",
+      "coachNotes": "Notatki {{name}}",
+      "coach": "Trener"
     },
     "gymSeasonHours": {
       "preseason": "Przedsezon",
@@ -2544,7 +2546,12 @@
       "paceNormal": "Normalnie",
       "paceFast": "Szybko",
       "useBackCamera": "Użyj tylnej kamery",
-      "useFrontCamera": "Użyj przedniej kamery"
+      "useFrontCamera": "Użyj przedniej kamery",
+      "voiceTestLine": "Ręce w górę, broda w dół. Do roboty.",
+      "voiceTestLoading": "Przygotowuję głos…",
+      "voiceTest": "Sprawdź głos trenera",
+      "voiceNatural": "Naturalny głos ✓",
+      "voicePhone": "Głos telefonu. Nic nie słychać? Podgłośnij."
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link skopiowany: wyślij go rodzicowi",

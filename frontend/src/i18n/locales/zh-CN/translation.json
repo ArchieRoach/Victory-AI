@@ -2333,7 +2333,9 @@
       "theBreakdownComesFrom": "分析来自你的回合视频。下次训练打开视频，AI 会为你拳击的 16 个方面评分。",
       "offense": "进攻",
       "defense": "防守",
-      "movement": "移动"
+      "movement": "移动",
+      "coachNotes": "{{name}}的点评",
+      "coach": "教练"
     },
     "gymSeasonHours": {
       "preseason": "季前赛",
@@ -2544,7 +2546,12 @@
       "paceNormal": "正常",
       "paceFast": "快",
       "useBackCamera": "使用后置摄像头",
-      "useFrontCamera": "使用前置摄像头"
+      "useFrontCamera": "使用前置摄像头",
+      "voiceTestLine": "双手举起，下巴收紧。开练。",
+      "voiceTestLoading": "正在准备声音…",
+      "voiceTest": "试听教练的声音",
+      "voiceNatural": "自然语音 ✓",
+      "voicePhone": "手机语音。听不到？请调高音量。"
     },
     "merchSheet": {
       "linkCopiedSendIt": "链接已复制：发给家长",

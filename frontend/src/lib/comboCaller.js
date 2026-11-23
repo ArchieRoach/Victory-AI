@@ -10,12 +10,14 @@ import { say } from "@/lib/speech";
 //   Without the camera nothing can be checked, so the level stays where it is.
 
 export const CALL_LEVELS = [
-  { name: "Warm-up", combos: ["1", "1-1", "1-2", "2"], gapMs: 5000 },
-  { name: "Basics", combos: ["1-2", "1-1-2", "1-2-3", "2-3"], gapMs: 4500 },
-  { name: "Sharp", combos: ["1-2-3", "1-2-3-2", "1-6-3", "3-2-3"], gapMs: 4000 },
-  { name: "Fast hands", combos: ["1-2-3-2", "1-2-5-2", "1-1-2-3", "2-3-2-1"], gapMs: 3500 },
-  { name: "Pro pace", combos: ["1-2-3-2-1", "1-2-3-4-3", "1-1-2-3-2", "1-6-3-2-3", "1-2-slip-2-3-2", "3-6-3-2"], gapMs: 3200 },
-  { name: "Ring general", combos: ["1-2-roll-2-3-2", "1-1-2-slip-2-3", "2-3-2-pivot-1-2", "1-2-5-6-3-2", "1-6-3-2-roll-2", "5-2-3-4-1-2"], gapMs: 3000 },
+  // A combo never ends on a jab (a coach finishes with power or gets out of the way), and most
+  // end with defence: slip, roll, or bob and weave, so fighters learn to punch and move.
+  { name: "Warm-up", combos: ["1-2", "1-1-2", "1-2-slip", "2-roll"], gapMs: 5000 },
+  { name: "Basics", combos: ["1-2-3", "1-1-2-roll", "2-3-slip", "1-2-bob", "1-2"], gapMs: 4500 },
+  { name: "Sharp", combos: ["1-2-3-2", "1-6-3-slip", "3-2-3-roll", "1-2-3-bob", "1-2-slip-2"], gapMs: 4000 },
+  { name: "Fast hands", combos: ["1-2-3-2-slip", "1-2-5-2", "1-1-2-3-roll", "2-3-2-bob", "1-2-3-2"], gapMs: 3500 },
+  { name: "Pro pace", combos: ["1-2-3-2-roll", "1-2-3-4-3-slip", "1-1-2-3-2-bob", "1-6-3-2-3", "1-2-slip-2-3-2", "3-6-3-2-roll"], gapMs: 3200 },
+  { name: "Ring general", combos: ["1-2-roll-2-3-2", "1-1-2-slip-2-3", "2-3-2-pivot-3-2", "1-2-5-6-3-2-bob", "1-6-3-2-roll-2", "5-2-3-4-slip"], gapMs: 3000 },
 ];
 
 // Where calls start and the lowest they can drop to, by experience. An advanced fighter
@@ -116,7 +118,7 @@ export function createComboCaller({ level = 0, floor = 0, gapScale = 1, pick = M
 // With a known stance the hooks and uppercuts say left or right, the way coaches call them;
 // switch-hitters and unknown stances hear lead and rear. Numbers stay as an opt-in for
 // fighters who were taught them.
-const MOVE_WORDS = { slip: "Slip", roll: "Roll", pivot: "Pivot" };
+const MOVE_WORDS = { slip: "Slip", roll: "Roll", bob: "Bob and weave", pivot: "Pivot" };
 const SIDES = {
   orthodox: { lead: "Left", rear: "Right" },
   southpaw: { lead: "Right", rear: "Left" },
@@ -163,7 +165,7 @@ export function setCallsNumbers(on) {
 }
 
 export function comboSpeech(combo, stance, numbers = callsNumbers()) {
-  return numbers ? combo.split("-").join(", ") : comboWords(combo, stance).join(", ");
+  return numbers ? combo.split("-").map((m) => MOVE_WORDS[m] || m).join(", ") : comboWords(combo, stance).join(", ");
 }
 
 export function sayCombo(combo, stance) {

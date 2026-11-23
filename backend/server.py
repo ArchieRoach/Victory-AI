@@ -3152,6 +3152,41 @@ async def health():
         return JSONResponse({"status": "unhealthy", "database": "unreachable"}, status_code=503)
     return {"status": "healthy", "database": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
+
+# Which outside services have their keys set: yes/no only, never a key. When something in a
+# session doesn't work (no coach voice, no video score), this says at a glance whether the
+# server is missing a setting or the code is at fault.
+@api_router.get("/health/services")
+async def health_services():
+    cloudinary_on = all(os.environ.get(k) for k in ("CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"))
+    return {
+        "coach_voice": {"elevenlabs": bool(ELEVENLABS_API_KEY), "openai": bool(OPENAI_API_KEY),
+                        "storage": cloudinary_on, "ready": bool(coach_voice_id("male")) and cloudinary_on},
+        "video_scoring": {"storage": cloudinary_on, "ai": bool(GEMINI_API_KEY), "ready": cloudinary_on and bool(GEMINI_API_KEY)},
+        "email": bool(RESEND_API_KEY),
+        "payments": bool(STRIPE_API_KEY),
+    }
+
+
+class VideoProblem(BaseModel):
+    round_number: int = Field(1, ge=1, le=50)
+    stage: str = Field("", max_length=30)
+    detail: str = Field("", max_length=300)
+
+
+# The phone tells us which step of filming a round failed (upload, register, scoring), so a
+# "Couldn't score your video" can be traced in the logs instead of guessed at.
+@api_router.post("/training/{session_id}/video-problem")
+async def report_video_problem(session_id: str, data: VideoProblem, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"videoproblem:{user['user_id']}", 20, 3600):
+        return {"ok": True}
+    logger.warning(f"Round video problem: session={session_id} round={data.round_number} stage={data.stage} detail={data.detail}")
+    await db.training_sessions.update_one({"session_id": session_id, "user_id": user["user_id"]},
+                                          {"$push": {"video_problems": {"round": data.round_number, "stage": data.stage,
+                                                                        "detail": data.detail,
+                                                                        "at": datetime.now(timezone.utc).isoformat()}}})
+    return {"ok": True}
+
 # ============== TTS ENDPOINTS ==============
 
 class TTSRequest(BaseModel):

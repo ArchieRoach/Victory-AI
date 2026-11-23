@@ -2333,7 +2333,9 @@
       "theBreakdownComesFrom": "Die Analyse kommt aus deinen Rundenvideos. Schalte nächstes Mal das Video ein und die KI bewertet 16 Bereiche deines Boxens.",
       "offense": "Offensive",
       "defense": "Defensive",
-      "movement": "Bewegung"
+      "movement": "Bewegung",
+      "coachNotes": "Notizen von {{name}}",
+      "coach": "Coach"
     },
     "gymSeasonHours": {
       "preseason": "Vorsaison",
@@ -2544,7 +2546,12 @@
       "paceNormal": "Normal",
       "paceFast": "Schnell",
       "useBackCamera": "Rückkamera verwenden",
-      "useFrontCamera": "Frontkamera verwenden"
+      "useFrontCamera": "Frontkamera verwenden",
+      "voiceTestLine": "Hände hoch, Kinn runter. Los geht’s.",
+      "voiceTestLoading": "Stimme wird vorbereitet…",
+      "voiceTest": "Stimme des Coaches testen",
+      "voiceNatural": "Natürliche Stimme ✓",
+      "voicePhone": "Handystimme. Nichts zu hören? Lauter stellen."
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link kopiert: schick ihn einem Elternteil",

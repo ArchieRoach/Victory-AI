@@ -21,7 +21,7 @@ import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
 import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, callsNumbers, setCallsNumbers, callPace, setCallPace, CALL_PACES, CALL_LEVELS } from "@/lib/comboCaller";
-import { unlockSpeech, setVoiceSource, primeVoice, sayNatural } from "@/lib/speech";
+import { unlockSpeech, setVoiceSource, primeVoice, sayNatural, say, hasClip } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
 import { TimerCard } from "@/components/home/TimerCard";
 import { withCue } from "@/lib/verbalCues";
@@ -146,6 +146,17 @@ export default function TrainPage() {
   const [weeklyCombo, setWeeklyCombo] = useState(null);
   const [numbersOn, setNumbersOn] = useState(callsNumbers);
   const [pace, setPace] = useState(callPace);
+  const [voiceTest, setVoiceTest] = useState(null);
+  // Hear the coach before the bell. The tap also wakes up the phone's audio, and the result says
+  // whether the natural voice is working or the phone's own voice is standing in.
+  const testVoice = async () => {
+    unlockSpeech();
+    const line = tx("ui.trainPage.voiceTestLine", "Hands up, chin down. Let's work.");
+    setVoiceTest("loading");
+    await Promise.race([primeVoice([line]), new Promise((r) => setTimeout(r, 6000))]);
+    say(line, { interrupt: true });
+    setVoiceTest(hasClip(line) ? "natural" : "phone");
+  };
   const stance = user?.stance;
 
   // Natural voice clips for every line the coach can say this session, fetched before the
@@ -459,27 +470,38 @@ export default function TrainPage() {
 
   const generateFeedback = async (roundNum) => {
     setLoadingFeedback(true);
+    let feedbackOut = null;
 
     // Video pipeline is best-effort — any failure here just means feedback falls
     // back to the non-video path, never blocks the round from ending.
     let videoAnalysis = null;
     if (recordVideo && sessionId && mediaRecorderRef.current) {
+      // Each step is named, so if scoring fails the server log says which one (upload,
+      // register, scoring) instead of a vague "couldn't score".
+      let stage = "record";
+      const problem = (detail) => axios.post(`${API}/training/${sessionId}/video-problem`,
+        { round_number: roundNum, stage, detail: String(detail || "").slice(0, 300) }).catch(() => {});
       try {
         const blob = await stopRoundRecording();
-        if (blob) {
+        if (!blob) { problem("no video recorded"); }
+        else {
+          stage = "upload";
           const { video_url, public_id } = await uploadRoundVideo(blob);
+          stage = "register";
           await axios.post(`${API}/videos/register`, {
             session_id: sessionId, round_number: roundNum, video_url, public_id,
           }, { withCredentials: true });
+          stage = "scoring";
           const analysisRes = await axios.post(`${API}/ai/analyze-video`, {
             video_url, round_number: roundNum, background: true,
           }, { withCredentials: true });
           videoAnalysis = analysisRes.data.job_id
             ? (await waitForJob(analysisRes.data.job_id))?.analysis
             : analysisRes.data.analysis;
+          if (!videoAnalysis) problem("no analysis came back in time");
         }
-      } catch {
-        // AI quota exceeded, upload failure, etc. — silently continue without video.
+      } catch (err) {
+        problem(err?.response ? `${err.response.status} ${JSON.stringify(err.response.data || "").slice(0, 200)}` : err?.message);
       }
     }
 
@@ -491,6 +513,7 @@ export default function TrainPage() {
         ...(videoAnalysis ? { video_analysis: videoAnalysis } : {}),
       }, { withCredentials: true });
       setFeedback(res.data);
+      feedbackOut = res.data;
       if (voiceEnabled && res.data?.what_you_did_well) {
         // Recency effect: end on the affirming line, not the critique — that's
         // what's still in the fighter's head when the next round starts.
@@ -501,6 +524,7 @@ export default function TrainPage() {
       toast.error(t("train.feedbackFailed", "Couldn't generate feedback for this round."));
     }
     finally { setLoadingFeedback(false); }
+    return feedbackOut;
   };
 
   // ── Hype message cycling (during rounds) ─────────────────────────────────────
@@ -660,16 +684,18 @@ export default function TrainPage() {
     stopHypeCycle();
     // The last round's video is still uploading and being scored. Finishing first would
     // save the session with no scores: no breakdown and a locked scouting report.
+    // The last round's notes have no rest break to appear in, so they go to the results page.
+    let lastNotes = null;
     if (roundWorkRef.current) {
       setFinishing(true);
-      await Promise.race([roundWorkRef.current, new Promise((r) => setTimeout(r, FINISH_WAIT_MS))]);
+      lastNotes = await Promise.race([roundWorkRef.current, new Promise((r) => setTimeout(() => r(null), FINISH_WAIT_MS))]);
       roundWorkRef.current = null;
     }
     stopCamera();
     if (sessionId) {
       try {
         const res = await axios.post(`${API}/training/${sessionId}/complete`, calls ? { calls } : {}, { withCredentials: true });
-        navigate(`/score/results/${res.data.session_id}`, { state: { session: res.data, fromTraining: true, calls } });
+        navigate(`/score/results/${res.data.session_id}`, { state: { session: res.data, fromTraining: true, calls, coachNotes: lastNotes } });
         return;
       } catch {
         toast.error(t("train.failedSave"));
@@ -858,6 +884,14 @@ export default function TrainPage() {
                     onToggle={(next) => { setNumbersOn(next); setCallsNumbers(next); }}
                     description={numbersOn ? tx("ui.trainPage.callsLike12", "Calls like \"1, 2, 3\".") : tx("ui.trainPage.callsLikeWords", "Calls like \"{{example}}\". Switch on if your coach taught you numbers.", { example: comboSpeech("1-2-3", stance, false) })} />
                 )}
+                <div className="mt-3 flex items-center gap-3" data-testid="voice-test">
+                  <button type="button" onClick={testVoice} disabled={voiceTest === "loading"}
+                    className="min-h-[40px] px-4 rounded-full bg-victory-card-highlight text-victory-text text-sm font-semibold flex items-center gap-2 disabled:opacity-60">
+                    <Volume2 className="w-4 h-4" /> {voiceTest === "loading" ? tx("ui.trainPage.voiceTestLoading", "Getting the voice ready…") : tx("ui.trainPage.voiceTest", "Test the coach's voice")}
+                  </button>
+                  {voiceTest === "natural" && <span className="text-victory-lime text-xs">{tx("ui.trainPage.voiceNatural", "Natural voice ✓")}</span>}
+                  {voiceTest === "phone" && <span className="text-victory-orange text-xs">{tx("ui.trainPage.voicePhone", "Phone voice. Can't hear it? Turn the volume up.")}</span>}
+                </div>
                 {callsOn && (
                   <div className="mt-3" data-testid="call-pace">
                     <p className="text-victory-text text-sm font-semibold">{tx("ui.trainPage.callSpeed", "Call speed")}</p>

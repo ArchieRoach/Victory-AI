@@ -2333,7 +2333,9 @@
       "theBreakdownComesFrom": "A análise vem dos vídeos dos seus rounds. Ative o vídeo na próxima sessão e a IA avalia 16 partes do seu boxe.",
       "offense": "Ataque",
       "defense": "Defesa",
-      "movement": "Movimentação"
+      "movement": "Movimentação",
+      "coachNotes": "Anotações de {{name}}",
+      "coach": "Treinador"
     },
     "gymSeasonHours": {
       "preseason": "Pré-temporada",
@@ -2544,7 +2546,12 @@
       "paceNormal": "Normal",
       "paceFast": "Rápido",
       "useBackCamera": "Usar câmera traseira",
-      "useFrontCamera": "Usar câmera frontal"
+      "useFrontCamera": "Usar câmera frontal",
+      "voiceTestLine": "Mãos para cima, queixo para baixo. Vamos trabalhar.",
+      "voiceTestLoading": "Preparando a voz…",
+      "voiceTest": "Testar a voz do treinador",
+      "voiceNatural": "Voz natural ✓",
+      "voicePhone": "Voz do celular. Não está ouvindo? Aumente o volume."
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link copiado: envie para um responsável",
