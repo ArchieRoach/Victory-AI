@@ -2533,7 +2533,11 @@
       "returnYourHandsTo": "أعد يديك إلى الحماية بعد كل تركيبة.",
       "stayBalancedThroughYour": "حافظ على توازنك خلال تركيباتك.",
       "myCircuitsAreOverheating": "دوائري ترتفع حرارتها بمجرد مشاهدتك. اضغط أكثر.",
-      "callsLikeWords": "نداءات مثل \"{{example}}\". فعّلها إذا علّمك مدربك الأرقام."
+      "callsLikeWords": "نداءات مثل \"{{example}}\". فعّلها إذا علّمك مدربك الأرقام.",
+      "hypeMotivate": "هيا",
+      "hypeJoke": "مزاح",
+      "hypeTip": "نصيحة",
+      "hypeValidate": "عمل رائع"
     },
     "merchSheet": {
       "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",

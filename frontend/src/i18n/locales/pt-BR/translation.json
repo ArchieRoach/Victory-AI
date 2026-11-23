@@ -2533,7 +2533,11 @@
       "returnYourHandsTo": "Volte as mãos para a guarda depois de cada combinação.",
       "stayBalancedThroughYour": "Mantenha o equilíbrio nas combinações.",
       "myCircuitsAreOverheating": "Meus circuitos estão superaquecendo só de te ver. Força mais.",
-      "callsLikeWords": "Chamadas como \"{{example}}\". Ative se seu treinador te ensinou números."
+      "callsLikeWords": "Chamadas como \"{{example}}\". Ative se seu treinador te ensinou números.",
+      "hypeMotivate": "Força",
+      "hypeJoke": "Zoeira",
+      "hypeTip": "Dica",
+      "hypeValidate": "Bom trabalho"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link copiado: envie para um responsável",

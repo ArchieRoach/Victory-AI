@@ -16,7 +16,7 @@ import { getVideoPref, setVideoPref } from "@/lib/videoPref";
 import { analytics } from "@/lib/analytics";
 import { FirstUseTip } from "@/components/FirstUseTip";
 import { CoachMark } from "@/components/CoachMark";
-import { useLiveCoach, CUES as COACH_CUES } from "@/hooks/useLiveCoach";
+import { useLiveCoach, preloadLiveCoach, CUES as COACH_CUES } from "@/hooks/useLiveCoach";
 import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
@@ -91,9 +91,17 @@ const HYPE_LINES = [
 
 const HYPE_COLORS = {
   motivate: "text-victory-lime",
-  joke:     "text-amber-400",
-  tip: "text-sky-400",
-  validate: "text-violet-400",
+  joke:     "text-victory-orange",
+  tip:      "text-victory-teal",
+  validate: "text-victory-lime",
+};
+
+// What the fighter reads next to the coach's name (the type keys above are code, not words).
+const HYPE_LABEL = {
+  get motivate() { return tx("ui.trainPage.hypeMotivate", "Push"); },
+  get joke() { return tx("ui.trainPage.hypeJoke", "Banter"); },
+  get tip() { return tx("ui.trainPage.hypeTip", "Tip"); },
+  get validate() { return tx("ui.trainPage.hypeValidate", "Good work"); },
 };
 
 const HYPE_EMOJI = {
@@ -208,6 +216,7 @@ export default function TrainPage() {
 
   const audioRef    = useRef(null);
   const intervalRef = useRef(null);
+  const endsAtRef = useRef(null);
   const hypeTimerRef = useRef(null);
   const cameraStreamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -276,12 +285,19 @@ export default function TrainPage() {
     };
   }, []);
 
+  // Start loading the punch counter while the fighter is still on the setup screen.
+  useEffect(() => {
+    if (isConfiguring && liveCoach) preloadLiveCoach();
+  }, [isConfiguring, liveCoach]);
+
   // Attach the live stream once the preview <video> actually exists — it only
   // mounts on the active-session screen, which appears after the stream is
   // already obtained on the configuring screen.
   useEffect(() => {
     if (videoPreviewRef.current && cameraStreamRef.current) {
-      videoPreviewRef.current.srcObject = cameraStreamRef.current;
+      const v = videoPreviewRef.current;
+      if (v.srcObject !== cameraStreamRef.current) v.srcObject = cameraStreamRef.current;
+      v.play?.().catch(() => {});
     }
   }, [cameraReady, isConfiguring]);
 
@@ -529,6 +545,7 @@ export default function TrainPage() {
     callerRef.current = callsOn && canCall && kind !== "boss"
       ? createComboCaller({ level: startingLevel(user?.experience_level), floor: levelRange(user?.experience_level).floor, gapScale: kind === "freestyle" ? 1.6 : 1, weekly: weeklyCombo?.label || null })
       : null;
+    if (liveCoach) await preloadLiveCoach();
     if (liveCoach) {
       axios.get(`${API}/training/ghost`, { params: { round_duration: roundDuration } })
         .then((r) => setGhost(r.data?.timeline?.length ? r.data : null))
@@ -555,13 +572,17 @@ export default function TrainPage() {
       if (intervalRef.current) clearInterval(intervalRef.current);
       return;
     }
+    // The clock follows real time (a deadline), not a count of ticks: if the phone freezes for a
+    // moment, or the screen locks, the round still ends on time instead of stalling.
+    endsAtRef.current = Date.now() + timeLeft * 1000;
     intervalRef.current = setInterval(() => {
+      const left = Math.max(0, Math.ceil((endsAtRef.current - Date.now()) / 1000));
       setTimeLeft((prev) => {
-        if (!isResting && prev === 11) {
+        if (!isResting && prev > 10 && left <= 10 && left > 0) {
           setShowTenSecWarning(true);
           setTimeout(() => setShowTenSecWarning(false), 3500);
         }
-        if (prev <= 1) {
+        if (left <= 0) {
           playBell();
           if (isResting) {
             if (currentRound < totalRounds) {
@@ -589,9 +610,9 @@ export default function TrainPage() {
             }
           }
         }
-        return prev - 1;
+        return left;
       });
-    }, 1000);
+    }, 250);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isPaused, isComplete, isConfiguring, isResting, currentRound, totalRounds, roundDuration, restDuration]);
 
@@ -691,7 +712,7 @@ export default function TrainPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className={`min-h-screen bg-victory-bg pb-nav flex flex-col ${flashClass}`} data-testid="train-page">
+    <div className={`min-h-screen bg-victory-bg ${isConfiguring ? "pb-nav" : "safe-bottom"} flex flex-col ${flashClass}`} data-testid="train-page">
       {clip && (
         <video key={clip} src={clip} autoPlay playsInline onEnded={() => setClip(null)} onError={() => setClip(null)}
           className="fixed right-4 bottom-28 w-32 aspect-[9/16] object-cover rounded-2xl shadow-2xl z-40 border border-victory-lime/40"
@@ -1165,7 +1186,7 @@ export default function TrainPage() {
                   <div className="min-w-0">
                     <p className="text-victory-muted text-[11px] font-semibold mb-1">
                       {partner?.name || tx("ui.trainPage.coach", "Coach")} · <span className={`${HYPE_COLORS[currentHype.type] || "text-victory-lime"}`}>
-                        {currentHype.type}
+                        {HYPE_LABEL[currentHype.type] || ""}
                       </span>
                     </p>
                     <p className="text-victory-text text-sm leading-snug">
@@ -1286,7 +1307,7 @@ export default function TrainPage() {
                 onClick={togglePause}
                 className={`w-20 h-20 rounded-full flex items-center justify-center touch-target transition-all active:scale-90 shadow-xl ${
                   isPaused
-                    ? "bg-victory-lime text-victory-bg shadow-victory-lime/25 hover:bg-[#D4E630]"
+                    ? "bg-victory-lime text-victory-bg shadow-victory-lime/25 hover:bg-victory-lime/90"
                     : "bg-victory-card border-2 border-victory-lime text-victory-lime hover:bg-victory-lime/10"
                 }`}
                 aria-label={isPaused ? tx("ui.trainPage.resume", "Resume") : tx("ui.trainPage.pause", "Pause")}
@@ -1298,7 +1319,7 @@ export default function TrainPage() {
               <FirstUseTip id="train_end_btn" position="top" hold={!isPaused && !isResting}>
                 <button
                   onClick={endTimer}
-                  className="w-14 h-14 rounded-full bg-victory-card border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/10 touch-target transition-all active:scale-90"
+                  className="w-14 h-14 rounded-full bg-victory-card border border-victory-danger/40 flex items-center justify-center text-victory-danger hover:bg-victory-danger/10 touch-target transition-all active:scale-90"
                   aria-label={tx("ui.trainPage.endSession", "End session")}
                 >
                   <Square className="w-6 h-6" />
@@ -1314,7 +1335,7 @@ export default function TrainPage() {
         </div>
       )}
 
-      <BottomNav />
+      {isConfiguring && <BottomNav />}
     </div>
   );
 }

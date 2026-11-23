@@ -2533,7 +2533,11 @@
       "returnYourHandsTo": "Ramène les mains en garde après chaque enchaînement.",
       "stayBalancedThroughYour": "Reste équilibré pendant tes enchaînements.",
       "myCircuitsAreOverheating": "Mes circuits surchauffent rien qu'à te regarder. Pousse plus fort.",
-      "callsLikeWords": "Des annonces comme « {{example}} ». Active si ton coach t'a appris les numéros."
+      "callsLikeWords": "Des annonces comme « {{example}} ». Active si ton coach t'a appris les numéros.",
+      "hypeMotivate": "Pousse",
+      "hypeJoke": "Blague",
+      "hypeTip": "Conseil",
+      "hypeValidate": "Bon travail"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Lien copié : envoie-le à un parent",

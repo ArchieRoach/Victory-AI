@@ -2533,7 +2533,11 @@
       "returnYourHandsTo": "コンビネーションの後は必ずガードに戻せ。",
       "stayBalancedThroughYour": "コンビネーション中もバランスを保て。",
       "myCircuitsAreOverheating": "見てるだけで俺の回路がオーバーヒートしそうだ。もっと攻めろ。",
-      "callsLikeWords": "「{{example}}」のようなコール。コーチに数字で教わったならオンに。"
+      "callsLikeWords": "「{{example}}」のようなコール。コーチに数字で教わったならオンに。",
+      "hypeMotivate": "もっと",
+      "hypeJoke": "ジョーク",
+      "hypeTip": "ヒント",
+      "hypeValidate": "いいね"
     },
     "merchSheet": {
       "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",
