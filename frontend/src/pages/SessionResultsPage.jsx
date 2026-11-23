@@ -66,6 +66,7 @@ export default function SessionResultsPage() {
   const [beltsReady, setBeltsReady] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [session, setSession] = useState(location.state?.session || null);
+  const coachNotes = location.state?.coachNotes || null;
   const [sessionNotFound, setSessionNotFound] = useState(false);
   const navButtonsRef = useRef(null);
   const [roundClip,     setRoundClip]     = useState(null);
@@ -419,10 +420,20 @@ export default function SessionResultsPage() {
           )}
         </section>
 
-        {!isScored && (
+        {!isScored && !session.record_video && (
           <p className="text-victory-muted text-sm text-center -mt-2" data-testid="unscored-note">
             {t("results.unscoredNote", "No AI score this time — nothing watched this session. Turn on video in Train and the AI will score every round.")}
           </p>
+        )}
+
+        {/* The last round's notes from your partner (a one-round session has no rest break to show them in). */}
+        {coachNotes && (coachNotes.what_to_tighten || coachNotes.what_you_did_well) && (
+          <section className="victory-card p-4 space-y-2" data-testid="coach-notes">
+            <p className="section-label">{tx("ui.sessionResultsPage.coachNotes", "{{name}}'s notes", { name: coachNotes.partner_name || tx("ui.sessionResultsPage.coach", "Coach") })}</p>
+            {coachNotes.what_to_tighten && <p className="text-victory-text text-sm">{coachNotes.what_to_tighten}</p>}
+            {coachNotes.drill_focus && <p className="text-victory-muted text-sm">{coachNotes.drill_focus}</p>}
+            {coachNotes.what_you_did_well && <p className="text-victory-lime text-sm font-semibold">{coachNotes.what_you_did_well}</p>}
+          </section>
         )}
 
         <SessionRewards rewards={session.rewards} scoutingReport={session.scouting_report} overall={session.overall_score} liveStats={session.live_stats} sessionId={session.session_id} calls={location.state?.calls} />

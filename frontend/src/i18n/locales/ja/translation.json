@@ -2333,7 +2333,9 @@
       "theBreakdownComesFrom": "分析はラウンドの動画から作られます。次のセッションで動画をオンにすると、AIがボクシングの16項目を採点します。",
       "offense": "オフェンス",
       "defense": "ディフェンス",
-      "movement": "ムーブメント"
+      "movement": "ムーブメント",
+      "coachNotes": "{{name}}のメモ",
+      "coach": "コーチ"
     },
     "gymSeasonHours": {
       "preseason": "プレシーズン",
@@ -2544,7 +2546,12 @@
       "paceNormal": "ふつう",
       "paceFast": "速い",
       "useBackCamera": "背面カメラを使う",
-      "useFrontCamera": "前面カメラを使う"
+      "useFrontCamera": "前面カメラを使う",
+      "voiceTestLine": "手を上げて、あごを引いて。いくぞ。",
+      "voiceTestLoading": "声を準備中…",
+      "voiceTest": "コーチの声をテスト",
+      "voiceNatural": "自然な声 ✓",
+      "voicePhone": "スマホの声です。聞こえない場合は音量を上げてください。"
     },
     "merchSheet": {
       "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",

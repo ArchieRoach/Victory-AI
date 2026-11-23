@@ -2333,7 +2333,9 @@
       "theBreakdownComesFrom": "التحليل يأتي من فيديوهات جولاتك. شغّل الفيديو في الجلسة القادمة وسيقيّم الذكاء الاصطناعي 16 جانبًا من ملاكمتك.",
       "offense": "الهجوم",
       "defense": "الدفاع",
-      "movement": "الحركة"
+      "movement": "الحركة",
+      "coachNotes": "ملاحظات {{name}}",
+      "coach": "المدرب"
     },
     "gymSeasonHours": {
       "preseason": "ما قبل الموسم",
@@ -2544,7 +2546,12 @@
       "paceNormal": "عادي",
       "paceFast": "سريع",
       "useBackCamera": "استخدم الكاميرا الخلفية",
-      "useFrontCamera": "استخدم الكاميرا الأمامية"
+      "useFrontCamera": "استخدم الكاميرا الأمامية",
+      "voiceTestLine": "ارفع يديك واخفض ذقنك. لنبدأ.",
+      "voiceTestLoading": "جارٍ تجهيز الصوت…",
+      "voiceTest": "اختبر صوت المدرب",
+      "voiceNatural": "صوت طبيعي ✓",
+      "voicePhone": "صوت الهاتف. لا تسمعه؟ ارفع مستوى الصوت."
     },
     "merchSheet": {
       "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",

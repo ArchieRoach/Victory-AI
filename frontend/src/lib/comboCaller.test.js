@@ -112,3 +112,13 @@ describe("calls in words", () => {
     expect(comboSpeech("1-2-3", "orthodox", true)).toBe("1, 2, 3");
   });
 });
+
+test("no call ends on a jab, and defence finishes are called in words", () => {
+  const { comboWords, comboSpeech } = require("./comboCaller");
+  for (const level of CALL_LEVELS) for (const c of level.combos) expect(c.split("-").pop()).not.toBe("1");
+  const all = CALL_LEVELS.flatMap((l) => l.combos);
+  ["slip", "roll", "bob"].forEach((m) => expect(all.some((c) => c.endsWith(m))).toBe(true));
+  expect(comboWords("1-2-bob", "orthodox")).toEqual(["Jab", "Cross", "Bob and weave"]);
+  expect(comboSpeech("1-2-bob", "orthodox", true)).toBe("1, 2, Bob and weave");
+  expect(punchCount("1-2-bob")).toBe(2);
+});

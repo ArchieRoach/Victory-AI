@@ -2333,7 +2333,9 @@
       "theBreakdownComesFrom": "L'analyse vient des vidéos de tes rounds. Active la vidéo la prochaine fois et l'IA note 16 aspects de ta boxe.",
       "offense": "Attaque",
       "defense": "Défense",
-      "movement": "Déplacements"
+      "movement": "Déplacements",
+      "coachNotes": "Les notes de {{name}}",
+      "coach": "Coach"
     },
     "gymSeasonHours": {
       "preseason": "Pré-saison",
@@ -2544,7 +2546,12 @@
       "paceNormal": "Normale",
       "paceFast": "Rapide",
       "useBackCamera": "Utiliser la caméra arrière",
-      "useFrontCamera": "Utiliser la caméra avant"
+      "useFrontCamera": "Utiliser la caméra avant",
+      "voiceTestLine": "Mains en haut, menton baissé. Au travail.",
+      "voiceTestLoading": "Préparation de la voix…",
+      "voiceTest": "Tester la voix du coach",
+      "voiceNatural": "Voix naturelle ✓",
+      "voicePhone": "Voix du téléphone. Tu n’entends rien ? Monte le volume."
     },
     "merchSheet": {
       "linkCopiedSendIt": "Lien copié : envoie-le à un parent",

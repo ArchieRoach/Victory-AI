@@ -2609,7 +2609,9 @@
       "theBreakdownComesFrom": "The breakdown comes from your round videos. Turn on video next session and the AI scores 16 parts of your boxing.",
       "offense": "Offense",
       "defense": "Defense",
-      "movement": "Movement"
+      "movement": "Movement",
+      "coachNotes": "{{name}}'s notes",
+      "coach": "Coach"
     },
     "squadDetailPage": {
       "goBack": "Go back"
@@ -2886,7 +2888,12 @@
       "paceNormal": "Normal",
       "paceFast": "Fast",
       "useBackCamera": "Use back camera",
-      "useFrontCamera": "Use front camera"
+      "useFrontCamera": "Use front camera",
+      "voiceTestLine": "Hands up, chin down. Let's work.",
+      "voiceTestLoading": "Getting the voice ready…",
+      "voiceTest": "Test the coach's voice",
+      "voiceNatural": "Natural voice ✓",
+      "voicePhone": "Phone voice. Can't hear it? Turn the volume up."
     },
     "trendingClipsPage": {
       "viral": "VIRAL",

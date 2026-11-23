@@ -2333,7 +2333,9 @@
       "theBreakdownComesFrom": "El análisis sale de los vídeos de tus asaltos. Activa el vídeo la próxima sesión y la IA puntuará 16 aspectos de tu boxeo.",
       "offense": "Ataque",
       "defense": "Defensa",
-      "movement": "Movimiento"
+      "movement": "Movimiento",
+      "coachNotes": "Notas de {{name}}",
+      "coach": "Entrenador"
     },
     "gymSeasonHours": {
       "preseason": "Pretemporada",
@@ -2544,7 +2546,12 @@
       "paceNormal": "Normal",
       "paceFast": "Rápida",
       "useBackCamera": "Usar cámara trasera",
-      "useFrontCamera": "Usar cámara frontal"
+      "useFrontCamera": "Usar cámara frontal",
+      "voiceTestLine": "Manos arriba, barbilla abajo. A trabajar.",
+      "voiceTestLoading": "Preparando la voz…",
+      "voiceTest": "Probar la voz del entrenador",
+      "voiceNatural": "Voz natural ✓",
+      "voicePhone": "Voz del móvil. ¿No la oyes? Sube el volumen."
     },
     "merchSheet": {
       "linkCopiedSendIt": "Enlace copiado: envíaselo a un padre o madre",

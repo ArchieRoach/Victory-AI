@@ -89,6 +89,7 @@ function playNext() {
 }
 
 function playClip(text, rate) {
+  lastSource = "natural";
   try {
     player.src = clips.get(text);
     player.playbackRate = rate > 1 ? 1.08 : 1;
@@ -109,7 +110,18 @@ export function pickFallbackVoice(voices) {
   return english.sort((a, b) => score(b) - score(a))[0] || null;
 }
 
+// Which voice said the last line: "natural" (a server clip) or "phone" (the phone's own voice).
+let lastSource = null;
+export const lastVoiceSource = () => lastSource;
+
+// iPhone Safari silently drops a line spoken straight after cancel(), so after an interruption
+// the phone voice waits a moment before speaking.
+let cancelledAt = 0;
+
 function speakFallback(text, rate) {
+  const wait = Math.max(0, 120 - (Date.now() - cancelledAt));
+  if (wait > 0) { setTimeout(() => speakFallback(text, rate), wait); return; }
+  lastSource = "phone";
   try {
     const synth = window.speechSynthesis;
     if (!synth) return;
@@ -131,7 +143,12 @@ export function say(text, { rate = 1.05, interrupt = false } = {}) {
   if (!text) return;
   if (interrupt) {
     queue = [];
-    try { window.speechSynthesis?.cancel(); } catch {}
+    try {
+      if (window.speechSynthesis?.speaking || window.speechSynthesis?.pending) {
+        window.speechSynthesis.cancel();
+        cancelledAt = Date.now();
+      }
+    } catch {}
   }
   if (player && clips.has(text)) {
     if (!interrupt && !player.paused && !player.ended && player.src !== SILENT) {
@@ -161,6 +178,8 @@ export async function sayNatural(text, waitMs = 6000) {
 export const _resetSpeech = () => {
   unlocked = false;
   player = null;
+  cancelledAt = 0;
+  lastSource = null;
   queue = [];
   clips.clear();
   pending.clear();

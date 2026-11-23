@@ -14,10 +14,21 @@ test("the Start tap unlocks speech once and asks for the playback audio session"
   expect(navigator.audioSession.type).toBe("playback");
 });
 
-test("a new combo call cuts off the one still being spoken", () => {
+test("a new combo call cuts off the one still being spoken, then waits a beat (iPhone drops it otherwise)", () => {
+  jest.useFakeTimers();
+  window.speechSynthesis.speaking = true;
   say("1, 2", { interrupt: true });
   expect(window.speechSynthesis.cancel).toHaveBeenCalled();
+  expect(window.speechSynthesis.speak).not.toHaveBeenCalled();
+  jest.advanceTimersByTime(150);
   expect(window.speechSynthesis.speak.mock.calls[0][0].text).toBe("1, 2");
+  jest.useRealTimers();
+});
+
+test("with nothing being spoken, a call speaks straight away", () => {
+  say("Jab", { interrupt: true });
+  expect(window.speechSynthesis.cancel).not.toHaveBeenCalled();
+  expect(window.speechSynthesis.speak.mock.calls[0][0].text).toBe("Jab");
 });
 
 describe("natural voice clips", () => {

@@ -2333,7 +2333,9 @@
       "theBreakdownComesFrom": "Разбор строится по видео раундов. Включи видео в следующий раз, и ИИ оценит 16 элементов твоего бокса.",
       "offense": "Атака",
       "defense": "Защита",
-      "movement": "Передвижение"
+      "movement": "Передвижение",
+      "coachNotes": "Заметки {{name}}",
+      "coach": "Тренер"
     },
     "gymSeasonHours": {
       "preseason": "Предсезонка",
@@ -2544,7 +2546,12 @@
       "paceNormal": "Обычно",
       "paceFast": "Быстро",
       "useBackCamera": "Задняя камера",
-      "useFrontCamera": "Фронтальная камера"
+      "useFrontCamera": "Фронтальная камера",
+      "voiceTestLine": "Руки вверх, подбородок вниз. Работаем.",
+      "voiceTestLoading": "Готовлю голос…",
+      "voiceTest": "Проверить голос тренера",
+      "voiceNatural": "Естественный голос ✓",
+      "voicePhone": "Голос телефона. Не слышно? Сделай громче."
     },
     "merchSheet": {
       "linkCopiedSendIt": "Ссылка скопирована: отправь её родителю",
