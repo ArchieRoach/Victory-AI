@@ -57,7 +57,7 @@ async def run_one(db, job: dict) -> None:
         if attempts >= MAX_ATTEMPTS or fn is None:
             logger.error(f"Job {job['job_id']} ({job['kind']}) failed for good: {type(e).__name__}: {e}")
             await db.jobs.update_one({"job_id": job["job_id"]}, {"$set": {
-                "status": "failed", "error": f"{type(e).__name__}", "finished_at": _now().isoformat()}})
+                "status": "failed", "error": f"{type(e).__name__}: {str(e)[:200]}", "finished_at": _now().isoformat()}})
         else:
             wait = RETRY_SECONDS[min(attempts - 1, len(RETRY_SECONDS) - 1)]
             logger.warning(f"Job {job['job_id']} ({job['kind']}) failed, retrying in {wait}s: {type(e).__name__}")

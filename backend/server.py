@@ -1296,6 +1296,12 @@ async def _score_round_video(job: dict) -> dict:
     except Exception as e:
         logger.error(f"Video analysis error: {e}")
         analysis = None
+        await db.video_scoring_errors.insert_one({"at": datetime.now(timezone.utc).isoformat(),
+                                                  "error": f"{type(e).__name__}: {str(e)[:200]}"})
+    else:
+        if not analysis:
+            await db.video_scoring_errors.insert_one({"at": datetime.now(timezone.utc).isoformat(),
+                                                      "error": "The AI gave no usable result"})
     if not analysis:
         # An unscored round shouldn't cost the fighter anything.
         await refund_ai_tokens(user, "analyze_video")
@@ -3222,6 +3228,26 @@ async def health_voice_test(request: Request):
         await db.voice_clips.update_one({"key": key}, {"$setOnInsert": {"key": key, "url": url, "voice": "male", "text": VOICE_TEST_LINE,
                                                                          "created_at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
     return {"ok": bool(url), "stage": "made" if url else "storage", "provider": provider, "url": url}
+
+
+# The last few things that went wrong with filmed rounds, with no names, emails or ids: which step
+# failed on the phone, the AI's error, and how the scoring jobs are doing. Lets a "couldn't score
+# your video" be traced from here instead of guessed at.
+@api_router.get("/health/video-scoring")
+async def health_video_scoring(request: Request):
+    ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"videohealth:{ip}", 30, 3600):
+        raise HTTPException(429, "Try again later")
+    since = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+    phone = []
+    async for s in db.training_sessions.find({"video_problems.0": {"$exists": True}}, {"_id": 0, "video_problems": 1}).sort("created_at", -1).limit(10):
+        phone.extend({k: p.get(k) for k in ("stage", "detail", "at")} for p in s.get("video_problems", []))
+    ai = await db.video_scoring_errors.find({}, {"_id": 0}).sort("at", -1).to_list(5)
+    statuses = {}
+    async for j in db.jobs.find({"kind": "analyze_video", "created_at": {"$gte": since}}, {"_id": 0, "status": 1}):
+        statuses[j.get("status")] = statuses.get(j.get("status"), 0) + 1
+    return {"phone_steps": sorted(phone, key=lambda p: p.get("at") or "", reverse=True)[:5],
+            "ai_errors": ai, "scoring_jobs_last_2_days": statuses}
 
 
 class VideoProblem(BaseModel):

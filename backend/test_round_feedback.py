@@ -67,6 +67,19 @@ def test_voice_test_reports_the_failing_step():
     server.ELEVENLABS_API_KEY = ""
 
 
+def test_video_scoring_health_shows_steps_without_names():
+    import asyncio
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(server.db.training_sessions.insert_one({"session_id": "s9", "user_id": "secret-user", "created_at": "2026-11-23T10:00:00",
+                                                                     "video_problems": [{"round": 1, "stage": "upload", "detail": "413", "at": "2026-11-23T10:01:00"}]}))
+    loop.run_until_complete(server.db.video_scoring_errors.insert_one({"at": "2026-11-23T10:02:00", "error": "ValueError: Cloudinary video fetch failed (404)"}))
+    r = client.get("/api/health/video-scoring")
+    assert r.status_code == 200 and "secret-user" not in r.text
+    body = r.json()
+    assert body["phone_steps"][0]["stage"] == "upload"
+    assert body["ai_errors"][0]["error"].startswith("ValueError")
+
+
 def test_a_video_problem_is_recorded():
     current["user"] = {"user_id": "u3"}
     import asyncio

@@ -135,3 +135,14 @@ test("combos mix punches with head movement, footwork and angles", () => {
   expect(comboWords("1-2-pull-2-back", "orthodox")).toEqual(["Jab", "Cross", "Pull back", "Cross", "Step back"]);
   expect(punchCount("in-1-2-angle")).toBe(2);
 });
+
+test("body shots and body-then-head combos are in every level", () => {
+  const { comboWords, comboSpeech } = require("./comboCaller");
+  for (const level of CALL_LEVELS) expect(level.combos.some((c) => /\b[1-6]b\b/.test(c))).toBe(true);
+  expect(CALL_LEVELS.flatMap((l) => l.combos).some((c) => c.includes("3b-3"))).toBe(true);
+  expect(comboWords("1b-2-3b-3", "orthodox")).toEqual(["Jab to the body", "Cross", "Left hook to the body", "Left hook"]);
+  expect(comboWords("1-1b-2", "southpaw")).toEqual(["Jab", "Jab to the body", "Cross"]);
+  expect(comboSpeech("3b-3-back", "orthodox", true)).toBe("3 body, 3, Step back");
+  expect(punchCount("1b-2-3b-3-back")).toBe(4);
+  for (const level of CALL_LEVELS) for (const c of level.combos) expect(["1", "1b"]).not.toContain(c.split("-").pop());
+});
