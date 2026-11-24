@@ -42,6 +42,7 @@ mongo_url = os.environ.get('MONGO_URL', '')
 # Fail fast when the database is unreachable: the default is a 30-second hang per request.
 client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000)
 import demo_mode
+import ai_models
 # Real data, plus a separate database for the promo filming account (demo_mode.py).
 db = demo_mode.DbRouter(client[os.environ.get('DB_NAME', 'victoryai')],
                         client[os.environ.get('DB_NAME', 'victoryai') + "_demo"])
@@ -1111,7 +1112,8 @@ async def get_ai_usage(user: dict = Depends(get_current_user)):
 # between punches — not from a few still frames, which can't show a punch at all.
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_VIDEO_MODEL = os.environ.get("GEMINI_VIDEO_MODEL", "gemini-2.5-flash")
+# Optional overrides. Without them the newest available model is picked (ai_models.py).
+GEMINI_VIDEO_MODEL = os.environ.get("GEMINI_VIDEO_MODEL", "").strip()
 GEMINI_VIDEO_FALLBACK_MODEL = "gemini-flash-latest"
 GEMINI_VIDEO_FPS = float(os.environ.get("GEMINI_VIDEO_FPS", "4"))
 GEMINI_MEDIA_RESOLUTION = os.environ.get("GEMINI_MEDIA_RESOLUTION", "low").upper()
@@ -1127,6 +1129,29 @@ def _gemini():
         from google import genai
         _genai_client = genai.Client(api_key=GEMINI_API_KEY)
     return _genai_client
+
+
+_model_list = {"at": 0.0, "ranked": None}
+MODEL_LIST_TTL = 6 * 3600
+
+
+async def _gemini_models() -> dict:
+    """Google's current Gemini models, ranked (ai_models.py), re-checked every few hours."""
+    if _model_list["ranked"] and time.time() - _model_list["at"] < MODEL_LIST_TTL:
+        return _model_list["ranked"]
+    try:
+        found = [m async for m in await _gemini().aio.models.list()]
+        ranked = ai_models.rank(found)
+        if ranked["full"] or ranked["lite"]:
+            _model_list.update(at=time.time(), ranked=ranked)
+            return ranked
+    except Exception as e:
+        logger.warning(f"Couldn't list Gemini models: {type(e).__name__}: {e}")
+    return {"full": [], "lite": []}
+
+
+async def _chat_model(preferred: str = "") -> str:
+    return ai_models.chat_model(await _gemini_models(), preferred or None)
 
 
 class _DimensionScore(BaseModel):
@@ -1243,27 +1268,33 @@ async def analyze_round_video(public_id: str, round_number: int, partner_name: s
 # When Google's model is busy (503 "high demand") or rate-limited (429), a round used to go
 # unscored after one try. Now: try again after a short wait, then the backup models. All within
 # about 30 seconds, so the phone (which waits 90) still gets the score.
-VIDEO_SCORING_PLAN = [(GEMINI_VIDEO_MODEL, 0), (GEMINI_VIDEO_MODEL, 3), (GEMINI_VIDEO_FALLBACK_MODEL, 4), ("gemini-2.5-flash-lite", 6)]
-
-
 def _busy(err, genai_errors) -> bool:
     code = getattr(err, "code", None)
     return isinstance(err, genai_errors.ServerError) or code in (429, 500, 502, 503, 504)
 
 
 async def _score_with_retries(contents, config, genai_errors, plan=None, sleep=asyncio.sleep):
-    last = None
-    for model, wait in (plan or VIDEO_SCORING_PLAN):
+    # The plan comes from Google's live model list (ai_models.py), so a retired model name can't
+    # leave every round unscored. A model that's gone (404) isn't tried again.
+    plan = plan or ai_models.video_plan(await _gemini_models(), GEMINI_VIDEO_MODEL or None)
+    last, gone, tried = None, set(), []
+    for model, wait in plan:
+        if model in gone:
+            continue
         if wait:
             await sleep(wait)
         try:
             return await _gemini().aio.models.generate_content(model=model, contents=contents, config=config)
         except (genai_errors.ServerError, genai_errors.ClientError) as e:
-            if not (_busy(e, genai_errors) or getattr(e, "code", None) == 404):
+            code = getattr(e, "code", None)
+            if not (_busy(e, genai_errors) or code == 404):
                 raise
-            logger.warning(f"Video scoring: {model} unavailable ({getattr(e, 'code', '?')}), trying again")
+            if code == 404:
+                gone.add(model)
+            tried.append(f"{model}:{code}")
+            logger.warning(f"Video scoring: {model} unavailable ({code}), trying the next")
             last = e
-    raise last
+    raise RuntimeError(f"no model could score it (tried {', '.join(tried) or 'none'}); last: {str(last)[:160]}") from last
 
 
 _CLOUDINARY_VIDEO_RE = re.compile(r"^https://res\.cloudinary\.com/([^/]+)/video/upload/(?:v\d+/)?([^?#]+?)\.[A-Za-z0-9]+$")
@@ -3296,8 +3327,12 @@ async def health_video_scoring(request: Request):
     statuses = {}
     async for j in db.jobs.find({"kind": "analyze_video", "created_at": {"$gte": since}}, {"_id": 0, "status": 1}):
         statuses[j.get("status")] = statuses.get(j.get("status"), 0) + 1
+    ranked = await _gemini_models() if GEMINI_API_KEY else {"full": [], "lite": []}
     return {"phone_steps": sorted(phone, key=lambda p: p.get("at") or "", reverse=True)[:5],
-            "ai_errors": ai, "scoring_jobs_last_2_days": statuses}
+            "ai_errors": ai, "scoring_jobs_last_2_days": statuses,
+            "models": {"scoring_plan": [m for m, _ in ai_models.video_plan(ranked, GEMINI_VIDEO_MODEL or None)],
+                       "chat": ai_models.chat_model(ranked, GEMINI_HELP_MODEL or None),
+                       "available": ranked["full"][:6] + ranked["lite"][:3]}}
 
 
 class VideoProblem(BaseModel):
@@ -6993,7 +7028,7 @@ async def is_admin(user: dict) -> bool:
     return False
 
 # ---- Ask Victory: in-app help assistant (guide, rules and reasoning in help_assistant.py) ----
-GEMINI_HELP_MODEL = os.environ.get("GEMINI_HELP_MODEL", "gemini-2.5-flash")
+GEMINI_HELP_MODEL = os.environ.get("GEMINI_HELP_MODEL", "").strip()  # optional; else the newest available (ai_models.py)
 HELP_FALLBACK = "I can't answer right now. Tap \"Send to the team\" and someone will email you back."
 
 
@@ -7012,7 +7047,7 @@ async def _help_reply(history: List[dict]) -> str:
     contents = [types.Content(role="model" if m["role"] == "assistant" else "user", parts=[types.Part(text=m["text"])])
                 for m in history]
     config = types.GenerateContentConfig(system_instruction=helpbot.SYSTEM, temperature=0.3, max_output_tokens=400)
-    response = await _gemini().aio.models.generate_content(model=GEMINI_HELP_MODEL, contents=contents, config=config)
+    response = await _gemini().aio.models.generate_content(model=await _chat_model(GEMINI_HELP_MODEL), contents=contents, config=config)
     return (response.text or "").strip()
 
 
@@ -7066,7 +7101,7 @@ async def _partner_reply(system: str, history: List[dict], deeper: bool) -> str:
                 for m in history]
     config = types.GenerateContentConfig(system_instruction=system, temperature=0.6,
                                          max_output_tokens=500 if deeper else 300)
-    response = await _gemini().aio.models.generate_content(model=GEMINI_HELP_MODEL, contents=contents, config=config)
+    response = await _gemini().aio.models.generate_content(model=await _chat_model(GEMINI_HELP_MODEL), contents=contents, config=config)
     return (response.text or "").strip()
 
 
