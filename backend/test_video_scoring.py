@@ -170,10 +170,12 @@ def test_a_busy_model_is_retried_then_the_backup_is_used():
     async def no_sleep(s):
         waits.append(s)
 
+    import time as _time
+    server._model_list.update(at=_time.time(), ranked={"full": ["gemini-3.5-flash", "gemini-3-flash"], "lite": ["gemini-3.5-flash-lite"]})
     flaky = Flaky(fails=2)
     server._genai_client = SimpleNamespace(aio=SimpleNamespace(models=flaky))
     run(server._score_with_retries(["v"], None, genai_errors, sleep=no_sleep))
-    assert flaky.models == [server.GEMINI_VIDEO_MODEL, server.GEMINI_VIDEO_MODEL, server.GEMINI_VIDEO_FALLBACK_MODEL]
+    assert flaky.models == ["gemini-3.5-flash", "gemini-3.5-flash", "gemini-3-flash"], flaky.models
     assert sum(waits) <= 30
 
     always = Flaky(fails=99)
@@ -181,9 +183,24 @@ def test_a_busy_model_is_retried_then_the_backup_is_used():
     try:
         run(server._score_with_retries(["v"], None, genai_errors, sleep=no_sleep))
         assert False, "should give up after the plan"
-    except genai_errors.ServerError:
-        pass
-    assert len(always.models) == len(server.VIDEO_SCORING_PLAN)
+    except RuntimeError as e:
+        assert "gemini-3.5-flash:503" in str(e)
+    assert len(always.models) == 5
+
+    gone = genai_errors.ClientError(404, {"error": {"code": 404, "message": "no longer available", "status": "NOT_FOUND"}})
+
+    class Retired:
+        models = []
+        async def generate_content(self, model, contents, config):
+            Retired.models.append(model)
+            if model != "gemini-3.5-flash-lite":
+                raise gone
+            return SimpleNamespace(text=json.dumps(GOOD))
+    server._genai_client = SimpleNamespace(aio=SimpleNamespace(models=Retired()))
+    run(server._score_with_retries(["v"], None, genai_errors, sleep=no_sleep))
+    assert Retired.models.count("gemini-3.5-flash") == 1, "a retired model isn't asked twice"
+    assert Retired.models[-1] == "gemini-3.5-flash-lite"
+    server._model_list.update(at=0.0, ranked=None)
 
     bad = genai_errors.ClientError(400, {"error": {"code": 400, "message": "bad request", "status": "INVALID_ARGUMENT"}})
 

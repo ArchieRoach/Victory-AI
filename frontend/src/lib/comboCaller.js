@@ -10,23 +10,28 @@ import { say } from "@/lib/speech";
 //   Without the camera nothing can be checked, so the level stays where it is.
 
 export const CALL_LEVELS = [
-  // Every combo is punches plus movement, the way a coach calls pads: get in, throw, then get out
-  // of the way. A combo never ends on a jab; it ends on power or on a move: head movement (slip,
-  // roll, bob and weave, pull back), footwork (step in, step back) or an angle (pivot, angle out).
-  // Body shots ("1b", "3b"…) are in every level, often as body-then-head: "hook to the body, hook".
-  // Higher levels put the movement in the middle too, so you punch off the slip or the pivot.
+  // Written the way a coach calls pads, and the way the body actually moves:
+  // - Every combo leads off with the jab or a double jab (to the head or the body).
+  // - Punches swap hands each time (lead, rear, lead...), because each punch winds up the next:
+  //   a cross turns the hips so the lead hook comes naturally after it. Never two rear-hand
+  //   shots in a row (no "cross, rear hook to the body").
+  // - The only same-hand doubles are the classic ones: double jab, and lead hook to the body then
+  //   to the head.
+  // - A slip or roll sets up the punch on the side it loads; a pull back sets up the cross.
+  // - Never finishing on a jab: end on power or get out with a move (slip, roll, bob and weave,
+  //   pull back, step back, pivot, angle out).
   { name: "Warm-up", gapMs: 5000,
-    combos: ["1-2-back", "1-2-slip", "1-1-2-roll", "in-1-2-back", "1b-2-pull", "1-2-angle", "1-2-3b-back"] },
+    combos: ["1-2", "1-1-2", "1-2-slip", "1-2-back", "1-1-2-roll"] },
   { name: "Basics", gapMs: 4500,
-    combos: ["1-2-3-roll", "1-2-bob", "in-1-2-slip", "1-1-2-pivot", "1b-2-3-pull", "3b-3-back", "1-2-3b-3-roll"] },
+    combos: ["1-2-3", "1-2-3-back", "1b-2", "1-2-3b", "1-1-2-bob", "1-2-pull-2"] },
   { name: "Sharp", gapMs: 4000,
-    combos: ["1-2-3-2-roll", "slip-2-3b-3-back", "1-6-3-angle", "in-1b-2-3-pivot", "1-2-pull-2", "3b-3-2-bob", "2b-3-2-slip"] },
+    combos: ["1-2-3-2", "1-2-3b-3", "1-1-2-3-roll", "1b-2-3-slip", "1-2-3-2-back", "1-2-slip-3"] },
   { name: "Fast hands", gapMs: 3500,
-    combos: ["1-2-3-2-slip-2", "1-1-2-3b-3-roll", "in-1-2-5-2-angle", "2-3-2-bob-2-3", "1b-2-3b-3-back", "1-2-3-pivot-2", "1-2-4b-3-roll"] },
+    combos: ["1-1-2-3-2", "1-2-3b-3-2", "1-2-5-2", "1-2-3-2-roll", "1-1-2-3b-pivot", "1b-1-2-3-bob"] },
   { name: "Pro pace", gapMs: 3200,
-    combos: ["1-2-slip-2-3b-3-roll", "in-1-2-3-4b-3-angle", "1-1-2-3-2-bob-3b-3", "slip-2-3-2-pivot-3", "1-6-3-2-pull-2-back", "1b-2b-3-2-roll-2-angle"] },
+    combos: ["1-2-3-2-3", "1-1-2-3b-3-2", "1-2-slip-3-2", "1-2-5-2-3-roll", "1-2-3-6-3-2", "1b-2-3-2-angle"] },
   { name: "Ring general", gapMs: 3000,
-    combos: ["in-1-2-roll-2-3b-3-pivot", "1-1-2-slip-2-3-angle-2", "2-3-2-pivot-3b-3-back", "1-2-5-6-3-2-bob-3", "1b-2-3b-3-2-roll-2-angle", "angle-5-2-3-4b-slip-2-back"] },
+    combos: ["1-1-2-3b-3-2-roll", "1-2-3-2-slip-3-2", "1-2-5-2-3-2-pivot", "1b-2-3-2-3b-3-back", "1-2-pull-2-3-2-angle", "1-1-2-5-2-3-bob"] },
 ];
 
 // Where calls start and the lowest they can drop to, by experience. An advanced fighter
