@@ -180,7 +180,8 @@ export function setCallPace(pace) {
   try { if (CALL_PACES[pace]) localStorage.setItem(PACE_KEY, pace); } catch {}
 }
 
-export const NUMBERS_KEY = "victory_call_numbers";
+// A new key: the old one held "off" for everyone from when words were the default.
+export const NUMBERS_KEY = "victory_call_numbers_v2";
 
 // Numbers are the default: "1, 2, 3 body, 3 head" is over before the punches start, and it's
 // how gyms call pads. The names show under every call, so newcomers learn them as they go.

@@ -1,8 +1,36 @@
-// Timer sounds made in the browser (no files to download, nothing to fail on a slow gym signal):
-// a boxing bell, the wooden clapper for "10 seconds" and a whistle for interval alerts.
+// Timer sounds: a recorded boxing ring bell (public/sounds, CC0), the wooden clapper for
+// "10 seconds" and a whistle for interval alerts. The bell files are tiny and load on the
+// Start tap; until they arrive (or on a dead signal) a bell made in the browser stands in.
 // unlockTimerSounds() must run inside the Start tap, or iPhone Safari keeps them silent.
 
 let ctx = null;
+const BELL_FILES = { start: "/sounds/bell-start.mp3", end: "/sounds/bell-end.mp3" };
+const bells = {};
+
+function loadBells() {
+  Object.entries(BELL_FILES).forEach(([key, url]) => {
+    if (bells[key]) return;
+    bells[key] = "loading";
+    fetch(url)
+      .then((r) => r.arrayBuffer())
+      .then((data) => new Promise((ok, fail) => ctx.decodeAudioData(data, ok, fail)))
+      .then((buffer) => { bells[key] = buffer; })
+      .catch(() => { delete bells[key]; });
+  });
+}
+
+function playBuffer(buffer, at) {
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  src.connect(ctx.destination);
+  src.start(at);
+}
+
+function bell(key, at, fallback) {
+  const buffer = bells[key];
+  if (buffer && buffer !== "loading") playBuffer(buffer, at);
+  else fallback(at);
+}
 
 export function unlockTimerSounds() {
   try {
@@ -13,6 +41,7 @@ export function unlockTimerSounds() {
     if (!AC) return;
     if (!ctx) ctx = new AC();
     if (ctx.state === "suspended") ctx.resume();
+    loadBells();
   } catch {}
 }
 
@@ -68,9 +97,9 @@ function whistle(at) {
 }
 
 const PLAYERS = {
-  start: (t) => ring(t),
-  end: (t) => [0, 0.45, 0.9].forEach((d) => ring(t + d)),
-  done: (t) => [0, 0.45, 0.9].forEach((d) => ring(t + d)),
+  start: (t) => bell("start", t, ring),
+  end: (t) => bell("end", t, (at) => [0, 0.45, 0.9].forEach((d) => ring(at + d))),
+  done: (t) => bell("end", t, (at) => [0, 0.45, 0.9].forEach((d) => ring(at + d))),
   warning: (t) => [0, 0.18, 0.36].forEach((d) => clap(t + d)),
   inner: (t) => whistle(t),
 };

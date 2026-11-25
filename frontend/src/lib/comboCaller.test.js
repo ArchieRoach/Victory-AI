@@ -107,11 +107,12 @@ describe("calls in words", () => {
   });
 
   test("numbers are the default, words for whoever switches them off", () => {
-    localStorage.removeItem("victory_call_numbers");
+    localStorage.removeItem("victory_call_numbers_v2");
+    localStorage.setItem("victory_call_numbers", "0");
     expect(callsNumbers()).toBe(true);
     setCallsNumbers(false);
     expect(callsNumbers()).toBe(false);
-    localStorage.removeItem("victory_call_numbers");
+    localStorage.removeItem("victory_call_numbers_v2");
     expect(comboSpeech("1-2-3", "orthodox", false)).toBe("Jab, Cross, Left hook");
     expect(comboSpeech("1-2-3", "orthodox", true)).toBe("1, 2, 3");
   });

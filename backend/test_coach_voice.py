@@ -76,6 +76,18 @@ def test_without_elevenlabs_the_openai_voice_is_used():
     server.OPENAI_API_KEY = ""
 
 
+def test_out_of_credit_elevenlabs_hands_over_to_the_backup_voice():
+    import time
+    server.ELEVENLABS_API_KEY, server.OPENAI_API_KEY = "el-test", "sk-test"
+    assert not server.coach_voice_id("male").startswith("openai:")
+    server._elevenlabs_out_until = time.time() + 60
+    assert server.coach_voice_id("male") == "openai:onyx"
+    server.OPENAI_API_KEY = ""
+    assert not server.coach_voice_id("male").startswith("openai:"), "with no backup, keep trying ElevenLabs"
+    server._elevenlabs_out_until = 0.0
+    server.ELEVENLABS_API_KEY = ""
+
+
 if __name__ == "__main__":
     tests = [v for k, v in dict(globals()).items() if k.startswith("test_") and callable(v)]
     for t in tests:
