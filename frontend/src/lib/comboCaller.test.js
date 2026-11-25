@@ -87,28 +87,27 @@ test("calls start at your experience level and an advanced fighter never drops t
 describe("calls in words", () => {
   const { comboWords, comboSpeech } = require("./comboCaller");
 
-  test("orthodox fighters hear left and right", () => {
-    expect(comboWords("1-2-3-2", "orthodox")).toEqual(["Jab", "Cross", "Left hook", "Cross"]);
-    expect(comboWords("1-6-3", "orthodox")).toEqual(["Jab", "Right uppercut", "Left hook"]);
-  });
-
-  test("southpaws hear it the other way round", () => {
-    expect(comboWords("1-2-3", "southpaw")).toEqual(["Jab", "Cross", "Right hook"]);
-    expect(comboWords("5", "Southpaw")).toEqual(["Right uppercut"]);
-  });
-
-  test("no stance or switch says lead and rear", () => {
-    expect(comboWords("1-2-5-2", "")).toEqual(["Jab", "Cross", "Lead uppercut", "Cross"]);
-    expect(comboWords("3-4", "switch")).toEqual(["Lead hook", "Rear hook"]);
+  test("calls are short: the lead hook is just 'hook', rear power shots say the side", () => {
+    expect(comboWords("1-2-3-2", "orthodox")).toEqual(["Jab", "Cross", "Hook", "Cross"]);
+    expect(comboWords("1-6-3", "orthodox")).toEqual(["Jab", "Right uppercut", "Hook"]);
+    expect(comboWords("1-2-3-4", "southpaw")).toEqual(["Jab", "Cross", "Hook", "Left hook"]);
+    expect(comboWords("1-2-5-2", "")).toEqual(["Jab", "Cross", "Uppercut", "Cross"]);
+    expect(comboWords("3-4", "switch")).toEqual(["Hook", "Rear hook"]);
   });
 
   test("double jab and defensive moves", () => {
-    expect(comboWords("1-1-2-slip-2-3", "orthodox")).toEqual(["Double jab", "Cross", "Slip", "Cross", "Left hook"]);
+    expect(comboWords("1-1-2-slip-2-3", "orthodox")).toEqual(["Double jab", "Cross", "Slip", "Cross", "Hook"]);
     expect(comboWords("1-2-roll-2", null)).toEqual(["Jab", "Cross", "Roll", "Cross"]);
   });
 
+  test("body then head is quick enough to double up the hook", () => {
+    expect(comboWords("1-2-3b-3", "orthodox")).toEqual(["Jab", "Cross", "Hook body", "Hook head"]);
+    expect(comboWords("1b-2", "orthodox")).toEqual(["Jab body", "Cross"]);
+    expect(comboSpeech("1-2-3b-3", "orthodox", false).length).toBeLessThan(36);
+  });
+
   test("numbers only when the fighter asks for them", () => {
-    expect(comboSpeech("1-2-3", "orthodox", false)).toBe("Jab, Cross, Left hook");
+    expect(comboSpeech("1-2-3", "orthodox", false)).toBe("Jab, Cross, Hook");
     expect(comboSpeech("1-2-3", "orthodox", true)).toBe("1, 2, 3");
   });
 });
@@ -117,59 +116,57 @@ test("no call ends on a jab, and defence finishes are called in words", () => {
   const { comboWords, comboSpeech } = require("./comboCaller");
   for (const level of CALL_LEVELS) for (const c of level.combos) expect(c.split("-").pop()).not.toBe("1");
   const all = CALL_LEVELS.flatMap((l) => l.combos);
-  ["slip", "roll", "bob"].forEach((m) => expect(all.some((c) => c.endsWith(m))).toBe(true));
+  ["slip", "roll", "bob"].forEach((m) => expect(all.some((c) => c.split("-").includes(m))).toBe(true));
   expect(comboWords("1-2-bob", "orthodox")).toEqual(["Jab", "Cross", "Bob and weave"]);
   expect(comboSpeech("1-2-bob", "orthodox", true)).toBe("1, 2, Bob and weave");
   expect(punchCount("1-2-bob")).toBe(2);
 });
 
-test("combos finish with head movement, footwork and angles", () => {
+test("every combo has head movement, footwork or an angle", () => {
   const { comboWords } = require("./comboCaller");
-  const moves = ["slip", "roll", "bob", "pull", "back", "pivot", "angle"];
+  const moves = ["slip", "roll", "bob", "pull", "in", "back", "pivot", "angle"];
   const all = CALL_LEVELS.flatMap((l) => l.combos);
   moves.forEach((m) => expect(all.some((c) => c.split("-").includes(m))).toBe(true));
-  for (const level of CALL_LEVELS) {
-    expect(level.combos.filter((c) => c.split("-").some((m) => moves.includes(m))).length).toBeGreaterThanOrEqual(2);
-  }
+  all.forEach((c) => expect(c.split("-").some((m) => moves.includes(m))).toBe(true));
+  expect(comboWords("in-1-2-angle", "orthodox")).toEqual(["Step in", "Jab", "Cross", "Step out"]);
   expect(comboWords("1-2-pull-2-back", "orthodox")).toEqual(["Jab", "Cross", "Pull back", "Cross", "Step back"]);
-  expect(comboWords("1-2-angle", "orthodox")).toEqual(["Jab", "Cross", "Angle out"]);
 });
 
-test("body shots and body-then-head combos from Basics up", () => {
+test("body shots and body-then-head combos in every level from Basics up", () => {
   const { comboWords, comboSpeech } = require("./comboCaller");
   for (const level of CALL_LEVELS.slice(1)) expect(level.combos.some((c) => /\b[1-6]b\b/.test(c))).toBe(true);
   expect(CALL_LEVELS.flatMap((l) => l.combos).some((c) => c.includes("3b-3"))).toBe(true);
-  expect(comboWords("1b-2-3b-3", "orthodox")).toEqual(["Jab to the body", "Cross", "Left hook to the body", "Left hook"]);
-  expect(comboWords("1-1b-2", "southpaw")).toEqual(["Jab", "Jab to the body", "Cross"]);
+  expect(comboWords("1b-2-3b-3", "orthodox")).toEqual(["Jab body", "Cross", "Hook body", "Hook head"]);
+  expect(comboWords("1-1b-2", "southpaw")).toEqual(["Jab", "Jab body", "Cross"]);
   expect(comboSpeech("3b-3-back", "orthodox", true)).toBe("3 body, 3, Step back");
   expect(punchCount("1b-2-3b-3-back")).toBe(4);
 });
 
 test("every combo moves the way the body does", () => {
   const LEAD = new Set(["1", "3", "5"]);
+  const HEAD = new Set(["slip", "roll", "bob", "pull"]);
   const side = (m) => (LEAD.has(m.replace("b", "")) ? "lead" : "rear");
   const isPunch = (m) => /^[1-6]b?$/.test(m);
   const sameHandOk = (a, b) => (a.replace("b", "") === "1" && b.replace("b", "") === "1") || (a === "3b" && b === "3");
   for (const level of CALL_LEVELS) {
     for (const combo of level.combos) {
       const moves = combo.split("-");
-      // Lead off with the jab or a double jab (head or body).
-      expect(["1", "1b"]).toContain(moves[0]);
+      const punches = moves.filter(isPunch);
+      // Lead off with the jab or a double jab (head or body); stepping in first is fine.
+      expect(["1", "1b"]).toContain(punches[0]);
+      expect(moves.indexOf(punches[0])).toBeLessThanOrEqual(moves[0] === "in" ? 1 : 0);
       // Never finish on a jab.
       expect(["1", "1b"]).not.toContain(moves[moves.length - 1]);
-      // Hands swap each punch; the only same-hand doubles are the classic ones, and a pull back
-      // loads the rear hand for the counter cross.
+      // Hands swap each punch; head movement in between resets which hand is loaded.
       let prev = null;
-      let pulled = false;
       for (const m of moves) {
-        if (!isPunch(m)) { pulled = pulled || m === "pull"; continue; }
-        if (prev && side(prev) === side(m) && !sameHandOk(prev, m) && !(pulled && side(m) === "rear")) {
+        if (HEAD.has(m)) { prev = null; continue; }
+        if (!isPunch(m)) continue;
+        if (prev && side(prev) === side(m) && !sameHandOk(prev, m)) {
           throw new Error(`${combo}: ${prev} then ${m} is the same hand twice`);
         }
         prev = m;
-        pulled = false;
       }
     }
   }
-  expect(CALL_LEVELS.flatMap((l) => l.combos)).not.toContain("1-2-4b");
 });
