@@ -2335,7 +2335,9 @@
       "defense": "الدفاع",
       "movement": "الحركة",
       "coachNotes": "ملاحظات {{name}}",
-      "coach": "المدرب"
+      "coach": "المدرب",
+      "scoreOnItsWay": "نتيجتك في الطريق",
+      "scoreOnItsWayBody": "مدربك يشاهد جولتك الأخيرة. ستظهر هنا تلقائيًا، فتجوّل وأنت تنتظر."
     },
     "gymSeasonHours": {
       "preseason": "ما قبل الموسم",
@@ -2551,7 +2553,10 @@
       "voiceTestLoading": "جارٍ تجهيز الصوت…",
       "voiceTest": "اختبر صوت المدرب",
       "voiceNatural": "صوت طبيعي ✓",
-      "voicePhone": "صوت الهاتف. لا تسمعه؟ ارفع مستوى الصوت."
+      "voicePhone": "صوت الهاتف. لا تسمعه؟ ارفع مستوى الصوت.",
+      "savingYourSession": "جارٍ حفظ جلستك",
+      "learnTheNumbers": "تعلّم الأرقام",
+      "bMeansBody": "\"b\" تعني إلى الجسم: 3b هي خطّافية إلى الجسم. تظهر الأسماء تحت كل نداء أثناء التعلّم."
     },
     "merchSheet": {
       "linkCopiedSendIt": "تم نسخ الرابط: أرسله لأحد والديك",

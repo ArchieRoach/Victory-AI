@@ -20,7 +20,7 @@ import { useLiveCoach, preloadLiveCoach, CUES as COACH_CUES } from "@/hooks/useL
 import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
-import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, callsNumbers, setCallsNumbers, callPace, setCallPace, CALL_PACES, CALL_LEVELS } from "@/lib/comboCaller";
+import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, numberLegend, callsNumbers, setCallsNumbers, callPace, setCallPace, CALL_PACES, CALL_LEVELS } from "@/lib/comboCaller";
 import { unlockSpeech, setVoiceSource, primeVoice, sayNatural, say, hasClip, waitForVoice, onVoiceProblem } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
 import { TimerCard } from "@/components/home/TimerCard";
@@ -38,7 +38,6 @@ const DEFAULT_ROUND_SECONDS = 120;
 // One round and Boss Rounds are always three minutes, so a boss target means the same for everyone.
 const FIXED_ROUND_SECONDS = 180;
 // Long enough for a typical upload and score; a slow network still reaches the results.
-const FINISH_WAIT_MS = 75_000;
 const ROUND_VIDEO_BITRATE = 1_800_000;
 // 720p at up to 30 fps: plenty for scoring, and light enough that the phone can film, show the
 // preview and run the punch counter at once without the picture freezing.
@@ -137,6 +136,7 @@ export default function TrainPage() {
   const [currentCall, setCurrentCall] = useState(null);
   const callerRef = useRef(null);
   const roundWorkRef = useRef(null);
+  const finishedRef = useRef(false);
   // Training with a pro's alias ("The Reaper"): their approved talking clips play at key moments.
   const aliasProId = user?.training_partner?.alias_pro_id;
   const [proClips, setProClips] = useState({});
@@ -572,14 +572,14 @@ export default function TrainPage() {
       }, { withCredentials: true });
       setFeedback(res.data);
       feedbackOut = res.data;
-      if (voiceEnabled && res.data?.what_you_did_well) {
+      if (voiceEnabled && !finishedRef.current && res.data?.what_you_did_well) {
         // Recency effect: end on the affirming line, not the critique — that's
         // what's still in the fighter's head when the next round starts.
         // A verbal cue first ("Okay.", "Hmm.") so it sounds like your partner watched, then spoke.
         playVoiceFeedback(withCue(`${res.data.what_to_tighten} ${res.data.what_you_did_well}`, `round:${roundNum}`));
       }
     } catch {
-      toast.error(t("train.feedbackFailed", "Couldn't generate feedback for this round."));
+      if (!finishedRef.current) toast.error(t("train.feedbackFailed", "Couldn't generate feedback for this round."));
     }
     finally { setLoadingFeedback(false); }
     return feedbackOut;
@@ -658,6 +658,7 @@ export default function TrainPage() {
         .catch(() => setGhost(null));
     }
 
+    finishedRef.current = false;
     setStartingSession(false);
     setIsConfiguring(false);
     setTimeLeft(roundDuration);
@@ -741,20 +742,18 @@ export default function TrainPage() {
     const calls = caller ? caller.summary() : null;
     if (caller && kind === "standard" && calls.checked > 0) saveLevel(caller.level());
     stopHypeCycle();
-    // The last round's video is still uploading and being scored. Finishing first would
-    // save the session with no scores: no breakdown and a locked scouting report.
-    // The last round's notes have no rest break to appear in, so they go to the results page.
-    let lastNotes = null;
-    if (roundWorkRef.current) {
-      setFinishing(true);
-      lastNotes = await Promise.race([roundWorkRef.current, new Promise((r) => setTimeout(() => r(null), FINISH_WAIT_MS))]);
-      roundWorkRef.current = null;
-    }
+    // Doherty threshold: people leave when an app makes them wait. The results open straight
+    // away; the last round's video keeps uploading and scoring in the background, and the
+    // server adds the score to the saved session when it lands (the results page checks back).
+    const scoring = !!roundWorkRef.current && recordVideo;
+    finishedRef.current = true;
+    roundWorkRef.current = null;
+    setFinishing(true);
     stopCamera();
     if (sessionId) {
       try {
         const res = await axios.post(`${API}/training/${sessionId}/complete`, calls ? { calls } : {}, { withCredentials: true });
-        navigate(`/score/results/${res.data.session_id}`, { state: { session: res.data, fromTraining: true, calls, coachNotes: lastNotes } });
+        navigate(`/score/results/${res.data.session_id}`, { state: { session: res.data, fromTraining: true, calls, pendingScore: scoring && !res.data.scored } });
         return;
       } catch {
         toast.error(t("train.failedSave"));
@@ -823,7 +822,10 @@ export default function TrainPage() {
   const comboCall = (!isResting && !isPaused && currentCall && (
               <div className="w-full max-w-sm mb-4 text-center" data-testid="combo-call" aria-live="polite">
                 {numbersOn ? (
-                  <p className="font-mono text-5xl font-extrabold text-victory-lime leading-none">{currentCall.combo}</p>
+                  <>
+                    <p className="font-mono text-5xl font-extrabold text-victory-lime leading-none">{currentCall.combo}</p>
+                    <p className="text-victory-text text-sm font-semibold mt-2" data-testid="combo-names">{comboWords(currentCall.combo, stance).join(" · ")}</p>
+                  </>
                 ) : (
                   <>
                     <p className="font-heading text-3xl font-extrabold text-victory-lime leading-tight">{comboWords(currentCall.combo, stance).join(" · ")}</p>
@@ -847,8 +849,7 @@ export default function TrainPage() {
       {finishing && (
         <div className="fixed inset-0 z-50 bg-victory-bg/95 flex flex-col items-center justify-center gap-4 p-6 text-center" data-testid="finishing-session" aria-live="polite">
           <div className="w-10 h-10 rounded-full border-2 border-victory-border border-t-victory-lime animate-spin" />
-          <p className="text-victory-text font-heading font-bold">{tx("ui.trainPage.scoringYourLastRound", "Scoring your last round")}</p>
-          <p className="text-victory-muted text-sm max-w-xs">{tx("ui.trainPage.yourVideoIsBeing", "Your video is being checked so your breakdown and scouting report are ready.")}</p>
+          <p className="text-victory-text font-heading font-bold">{tx("ui.trainPage.savingYourSession", "Saving your session")}</p>
         </div>
       )}
 
@@ -942,6 +943,17 @@ export default function TrainPage() {
                   <ToggleRow on={numbersOn} iconOn={Hash} title={tx("ui.trainPage.callNumbers", "Call numbers")}
                     onToggle={(next) => { setNumbersOn(next); setCallsNumbers(next); }}
                     description={numbersOn ? tx("ui.trainPage.callsLike12", "Calls like \"1, 2, 3\".") : tx("ui.trainPage.callsLikeWords", "Calls like \"{{example}}\". Switch on if your coach taught you numbers.", { example: comboSpeech("1-2-3", stance, false) })} />
+                )}
+                {callsOn && numbersOn && (
+                  <div className="mt-3 rounded-xl bg-victory-card-highlight p-3" data-testid="numbers-legend">
+                    <p className="text-victory-text text-sm font-semibold">{tx("ui.trainPage.learnTheNumbers", "Learn the numbers")}</p>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2">
+                      {numberLegend(stance).map(([n, name]) => (
+                        <p key={n} className="text-sm text-victory-muted"><span className="font-mono font-bold text-victory-lime mr-2">{n}</span>{name}</p>
+                      ))}
+                    </div>
+                    <p className="text-victory-muted text-xs mt-2">{tx("ui.trainPage.bMeansBody", "\"b\" means to the body: 3b is a body hook. The names show under every call while you learn.")}</p>
+                  </div>
                 )}
                 <div className="mt-3 flex items-center gap-3" data-testid="voice-test">
                   <button type="button" onClick={testVoice} disabled={voiceTest === "loading"}

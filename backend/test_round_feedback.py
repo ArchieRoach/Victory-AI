@@ -37,7 +37,9 @@ def test_services_say_yes_or_no_and_never_show_a_key():
         os.environ[k] = "x"
     r = client.get("/api/health/services")
     assert r.status_code == 200 and "secret" not in r.text
-    assert r.json()["coach_voice"] == {"elevenlabs": False, "openai": True, "storage": True, "ready": True}
+    voice = r.json()["coach_voice"]
+    assert {k: voice[k] for k in ("elevenlabs", "openai", "storage", "ready")} == {"elevenlabs": False, "openai": True, "storage": True, "ready": True}
+    assert voice["recent_errors"] == [] and voice["clips_made_today"] == 0
     assert r.json()["video_scoring"]["ready"] is True
     del os.environ["CLOUDINARY_API_SECRET"]
     assert client.get("/api/health/services").json()["coach_voice"]["ready"] is False

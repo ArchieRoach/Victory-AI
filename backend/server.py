@@ -1384,7 +1384,48 @@ async def _score_round_video(job: dict) -> dict:
                   # The real length from the video host, not the phone, so verified hours can't be inflated.
                   "video_seconds": await _video_seconds(job["public_id"])}}
     )
+    video = await db.round_videos.find_one({"video_url": job["video_url"], "user_id": job["user_id"]}, {"session_id": 1})
+    if video and video.get("session_id"):
+        await rescore_session(video["session_id"], job["user_id"])
     return {"analysis": analysis, "partner_name": job["partner_name"]}
+
+
+def aggregate_round_scores(videos: list) -> tuple:
+    """Per-dimension averages over the scored rounds; unwatched dimensions stay None."""
+    all_scores = {}
+    for video in videos:
+        for score in (video.get("analysis_results") or {}).get("dimension_scores", []):
+            all_scores.setdefault(score["dimension_name"], []).append(score["score"])
+    dims = []
+    for dim in DIMENSIONS:
+        vals = [v for v in all_scores.get(dim, []) if isinstance(v, (int, float))]
+        dims.append({"dimension_name": dim, "score": round(sum(vals) / len(vals)) if vals else None})
+    scored = [d["score"] for d in dims if d["score"] is not None]
+    return dims, (round(sum(scored) / len(scored), 1) if scored else None)
+
+
+# Doherty threshold: the fighter goes straight to their results when the round ends, instead of
+# waiting up to a minute on a spinner. The video keeps uploading and scoring in the background,
+# and the score lands on the saved session here, where the results page picks it up.
+async def rescore_session(session_id: str, user_id: str) -> Optional[dict]:
+    saved = await db.sessions.find_one({"session_id": session_id, "user_id": user_id}, {"_id": 0})
+    if not saved or saved.get("kind") == "freestyle":
+        return None
+    videos = await db.round_videos.find({"session_id": session_id, "user_id": user_id}, {"_id": 0}).to_list(100)
+    dims, overall = aggregate_round_scores(videos)
+    update = {"dimension_scores": dims, "overall_score": overall, "scored": overall is not None,
+              "rounds": [{"round_number": v["round_number"], "video_url": v["video_url"], "analysis": v.get("analysis_results"),
+                          "seconds": v.get("video_seconds")} for v in videos]}
+    if overall is not None:
+        update["scouting_report"] = build_scouting_report(dims, session_id, None, filmed=True)
+        update["scored_late_at"] = datetime.now(timezone.utc).isoformat()
+        fresh = await db.users.find_one({"user_id": user_id}, {"personal_bests": 1}) or {}
+        pb = compute_pb_changes(fresh.get("personal_bests") or {}, overall, dims)
+        if pb["entries"]:
+            await db.users.update_one({"user_id": user_id}, {"$max": {
+                f"personal_bests.{_pb_key(name)}": score for name, score in pb["entries"]}})
+    await db.sessions.update_one({"session_id": session_id, "user_id": user_id}, {"$set": update})
+    return update
 
 
 @api_router.get("/ai/jobs/{job_id}")
@@ -3248,7 +3289,10 @@ async def health_services():
     cloudinary_on = all(os.environ.get(k) for k in ("CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"))
     return {
         "coach_voice": {"elevenlabs": bool(ELEVENLABS_API_KEY), "openai": bool(OPENAI_API_KEY),
-                        "storage": cloudinary_on, "ready": bool(coach_voice_id("male")) and cloudinary_on},
+                        "storage": cloudinary_on, "ready": bool(coach_voice_id("male")) and cloudinary_on,
+                        "recent_errors": await db.voice_errors.find({}, {"_id": 0}).sort("at", -1).to_list(5),
+                        "clips_made_today": await db.voice_clips.count_documents(
+                            {"created_at": {"$gte": datetime.now(timezone.utc).strftime("%Y-%m-%d")}})},
         "video_scoring": {"storage": cloudinary_on, "ai": bool(GEMINI_API_KEY), "ready": cloudinary_on and bool(GEMINI_API_KEY)},
         "email": bool(RESEND_API_KEY),
         "payments": bool(STRIPE_API_KEY),
@@ -3466,6 +3510,13 @@ async def _make_voice_clip(voice_id: str, text: str, key: str) -> Optional[str]:
         )
     if r.status_code != 200:
         logger.warning(f"Coach voice clip failed: {r.status_code}")
+        reason = ""
+        try:
+            reason = str((r.json().get("detail") or {}).get("status") or "")[:60]
+        except Exception:
+            pass
+        await db.voice_errors.insert_one({"at": datetime.now(timezone.utc).isoformat(), "provider": "elevenlabs",
+                                          "status": r.status_code, "reason": reason})
         return None
     data_uri = "data:audio/mpeg;base64," + base64.b64encode(r.content).decode()
     up = await asyncio.to_thread(cloudinary.uploader.upload, data_uri, resource_type="video",
@@ -3497,6 +3548,8 @@ async def voice_clips(data: VoiceClipsIn, user: dict = Depends(get_current_user)
                     url = await _make_voice_clip(voice_id, t, keys[t])
                 except Exception as e:
                     logger.warning(f"Coach voice clip error: {type(e).__name__}")
+                    await db.voice_errors.insert_one({"at": datetime.now(timezone.utc).isoformat(), "provider": "storage",
+                                                      "status": None, "reason": f"{type(e).__name__}: {str(e)[:100]}"})
                     return
             if url:
                 clips[t] = url

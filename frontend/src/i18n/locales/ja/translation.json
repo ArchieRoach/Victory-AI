@@ -2335,7 +2335,9 @@
       "defense": "ディフェンス",
       "movement": "ムーブメント",
       "coachNotes": "{{name}}のメモ",
-      "coach": "コーチ"
+      "coach": "コーチ",
+      "scoreOnItsWay": "スコアはもうすぐ届きます",
+      "scoreOnItsWayBody": "コーチが最後のラウンドを見ています。ここに自動で表示されるので、待つ間ほかも見てみてください。"
     },
     "gymSeasonHours": {
       "preseason": "プレシーズン",
@@ -2551,7 +2553,10 @@
       "voiceTestLoading": "声を準備中…",
       "voiceTest": "コーチの声をテスト",
       "voiceNatural": "自然な声 ✓",
-      "voicePhone": "スマホの声です。聞こえない場合は音量を上げてください。"
+      "voicePhone": "スマホの声です。聞こえない場合は音量を上げてください。",
+      "savingYourSession": "セッションを保存中",
+      "learnTheNumbers": "番号を覚えよう",
+      "bMeansBody": "「b」はボディ。3bはボディへのフック。覚えるまで、名前が毎回下に出ます。"
     },
     "merchSheet": {
       "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",

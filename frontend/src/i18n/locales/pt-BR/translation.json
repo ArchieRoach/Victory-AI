@@ -2335,7 +2335,9 @@
       "defense": "Defesa",
       "movement": "Movimentação",
       "coachNotes": "Anotações de {{name}}",
-      "coach": "Treinador"
+      "coach": "Treinador",
+      "scoreOnItsWay": "Sua nota está a caminho",
+      "scoreOnItsWayBody": "Seu coach está assistindo ao seu último round. A nota aparece aqui sozinha, então dê uma olhada enquanto espera."
     },
     "gymSeasonHours": {
       "preseason": "Pré-temporada",
@@ -2551,7 +2553,10 @@
       "voiceTestLoading": "Preparando a voz…",
       "voiceTest": "Testar a voz do treinador",
       "voiceNatural": "Voz natural ✓",
-      "voicePhone": "Voz do celular. Não está ouvindo? Aumente o volume."
+      "voicePhone": "Voz do celular. Não está ouvindo? Aumente o volume.",
+      "savingYourSession": "Salvando sua sessão",
+      "learnTheNumbers": "Aprenda os números",
+      "bMeansBody": "\"b\" quer dizer no corpo: 3b é um gancho no corpo. Os nomes aparecem embaixo de cada chamada enquanto você aprende."
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link copiado: envie para um responsável",
