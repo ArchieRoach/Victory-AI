@@ -1508,7 +1508,9 @@
       "xxxxxxxx": "XXXXXXXX",
       "roundsToRate": "Asaltos por valorar",
       "squadMate": "Compañero de squad",
-      "rateIt": "Valorar"
+      "rateIt": "Valorar",
+      "bringYourGym": "Trae a tu gimnasio",
+      "bringYourGymBody": "Enseña tu código QR o manda tu enlace. Los dos recibís tokens cuando entrenen."
     },
     "timerPage": {
       "close": "Cerrar",
@@ -2096,7 +2098,8 @@
       "schedule": "Agenda",
       "wins": "Victorias",
       "losses": "Derrotas",
-      "draws": "Empates"
+      "draws": "Empates",
+      "inviteFriends": "Invitar amigos"
     },
     "rateRoundPage": {
       "goBack": "Volver",
@@ -3086,6 +3089,44 @@
       "onHold": "Retenido",
       "paidToBank": "Pagado a tu banco",
       "holdWhy": "El dinero retenido está a salvo. El dinero de los directos espera {{days}} días por si un fan pide un reembolso. El dinero del merch se libera cuando el comprador confirma que llegó (o {{merchDays}} días después del envío)."
+    },
+    "app": {
+      "referralClaimed": "Invitación aceptada. Termina tu primera sesión y tú y {{name}} recibís {{tokens}} tokens cada uno."
+    },
+    "invitePage": {
+      "couldntLoad": "No se pudo cargar tu enlace de invitación. Inténtalo de nuevo.",
+      "message": "Entrena boxeo conmigo en Victory AI. Un coach con IA canta combos y puntúa tus asaltos. Únete con mi enlace y los dos recibimos {{tokens}} tokens después de tu primera sesión: {{url}}",
+      "copyFailed": "No se pudo copiar. Mantén pulsado el enlace.",
+      "goBack": "Volver",
+      "title": "Invitar amigos",
+      "bothGet": "Los dos recibís {{tokens}} tokens",
+      "whenTheyTrain": "cuando tu amigo termine su primera sesión.",
+      "showBig": "Ver el código QR a pantalla completa",
+      "qrAlt": "Tu código QR de invitación",
+      "scanHint": "¿En el gimnasio? Toca el código para agrandarlo. Lo escanean con la cámara del móvil.",
+      "share": "Enviar mi invitación",
+      "whatsapp": "WhatsApp",
+      "text": "SMS",
+      "contacts": "Contactos",
+      "copied": "Copiado",
+      "copyLink": "Copiar enlace",
+      "joined": "se unieron",
+      "trained": "entrenaron",
+      "tokensEarned": "tokens ganados",
+      "rules": "Los tokens llegan cuando un nuevo boxeador que se unió con tu enlace termina su primera sesión. Hasta 10 amigos al mes.",
+      "scanWithCamera": "Escanea con la cámara del móvil para unirte a {{name}} en Victory AI",
+      "me": "mí",
+      "close": "Cerrar"
+    },
+    "referralLanding": {
+      "couldntUse": "No se pudo usar esa invitación",
+      "notValid": "Ese enlace de invitación no es válido",
+      "openApp": "Abrir Victory AI",
+      "invitedYou": "{{name}} te ha invitado a entrenar",
+      "pitch": "Un coach con IA canta tus combos y puntúa cada asalto que grabes.",
+      "reward": "Termina tu primera sesión y los dos recibís {{tokens}} tokens.",
+      "accept": "Aceptar invitación",
+      "signUp": "Regístrate gratis"
     }
   },
   "feedback": {

@@ -69,6 +69,7 @@ import workouts as wk
 import earnings as ern
 import jobs
 import launch_email as launch_mail
+import referrals as rf
 import help_assistant as helpbot
 import partner_chat as pchat
 from cache import cache
@@ -1686,6 +1687,12 @@ async def complete_training_session(session_id: str, data: Optional[CompleteIn] 
         await post_crew_moments(user, rewards)
     except Exception as e:
         logger.error(f"Session extras failed for {session_id}: {e}")
+    try:
+        referral = await pay_referral(user)
+        if referral:
+            rewards = {**rewards, "referral": referral}
+    except Exception as e:
+        logger.error(f"Referral payout failed for {session_id}: {e}")
     result["rewards"] = rewards
     result["scouting_report"] = rewards.get("scouting_report")
     try:
@@ -5452,6 +5459,96 @@ async def accept_invite(invite_id: str, user: dict = Depends(get_current_user)):
                          body="Your invite worked. Now beat them this week.",
                          url=f"/squads/{squad['squad_id']}", tag=f"squadjoin-{squad['squad_id']}")
     return {"squad_id": squad["squad_id"], "name": squad["name"], "already_member": False}
+
+
+# ---- Referral programme (see referrals.py) ----
+
+async def _my_referral_code(user: dict) -> str:
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"referral_code": 1}) or {}
+    if fresh.get("referral_code"):
+        return fresh["referral_code"]
+    for _ in range(8):
+        code = rf.new_code()
+        if not await db.users.find_one({"referral_code": code}, {"_id": 1}):
+            res = await db.users.update_one({"user_id": user["user_id"], "referral_code": {"$exists": False}},
+                                            {"$set": {"referral_code": code}})
+            if res.modified_count:
+                return code
+            fresh = await db.users.find_one({"user_id": user["user_id"]}, {"referral_code": 1}) or {}
+            if fresh.get("referral_code"):
+                return fresh["referral_code"]
+    raise HTTPException(500, "Couldn't make your invite code. Try again")
+
+
+@api_router.get("/referrals/me")
+async def my_referrals(user: dict = Depends(get_current_user)):
+    code = await _my_referral_code(user)
+    joined = await db.users.count_documents({"invited_by": user["user_id"]})
+    trained = await db.users.count_documents({"invited_by": user["user_id"], "referral_paid": True})
+    return {"code": code, "url": f"{FRONTEND_URL}/r/{code}", "joined": joined, "trained": trained,
+            "tokens_earned": trained * rf.REFERRAL_TOKENS, "reward_tokens": rf.REFERRAL_TOKENS}
+
+
+async def _inviter_for_code(code: str) -> dict:
+    clean = rf.clean_code(code)
+    inviter = clean and await db.users.find_one({"referral_code": clean}, {"_id": 0, "user_id": 1, "display_name": 1, "name": 1,
+                                                                            "picture": 1, "avatar_url": 1})
+    if not inviter:
+        raise HTTPException(404, "That invite link isn't valid")
+    return inviter
+
+
+@api_router.get("/referrals/code/{code}")
+async def preview_referral(code: str, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    if _rate_limited(f"referral_preview:{client_ip}", 30, 60):
+        raise HTTPException(429, "Too many requests — slow down")
+    inviter = await _inviter_for_code(code)
+    return {"inviter_name": (inviter.get("display_name") or inviter.get("name") or "A fighter").split()[0][:30],
+            "inviter_picture": inviter.get("avatar_url") or inviter.get("picture"),
+            "reward_tokens": rf.REFERRAL_TOKENS}
+
+
+@api_router.post("/referrals/code/{code}/claim")
+async def claim_referral(code: str, user: dict = Depends(get_current_user)):
+    if _rate_limited(f"referral_claim:{user['user_id']}", 10, 3600):
+        raise HTTPException(429, "Too many attempts — slow down")
+    inviter = await _inviter_for_code(code)
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "user_id": 1, "invited_by": 1, "created_at": 1}) or user
+    why = rf.can_claim(fresh, inviter["user_id"])
+    if why == "already":
+        return {"claimed": False, "already": True}
+    if why:
+        raise HTTPException(400, why)
+    res = await db.users.update_one({"user_id": user["user_id"], "invited_by": {"$exists": False}},
+                                    {"$set": {"invited_by": inviter["user_id"], "invited_via": "referral"}})
+    if res.modified_count:
+        name = (user.get("display_name") or user.get("name") or "Someone").split()[0][:30]
+        await _send_push(inviter["user_id"], title=f"{name} joined from your invite",
+                         body=f"You both get {rf.REFERRAL_TOKENS} tokens after their first session.", url="/invite", tag="referral-join")
+    return {"claimed": bool(res.modified_count), "inviter_name": (inviter.get("display_name") or inviter.get("name") or "").split()[0][:30],
+            "reward_tokens": rf.REFERRAL_TOKENS}
+
+
+async def pay_referral(user: dict) -> Optional[dict]:
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"invited_by": 1, "referral_paid": 1}) or {}
+    inviter_id = fresh.get("invited_by")
+    if not inviter_id or fresh.get("referral_paid") or str(user["user_id"]).startswith("demo_"):
+        return None
+    # Claim the payout first, so a double-tapped finish can never pay twice.
+    res = await db.users.update_one({"user_id": user["user_id"], "referral_paid": {"$ne": True}}, {"$set": {"referral_paid": True}})
+    if not res.modified_count:
+        return None
+    month = rf.month_key()
+    capped = await db.users.update_one(
+        {"user_id": inviter_id, f"referral_payouts.{month}": {"$not": {"$gte": rf.REFERRAL_PAID_PER_MONTH}}},
+        {"$inc": {"token_balance": rf.REFERRAL_TOKENS, f"referral_payouts.{month}": 1}})
+    await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {"token_balance": rf.REFERRAL_TOKENS}})
+    if capped.modified_count:
+        name = (user.get("display_name") or user.get("name") or "Your friend").split()[0][:30]
+        await _send_push(inviter_id, title=f"+{rf.REFERRAL_TOKENS} tokens",
+                         body=f"{name} finished their first session. You both got {rf.REFERRAL_TOKENS} tokens.", url="/invite", tag="referral-paid")
+    return {"tokens": rf.REFERRAL_TOKENS}
 
 
 @api_router.get("/squads/{squad_id}")

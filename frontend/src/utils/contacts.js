@@ -15,6 +15,13 @@ async function sha256Hex(str) {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Opens the OS contact picker for phone numbers, used only to address an invite text the user
+// then sends themselves. The numbers never leave the phone.
+export async function pickContactPhones() {
+  const contacts = await navigator.contacts.select(["tel"], { multiple: true });
+  return [...new Set(contacts.flatMap((c) => c.tel || []).map((t) => t.trim()).filter(Boolean))];
+}
+
 // Opens the OS contact picker, returns SHA-256 hashes of the emails on the contacts the
 // user picked. Throws if the user cancels the picker or denies the prompt — callers should
 // catch and silently no-op on cancel rather than showing an error for a normal dismissal.

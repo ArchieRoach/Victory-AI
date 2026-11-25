@@ -35,6 +35,7 @@
   "Coins",
   "Columns2",
   "Compass",
+  "Contact",
   "Copy",
   "CreditCard",
   "Crown",
@@ -194,6 +195,10 @@
   "lucide-camera": [
    0,
    -3.6
+  ],
+  "lucide-contact": [
+   0,
+   -4.3
   ],
   "lucide-delete": [
    -6,

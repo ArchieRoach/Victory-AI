@@ -1508,7 +1508,9 @@
       "xxxxxxxx": "XXXXXXXX",
       "roundsToRate": "評価するラウンド",
       "squadMate": "スクワッド仲間",
-      "rateIt": "評価する"
+      "rateIt": "評価する",
+      "bringYourGym": "ジムの仲間を誘おう",
+      "bringYourGymBody": "QRコードを見せるかリンクを送ろう。相手がトレーニングすると2人ともトークンがもらえます。"
     },
     "timerPage": {
       "close": "閉じる",
@@ -2096,7 +2098,8 @@
       "schedule": "スケジュール",
       "wins": "勝ち",
       "losses": "負け",
-      "draws": "引き分け"
+      "draws": "引き分け",
+      "inviteFriends": "友だちを招待"
     },
     "rateRoundPage": {
       "goBack": "戻る",
@@ -3086,6 +3089,44 @@
       "onHold": "保留中",
       "paidToBank": "銀行に支払い済み",
       "holdWhy": "保留中のお金は安全です。配信の収益は、ファンが返金を求める場合に備えて{{days}}日間保留されます。グッズの収益は、購入者が受け取りを確認したとき（または発送から{{merchDays}}日後）に支払われます。"
+    },
+    "app": {
+      "referralClaimed": "招待を受けました。最初のセッションを終えると、あなたと{{name}}さんにそれぞれ{{tokens}}トークン。"
+    },
+    "invitePage": {
+      "couldntLoad": "招待リンクを読み込めませんでした。もう一度お試しください。",
+      "message": "Victory AIで一緒にボクシングしよう。AIコーチがコンビネーションをコールしてラウンドを採点してくれる。私のリンクから登録すると、最初のセッション後に2人とも{{tokens}}トークンもらえるよ：{{url}}",
+      "copyFailed": "コピーできませんでした。リンクを長押ししてください。",
+      "goBack": "戻る",
+      "title": "友だちを招待",
+      "bothGet": "2人とも{{tokens}}トークン",
+      "whenTheyTrain": "友だちが最初のセッションを終えたとき。",
+      "showBig": "QRコードを全画面で表示",
+      "qrAlt": "あなたの招待QRコード",
+      "scanHint": "ジムにいる？コードをタップすると大きくなります。相手はスマホのカメラで読み取るだけ。",
+      "share": "招待を送る",
+      "whatsapp": "WhatsApp",
+      "text": "SMS",
+      "contacts": "連絡先",
+      "copied": "コピーしました",
+      "copyLink": "リンクをコピー",
+      "joined": "参加",
+      "trained": "トレーニング済み",
+      "tokensEarned": "獲得トークン",
+      "rules": "あなたのリンクから参加した新しいファイターが最初のセッションを終えるとトークンが届きます。月10人まで。",
+      "scanWithCamera": "スマホのカメラで読み取って、Victory AIで{{name}}に参加",
+      "me": "私",
+      "close": "閉じる"
+    },
+    "referralLanding": {
+      "couldntUse": "その招待を使えませんでした",
+      "notValid": "その招待リンクは無効です",
+      "openApp": "Victory AIを開く",
+      "invitedYou": "{{name}}さんがトレーニングに招待しています",
+      "pitch": "AIコーチがコンビネーションをコールし、撮影したラウンドをすべて採点します。",
+      "reward": "最初のセッションを終えると2人とも{{tokens}}トークン。",
+      "accept": "招待を受ける",
+      "signUp": "無料で登録"
     }
   },
   "feedback": {

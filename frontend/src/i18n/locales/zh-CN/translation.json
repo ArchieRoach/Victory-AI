@@ -1508,7 +1508,9 @@
       "xxxxxxxx": "XXXXXXXX",
       "roundsToRate": "待评分的回合",
       "squadMate": "小队队友",
-      "rateIt": "去评分"
+      "rateIt": "去评分",
+      "bringYourGym": "带上你的拳馆伙伴",
+      "bringYourGymBody": "出示你的二维码或发送链接。对方开始训练后，你们俩都能获得代币。"
     },
     "timerPage": {
       "close": "关闭",
@@ -2096,7 +2098,8 @@
       "schedule": "日程",
       "wins": "胜",
       "losses": "负",
-      "draws": "平"
+      "draws": "平",
+      "inviteFriends": "邀请好友"
     },
     "rateRoundPage": {
       "goBack": "返回",
@@ -3086,6 +3089,44 @@
       "onHold": "暂扣中",
       "paidToBank": "已打到你的银行卡",
       "holdWhy": "暂扣的钱是安全的。直播收入会等待{{days}}天，以防粉丝申请退款。周边收入在买家确认收货后（或发货后{{merchDays}}天）发放。"
+    },
+    "app": {
+      "referralClaimed": "已接受邀请。完成第一次训练，你和{{name}}各得{{tokens}}代币。"
+    },
+    "invitePage": {
+      "couldntLoad": "无法加载你的邀请链接，请重试。",
+      "message": "来 Victory AI 和我一起练拳吧。AI 教练会喊组合拳并给你的回合打分。用我的链接加入，你完成第一次训练后我们俩都能获得{{tokens}}代币：{{url}}",
+      "copyFailed": "复制失败。请长按链接。",
+      "goBack": "返回",
+      "title": "邀请好友",
+      "bothGet": "你们俩各得{{tokens}}代币",
+      "whenTheyTrain": "在好友完成第一次训练时。",
+      "showBig": "全屏显示二维码",
+      "qrAlt": "你的邀请二维码",
+      "scanHint": "在拳馆？点一下二维码放大。对方用手机相机扫码即可。",
+      "share": "发送邀请",
+      "whatsapp": "WhatsApp",
+      "text": "短信",
+      "contacts": "通讯录",
+      "copied": "已复制",
+      "copyLink": "复制链接",
+      "joined": "已加入",
+      "trained": "已训练",
+      "tokensEarned": "获得代币",
+      "rules": "通过你的链接加入的新拳手完成第一次训练后，代币就会到账。每月最多10位好友。",
+      "scanWithCamera": "用手机相机扫码，在 Victory AI 上和{{name}}一起训练",
+      "me": "我",
+      "close": "关闭"
+    },
+    "referralLanding": {
+      "couldntUse": "无法使用该邀请",
+      "notValid": "该邀请链接无效",
+      "openApp": "打开 Victory AI",
+      "invitedYou": "{{name}}邀请你一起训练",
+      "pitch": "AI 教练喊出你的组合拳，并为你拍摄的每个回合打分。",
+      "reward": "完成第一次训练，你们俩各得{{tokens}}代币。",
+      "accept": "接受邀请",
+      "signUp": "免费注册"
     }
   },
   "feedback": {

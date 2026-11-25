@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { StreakFlame } from "@/components/StreakFlame";
 import { toast } from "sonner";
-import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Ban, Users, GraduationCap, CreditCard } from "lucide-react";
+import { ArrowLeft, LogOut, User, Target, Bell, Trophy, Swords, ExternalLink, Camera, X, Clapperboard, CalendarDays, TrendingUp, Zap, BellOff, Lock, Shield, Download, Trash2, Ban, Users, GraduationCap, CreditCard, QrCode } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { FightFilm } from "@/components/FightFilm";
 import { TrophyShelf } from "@/components/progress/TrophyShelf";
@@ -886,6 +886,15 @@ export default function ProfilePage() {
         >
           <Users className="w-5 h-5" />
           {t("squads.title")}
+        </button>
+
+        <button
+          onClick={() => navigate("/invite")}
+          className="victory-btn-ghost w-full flex items-center justify-center gap-2"
+          data-testid="profile-invite"
+        >
+          <QrCode className="w-5 h-5" />
+          {tx("ui.profilePage.inviteFriends", "Invite friends")}
         </button>
 
         {/* School leaderboard — aggregate-only, see the privacy note on the school-name
