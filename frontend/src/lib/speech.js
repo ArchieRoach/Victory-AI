@@ -27,6 +27,17 @@ export function onSpeaking(fn) {
   return () => listeners.delete(fn);
 }
 
+// The training screen listens for voice problems mid-round (a clip the phone refused to play,
+// a broken clip), so a silent coach can be traced instead of guessed at.
+const problemListeners = new Set();
+function voiceProblem(what) {
+  problemListeners.forEach((fn) => { try { fn(what); } catch {} });
+}
+export function onVoiceProblem(fn) {
+  problemListeners.add(fn);
+  return () => problemListeners.delete(fn);
+}
+
 // TrainPage hands in the call to the server, so this file stays free of app imports.
 export function setVoiceSource(fn) {
   source = fn;
@@ -85,6 +96,7 @@ export function unlockSpeech() {
       player.addEventListener("playing", () => { if (player.src !== SILENT) speaking(true); });
       player.addEventListener("ended", () => { if (!queue.length) speaking(false); });
       player.addEventListener("pause", () => speaking(false));
+      player.addEventListener("error", () => voiceProblem(`clip failed to load (${player.error?.code || "?"})`));
       player.src = SILENT;
       player.play().catch(() => {});
     }
@@ -109,7 +121,7 @@ function playClip(text, rate) {
   try {
     player.src = clips.get(text);
     player.playbackRate = rate > 1 ? 1.08 : 1;
-    player.play().catch(() => speakFallback(text, rate));
+    player.play().catch((e) => { voiceProblem(`phone refused to play a clip (${e?.name || "error"})`); speakFallback(text, rate); });
   } catch {
     speakFallback(text, rate);
   }

@@ -17,21 +17,23 @@ export const CALL_LEVELS = [
   //   shots in a row (no "cross, rear hook to the body").
   // - The only same-hand doubles are the classic ones: double jab, and lead hook to the body then
   //   to the head.
-  // - A slip or roll sets up the punch on the side it loads; a pull back sets up the cross.
-  // - Never finishing on a jab: end on power or get out with a move (slip, roll, bob and weave,
-  //   pull back, step back, pivot, angle out).
+  // - Every combo has movement: head movement (slip, roll, bob and weave, pull back), footwork
+  //   (step in to start, step back or step out to finish) or an angle (pivot after the hook).
+  //   A slip, roll or weave loads one side, so the next punch can come from either hand; a pull
+  //   back loads the cross.
+  // - Never finishing on a jab: end on power or get out with a move.
   { name: "Warm-up", gapMs: 5000,
-    combos: ["1-2", "1-1-2", "1-2-slip", "1-2-back", "1-1-2-roll"] },
+    combos: ["1-2-slip", "1-2-back", "1-1-2-roll", "in-1-2-back", "1-2-angle"] },
   { name: "Basics", gapMs: 4500,
-    combos: ["1-2-3", "1-2-3-back", "1b-2", "1-2-3b", "1-1-2-bob", "1-2-pull-2"] },
+    combos: ["1-2-3-pivot", "1-2-3-roll", "1b-2-slip", "in-1-1-2-angle", "1-2-pull-2", "1-2-3b-3-back"] },
   { name: "Sharp", gapMs: 4000,
-    combos: ["1-2-3-2", "1-2-3b-3", "1-1-2-3-roll", "1b-2-3-slip", "1-2-3-2-back", "1-2-slip-3"] },
+    combos: ["1-2-slip-3-2", "1-2-3-roll-2", "in-1b-2-3-pivot", "1-1-2-3b-3-back", "1-2-pull-2-3", "1-2-3-bob-3"] },
   { name: "Fast hands", gapMs: 3500,
-    combos: ["1-1-2-3-2", "1-2-3b-3-2", "1-2-5-2", "1-2-3-2-roll", "1-1-2-3b-pivot", "1b-1-2-3-bob"] },
+    combos: ["1-2-3-2-slip-3", "1-2-3b-3-2-roll", "in-1-2-5-2-angle", "1-1-2-3-pivot-2", "1b-2-3-bob-3-2", "1-2-pull-2-3-back"] },
   { name: "Pro pace", gapMs: 3200,
-    combos: ["1-2-3-2-3", "1-1-2-3b-3-2", "1-2-slip-3-2", "1-2-5-2-3-roll", "1-2-3-6-3-2", "1b-2-3-2-angle"] },
+    combos: ["in-1-1-2-3b-3-pivot", "1-2-3-roll-2-3-back", "1b-2-3-2-bob-2-3", "1-2-5-2-slip-3-angle", "1-2-pull-2-3b-3-roll", "1-2-slip-2-3-2-roll"] },
   { name: "Ring general", gapMs: 3000,
-    combos: ["1-1-2-3b-3-2-roll", "1-2-3-2-slip-3-2", "1-2-5-2-3-2-pivot", "1b-2-3-2-3b-3-back", "1-2-pull-2-3-2-angle", "1-1-2-5-2-3-bob"] },
+    combos: ["in-1-2-3-roll-2-3b-3-pivot", "1-1-2-slip-3-2-bob-3-back", "1-2-5-2-3-pivot-2-angle", "1b-2-3-2-roll-2-3b-3", "in-1-2-pull-2-3-2-slip-3", "1-2-3b-3-bob-3-2-angle"] },
 ];
 
 // Where calls start and the lowest they can drop to, by experience. An advanced fighter
@@ -136,28 +138,34 @@ export function createComboCaller({ level = 0, floor = 0, gapScale = 1, pick = M
 // Head movement, footwork and angles, called the way a coach says them on the pads.
 const MOVE_WORDS = {
   slip: "Slip", roll: "Roll", bob: "Bob and weave", pull: "Pull back",
-  in: "Step in", back: "Step back", pivot: "Pivot", angle: "Angle out",
+  in: "Step in", back: "Step back", pivot: "Pivot", angle: "Step out",
 };
 const SIDES = {
-  orthodox: { lead: "Left", rear: "Right" },
-  southpaw: { lead: "Right", rear: "Left" },
+  orthodox: { rear: "Right" },
+  southpaw: { rear: "Left" },
 };
 
+// Short, the way a coach shouts on the pads, so a call is over before you need to throw it:
+// "hook" is the lead hook and "uppercut" the lead uppercut; only rear-hand power shots say
+// the side ("right hook" for orthodox). Body shots just add "body", and the same punch straight
+// back up top says "head": "Hook body, hook head" is quick enough to double up the hook.
 export function punchName(n, stance) {
   const side = SIDES[String(stance || "").toLowerCase()];
-  const lead = side ? side.lead : "Lead";
   const rear = side ? side.rear : "Rear";
-  return { 1: "Jab", 2: "Cross", 3: `${lead} hook`, 4: `${rear} hook`, 5: `${lead} uppercut`, 6: `${rear} uppercut` }[n];
+  return { 1: "Jab", 2: "Cross", 3: "Hook", 4: `${rear} hook`, 5: "Uppercut", 6: `${rear} uppercut` }[n];
 }
 
 export function comboWords(combo, stance) {
   const words = [];
+  let prev = null;
   for (const m of String(combo).split("-")) {
     const body = /^[1-6]b$/.test(m);
     const name = punchName(Number(body ? m.slice(0, -1) : m), stance);
-    const w = MOVE_WORDS[m] || (name && body ? `${name} to the body` : name) || m;
+    let w = MOVE_WORDS[m] || (name && body ? `${name} body` : name) || m;
+    if (name && !body && prev === `${m}b`) w = `${name} head`;
     if (w === "Jab" && words[words.length - 1] === "Jab") words[words.length - 1] = "Double jab";
     else words.push(w);
+    prev = m;
   }
   return words;
 }

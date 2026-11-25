@@ -21,7 +21,7 @@ import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
 import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, callsNumbers, setCallsNumbers, callPace, setCallPace, CALL_PACES, CALL_LEVELS } from "@/lib/comboCaller";
-import { unlockSpeech, setVoiceSource, primeVoice, sayNatural, say, hasClip, waitForVoice } from "@/lib/speech";
+import { unlockSpeech, setVoiceSource, primeVoice, sayNatural, say, hasClip, waitForVoice, onVoiceProblem } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
 import { TimerCard } from "@/components/home/TimerCard";
 import { withCue } from "@/lib/verbalCues";
@@ -365,7 +365,9 @@ export default function TrainPage() {
   }, []);
 
   // ── TTS voice ────────────────────────────────────────────────────────────────
-  const playVoiceFeedback = (text) => sayNatural(text);
+  // Round notes aren't timed to a punch, so wait (up to 20 s) for the natural voice to be made
+  // rather than reading them out in the phone's robot voice.
+  const playVoiceFeedback = (text) => sayNatural(text, 20000);
 
   // ── Camera / round video capture ────────────────────────────────────────────
   const requestCamera = async () => {
@@ -397,24 +399,68 @@ export default function TrainPage() {
 
   // Front camera (you can see yourself) or back camera (better picture). Recording restarts
   // on the new camera; Live Coach keeps counting from the same preview.
-  const flipCamera = async () => {
-    const next = facing === "user" ? "environment" : "user";
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: cameraConstraints(next), audio: false });
-    } catch {
-      toast.error(tx("ui.trainPage.cantSwitchCamera", "Couldn't switch camera on this phone."));
-      return;
-    }
+  const swapCamera = async (facingMode) => {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: cameraConstraints(facingMode), audio: false });
     const wasRecording = mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive";
     if (wasRecording) { try { mediaRecorderRef.current.stop(); } catch {} }
     cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
     cameraStreamRef.current = stream;
-    setFacing(next);
     const v = videoPreviewRef.current;
     if (v) { v.srcObject = stream; v.play?.().catch(() => {}); }
     if (wasRecording && !isResting) startRoundRecording();
   };
+
+  const flipCamera = async () => {
+    const next = facing === "user" ? "environment" : "user";
+    try {
+      await swapCamera(next);
+      setFacing(next);
+    } catch {
+      toast.error(tx("ui.trainPage.cantSwitchCamera", "Couldn't switch camera on this phone."));
+    }
+  };
+
+  // ── Watchdog: if the phone stops the camera or freezes mid-round, start the camera again and
+  // tell the server what happened (seen at /api/health/video-scoring), so a frozen round can be
+  // traced instead of guessed at.
+  const reportProblem = useCallback((stage, detail) => {
+    if (!sessionId) return;
+    axios.post(`${API}/training/${sessionId}/video-problem`, { round_number: currentRound, stage, detail: String(detail).slice(0, 300) }).catch(() => {});
+  }, [sessionId, currentRound]);
+  useEffect(() => {
+    if (isConfiguring || isComplete) return undefined;
+    let lastFrame = performance.now();
+    let raf = 0;
+    let mutedSince = 0;
+    let fixing = false;
+    const frame = (now) => {
+      const gap = now - lastFrame;
+      if (gap > 2500 && document.visibilityState === "visible") reportProblem("freeze", `page froze for ${Math.round(gap / 1000)}s`);
+      lastFrame = now;
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    const onHide = () => { if (document.visibilityState === "hidden") reportProblem("hidden", "app went to the background mid-round"); };
+    document.addEventListener("visibilitychange", onHide);
+    const offVoice = onVoiceProblem((what) => reportProblem("voice", what));
+    const check = setInterval(async () => {
+      const track = cameraStreamRef.current?.getVideoTracks?.()[0];
+      const v = videoPreviewRef.current;
+      if (!track || fixing) return;
+      const stuck = track.readyState === "ended" || (track.muted && (mutedSince = mutedSince || Date.now()) && Date.now() - mutedSince > 3000);
+      if (!track.muted) mutedSince = 0;
+      if (stuck) {
+        fixing = true;
+        reportProblem("camera", track.readyState === "ended" ? "camera stopped (ended)" : "camera stopped sending (muted)");
+        try { await swapCamera(facing); reportProblem("camera", "camera restarted"); } catch (e) { reportProblem("camera", `couldn't restart: ${e?.name || e}`); }
+        mutedSince = 0;
+        fixing = false;
+      } else if (v && v.paused && v.srcObject) {
+        v.play?.().catch(() => {});
+      }
+    }, 2000);
+    return () => { cancelAnimationFrame(raf); clearInterval(check); document.removeEventListener("visibilitychange", onHide); offVoice(); };
+  }, [isConfiguring, isComplete, reportProblem, facing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startRoundRecording = () => {
     const stream = cameraStreamRef.current;
