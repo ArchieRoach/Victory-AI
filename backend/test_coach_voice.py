@@ -10,6 +10,7 @@ import server
 
 server.db = AsyncMongoMockClient()["test"]
 made = []
+real_make = server._make_voice_clip
 
 
 async def fake_make(voice_id, text, key):
@@ -86,6 +87,34 @@ def test_out_of_credit_elevenlabs_hands_over_to_the_backup_voice():
     assert not server.coach_voice_id("male").startswith("openai:"), "with no backup, keep trying ElevenLabs"
     server._elevenlabs_out_until = 0.0
     server.ELEVENLABS_API_KEY = ""
+
+
+def test_google_free_voice_comes_first_and_stops_at_the_free_limit():
+    import types
+    server._make_voice_clip = real_make
+    server.GOOGLE_TTS_API_KEY, server.ELEVENLABS_API_KEY, server.OPENAI_API_KEY = "g-test", "el-test", ""
+    server._google_full_month = ""
+    assert server.coach_voice_id("male") == "google:en-GB-Chirp3-HD-Charon"
+    assert server.coach_voice_id("female") == "google:en-GB-Chirp3-HD-Aoede"
+    sent = []
+
+    async def fake_tts(name, text):
+        sent.append((name, text))
+        return b"mp3", 200, ""
+    real_tts, real_upload = server._google_tts, server.cloudinary.uploader.upload
+    server._google_tts = fake_tts
+    server.cloudinary.uploader.upload = lambda *a, **k: {"secure_url": "https://res.cloudinary.com/x/coach_voice/k.mp3"}
+    server.GOOGLE_TTS_FREE_CHARS = 20
+    try:
+        assert run(server._make_voice_clip("google:en-GB-Chirp3-HD-Charon", "Jab, Cross", "k1"))
+        assert run(server._make_voice_clip("google:en-GB-Chirp3-HD-Charon", "One more long line here", "k2")) is None
+        assert len(sent) == 1, "nothing is sent to Google past the free limit"
+        assert server.coach_voice_id("male") == server.COACH_VOICES["male"], "the next provider takes over this month"
+    finally:
+        server._google_tts, server.cloudinary.uploader.upload = real_tts, real_upload
+        server.GOOGLE_TTS_FREE_CHARS = 900000
+        server.GOOGLE_TTS_API_KEY = server.ELEVENLABS_API_KEY = ""
+        server._google_full_month = ""
 
 
 if __name__ == "__main__":

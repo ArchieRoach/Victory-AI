@@ -3295,7 +3295,10 @@ async def health():
 async def health_services():
     cloudinary_on = all(os.environ.get(k) for k in ("CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"))
     return {
-        "coach_voice": {"elevenlabs": bool(ELEVENLABS_API_KEY), "openai": bool(OPENAI_API_KEY),
+        "coach_voice": {"google": bool(GOOGLE_TTS_API_KEY), "elevenlabs": bool(ELEVENLABS_API_KEY), "openai": bool(OPENAI_API_KEY),
+                        "google_chars_this_month": ((await db.voice_usage.find_one(
+                            {"_id": f"google:{datetime.now(timezone.utc).strftime('%Y-%m')}"})) or {}).get("chars", 0),
+                        "google_free_chars": GOOGLE_TTS_FREE_CHARS,
                         "storage": cloudinary_on, "ready": bool(coach_voice_id("male")) and cloudinary_on,
                         "recent_errors": await db.voice_errors.find({}, {"_id": 0}).sort("at", -1).to_list(5),
                         "clips_made_today": await db.voice_clips.count_documents(
@@ -3322,10 +3325,14 @@ async def health_voice_test(request: Request):
     key = voice_clip_key(voice_id, VOICE_TEST_LINE)
     found = await db.voice_clips.find_one({"key": key}, {"_id": 0, "url": 1})
     if found:
-        return {"ok": True, "stage": "already made", "provider": "openai" if voice_id.startswith("openai:") else "elevenlabs", "url": found["url"]}
-    provider = "openai" if voice_id.startswith("openai:") else "elevenlabs"
+        return {"ok": True, "stage": "already made", "provider": voice_id.split(":", 1)[0] if ":" in voice_id else "elevenlabs", "url": found["url"]}
+    provider = voice_id.split(":", 1)[0] if ":" in voice_id else "elevenlabs"
     try:
-        if provider == "elevenlabs":
+        if provider == "google":
+            audio, status, reason = await _google_tts(voice_id.split(":", 1)[1], VOICE_TEST_LINE)
+            if not audio:
+                return {"ok": False, "stage": "voice provider", "provider": provider, "status": status, "reason": reason}
+        elif provider == "elevenlabs":
             async with httpx.AsyncClient(timeout=30) as client:
                 r = await client.post(
                     f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128",
@@ -3460,6 +3467,18 @@ OPENAI_VOICES = {"male": "onyx", "female": "nova"}
 OPENAI_VOICE_MODEL = os.environ.get("OPENAI_VOICE_MODEL", "").strip() or "gpt-4o-mini-tts"
 OPENAI_VOICE_STYLE = ("A British boxing coach on the pads: warm, punchy and natural, short and energetic, "
                       "like talking to a fighter mid-round. Never sound like a narrator or a robot.")
+# Free natural voice: Google Cloud Text-to-Speech (Chirp 3 HD voices) comes with a free
+# allowance of characters every month. The app counts what it uses and stops at
+# GOOGLE_TTS_FREE_CHARS, so it can never run up a bill; after that the next provider (or the
+# phone's voice) takes over until the month resets.
+GOOGLE_TTS_API_KEY = os.environ.get("GOOGLE_TTS_API_KEY", "").strip()
+GOOGLE_TTS_VOICES = {
+    "male": os.environ.get("GOOGLE_TTS_VOICE_MALE", "").strip() or "en-GB-Chirp3-HD-Charon",
+    "female": os.environ.get("GOOGLE_TTS_VOICE_FEMALE", "").strip() or "en-GB-Chirp3-HD-Aoede",
+}
+GOOGLE_TTS_FREE_CHARS = int(os.environ.get("GOOGLE_TTS_FREE_CHARS", "900000") or 900000)
+GOOGLE_TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize"
+_google_full_month = ""
 VOICE_CLIP_MAX_CHARS = 160
 VOICE_CLIPS_PER_REQUEST = 60
 # New lines a fighter can trigger per day (clips are shared, so this only counts lines nobody has
@@ -3490,6 +3509,8 @@ _elevenlabs_out_until = 0.0
 # When ElevenLabs runs out of credit, every new line would wait for a refusal and then play in
 # the phone's robot voice; for half an hour the backup voice (if set) is used straight away.
 def coach_voice_id(voice: str) -> Optional[str]:
+    if GOOGLE_TTS_API_KEY and _google_full_month != datetime.now(timezone.utc).strftime("%Y-%m"):
+        return f"google:{GOOGLE_TTS_VOICES[voice]}"
     if ELEVENLABS_API_KEY and (time.time() >= _elevenlabs_out_until or not OPENAI_API_KEY):
         return COACH_VOICES[voice]
     if OPENAI_API_KEY:
@@ -3497,7 +3518,46 @@ def coach_voice_id(voice: str) -> Optional[str]:
     return None
 
 
+async def _google_tts(name: str, text: str):
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(GOOGLE_TTS_URL, params={"key": GOOGLE_TTS_API_KEY},
+                              json={"input": {"text": text}, "voice": {"languageCode": "-".join(name.split("-")[:2]), "name": name},
+                                    "audioConfig": {"audioEncoding": "MP3"}})
+    if r.status_code != 200:
+        reason = ""
+        try:
+            reason = str((r.json().get("error") or {}).get("status") or "")[:60]
+        except Exception:
+            pass
+        return None, r.status_code, reason
+    return base64.b64decode(r.json().get("audioContent") or ""), 200, ""
+
+
+async def _google_voice_clip(name: str, text: str, key: str) -> Optional[str]:
+    global _google_full_month
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    await db.voice_usage.update_one({"_id": f"google:{month}"}, {"$inc": {"chars": len(text)}}, upsert=True)
+    used = await db.voice_usage.find_one({"_id": f"google:{month}"}) or {}
+    if used.get("chars", 0) > GOOGLE_TTS_FREE_CHARS:
+        _google_full_month = month
+        await db.voice_errors.insert_one({"at": datetime.now(timezone.utc).isoformat(), "provider": "google",
+                                          "status": 0, "reason": "monthly_free_limit"})
+        return None
+    audio, status, reason = await _google_tts(name, text)
+    if not audio:
+        logger.warning(f"Coach voice clip (Google) failed: {status}")
+        await db.voice_errors.insert_one({"at": datetime.now(timezone.utc).isoformat(), "provider": "google",
+                                          "status": status, "reason": reason})
+        return None
+    data_uri = "data:audio/mpeg;base64," + base64.b64encode(audio).decode()
+    up = await asyncio.to_thread(cloudinary.uploader.upload, data_uri, resource_type="video",
+                                 public_id=f"coach_voice/{key}", overwrite=False)
+    return up.get("secure_url")
+
+
 async def _make_voice_clip(voice_id: str, text: str, key: str) -> Optional[str]:
+    if voice_id.startswith("google:"):
+        return await _google_voice_clip(voice_id.split(":", 1)[1], text, key)
     if voice_id.startswith("openai:"):
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.post(
