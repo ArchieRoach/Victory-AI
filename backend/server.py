@@ -3411,7 +3411,9 @@ OPENAI_VOICE_STYLE = ("A British boxing coach on the pads: warm, punchy and natu
                       "like talking to a fighter mid-round. Never sound like a narrator or a robot.")
 VOICE_CLIP_MAX_CHARS = 160
 VOICE_CLIPS_PER_REQUEST = 60
-VOICE_NEW_CLIPS_PER_DAY = 200
+# New lines a fighter can trigger per day (clips are shared, so this only counts lines nobody has
+# heard yet). 200 ran out on a day the combos changed several times, and the coach went robotic.
+VOICE_NEW_CLIPS_PER_DAY = 800
 
 
 def coach_voice_key(user: dict) -> str:

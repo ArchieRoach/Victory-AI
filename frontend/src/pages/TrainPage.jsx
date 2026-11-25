@@ -365,7 +365,9 @@ export default function TrainPage() {
   }, []);
 
   // ── TTS voice ────────────────────────────────────────────────────────────────
-  const playVoiceFeedback = (text) => sayNatural(text);
+  // Round notes aren't timed to a punch, so wait (up to 20 s) for the natural voice to be made
+  // rather than reading them out in the phone's robot voice.
+  const playVoiceFeedback = (text) => sayNatural(text, 20000);
 
   // ── Camera / round video capture ────────────────────────────────────────────
   const requestCamera = async () => {
