@@ -1,0 +1,3 @@
+bell-start.mp3, bell-end.mp3: cut from "Dingdingding.wav" (Boxing Bell) by IOII-IOIO-IIOI,
+Wikimedia Commons, CC0 1.0 public domain dedication.
+https://commons.wikimedia.org/wiki/File:Dingdingding.wav

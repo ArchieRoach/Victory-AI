@@ -3477,8 +3477,13 @@ def clean_voice_lines(texts: List[str]) -> List[str]:
     return out[:VOICE_CLIPS_PER_REQUEST]
 
 
+_elevenlabs_out_until = 0.0
+
+
+# When ElevenLabs runs out of credit, every new line would wait for a refusal and then play in
+# the phone's robot voice; for half an hour the backup voice (if set) is used straight away.
 def coach_voice_id(voice: str) -> Optional[str]:
-    if ELEVENLABS_API_KEY:
+    if ELEVENLABS_API_KEY and (time.time() >= _elevenlabs_out_until or not OPENAI_API_KEY):
         return COACH_VOICES[voice]
     if OPENAI_API_KEY:
         return f"openai:{OPENAI_VOICES[voice]}"
@@ -3517,6 +3522,9 @@ async def _make_voice_clip(voice_id: str, text: str, key: str) -> Optional[str]:
             pass
         await db.voice_errors.insert_one({"at": datetime.now(timezone.utc).isoformat(), "provider": "elevenlabs",
                                           "status": r.status_code, "reason": reason})
+        if reason == "quota_exceeded":
+            global _elevenlabs_out_until
+            _elevenlabs_out_until = time.time() + 1800
         return None
     data_uri = "data:audio/mpeg;base64," + base64.b64encode(r.content).decode()
     up = await asyncio.to_thread(cloudinary.uploader.upload, data_uri, resource_type="video",
