@@ -1,3 +1,6 @@
 bell-start.mp3, bell-end.mp3: cut from "Dingdingding.wav" (Boxing Bell) by IOII-IOIO-IIOI,
 Wikimedia Commons, CC0 1.0 public domain dedication.
 https://commons.wikimedia.org/wiki/File:Dingdingding.wav
+clapper.mp3: built from "Claves_Oneshot_Smartphone_Recording_01" by cabled_mess,
+Freesound, CC0 1.0 public domain dedication.
+https://freesound.org/s/368523/
