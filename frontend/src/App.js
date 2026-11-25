@@ -92,8 +92,12 @@ const HighlightsPage = lazyPage(() => import("@/pages/HighlightsPage"));
 const RateRoundPage = lazyPage(() => import("@/pages/RateRoundPage"));
 const CalloutsPage = lazyPage(() => import("@/pages/CalloutsPage"));
 const JoinSquadPage = lazyPage(() => import("@/pages/JoinSquadPage"));
+const InvitePage = lazyPage(() => import("@/pages/InvitePage"));
+const ReferralLandingPage = lazyPage(() => import("@/pages/ReferralLandingPage"));
 const BillingPage = lazyPage(() => import("@/pages/BillingPage"));
 import { takePendingInvite } from "@/lib/pendingInvite";
+import { takePendingReferral } from "@/lib/pendingReferral";
+import { tx } from "@/i18n/tx";
 const TokensPage = lazyPage(() => import("@/pages/TokensPage"));
 const DiscoverPage = lazyPage(() => import("@/pages/DiscoverPage"));
 const FighterMarketPage = lazyPage(() => import("@/pages/FighterMarketPage"));
@@ -354,6 +358,24 @@ const PendingInvite = () => {
   return null;
 };
 
+// Finishes a /r/CODE invite that was opened while signed out, once sign-up is done.
+const PendingReferral = () => {
+  const { isAuthenticated } = useAuth();
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const code = takePendingReferral();
+    if (!code) return;
+    axios.post(`${API}/referrals/code/${code}/claim`)
+      .then(({ data }) => {
+        if (!data.claimed) return;
+        analytics.capture("referral_claimed", { after_signup: true });
+        toast.success(tx("ui.app.referralClaimed", "Invite accepted. Finish your first session and you and {{name}} both get {{tokens}} tokens.", { name: data.inviter_name, tokens: data.reward_tokens }));
+      })
+      .catch(() => {});
+  }, [isAuthenticated]);
+  return null;
+};
+
 const AppRouter = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -406,6 +428,7 @@ const AppRouter = () => {
       <TrialExpirationBanner />
       <PushPrompt />
       <PendingInvite />
+      <PendingReferral />
       <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/welcome" element={<WelcomePage />} />
@@ -471,6 +494,8 @@ const AppRouter = () => {
         <Route path="/rate/:highlightId" element={<ProtectedRoute><RateRoundPage /></ProtectedRoute>} />
         <Route path="/callouts" element={<ProtectedRoute><CalloutsPage /></ProtectedRoute>} />
         <Route path="/join/:inviteId" element={<JoinSquadPage />} />
+        <Route path="/r/:code" element={<ReferralLandingPage />} />
+        <Route path="/invite" element={<ProtectedRoute><InvitePage /></ProtectedRoute>} />
         <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
         <Route path="/tokens" element={<ProtectedRoute>{isNativeShell() ? <NativePurchaseNoticePage /> : <TokensPage />}</ProtectedRoute>} />
         <Route path="/tokens/success" element={<ProtectedRoute><TokenSuccessPage /></ProtectedRoute>} />

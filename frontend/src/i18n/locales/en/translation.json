@@ -2502,7 +2502,8 @@
       "schedule": "Schedule",
       "wins": "Wins",
       "losses": "Losses",
-      "draws": "Draws"
+      "draws": "Draws",
+      "inviteFriends": "Invite friends"
     },
     "publicProfilePage": {
       "couldnTUnfollowTry": "Couldn't unfollow. Try again.",
@@ -2625,7 +2626,9 @@
       "beatASquadMate": "Beat a squad mate's best within 7 days and take their title",
       "roundsToRate": "Rounds to rate",
       "squadMate": "Squad mate",
-      "rateIt": "Rate it"
+      "rateIt": "Rate it",
+      "bringYourGym": "Bring your gym",
+      "bringYourGymBody": "Show your QR code or send your link. You both get tokens when they train."
     },
     "streamViewPage": {
       "streamNotFound": "Stream not found.",
@@ -3102,6 +3105,44 @@
       "onHold": "On hold",
       "paidToBank": "Paid to your bank",
       "holdWhy": "Money on hold is safe. Stream money waits {{days}} days in case a fan asks for a refund. Merch money is released when the buyer confirms it arrived (or {{merchDays}} days after you ship)."
+    },
+    "app": {
+      "referralClaimed": "Invite accepted. Finish your first session and you and {{name}} both get {{tokens}} tokens."
+    },
+    "invitePage": {
+      "couldntLoad": "Couldn't load your invite link. Try again.",
+      "message": "Train boxing with me on Victory AI. An AI coach calls combos and scores your rounds. Join with my link and we both get {{tokens}} tokens after your first session: {{url}}",
+      "copyFailed": "Couldn't copy. Press and hold the link instead.",
+      "goBack": "Go back",
+      "title": "Invite friends",
+      "bothGet": "You both get {{tokens}} tokens",
+      "whenTheyTrain": "when your friend finishes their first session.",
+      "showBig": "Show the QR code full screen",
+      "qrAlt": "Your invite QR code",
+      "scanHint": "At the gym? Tap the code to make it big. They scan it with their phone camera.",
+      "share": "Send my invite",
+      "whatsapp": "WhatsApp",
+      "text": "Text",
+      "contacts": "Contacts",
+      "copied": "Copied",
+      "copyLink": "Copy link",
+      "joined": "joined",
+      "trained": "trained",
+      "tokensEarned": "tokens earned",
+      "rules": "Tokens arrive when a new fighter who joined with your link finishes their first session. Up to 10 friends a month.",
+      "scanWithCamera": "Scan with your phone camera to join {{name}} on Victory AI",
+      "me": "me",
+      "close": "Close"
+    },
+    "referralLanding": {
+      "couldntUse": "Couldn't use that invite",
+      "notValid": "That invite link isn't valid",
+      "openApp": "Open Victory AI",
+      "invitedYou": "{{name}} invited you to train",
+      "pitch": "An AI coach calls your combos and scores every round you film.",
+      "reward": "Finish your first session and you both get {{tokens}} tokens.",
+      "accept": "Accept invite",
+      "signUp": "Sign up free"
     }
   },
   "lib": {

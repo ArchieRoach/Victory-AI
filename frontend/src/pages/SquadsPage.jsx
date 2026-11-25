@@ -4,7 +4,7 @@ import axios from "axios";
 import { API } from "@/App";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { Swords, Plus, Users, ChevronRight, X, Flame, Gavel, Check, Megaphone } from "lucide-react";
+import { Swords, Plus, Users, ChevronRight, X, Flame, Gavel, Check, Megaphone, QrCode } from "lucide-react";
 import { stampByKey } from "@/lib/stamps";
 import { useTranslation } from "react-i18next";
 import { tx } from "@/i18n/tx";
@@ -145,6 +145,19 @@ export default function SquadsPage() {
       </header>
 
       <main className="p-4 space-y-3">
+        <button
+          onClick={() => navigate("/invite")}
+          className="victory-card w-full p-4 flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
+          data-testid="squads-invite"
+        >
+          <div className="w-11 h-11 rounded-2xl bg-victory-lime/10 border border-victory-lime/20 flex items-center justify-center flex-shrink-0">
+            <QrCode className="w-5 h-5 text-victory-lime" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-victory-text font-heading font-bold text-sm">{tx("ui.squadsPage.bringYourGym", "Bring your gym")}</p>
+            <p className="text-victory-muted text-xs">{tx("ui.squadsPage.bringYourGymBody", "Show your QR code or send your link. You both get tokens when they train.")}</p>
+          </div>
+        </button>
         {squads.length > 0 && (
           <button
             onClick={() => navigate("/callouts")}
