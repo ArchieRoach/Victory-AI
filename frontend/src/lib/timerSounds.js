@@ -1,10 +1,10 @@
-// Timer sounds: a recorded boxing ring bell (public/sounds, CC0), the wooden clapper for
-// "10 seconds" and a whistle for interval alerts. The bell files are tiny and load on the
+// Timer sounds: a recorded boxing ring bell and wooden clapper for "10 seconds" (public/sounds,
+// CC0), and a whistle for interval alerts. The bell files are tiny and load on the
 // Start tap; until they arrive (or on a dead signal) a bell made in the browser stands in.
 // unlockTimerSounds() must run inside the Start tap, or iPhone Safari keeps them silent.
 
 let ctx = null;
-const BELL_FILES = { start: "/sounds/bell-start.mp3", end: "/sounds/bell-end.mp3" };
+const BELL_FILES = { start: "/sounds/bell-start.mp3", end: "/sounds/bell-end.mp3", warning: "/sounds/clapper.mp3" };
 const bells = {};
 
 function loadBells() {
@@ -100,7 +100,7 @@ const PLAYERS = {
   start: (t) => bell("start", t, ring),
   end: (t) => bell("end", t, (at) => [0, 0.45, 0.9].forEach((d) => ring(at + d))),
   done: (t) => bell("end", t, (at) => [0, 0.45, 0.9].forEach((d) => ring(at + d))),
-  warning: (t) => [0, 0.18, 0.36].forEach((d) => clap(t + d)),
+  warning: (t) => bell("warning", t, (at) => [0, 0.18, 0.36].forEach((d) => clap(at + d))),
   inner: (t) => whistle(t),
 };
 
