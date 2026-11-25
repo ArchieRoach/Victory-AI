@@ -85,30 +85,40 @@ test("calls start at your experience level and an advanced fighter never drops t
 });
 
 describe("calls in words", () => {
-  const { comboWords, comboSpeech } = require("./comboCaller");
+  const { comboWords, comboSpeech, callsNumbers, setCallsNumbers, numberLegend } = require("./comboCaller");
 
-  test("calls are short: the lead hook is just 'hook', rear power shots say the side", () => {
-    expect(comboWords("1-2-3-2", "orthodox")).toEqual(["Jab", "Cross", "Hook", "Cross"]);
-    expect(comboWords("1-6-3", "orthodox")).toEqual(["Jab", "Right uppercut", "Hook"]);
-    expect(comboWords("1-2-3-4", "southpaw")).toEqual(["Jab", "Cross", "Hook", "Left hook"]);
-    expect(comboWords("1-2-5-2", "")).toEqual(["Jab", "Cross", "Uppercut", "Cross"]);
-    expect(comboWords("3-4", "switch")).toEqual(["Hook", "Rear hook"]);
+  test("every hook and uppercut says which hand", () => {
+    expect(comboWords("1-2-3-2", "orthodox")).toEqual(["Jab", "Cross", "Left hook", "Cross"]);
+    expect(comboWords("1-6-3", "orthodox")).toEqual(["Jab", "Right uppercut", "Left hook"]);
+    expect(comboWords("1-2-3-4", "southpaw")).toEqual(["Jab", "Cross", "Right hook", "Left hook"]);
+    expect(comboWords("1-2-5-2", "")).toEqual(["Jab", "Cross", "Lead uppercut", "Cross"]);
+    expect(comboWords("3-4", "switch")).toEqual(["Lead hook", "Rear hook"]);
   });
 
   test("double jab and defensive moves", () => {
-    expect(comboWords("1-1-2-slip-2-3", "orthodox")).toEqual(["Double jab", "Cross", "Slip", "Cross", "Hook"]);
+    expect(comboWords("1-1-2-slip-2-3", "orthodox")).toEqual(["Double jab", "Cross", "Slip", "Cross", "Left hook"]);
     expect(comboWords("1-2-roll-2", null)).toEqual(["Jab", "Cross", "Roll", "Cross"]);
   });
 
-  test("body then head is quick enough to double up the hook", () => {
-    expect(comboWords("1-2-3b-3", "orthodox")).toEqual(["Jab", "Cross", "Hook body", "Hook head"]);
+  test("body then head names the hand both times", () => {
+    expect(comboWords("1-2-3b-3", "orthodox")).toEqual(["Jab", "Cross", "Left hook body", "Left hook head"]);
     expect(comboWords("1b-2", "orthodox")).toEqual(["Jab body", "Cross"]);
-    expect(comboSpeech("1-2-3b-3", "orthodox", false).length).toBeLessThan(36);
+    expect(comboSpeech("1-2-3b-3", "orthodox", true)).toBe("1, 2, 3 body, 3 head");
   });
 
-  test("numbers only when the fighter asks for them", () => {
-    expect(comboSpeech("1-2-3", "orthodox", false)).toBe("Jab, Cross, Hook");
+  test("numbers are the default, words for whoever switches them off", () => {
+    localStorage.removeItem("victory_call_numbers");
+    expect(callsNumbers()).toBe(true);
+    setCallsNumbers(false);
+    expect(callsNumbers()).toBe(false);
+    localStorage.removeItem("victory_call_numbers");
+    expect(comboSpeech("1-2-3", "orthodox", false)).toBe("Jab, Cross, Left hook");
     expect(comboSpeech("1-2-3", "orthodox", true)).toBe("1, 2, 3");
+  });
+
+  test("the cheat sheet names all six numbers for your stance", () => {
+    expect(numberLegend("orthodox")).toEqual([[1, "Jab"], [2, "Cross"], [3, "Left hook"], [4, "Right hook"], [5, "Left uppercut"], [6, "Right uppercut"]]);
+    expect(numberLegend(null)[2]).toEqual([3, "Lead hook"]);
   });
 });
 
@@ -136,9 +146,9 @@ test("body shots and body-then-head combos in every level from Basics up", () =>
   const { comboWords, comboSpeech } = require("./comboCaller");
   for (const level of CALL_LEVELS.slice(1)) expect(level.combos.some((c) => /\b[1-6]b\b/.test(c))).toBe(true);
   expect(CALL_LEVELS.flatMap((l) => l.combos).some((c) => c.includes("3b-3"))).toBe(true);
-  expect(comboWords("1b-2-3b-3", "orthodox")).toEqual(["Jab body", "Cross", "Hook body", "Hook head"]);
+  expect(comboWords("1b-2-3b-3", "orthodox")).toEqual(["Jab body", "Cross", "Left hook body", "Left hook head"]);
   expect(comboWords("1-1b-2", "southpaw")).toEqual(["Jab", "Jab body", "Cross"]);
-  expect(comboSpeech("3b-3-back", "orthodox", true)).toBe("3 body, 3, Step back");
+  expect(comboSpeech("3b-3-back", "orthodox", true)).toBe("3 body, 3 head, Step back");
   expect(punchCount("1b-2-3b-3-back")).toBe(4);
 });
 

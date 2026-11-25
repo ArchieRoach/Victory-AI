@@ -138,6 +138,25 @@ def test_scoring_can_run_in_the_background_and_the_app_checks_back():
     assert client.get(f"/api/ai/jobs/{job_id}").status_code == 404, "only the owner can read their result"
 
 
+def test_a_score_that_arrives_after_the_results_page_lands_on_the_saved_session():
+    # Doherty threshold: the round is saved straight away (unscored), then the video finishes
+    # scoring in the background and the saved session gets the score.
+    current["user"] = {"user_id": "u7", "training_partner": {"name": "Coach K"}, "has_subscription": True}
+    url = "https://res.cloudinary.com/victorycloud/video/upload/rounds/late.mp4"
+    run(server.db.sessions.insert_one({"session_id": "train_late", "user_id": "u7", "scored": False, "overall_score": None,
+                                       "record_video": True, "kind": "standard", "dimension_scores": []}))
+    client.post("/api/videos/register", json={"session_id": "train_late", "round_number": 1, "video_url": url,
+                                              "public_id": "rounds/late"})
+    use_gemini(GOOD)
+    r = client.post("/api/ai/analyze-video", json={"video_url": url, "round_number": 1, "background": True})
+    assert r.status_code == 200, r.text
+    run(server.jobs.drain(server.db))
+    saved = client.get("/api/sessions/train_late").json()
+    assert saved["scored"] is True and saved["overall_score"] is not None
+    assert saved["scouting_report"].get("reason") != "unscored" and not saved["scouting_report"].get("locked")
+    assert saved["rounds"][0]["analysis"]["dimension_scores"]
+
+
 def test_competition_judge_reads_our_cloudinary_videos_only():
     assert cloudinary_video_public_id("https://res.cloudinary.com/victorycloud/video/upload/v1712/victory/comp/abc.mp4") == "victory/comp/abc"
     assert cloudinary_video_public_id("https://res.cloudinary.com/someoneelse/video/upload/v1/x.mp4") is None

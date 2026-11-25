@@ -2611,7 +2611,9 @@
       "defense": "Defense",
       "movement": "Movement",
       "coachNotes": "{{name}}'s notes",
-      "coach": "Coach"
+      "coach": "Coach",
+      "scoreOnItsWay": "Your score is on its way",
+      "scoreOnItsWayBody": "Your coach is watching your last round. It drops in here by itself, so look around while you wait."
     },
     "squadDetailPage": {
       "goBack": "Go back"
@@ -2893,7 +2895,10 @@
       "voiceTestLoading": "Getting the voice ready…",
       "voiceTest": "Test the coach's voice",
       "voiceNatural": "Natural voice ✓",
-      "voicePhone": "Phone voice. Can't hear it? Turn the volume up."
+      "voicePhone": "Phone voice. Can't hear it? Turn the volume up.",
+      "savingYourSession": "Saving your session",
+      "learnTheNumbers": "Learn the numbers",
+      "bMeansBody": "\"b\" means to the body: 3b is a body hook. The names show under every call while you learn."
     },
     "trendingClipsPage": {
       "viral": "VIRAL",

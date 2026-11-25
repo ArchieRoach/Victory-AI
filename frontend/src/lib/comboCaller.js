@@ -5,7 +5,7 @@ import { say } from "@/lib/speech";
 // Psychology: flow needs the challenge just above your skill: too easy is boring, too hard
 //   is scary. Landing roughly 60–80% of calls keeps you in that channel.
 // Design: combos are written as boxing numbers (1 jab, 2 cross, 3 lead hook, 4 rear hook, 5 lead
-//   uppercut, 6 rear uppercut) and called out as punch names (see comboWords). With the Live Coach camera on, a call counts as landed when
+//   uppercut, 6 rear uppercut) and called out as numbers, with names on screen (see comboWords). With the Live Coach camera on, a call counts as landed when
 //   that many punches arrive in time. Over 80% steps the level up; under 60% steps it down.
 //   Without the camera nothing can be checked, so the level stays where it is.
 
@@ -131,29 +131,26 @@ export function createComboCaller({ level = 0, floor = 0, gapScale = 1, pick = M
 }
 
 // A call replaces any call still being spoken, so the voice never lags behind the screen.
-// Calls are spoken and shown as punch names, because a number means nothing to most people.
-// With a known stance the hooks and uppercuts say left or right, the way coaches call them;
-// switch-hitters and unknown stances hear lead and rear. Numbers stay as an opt-in for
-// fighters who were taught them.
 // Head movement, footwork and angles, called the way a coach says them on the pads.
 const MOVE_WORDS = {
   slip: "Slip", roll: "Roll", bob: "Bob and weave", pull: "Pull back",
   in: "Step in", back: "Step back", pivot: "Pivot", angle: "Step out",
 };
 const SIDES = {
-  orthodox: { rear: "Right" },
-  southpaw: { rear: "Left" },
+  orthodox: { lead: "Left", rear: "Right" },
+  southpaw: { lead: "Right", rear: "Left" },
 };
 
-// Short, the way a coach shouts on the pads, so a call is over before you need to throw it:
-// "hook" is the lead hook and "uppercut" the lead uppercut; only rear-hand power shots say
-// the side ("right hook" for orthodox). Body shots just add "body", and the same punch straight
-// back up top says "head": "Hook body, hook head" is quick enough to double up the hook.
+// Every hook and uppercut says which hand: a bare "hook" left fighters guessing. With a known
+// stance it's left or right, the way coaches call it; otherwise lead or rear. Body shots add
+// "body", and the same punch straight back up top says "head".
 export function punchName(n, stance) {
-  const side = SIDES[String(stance || "").toLowerCase()];
-  const rear = side ? side.rear : "Rear";
-  return { 1: "Jab", 2: "Cross", 3: "Hook", 4: `${rear} hook`, 5: "Uppercut", 6: `${rear} uppercut` }[n];
+  const side = SIDES[String(stance || "").toLowerCase()] || { lead: "Lead", rear: "Rear" };
+  return { 1: "Jab", 2: "Cross", 3: `${side.lead} hook`, 4: `${side.rear} hook`, 5: `${side.lead} uppercut`, 6: `${side.rear} uppercut` }[n];
 }
+
+// The cheat sheet for learning the numbers.
+export const numberLegend = (stance) => [1, 2, 3, 4, 5, 6].map((n) => [n, punchName(n, stance)]);
 
 export function comboWords(combo, stance) {
   const words = [];
@@ -185,8 +182,10 @@ export function setCallPace(pace) {
 
 export const NUMBERS_KEY = "victory_call_numbers";
 
+// Numbers are the default: "1, 2, 3 body, 3 head" is over before the punches start, and it's
+// how gyms call pads. The names show under every call, so newcomers learn them as they go.
 export function callsNumbers() {
-  try { return localStorage.getItem(NUMBERS_KEY) === "1"; } catch { return false; }
+  try { return localStorage.getItem(NUMBERS_KEY) !== "0"; } catch { return true; }
 }
 
 export function setCallsNumbers(on) {
@@ -194,7 +193,9 @@ export function setCallsNumbers(on) {
 }
 
 export function comboSpeech(combo, stance, numbers = callsNumbers()) {
-  return numbers ? combo.split("-").map((m) => MOVE_WORDS[m] || (/^[1-6]b$/.test(m) ? `${m.slice(0, -1)} body` : m)).join(", ") : comboWords(combo, stance).join(", ");
+  if (!numbers) return comboWords(combo, stance).join(", ");
+  const moves = combo.split("-");
+  return moves.map((m, i) => MOVE_WORDS[m] || (/^[1-6]b$/.test(m) ? `${m.slice(0, -1)} body` : moves[i - 1] === `${m}b` ? `${m} head` : m)).join(", ");
 }
 
 export function sayCombo(combo, stance) {

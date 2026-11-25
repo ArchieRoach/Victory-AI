@@ -66,8 +66,31 @@ export default function SessionResultsPage() {
   const [beltsReady, setBeltsReady] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [session, setSession] = useState(location.state?.session || null);
-  const coachNotes = location.state?.coachNotes || null;
   const [sessionNotFound, setSessionNotFound] = useState(false);
+  const [scoreComing, setScoreComing] = useState(!!location.state?.pendingScore);
+
+  // Doherty threshold: the results open the moment the round ends, and the last round's
+  // score drops in here when the video is done (checked every few seconds, up to 3 minutes).
+  useEffect(() => {
+    if (!scoreComing || !session?.session_id) return;
+    let tries = 0;
+    const id = setInterval(() => {
+      tries += 1;
+      axios.get(`${API}/sessions/${session.session_id}`, { withCredentials: true })
+        .then((res) => {
+          if (!res.data?.scored) return;
+          setSession((s) => ({ ...s, ...res.data, rewards: s.rewards, new_belts: s.new_belts }));
+          setScoreComing(false);
+        })
+        .catch(() => {});
+      if (tries >= 60) setScoreComing(false);
+    }, 3000);
+    return () => clearInterval(id);
+  }, [scoreComing, session?.session_id]);
+
+  const lastAnalysis = [...(session?.rounds || [])].reverse().find((r) => r?.analysis)?.analysis;
+  const coachNotes = location.state?.coachNotes
+    || (lastAnalysis && { what_to_tighten: lastAnalysis.what_to_improve, what_you_did_well: lastAnalysis.what_did_well, partner_name: lastAnalysis.partner_name });
   const navButtonsRef = useRef(null);
   const [roundClip,     setRoundClip]     = useState(null);
   const [clipStarting,  setClipStarting]  = useState(false);
@@ -436,7 +459,18 @@ export default function SessionResultsPage() {
           </section>
         )}
 
-        <SessionRewards rewards={session.rewards} scoutingReport={session.scouting_report} overall={session.overall_score} liveStats={session.live_stats} sessionId={session.session_id} calls={location.state?.calls} />
+        {scoreComing && (
+          <section className="victory-card p-4 space-y-3" data-testid="score-coming" aria-live="polite">
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+              <img src="/images/ring-card-girl.jpg" alt={tx("ui.trainPage.ringCardGirl", "Ring card girl")}
+                className="absolute inset-0 w-full h-full object-cover animate-sway" style={{ transformOrigin: "50% 92%" }} />
+            </div>
+            <p className="text-victory-text font-heading font-bold text-center">{tx("ui.sessionResultsPage.scoreOnItsWay", "Your score is on its way")}</p>
+            <p className="text-victory-muted text-sm text-center">{tx("ui.sessionResultsPage.scoreOnItsWayBody", "Your coach is watching your last round. It drops in here by itself, so look around while you wait.")}</p>
+          </section>
+        )}
+
+        <SessionRewards rewards={session.rewards} scoutingReport={scoreComing ? false : session.scouting_report}overall={session.overall_score} liveStats={session.live_stats} sessionId={session.session_id} calls={location.state?.calls} />
         <LiveSessionStats stats={session.live_stats} records={session.live_records} />
 
         {/* Category scores — three real, meaningful numbers beat sixteen tiny
@@ -516,7 +550,7 @@ export default function SessionResultsPage() {
             <span className="section-label">{t("results.breakdown")}</span>
             {showBreakdown ? <ChevronUp className="w-4 h-4 text-victory-muted" /> : <ChevronDown className="w-4 h-4 text-victory-muted" />}
           </button>
-          {showBreakdown && !session.dimension_scores?.some((d) => d.score !== null) && (
+          {showBreakdown && !scoreComing && !session.dimension_scores?.some((d) => d.score !== null) && (
             <div className="victory-card p-4" data-testid="breakdown-empty">
               <p className="text-victory-text text-sm font-semibold">{tx("ui.sessionResultsPage.noScoresForThis", "No scores for this session")}</p>
               <p className="text-victory-muted text-xs mt-1">
