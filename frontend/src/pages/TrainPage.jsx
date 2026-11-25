@@ -21,6 +21,7 @@ import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
 import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, numberLegend, callsNumbers, setCallsNumbers, callPace, setCallPace, CALL_PACES, CALL_LEVELS } from "@/lib/comboCaller";
+import { unlockTimerSounds, playTimerSound } from "@/lib/timerSounds";
 import { unlockSpeech, setVoiceSource, primeVoice, sayNatural, say, hasClip, waitForVoice, onVoiceProblem } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
 import { TimerCard } from "@/components/home/TimerCard";
@@ -65,7 +66,6 @@ const KINDS = [
 ];
 const FREESTYLE_CUES = { combo: "Nice combination", head_move: "Clean" };
 
-const BELL_SOUND_URL = "https://www.soundjay.com/sports/boxing-bell-1.mp3";
 
 // Mid-round hype lines cycled during the Private AI Room session
 // "validate" lines are generic encouragement, not claims about this user's specific
@@ -231,7 +231,6 @@ export default function TrainPage() {
   const [loadingFeedback, setLoadingFeedback] = useState(false);
   const [feedbackProgress, setFeedbackProgress] = useState(0);
 
-  const audioRef    = useRef(null);
   const intervalRef = useRef(null);
   const endsAtRef = useRef(null);
   const hypeTimerRef = useRef(null);
@@ -294,8 +293,6 @@ export default function TrainPage() {
       setTotalRounds(1);
     }
     if (kind !== "standard") setSessionMode("private");
-    audioRef.current = new Audio(BELL_SOUND_URL);
-    audioRef.current.load();
     return () => {
       if (intervalRef.current)  clearInterval(intervalRef.current);
       if (hypeTimerRef.current) clearInterval(hypeTimerRef.current);
@@ -352,12 +349,9 @@ export default function TrainPage() {
     }));
   }, [roundDuration, restDuration, totalRounds, sessionMode, quick, kind]);
 
-  const playBell = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
-    }
-  }, []);
+  // Made in the app, not loaded from the web, so they play on a weak gym signal too.
+  // One bell starts a round, three end it, and the wooden clapper means 10 seconds left.
+  const playBell = useCallback((type = "start") => playTimerSound(type), []);
 
   const flashScreen = useCallback((type) => {
     setFlashClass(type === "round" ? "flash-lime" : "flash-teal");
@@ -608,6 +602,7 @@ export default function TrainPage() {
 
   // ── Start training ───────────────────────────────────────────────────────────
   const startTraining = async () => {
+    unlockTimerSounds();
     if (voiceEnabled) unlockSpeech();
     saveConfig();
 
@@ -686,11 +681,12 @@ export default function TrainPage() {
       const left = Math.max(0, Math.ceil((endsAtRef.current - Date.now()) / 1000));
       setTimeLeft((prev) => {
         if (!isResting && prev > 10 && left <= 10 && left > 0) {
+          playBell("warning");
           setShowTenSecWarning(true);
           setTimeout(() => setShowTenSecWarning(false), 3500);
         }
         if (left <= 0) {
-          playBell();
+          playBell(isResting ? (currentRound < totalRounds ? "start" : "done") : "end");
           if (isResting) {
             if (currentRound < totalRounds) {
               flashScreen("round");
@@ -772,7 +768,7 @@ export default function TrainPage() {
   };
 
   const skipToNext = () => {
-    playBell();
+    playBell(isResting && currentRound < totalRounds ? "start" : "end");
     if (isResting) {
       if (currentRound < totalRounds) {
         flashScreen("round");
