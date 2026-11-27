@@ -3127,6 +3127,10 @@
       "reward": "Skończ pierwszą sesję, a oboje dostaniecie {{tokens}} tokenów.",
       "accept": "Przyjmij zaproszenie",
       "signUp": "Zarejestruj się za darmo"
+    },
+    "demoPhone": {
+      "label": "Runda w Victory AI: trener wywołuje kombinacje, potem twój wynik i szczegóły",
+      "caption": "Prawdziwe ekrany aplikacji. Przykładowe wyniki."
     }
   },
   "feedback": {

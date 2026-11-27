@@ -3127,6 +3127,10 @@
       "reward": "Schließ deine erste Session ab und ihr bekommt beide {{tokens}} Tokens.",
       "accept": "Einladung annehmen",
       "signUp": "Kostenlos anmelden"
+    },
+    "demoPhone": {
+      "label": "Eine Runde in Victory AI: Der Coach ruft Kombos, danach deine Bewertung und Auswertung",
+      "caption": "Echte App-Bildschirme. Beispielwerte."
     }
   },
   "feedback": {
