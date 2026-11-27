@@ -6,6 +6,7 @@ import WidgetKit
 struct VictoryWidgetsBundle: WidgetBundle {
     var body: some Widget {
         VictoryLiveActivity()
+        VictoryHomeWidget()
     }
 }
 

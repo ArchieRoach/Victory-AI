@@ -1,5 +1,6 @@
 import SwiftUI
 import ClerkKit
+import WidgetKit
 
 /// Global navigation state machine.
 /// Owned by AppRootView; passed down to screens that need to trigger transitions.
@@ -60,6 +61,9 @@ final class AppRouter: ObservableObject {
         await PushNotificationManager.shared.disable()
         await StoreManager.shared.logOut()
         try? await Clerk.shared.auth.signOut()
+        // The next person to sign in on this phone shouldn't see this fighter's week.
+        WidgetSnapshot.clear()
+        WidgetCenter.shared.reloadAllTimelines()
         appState = .signIn
     }
 
