@@ -3,6 +3,7 @@ import SwiftUI
 import RevenueCat
 import RevenueCatUI
 import StoreKit
+import WidgetKit
 
 /// Message handlers the web app calls during training (frontend/src/lib/nativeBridge.js
 /// and frontend/src/hooks/useLiveCoach.js). Like PushBridge, they only answer the main
@@ -108,6 +109,36 @@ final class StoreBridge: OriginCheckedBridge {
             }
             reply(["shown": true], nil)
         }
+    }
+}
+
+/// `victoryWidget`: the web app hands over this week's progress (frontend/src/lib/widgetSync.js)
+/// for the home screen widget, which can't sign in or fetch anything itself.
+final class WidgetBridge: OriginCheckedBridge {
+    static let name = "victoryWidget"
+
+    override func handle(action: String, body: [String: Any], webView: WKWebView?, reply: @escaping (Any?, String?) -> Void) {
+        guard action == "update" else {
+            reply(nil, nil)
+            return
+        }
+        func int(_ key: String) -> Int? { (body[key] as? NSNumber)?.intValue }
+        let now = Date()
+        let snapshot = WidgetSnapshot(
+            weekDays: max(0, int("week_days") ?? 0),
+            weekGoal: max(1, int("week_goal") ?? 3),
+            streakWeeks: max(0, int("streak_weeks") ?? 0),
+            trainedOn: (body["trained_today"] as? Bool) == true ? WidgetSnapshot.day(now) : nil,
+            rank: body["rank"] as? String,
+            points: int("points"),
+            nextRank: body["next_rank"] as? String,
+            nextAt: int("next_at"),
+            weekStart: WidgetSnapshot.day(WidgetSnapshot.monday(of: now)),
+            savedAt: now
+        )
+        snapshot.save()
+        WidgetCenter.shared.reloadAllTimelines()
+        reply(["saved": true], nil)
     }
 }
 

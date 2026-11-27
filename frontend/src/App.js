@@ -97,6 +97,7 @@ const ReferralLandingPage = lazyPage(() => import("@/pages/ReferralLandingPage")
 const BillingPage = lazyPage(() => import("@/pages/BillingPage"));
 import { takePendingInvite } from "@/lib/pendingInvite";
 import { takePendingReferral } from "@/lib/pendingReferral";
+import { syncWidget } from "@/lib/widgetSync";
 import { tx } from "@/i18n/tx";
 const TokensPage = lazyPage(() => import("@/pages/TokensPage"));
 const DiscoverPage = lazyPage(() => import("@/pages/DiscoverPage"));
@@ -358,6 +359,24 @@ const PendingInvite = () => {
   return null;
 };
 
+// Keeps the iPhone home screen widget up to date: on opening the app, coming back to it, and
+// on the pages where this week's numbers change (home, results).
+const WidgetSync = () => {
+  const { isAuthenticated } = useAuth();
+  const { pathname } = useLocation();
+  useEffect(() => {
+    if (isAuthenticated && (pathname === "/home" || pathname.startsWith("/score/results"))) syncWidget(API, { force: pathname.startsWith("/score/results") });
+  }, [isAuthenticated, pathname]);
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    syncWidget(API);
+    const onShow = () => { if (document.visibilityState === "visible") syncWidget(API); };
+    document.addEventListener("visibilitychange", onShow);
+    return () => document.removeEventListener("visibilitychange", onShow);
+  }, [isAuthenticated]);
+  return null;
+};
+
 // Finishes a /r/CODE invite that was opened while signed out, once sign-up is done.
 const PendingReferral = () => {
   const { isAuthenticated } = useAuth();
@@ -429,6 +448,7 @@ const AppRouter = () => {
       <PushPrompt />
       <PendingInvite />
       <PendingReferral />
+      <WidgetSync />
       <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/welcome" element={<WelcomePage />} />

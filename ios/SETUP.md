@@ -198,6 +198,20 @@ exist. Until then the app ships without it, and Live Activities quietly do nothi
    - variable `WIDGET_PROFILE_NAME` = the exact profile name;
    - secret `WIDGET_PROFILE_BASE64` = `base64 -i <file>.mobileprovision`.
 
+### Home screen widget ("Your week")
+
+The same extension has a home screen and lock screen widget (`VictoryWidgets/VictoryHomeWidget.swift`):
+this week's training days as dots, the weekly streak, and the season rank. A tap opens a round
+(`<bundle id>://open/train`, handled in `VictoryAIApp.swift`). The web app sends the numbers through
+`victoryWidget` (`frontend/src/lib/widgetSync.js` → `App/NativeBridges.swift`) and the app saves them
+to a shared **App Group**, `group.<your bundle id>`. Signing out clears them.
+
+The App Group needs a one-time setup, alongside steps 1–3 above:
+
+4. Apple Developer → Identifiers → **+** → **App Groups** → identifier `group.<your bundle id>`.
+5. Open the app's App ID and the `.widgets` App ID → tick **App Groups** → Configure → pick that group → Save.
+6. Regenerate **both** App Store profiles (the app's and the widget's) and update their base64 secrets.
+
 The `compile` job always builds the extension, so it is checked on every push. For a local
 build, set `ENABLE_LIVE_ACTIVITIES=true` (or `false`) and `WIDGET_PROFILE_NAME` before running
 `xcodegen generate`.
