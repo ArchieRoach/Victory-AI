@@ -3143,6 +3143,10 @@
       "reward": "Finish your first session and you both get {{tokens}} tokens.",
       "accept": "Accept invite",
       "signUp": "Sign up free"
+    },
+    "demoPhone": {
+      "label": "A round in Victory AI: the coach calls combos, then your score and breakdown",
+      "caption": "Real app screens. Sample scores."
     }
   },
   "lib": {

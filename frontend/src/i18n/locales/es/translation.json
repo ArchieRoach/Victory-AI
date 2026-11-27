@@ -3127,6 +3127,10 @@
       "reward": "Termina tu primera sesión y los dos recibís {{tokens}} tokens.",
       "accept": "Aceptar invitación",
       "signUp": "Regístrate gratis"
+    },
+    "demoPhone": {
+      "label": "Un asalto en Victory AI: el coach canta combos y luego ves tu puntuación y tu desglose",
+      "caption": "Pantallas reales de la app. Puntuaciones de ejemplo."
     }
   },
   "feedback": {

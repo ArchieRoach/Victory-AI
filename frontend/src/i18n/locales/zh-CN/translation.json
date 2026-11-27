@@ -3127,6 +3127,10 @@
       "reward": "完成第一次训练，你们俩各得{{tokens}}代币。",
       "accept": "接受邀请",
       "signUp": "免费注册"
+    },
+    "demoPhone": {
+      "label": "Victory AI 中的一个回合：教练喊出组合拳，然后显示你的评分和详细分析",
+      "caption": "真实应用界面，评分为示例。"
     }
   },
   "feedback": {

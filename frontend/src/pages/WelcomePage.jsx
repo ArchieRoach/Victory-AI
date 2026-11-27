@@ -1,32 +1,20 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Swords, Shield, Footprints } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { usePalette } from "@/hooks/useColorScheme";
 import { tx } from "@/i18n/tx";
 import { MascotIntro } from "@/components/MascotIntro";
-
-// Same 3-ring category pattern SessionResultsPage.jsx actually shows after a real
-// session — a real user complained the old 16-spoke radar chart here "doesn't really
-// mean anything" and was too small to read, so that page was rebuilt around this.
-// This preview was still showing the old radar chart, which is both stale UI and a
-// dishonest preview: it no longer represents what the product actually looks like.
-const PREVIEW_CATEGORIES = [
-  { key: "Offense", icon: Swords, tone: "lime", value: 7.5 },
-  { key: "Defense", icon: Shield, tone: "teal", value: 6.0 },
-  { key: "Movement", icon: Footprints, tone: "orange", value: 8.0 },
-];
+import { DemoPhone } from "@/components/DemoPhone";
 
 export default function WelcomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const p = usePalette();
 
   return (
     <div className="min-h-screen bg-victory-bg flex flex-col items-center justify-center p-6" data-testid="welcome-page">
       <div className="w-full max-w-md text-center animate-fade-in">
         {/* Mascot (the real render with the belt), animated: lib/mascotMotion.js */}
-        <div className="mb-8" data-testid="app-logo">
-          <MascotIntro className="h-60" />
+        <div className="mb-6" data-testid="app-logo">
+          <MascotIntro className="h-36" />
         </div>
 
         {/* Headlines */}
@@ -37,49 +25,8 @@ export default function WelcomePage() {
           {t("welcome.subheadline")}
         </p>
 
-        {/* Category ring preview — matches the real post-session results screen */}
-        <div className="victory-card p-6 mb-8">
-          <div className="grid grid-cols-3 gap-3" data-testid="radar-preview">
-            {PREVIEW_CATEGORIES.map(({ key, icon: Icon, tone, value }) => {
-              const circumference = 2 * Math.PI * 28;
-              const color = p[tone];
-              return (
-                <div key={key} className="flex flex-col items-center text-center">
-                  <div className="relative w-16 h-16 mb-2">
-                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 64 64">
-                      <circle cx="32" cy="32" r="28" fill="none" className="stroke-victory-border" strokeWidth="5" />
-                      <circle
-                        cx="32" cy="32" r="28" fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
-                        strokeDasharray={`${(value / 10) * circumference} ${circumference}`}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Icon className="w-6 h-6" style={{ color }} />
-                    </div>
-                  </div>
-                  <p className="font-mono font-bold text-lg text-victory-text">{value.toFixed(1)}</p>
-                  <p className="text-victory-muted text-xs">{key}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Bullet Points */}
-        <ul className="text-left space-y-3 mb-10">
-          <li className="flex items-start gap-3 text-victory-text">
-            <span className="text-victory-lime text-lg">🥊</span>
-            <span>{t("welcome.feature1")}</span>
-          </li>
-          <li className="flex items-start gap-3 text-victory-text">
-            <span className="text-victory-teal text-lg">📹</span>
-            <span>{t("welcome.feature2")}</span>
-          </li>
-          <li className="flex items-start gap-3 text-victory-text">
-            <span className="text-victory-orange text-lg">📈</span>
-            <span>{t("welcome.feature3")}</span>
-          </li>
-        </ul>
+        {/* The first screen shows the app working, not a description of it. */}
+        <DemoPhone className="mb-8" />
 
         {/* CTA */}
         <button
@@ -94,6 +41,22 @@ export default function WelcomePage() {
         <button onClick={() => navigate("/style")} className="victory-btn-secondary mt-3" data-testid="style-quiz-link">
           {tx("ui.welcomePage.whatKindOfFighter", "What kind of fighter are you? Take the quiz")}
         </button>
+
+        {/* Bullet Points */}
+        <ul className="text-left space-y-3 mt-8 mb-6">
+          <li className="flex items-start gap-3 text-victory-text">
+            <span className="text-victory-lime text-lg">🥊</span>
+            <span>{t("welcome.feature1")}</span>
+          </li>
+          <li className="flex items-start gap-3 text-victory-text">
+            <span className="text-victory-teal text-lg">📹</span>
+            <span>{t("welcome.feature2")}</span>
+          </li>
+          <li className="flex items-start gap-3 text-victory-text">
+            <span className="text-victory-orange text-lg">📈</span>
+            <span>{t("welcome.feature3")}</span>
+          </li>
+        </ul>
 
         <p className="mt-6 text-victory-muted text-sm">
           {t("welcome.alreadyAccount")}{" "}
