@@ -21,7 +21,8 @@ targets:
     entitlements:
       path: Config/Widgets.entitlements
       properties:
-        com.apple.security.application-groups: [group.${IOS_BUNDLE_ID}]
+        com.apple.security.application-groups:
+          - group.${IOS_BUNDLE_ID}
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ${IOS_BUNDLE_ID}.widgets
@@ -45,4 +46,5 @@ targets:
       - target: VictoryWidgets
     entitlements:
       properties:
-        com.apple.security.application-groups: [group.${IOS_BUNDLE_ID}]
+        com.apple.security.application-groups:
+          - group.${IOS_BUNDLE_ID}
