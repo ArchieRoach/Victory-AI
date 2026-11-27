@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { ShareRound } from "@/components/ShareRound";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import axios from "axios";
 import { API } from "@/App";
@@ -458,6 +459,8 @@ export default function SessionResultsPage() {
             {coachNotes.what_you_did_well && <p className="text-victory-lime text-sm font-semibold">{coachNotes.what_you_did_well}</p>}
           </section>
         )}
+
+        <ShareRound sessionId={session.session_id} score={isScored ? session.overall_score : null} />
 
         {scoreComing && (
           <section className="victory-card p-4 space-y-3" data-testid="score-coming" aria-live="polite">

@@ -2559,7 +2559,18 @@
       "voicePhone": "手机语音。听不到？请调高音量。",
       "savingYourSession": "正在保存你的训练",
       "learnTheNumbers": "学会数字",
-      "bMeansBody": "“b”表示打身体：3b 是打身体的勾拳。学习期间，每个口令下面都会显示名称。"
+      "bMeansBody": "“b”表示打身体：3b 是打身体的勾拳。学习期间，每个口令下面都会显示名称。",
+      "adaptsToYou": "根据你调整",
+      "boostVoice": "加大教练音量",
+      "boostVoiceDesc": "降低铃声等声音，让口令更突出。嘈杂的拳馆里最好戴耳机。",
+      "creatorMode": "创作者模式",
+      "creatorModeOn": "大画面、组合拳在底部、出拳数在角落。可直接分享。",
+      "creatorModeOff": "回合中显示所有实时数据，像训练仪表盘一样。",
+      "videoShape": "视频比例",
+      "portrait": "竖屏（Reels）",
+      "landscape": "横屏",
+      "earbudsTip": "连接耳机体验最好——口令直接传进耳朵。",
+      "dontShowAgain": "不再显示"
     },
     "merchSheet": {
       "linkCopiedSendIt": "链接已复制：发给家长",
@@ -3131,6 +3142,29 @@
     "demoPhone": {
       "label": "Victory AI 中的一个回合：教练喊出组合拳，然后显示你的评分和详细分析",
       "caption": "真实应用界面，评分为示例。"
+    },
+    "comboDisplay": {
+      "last": "最后一个",
+      "next": "下一个：{{label}} · {{name}}",
+      "nextMove": "下一个：{{name}}"
+    },
+    "framingCheck": {
+      "ok": "你已在画面中",
+      "back": "往后退一步",
+      "closer": "再靠近一点",
+      "searching": "站到肩膀和双手都在轮廓里的位置",
+      "back2": "返回",
+      "startNow": "立即开始"
+    },
+    "shareRound": {
+      "button": "分享你的回合",
+      "title": "你的回合，可直接发 Reels 和 TikTok",
+      "making": "正在剪出你最精彩的 20 秒…",
+      "failed": "这台手机无法生成片段。再试一次？",
+      "retry": "再试一次",
+      "share": "分享",
+      "save": "保存视频",
+      "note": "竖屏 9:16，带教练口令，没有拳馆噪音。"
     }
   },
   "feedback": {

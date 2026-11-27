@@ -3,7 +3,9 @@ import { roundPraise } from "@/lib/identity";
 import { tx } from "@/i18n/tx";
 
 // During the round: the counts, live, over the camera preview.
-export function LiveCoachOverlay({ status, stats, ghost, airpods }) {
+// `minimal` (Creator Mode): only a small punch count in a corner. Guard and head stats are still
+// counted for the breakdown afterwards, but never shown on screen during the round.
+export function LiveCoachOverlay({ status, stats, ghost, airpods, minimal = false }) {
   if (status === "loading") {
     return <span className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full">{tx("ui.liveCoachPanel.liveCoachWarmingUp", "Live Coach warming up…")}</span>;
   }
@@ -12,9 +14,17 @@ export function LiveCoachOverlay({ status, stats, ghost, airpods }) {
   }
   if (status !== "ready") return null;
   if (stats && !stats.inFrame) {
-    return <span className="absolute bottom-2 left-2 bg-black/70 text-victory-orange text-xs font-bold px-2 py-1 rounded-full">{tx("ui.liveCoachPanel.stepBackSoYour", "Step back so your shoulders and hands are in frame")}</span>;
+    return <span className={`absolute ${minimal ? "top-11" : "bottom-2"} left-2 bg-black/70 text-victory-orange text-xs font-bold px-2 py-1 rounded-full`}>{tx("ui.liveCoachPanel.stepBackSoYour", "Step back so your shoulders and hands are in frame")}</span>;
   }
   const punches = stats?.punches ?? 0;
+  if (minimal) {
+    return (
+      <div className="absolute top-11 left-2 bg-black/55 backdrop-blur-sm rounded-xl px-2 py-1 text-left" data-testid="live-coach-overlay">
+        <p className="font-mono font-bold text-lg text-victory-lime leading-none">{punches}</p>
+        <p className="text-white/70 text-[9px]">{tx("ui.liveCoachPanel.punches", "punches")}</p>
+      </div>
+    );
+  }
   const ahead = ghost != null ? punches - ghost : null;
   return (
     <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex items-end justify-between gap-2" data-testid="live-coach-overlay">

@@ -85,6 +85,9 @@ export function hasClip(text) {
   return clips.has(text);
 }
 
+// The saved natural-voice clip for a line (a local blob URL), for laying calls over a share clip.
+export const clipFor = (text) => clips.get(text) || null;
+
 export function unlockSpeech() {
   try {
     if (navigator.audioSession) navigator.audioSession.type = "playback";

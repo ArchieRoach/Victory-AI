@@ -181,3 +181,13 @@ test("every combo moves the way the body does", () => {
     }
   }
 });
+
+test("the on-screen combo knows each punch's hand, body shots and moves", () => {
+  const { comboTokens } = require("./comboCaller");
+  const t = comboTokens("1-2-3b-3-slip", "orthodox");
+  expect(t.map((x) => x.label)).toEqual(["1", "2", "3b", "3", "Slip"]);
+  expect(t.map((x) => x.hand)).toEqual(["lead", "rear", "lead", "lead", null]);
+  expect(t[2]).toMatchObject({ body: true, name: "Left hook body" });
+  expect(t[3].name).toBe("Left hook head");
+  expect(t[4].punch).toBe(false);
+});

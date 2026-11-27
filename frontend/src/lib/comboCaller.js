@@ -125,6 +125,8 @@ export function createComboCaller({ level = 0, floor = 0, gapScale = 1, pick = M
       pending = null;
       nextAt = null;
     },
+    // How far into the call in flight the fighter is (punches the camera counted).
+    progress: () => (pending ? { combo: pending.combo, punches: pending.punches } : null),
     level: () => lvl,
     summary: () => ({ ...stats, level: lvl, rate: stats.checked ? Math.round((100 * stats.landed) / stats.checked) : null }),
   };
@@ -165,6 +167,25 @@ export function comboWords(combo, stance) {
     prev = m;
   }
   return words;
+}
+
+// Moves shown short in the big row (the full name sits underneath).
+const MOVE_SHORT = { slip: "Slip", roll: "Roll", bob: "Bob", pull: "Pull", in: "In", back: "Back", pivot: "Pivot", angle: "Out" };
+
+// The combo as pieces for the on-screen display: what to show big (the number or the move),
+// its full name, and which hand throws it, so each punch can be coloured by hand.
+export function comboTokens(combo, stance) {
+  let prev = null;
+  return String(combo).split("-").map((m, i) => {
+    const body = /^[1-6]b$/.test(m);
+    const n = Number(body ? m.slice(0, -1) : m);
+    const punch = n >= 1 && n <= 6;
+    const name = punch ? punchName(n, stance) : MOVE_WORDS[m] || m;
+    const label = punch ? (body ? `${n}b` : String(n)) : MOVE_SHORT[m] || m;
+    const named = punch && !body && prev === `${m}b` ? `${name} head` : punch && body ? `${name} body` : name;
+    prev = m;
+    return { key: `${i}-${m}`, label, name: named, punch, body, hand: punch ? (n % 2 ? "lead" : "rear") : null };
+  });
 }
 
 // How fast calls come. The default leaves room to throw, breathe and reset your guard;

@@ -2559,7 +2559,18 @@
       "voicePhone": "Voz del móvil. ¿No la oyes? Sube el volumen.",
       "savingYourSession": "Guardando tu sesión",
       "learnTheNumbers": "Aprende los números",
-      "bMeansBody": "\"b\" significa al cuerpo: 3b es un gancho al cuerpo. Los nombres salen debajo de cada llamada mientras aprendes."
+      "bMeansBody": "\"b\" significa al cuerpo: 3b es un gancho al cuerpo. Los nombres salen debajo de cada llamada mientras aprendes.",
+      "adaptsToYou": "se adapta a ti",
+      "boostVoice": "Subir al coach",
+      "boostVoiceDesc": "Baja la campana y otros sonidos para que las llamadas destaquen. En un gimnasio ruidoso, los auriculares van mejor.",
+      "creatorMode": "Modo Creador",
+      "creatorModeOn": "Cámara grande, combo abajo, golpes en la esquina. Listo para compartir.",
+      "creatorModeOff": "Muestra todas las estadísticas en vivo durante el asalto, como un panel de entrenamiento.",
+      "videoShape": "Formato de vídeo",
+      "portrait": "Vertical (Reels)",
+      "landscape": "Horizontal",
+      "earbudsTip": "Conecta auriculares para la mejor experiencia: las llamadas van directas a tus oídos.",
+      "dontShowAgain": "No volver a mostrar"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Enlace copiado: envíaselo a un padre o madre",
@@ -3131,6 +3142,29 @@
     "demoPhone": {
       "label": "Un asalto en Victory AI: el coach canta combos y luego ves tu puntuación y tu desglose",
       "caption": "Pantallas reales de la app. Puntuaciones de ejemplo."
+    },
+    "comboDisplay": {
+      "last": "El último",
+      "next": "Siguiente: {{label}} · {{name}}",
+      "nextMove": "Siguiente: {{name}}"
+    },
+    "framingCheck": {
+      "ok": "Estás en el encuadre",
+      "back": "Da un paso atrás",
+      "closer": "Acércate",
+      "searching": "Ponte donde tus hombros y manos queden dentro de la silueta",
+      "back2": "Atrás",
+      "startNow": "Empezar ya"
+    },
+    "shareRound": {
+      "button": "Comparte tu asalto",
+      "title": "Tu asalto, listo para Reels y TikTok",
+      "making": "Cortando tus mejores 20 segundos…",
+      "failed": "No se pudo crear el clip en este móvil. ¿Lo intentas otra vez?",
+      "retry": "Intentar de nuevo",
+      "share": "Compartir",
+      "save": "Guardar vídeo",
+      "note": "Vertical 9:16 con las llamadas del coach. Sin el ruido del gimnasio."
     }
   },
   "feedback": {

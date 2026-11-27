@@ -2559,7 +2559,18 @@
       "voicePhone": "Voz do celular. Não está ouvindo? Aumente o volume.",
       "savingYourSession": "Salvando sua sessão",
       "learnTheNumbers": "Aprenda os números",
-      "bMeansBody": "\"b\" quer dizer no corpo: 3b é um gancho no corpo. Os nomes aparecem embaixo de cada chamada enquanto você aprende."
+      "bMeansBody": "\"b\" quer dizer no corpo: 3b é um gancho no corpo. Os nomes aparecem embaixo de cada chamada enquanto você aprende.",
+      "adaptsToYou": "se adapta a você",
+      "boostVoice": "Aumentar o coach",
+      "boostVoiceDesc": "Abaixa o gongo e outros sons para as chamadas se destacarem. Numa academia barulhenta, fone de ouvido é o melhor.",
+      "creatorMode": "Modo Criador",
+      "creatorModeOn": "Câmera grande, combo embaixo, golpes no canto. Pronto para postar.",
+      "creatorModeOff": "Mostra todas as estatísticas ao vivo durante o round, como um painel de treino.",
+      "videoShape": "Formato do vídeo",
+      "portrait": "Vertical (Reels)",
+      "landscape": "Horizontal",
+      "earbudsTip": "Conecte fones para a melhor experiência — as chamadas vão direto para os seus ouvidos.",
+      "dontShowAgain": "Não mostrar de novo"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link copiado: envie para um responsável",
@@ -3131,6 +3142,29 @@
     "demoPhone": {
       "label": "Um round no Victory AI: o coach chama os combos e depois mostra sua nota e o detalhamento",
       "caption": "Telas reais do app. Notas de exemplo."
+    },
+    "comboDisplay": {
+      "last": "Último",
+      "next": "Próximo: {{label}} · {{name}}",
+      "nextMove": "Próximo: {{name}}"
+    },
+    "framingCheck": {
+      "ok": "Você está no enquadramento",
+      "back": "Dê um passo para trás",
+      "closer": "Chegue mais perto",
+      "searching": "Fique onde seus ombros e mãos ficam dentro do contorno",
+      "back2": "Voltar",
+      "startNow": "Começar agora"
+    },
+    "shareRound": {
+      "button": "Compartilhe seu round",
+      "title": "Seu round, pronto para Reels e TikTok",
+      "making": "Cortando seus melhores 20 segundos…",
+      "failed": "Não deu para criar o clipe neste celular. Tentar de novo?",
+      "retry": "Tentar de novo",
+      "share": "Compartilhar",
+      "save": "Salvar vídeo",
+      "note": "Vertical 9:16 com as chamadas do coach. Sem o barulho da academia."
     }
   },
   "feedback": {
