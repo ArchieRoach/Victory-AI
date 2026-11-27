@@ -4,6 +4,24 @@
 // unlockTimerSounds() must run inside the Start tap, or iPhone Safari keeps them silent.
 
 let ctx = null;
+let master = null;
+let level = 1;
+
+// Everything goes through one volume knob, so "Boost" can drop the bell and clapper back and
+// let the coach's calls stand out.
+function out() {
+  if (!master) {
+    master = ctx.createGain();
+    master.gain.value = level;
+    master.connect(ctx.destination);
+  }
+  return master;
+}
+
+export function setSoundLevel(value) {
+  level = Math.max(0, Math.min(1, value));
+  if (master) master.gain.value = level;
+}
 const BELL_FILES = { start: "/sounds/bell-start.mp3", end: "/sounds/bell-end.mp3", warning: "/sounds/clapper.mp3" };
 const bells = {};
 
@@ -22,7 +40,7 @@ function loadBells() {
 function playBuffer(buffer, at) {
   const src = ctx.createBufferSource();
   src.buffer = buffer;
-  src.connect(ctx.destination);
+  src.connect(out());
   src.start(at);
 }
 
@@ -53,7 +71,7 @@ function tone(freq, start, length, gain, type = "sine") {
   g.gain.setValueAtTime(0.0001, start);
   g.gain.exponentialRampToValueAtTime(gain, start + 0.005);
   g.gain.exponentialRampToValueAtTime(0.0001, start + length);
-  osc.connect(g).connect(ctx.destination);
+  osc.connect(g).connect(out());
   osc.start(start);
   osc.stop(start + length + 0.05);
 }
@@ -75,7 +93,7 @@ function clap(at) {
   const g = ctx.createGain();
   g.gain.value = 1.4;
   src.buffer = buffer;
-  src.connect(filter).connect(g).connect(ctx.destination);
+  src.connect(filter).connect(g).connect(out());
   src.start(at);
 }
 
@@ -92,7 +110,7 @@ function whistle(at) {
   g.gain.exponentialRampToValueAtTime(0.25, at + 0.02);
   g.gain.setValueAtTime(0.25, at + 0.35);
   g.gain.exponentialRampToValueAtTime(0.0001, at + 0.45);
-  osc.connect(g).connect(ctx.destination);
+  osc.connect(g).connect(out());
   [osc, lfo].forEach((o) => { o.start(at); o.stop(at + 0.5); });
 }
 

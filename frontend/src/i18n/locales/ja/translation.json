@@ -2559,7 +2559,18 @@
       "voicePhone": "スマホの声です。聞こえない場合は音量を上げてください。",
       "savingYourSession": "セッションを保存中",
       "learnTheNumbers": "番号を覚えよう",
-      "bMeansBody": "「b」はボディ。3bはボディへのフック。覚えるまで、名前が毎回下に出ます。"
+      "bMeansBody": "「b」はボディ。3bはボディへのフック。覚えるまで、名前が毎回下に出ます。",
+      "adaptsToYou": "あなたに合わせて変化",
+      "boostVoice": "コーチの声を強調",
+      "boostVoiceDesc": "ゴングなどの音を下げてコールを聞き取りやすくします。うるさいジムではイヤホンが一番です。",
+      "creatorMode": "クリエイターモード",
+      "creatorModeOn": "大きなカメラ、下にコンビネーション、隅にパンチ数。すぐにシェアできます。",
+      "creatorModeOff": "ラウンド中にすべてのライブ数値を表示します（トレーニング画面のように）。",
+      "videoShape": "動画の形",
+      "portrait": "縦（リール）",
+      "landscape": "横",
+      "earbudsTip": "イヤホンをつなぐと快適です。コールが直接耳に届きます。",
+      "dontShowAgain": "今後表示しない"
     },
     "merchSheet": {
       "linkCopiedSendIt": "リンクをコピーしました：保護者に送ってください",
@@ -3131,6 +3142,29 @@
     "demoPhone": {
       "label": "Victory AIのラウンド：コーチがコンビネーションをコールし、その後スコアと内訳が表示されます",
       "caption": "実際のアプリ画面です。スコアはサンプルです。"
+    },
+    "comboDisplay": {
+      "last": "ラスト",
+      "next": "次：{{label}}・{{name}}",
+      "nextMove": "次：{{name}}"
+    },
+    "framingCheck": {
+      "ok": "フレームに入っています",
+      "back": "一歩下がって",
+      "closer": "もう少し近づいて",
+      "searching": "肩と手が枠の中に入る位置に立ってください",
+      "back2": "戻る",
+      "startNow": "今すぐ開始"
+    },
+    "shareRound": {
+      "button": "ラウンドをシェア",
+      "title": "リールやTikTok向けに仕上がりました",
+      "making": "ベストの20秒を切り出しています…",
+      "failed": "このスマホではクリップを作れませんでした。もう一度試しますか？",
+      "retry": "もう一度",
+      "share": "シェア",
+      "save": "動画を保存",
+      "note": "縦9:16でコーチのコール入り。ジムの騒音は入りません。"
     }
   },
   "feedback": {

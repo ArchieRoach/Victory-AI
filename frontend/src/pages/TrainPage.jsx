@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import {
   Pause, Play, SkipForward, Square, CheckCircle,
-  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye, Skull, Music, Megaphone, Swords, Hash, SwitchCamera,
+  Volume2, VolumeX, Lock, Radio, Zap, Video, VideoOff, Target, ScanEye, Skull, Music, Megaphone, Swords, Hash, SwitchCamera, Clapperboard, Headphones,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
@@ -21,7 +21,7 @@ import { ghostCount } from "@/lib/liveCoach";
 import { LiveCoachOverlay, LiveRoundSummary } from "@/components/LiveCoachPanel";
 import { nativeRound } from "@/lib/nativeBridge";
 import { createComboCaller, sayCombo, saveLevel, startingLevel, levelRange, comboWords, comboSpeech, numberLegend, callsNumbers, setCallsNumbers, callPace, setCallPace, CALL_PACES, CALL_LEVELS } from "@/lib/comboCaller";
-import { unlockTimerSounds, playTimerSound } from "@/lib/timerSounds";
+import { unlockTimerSounds, playTimerSound, setSoundLevel } from "@/lib/timerSounds";
 import { unlockSpeech, setVoiceSource, primeVoice, sayNatural, say, hasClip, waitForVoice, onVoiceProblem } from "@/lib/speech";
 import { ToggleRow } from "@/components/ToggleRow";
 import { TimerCard } from "@/components/home/TimerCard";
@@ -29,6 +29,12 @@ import { withCue } from "@/lib/verbalCues";
 import { useUnlocks, isUnlocked } from "@/lib/unlocks";
 import { tx } from "@/i18n/tx";
 import { CornerOrb } from "@/components/CornerOrb";
+import { ComboDisplay } from "@/components/ComboDisplay";
+import { FramingCheck } from "@/components/FramingCheck";
+import { openTrainingCamera } from "@/lib/camera";
+import { creatorMode, setCreatorMode, videoShape, setVideoShape, voiceBoost, setVoiceBoost, earbudsTipHidden, hideEarbudsTip } from "@/lib/trainingPrefs";
+import { saveRoundClip } from "@/lib/roundClips";
+import { earbudsConnected } from "@/lib/audioRoute";
 
 const LIVE_COACH_KEY = "victory_live_coach";
 // On unless the fighter switched it off: it runs on the phone and uploads nothing, so it's
@@ -40,9 +46,6 @@ const DEFAULT_ROUND_SECONDS = 120;
 const FIXED_ROUND_SECONDS = 180;
 // Long enough for a typical upload and score; a slow network still reaches the results.
 const ROUND_VIDEO_BITRATE = 1_800_000;
-// 720p at up to 30 fps: plenty for scoring, and light enough that the phone can film, show the
-// preview and run the punch counter at once without the picture freezing.
-const cameraConstraints = (facingMode) => ({ facingMode, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } });
 // Video scoring runs as a background job; check back every 2s for up to 90s, then carry on
 // without it (the score still lands on the round when the job finishes).
 const waitForJob = async (jobId, { everyMs = 2000, maxMs = 90_000 } = {}) => {
@@ -212,6 +215,22 @@ export default function TrainPage() {
   const [facing,        setFacing]        = useState("user");
   const [cameraError,   setCameraError]   = useState(null);
   const [startingSession, setStartingSession] = useState(false);
+  // Creator Mode (on unless switched off), portrait video, voice boost: lib/trainingPrefs.js.
+  const [creator,       setCreatorState]  = useState(creatorMode);
+  const [shape,         setShapeState]    = useState(videoShape);
+  const [boost,         setBoostState]    = useState(voiceBoost);
+  const [earbuds,       setEarbuds]       = useState(null);
+  const [earbudsTip,    setEarbudsTip]    = useState(() => !earbudsTipHidden());
+  // Before the clock starts: check shoulders and hands are in the picture (FramingCheck).
+  const [framingStep,   setFramingStep]   = useState(false);
+  // What the share clip needs from each round: when each combo was called and each punch landed,
+  // timed from the start of that round's recording.
+  const recStartRef = useRef(0);
+  const filmingRef = useRef(false);
+  const cameraOkRef = useRef(false);
+  const callLogRef = useRef([]);
+  const punchLogRef = useRef([]);
+  const [callStartedAt, setCallStartedAt] = useState(0);
 
   // ── Training state ───────────────────────────────────────────────────────────
   const [sessionId,         setSessionId]         = useState(null);
@@ -244,10 +263,15 @@ export default function TrainPage() {
   const coach = useLiveCoach({
     enabled: liveCoach && cameraReady && !isConfiguring,
     videoRef: videoPreviewRef,
-    running: !isPaused && !isResting && !isComplete && !isConfiguring,
+    running: !isPaused && !isResting && !isComplete && !isConfiguring && !framingStep,
     voice: voiceEnabled,
     cues: kind === "freestyle" ? FREESTYLE_CUES : undefined,
-    onEvent: (e) => { if (e === "punch") callerRef.current?.punch(performance.now()); },
+    checkFraming: framingStep,
+    onEvent: (e) => {
+      if (e !== "punch") return;
+      callerRef.current?.punch(performance.now());
+      if (recStartRef.current) punchLogRef.current.push(performance.now() - recStartRef.current);
+    },
   });
 
   // Combo calls: adapt only when the camera can see whether they landed (lib/comboCaller.js).
@@ -263,6 +287,8 @@ export default function TrainPage() {
       const c = caller.tick(performance.now(), { adaptive: adaptiveCalls });
       if (c) {
         setCurrentCall(c);
+        setCallStartedAt(performance.now());
+        if (recStartRef.current) callLogRef.current.push({ t: performance.now() - recStartRef.current, combo: c.combo, text: comboSpeech(c.combo, stance) });
         if (voiceEnabled) sayCombo(c.combo, stance);
       }
     }, 250);
@@ -301,6 +327,14 @@ export default function TrainPage() {
     };
   }, []);
 
+  // Boost: the bell and clapper drop back so the coach's calls stand out.
+  useEffect(() => { setSoundLevel(boost ? 0.45 : 1); }, [boost]);
+  // Earbuds tip: only when the coach would play from the phone speaker (or we can't tell).
+  useEffect(() => {
+    if (!isConfiguring) return;
+    earbudsConnected().then(setEarbuds).catch(() => setEarbuds(null));
+  }, [isConfiguring]);
+
   // Start loading the punch counter while the fighter is still on the setup screen.
   useEffect(() => {
     if (isConfiguring && liveCoach) preloadLiveCoach();
@@ -315,7 +349,7 @@ export default function TrainPage() {
       if (v.srcObject !== cameraStreamRef.current) v.srcObject = cameraStreamRef.current;
       v.play?.().catch(() => {});
     }
-  }, [cameraReady, isConfiguring]);
+  }, [cameraReady, isConfiguring, framingStep]);
 
   // The App Store app mirrors the round clock to the Lock Screen and Dynamic Island, so
   // the timer stays visible when the fighter switches to their music.
@@ -370,7 +404,7 @@ export default function TrainPage() {
       return false;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: cameraConstraints(facing), audio: false });
+      const stream = await openTrainingCamera(facing, shape);
       cameraStreamRef.current = stream;
       setCameraReady(true);
       setCameraError(null);
@@ -391,10 +425,11 @@ export default function TrainPage() {
     setCameraReady(false);
   };
 
-  // Front camera (you can see yourself) or back camera (better picture). Recording restarts
+  // Front camera (you can see yourself) or back camera (better picture, and the 0.5x ultra-wide
+  // where the phone has one). Recording restarts
   // on the new camera; Live Coach keeps counting from the same preview.
   const swapCamera = async (facingMode) => {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: cameraConstraints(facingMode), audio: false });
+    const stream = await openTrainingCamera(facingMode, shape);
     const wasRecording = mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive";
     if (wasRecording) { try { mediaRecorderRef.current.stop(); } catch {} }
     cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
@@ -460,6 +495,9 @@ export default function TrainPage() {
     const stream = cameraStreamRef.current;
     if (!stream) return;
     recordedChunksRef.current = [];
+    recStartRef.current = performance.now();
+    callLogRef.current = [];
+    punchLogRef.current = [];
     // iPhones record MP4; others WebM. A capped bitrate keeps a 3-minute round around 40 MB
     // (an iPhone's default can pass Cloudinary's 100 MB limit, and the upload then fails).
     const mimeType = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"].find((t) => window.MediaRecorder?.isTypeSupported?.(t));
@@ -533,7 +571,13 @@ export default function TrainPage() {
       const problem = (detail) => axios.post(`${API}/training/${sessionId}/video-problem`,
         { round_number: roundNum, stage, detail: String(detail || "").slice(0, 300) }).catch(() => {});
       try {
+        const stoppedAt = performance.now();
         const blob = await stopRoundRecording();
+        if (blob) {
+          saveRoundClip(sessionId, { round: roundNum, blob, durationMs: stoppedAt - recStartRef.current,
+            calls: [...callLogRef.current], punches: [...punchLogRef.current], facing });
+        }
+        recStartRef.current = 0;
         if (!blob) { problem("no video recorded"); }
         else {
           stage = "upload";
@@ -614,6 +658,8 @@ export default function TrainPage() {
     setStartingSession(true);
     const filming = recordVideo && kind !== "freestyle";
     const watching = liveCoach || kind === "boss";
+    filmingRef.current = false;
+    cameraOkRef.current = false;
     if (kind === "boss" && !liveCoach) chooseLiveCoach(true);
     try {
       const res = await withMinDuration(axios.post(`${API}/training/start`, {
@@ -639,7 +685,8 @@ export default function TrainPage() {
     if (filming !== recordVideo) setRecordVideo(false);
     if (filming || watching) {
       const granted = await requestCamera();
-      if (granted && filming) startRoundRecording();
+      filmingRef.current = granted && filming;
+      cameraOkRef.current = granted;
       if (!granted && kind === "boss") toast.error(tx("ui.trainPage.bossRoundsNeedThe", "Boss Rounds need the camera to count. This try won't count."));
     }
     callerRef.current = callsOn && canCall && kind !== "boss"
@@ -659,9 +706,21 @@ export default function TrainPage() {
     setTimeLeft(roundDuration);
     setCurrentRound(1);
     setIsResting(false);
-    setIsPaused(false);
     setIsComplete(false);
     setFeedback(null);
+    // With the camera watching, check the framing first; the clock (and the recording) start after.
+    if (watching && cameraOkRef.current) {
+      setIsPaused(true);
+      setFramingStep(true);
+      return;
+    }
+    beginRound();
+  };
+
+  const beginRound = () => {
+    setFramingStep(false);
+    if (filmingRef.current && cameraStreamRef.current) startRoundRecording();
+    setIsPaused(false);
     playBell();
     flashScreen("round");
     startHypeCycle();
@@ -815,24 +874,15 @@ export default function TrainPage() {
   const showCam = (recordVideo || liveCoach) && cameraReady;
   // One cue at a time keeps the fighter in flow. With the camera on it sits right under the
   // picture, so you can watch yourself and read the call without looking away.
+  // One cue at a time keeps the fighter in flow: the call in big colour-coded numbers
+  // (components/ComboDisplay.jsx). In Creator Mode it sits over the bottom third of the camera.
+  const comboOverlay = showCam && creator;
+  const comboCaption = kind === "freestyle" ? tx("ui.trainPage.riffOnIt", "Riff on it") : currentCall ? `${currentCall.levelName}${adaptiveCalls ? ` · ${tx("ui.trainPage.adaptsToYou", "adapts to you")}` : ""}` : "";
   const comboCall = (!isResting && !isPaused && currentCall && (
-              <div className="w-full max-w-sm mb-4 text-center" data-testid="combo-call" aria-live="polite">
-                {numbersOn ? (
-                  <>
-                    <p className="font-mono text-5xl font-extrabold text-victory-lime leading-none">{currentCall.combo}</p>
-                    <p className="text-victory-text text-sm font-semibold mt-2" data-testid="combo-names">{comboWords(currentCall.combo, stance).join(" · ")}</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="font-heading text-3xl font-extrabold text-victory-lime leading-tight">{comboWords(currentCall.combo, stance).join(" · ")}</p>
-                    <p className="font-mono text-victory-muted text-xs mt-1">{currentCall.combo}</p>
-                  </>
-                )}
-                <p className="text-victory-muted text-[11px] mt-2">
-                  {kind === "freestyle" ? tx("ui.trainPage.riffOnIt", "Riff on it") : `${currentCall.levelName}${adaptiveCalls ? " · adapts to you" : ""}`}
-                </p>
-              </div>
-            ));
+    <ComboDisplay key={`${currentCall.combo}-${callStartedAt}`} combo={currentCall.combo} stance={stance} startedAt={callStartedAt}
+      getPunches={adaptiveCalls ? () => callerRef.current?.progress()?.punches ?? 0 : null}
+      overlay={comboOverlay} caption={comboOverlay ? null : comboCaption} />
+  ));
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -841,6 +891,11 @@ export default function TrainPage() {
         <video key={clip} src={clip} autoPlay playsInline onEnded={() => setClip(null)} onError={() => setClip(null)}
           className="fixed right-4 bottom-28 w-32 aspect-[9/16] object-cover rounded-2xl shadow-2xl z-40 border border-victory-lime/40"
           data-testid="pro-clip" />
+      )}
+      {framingStep && (
+        <FramingCheck videoRef={videoPreviewRef} framing={coach.status === "ready" ? coach.framing : "searching"}
+          mirror={facing === "user"} portrait={shape !== "landscape"}
+          onStart={beginRound} onCancel={() => { setFramingStep(false); resetTimer(); }} />
       )}
       {finishing && (
         <div className="fixed inset-0 z-50 bg-victory-bg/95 flex flex-col items-center justify-center gap-4 p-6 text-center" data-testid="finishing-session" aria-live="polite">
@@ -1149,6 +1204,13 @@ export default function TrainPage() {
               <div className="victory-card p-4">
                 <ToggleRow on={voiceEnabled} onToggle={setVoiceEnabled} iconOn={Volume2} iconOff={VolumeX}
                   title={t("train.voiceFeedback")} description={t("train.voiceDesc")} />
+                {voiceEnabled && (
+                  <div className="mt-3">
+                    <ToggleRow on={boost} onToggle={(next) => { setBoostState(next); setVoiceBoost(next); }} iconOn={Megaphone}
+                      title={tx("ui.trainPage.boostVoice", "Boost the coach")}
+                      description={tx("ui.trainPage.boostVoiceDesc", "Turns the bell and other sounds down so the calls stand out. Earbuds work best in a loud gym.")} testId="boost-toggle" />
+                  </div>
+                )}
               </div>
             )}
 
@@ -1199,6 +1261,38 @@ export default function TrainPage() {
               </div>
             )}
 
+            {sessionMode === "private" && (recordVideo || liveCoach) && (
+              <div className="victory-card p-4 space-y-3" data-testid="creator-settings">
+                <ToggleRow on={creator} onToggle={(next) => { setCreatorState(next); setCreatorMode(next); }} iconOn={Clapperboard}
+                  title={tx("ui.trainPage.creatorMode", "Creator Mode")}
+                  description={creator
+                    ? tx("ui.trainPage.creatorModeOn", "Big camera, combo at the bottom, punch count in the corner. Ready to share.")
+                    : tx("ui.trainPage.creatorModeOff", "Shows every live stat during the round, like a training dashboard.")} testId="creator-toggle" />
+                <div>
+                  <p className="text-victory-text text-sm font-semibold">{tx("ui.trainPage.videoShape", "Video shape")}</p>
+                  <div className="grid grid-cols-2 gap-2 mt-2" role="radiogroup" aria-label={tx("ui.trainPage.videoShape", "Video shape")}>
+                    {[["portrait", tx("ui.trainPage.portrait", "Portrait (Reels)")], ["landscape", tx("ui.trainPage.landscape", "Landscape")]].map(([key, label]) => (
+                      <button key={key} type="button" role="radio" aria-checked={shape === key}
+                        onClick={() => { setShapeState(key); setVideoShape(key); }}
+                        className={`min-h-[40px] rounded-full text-sm font-semibold ${shape === key ? "bg-victory-lime text-victory-bg" : "bg-victory-card-highlight text-victory-muted"}`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {sessionMode === "private" && voiceEnabled && earbudsTip && earbuds !== true && (
+              <div className="flex items-center gap-3 rounded-2xl bg-victory-card-highlight px-4 py-3" data-testid="earbuds-tip">
+                <Headphones className="w-5 h-5 text-victory-teal flex-shrink-0" />
+                <p className="text-victory-text text-sm flex-1">{tx("ui.trainPage.earbudsTip", "Connect earbuds for best experience — callouts go straight to your ears.")}</p>
+                <button type="button" onClick={() => { hideEarbudsTip(); setEarbudsTip(false); }} className="text-victory-muted text-xs font-semibold whitespace-nowrap min-h-[40px]">
+                  {tx("ui.trainPage.dontShowAgain", "Don't show again")}
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-center gap-2 text-sm">
               <span className="text-victory-muted">{t("train.total")}</span>
               <span className="text-victory-lime font-bold font-mono">{getTotalWorkoutTime()}</span>
@@ -1231,8 +1325,10 @@ export default function TrainPage() {
             {/* Live camera preview — only when the fighter opted in on the config
                 screen. Mirrored like a gym mirror; visibly on so recording is never
                 a surprise. */}
-            {showCam && (
-              <div className="relative w-full max-w-sm aspect-video rounded-xl overflow-hidden bg-black mb-3">
+            {showCam && !framingStep && (
+              <div className="relative max-w-full rounded-2xl overflow-hidden bg-black mb-3"
+                style={{ aspectRatio: shape === "landscape" ? "16 / 9" : "9 / 16", height: shape === "landscape" ? undefined : creator ? "66vh" : "46vh", width: shape === "landscape" ? "100%" : undefined }}
+                data-testid="camera-box">
                 <video
                   ref={videoPreviewRef}
                   autoPlay
@@ -1262,13 +1358,15 @@ export default function TrainPage() {
                     status={coach.status}
                     stats={coach.stats}
                     airpods={coach.airpods}
+                    minimal={creator}
                     ghost={ghost ? ghostCount(ghost.timeline, roundDuration - timeLeft) : null}
                   />
                 )}
+                {comboOverlay && comboCall}
               </div>
             )}
 
-            {showCam && <div className="w-full max-w-sm min-h-[72px] flex items-start justify-center">{comboCall}</div>}
+            {showCam && !comboOverlay && <div className="w-full max-w-sm min-h-[72px] flex items-start justify-center">{comboCall}</div>}
 
             {/* Round dots */}
             <div className={`flex items-center gap-2 ${showCam ? "mb-3" : "mb-6"}`}>

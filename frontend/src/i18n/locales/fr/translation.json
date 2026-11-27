@@ -2559,7 +2559,18 @@
       "voicePhone": "Voix du téléphone. Tu n’entends rien ? Monte le volume.",
       "savingYourSession": "Enregistrement de ta séance",
       "learnTheNumbers": "Apprends les numéros",
-      "bMeansBody": "\"b\" veut dire au corps : 3b est un crochet au corps. Les noms s'affichent sous chaque appel pendant que tu apprends."
+      "bMeansBody": "\"b\" veut dire au corps : 3b est un crochet au corps. Les noms s'affichent sous chaque appel pendant que tu apprends.",
+      "adaptsToYou": "s'adapte à toi",
+      "boostVoice": "Coach plus fort",
+      "boostVoiceDesc": "Baisse la cloche et les autres sons pour que les annonces ressortent. Dans une salle bruyante, les écouteurs sont l'idéal.",
+      "creatorMode": "Mode Créateur",
+      "creatorModeOn": "Grande caméra, combo en bas, coups dans le coin. Prêt à partager.",
+      "creatorModeOff": "Affiche toutes les stats en direct pendant le round, comme un tableau de bord.",
+      "videoShape": "Format vidéo",
+      "portrait": "Portrait (Reels)",
+      "landscape": "Paysage",
+      "earbudsTip": "Connecte des écouteurs pour une meilleure expérience : les annonces vont directement dans tes oreilles.",
+      "dontShowAgain": "Ne plus afficher"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Lien copié : envoie-le à un parent",
@@ -3131,6 +3142,29 @@
     "demoPhone": {
       "label": "Un round dans Victory AI : le coach annonce les combos, puis ton score et ton détail",
       "caption": "Vrais écrans de l'app. Scores d'exemple."
+    },
+    "comboDisplay": {
+      "last": "Dernier",
+      "next": "Ensuite : {{label}} · {{name}}",
+      "nextMove": "Ensuite : {{name}}"
+    },
+    "framingCheck": {
+      "ok": "Tu es dans le cadre",
+      "back": "Recule d'un pas",
+      "closer": "Rapproche-toi",
+      "searching": "Place-toi pour que tes épaules et tes mains soient dans la silhouette",
+      "back2": "Retour",
+      "startNow": "Commencer"
+    },
+    "shareRound": {
+      "button": "Partage ton round",
+      "title": "Ton round, prêt pour Reels et TikTok",
+      "making": "On coupe tes 20 meilleures secondes…",
+      "failed": "Impossible de créer le clip sur ce téléphone. Réessayer ?",
+      "retry": "Réessayer",
+      "share": "Partager",
+      "save": "Enregistrer la vidéo",
+      "note": "Vertical 9:16 avec les annonces du coach. Sans le bruit de la salle."
     }
   },
   "feedback": {

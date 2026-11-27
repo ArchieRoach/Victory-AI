@@ -2559,7 +2559,18 @@
       "voicePhone": "Głos telefonu. Nic nie słychać? Podgłośnij.",
       "savingYourSession": "Zapisujemy twoją sesję",
       "learnTheNumbers": "Naucz się numerów",
-      "bMeansBody": "\"b\" znaczy na korpus: 3b to sierp na korpus. Nazwy są pod każdym wywołaniem, póki się uczysz."
+      "bMeansBody": "\"b\" znaczy na korpus: 3b to sierp na korpus. Nazwy są pod każdym wywołaniem, póki się uczysz.",
+      "adaptsToYou": "dopasowuje się do ciebie",
+      "boostVoice": "Głośniejszy trener",
+      "boostVoiceDesc": "Ścisza gong i inne dźwięki, żeby komendy było słychać. W głośnej siłowni najlepsze są słuchawki.",
+      "creatorMode": "Tryb twórcy",
+      "creatorModeOn": "Duża kamera, kombinacja na dole, ciosy w rogu. Gotowe do udostępnienia.",
+      "creatorModeOff": "Pokazuje wszystkie statystyki na żywo w trakcie rundy, jak panel treningowy.",
+      "videoShape": "Format wideo",
+      "portrait": "Pionowy (Reels)",
+      "landscape": "Poziomy",
+      "earbudsTip": "Podłącz słuchawki, żeby było najlepiej — komendy trafią prosto do uszu.",
+      "dontShowAgain": "Nie pokazuj więcej"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link skopiowany: wyślij go rodzicowi",
@@ -3131,6 +3142,29 @@
     "demoPhone": {
       "label": "Runda w Victory AI: trener wywołuje kombinacje, potem twój wynik i szczegóły",
       "caption": "Prawdziwe ekrany aplikacji. Przykładowe wyniki."
+    },
+    "comboDisplay": {
+      "last": "Ostatni",
+      "next": "Dalej: {{label}} · {{name}}",
+      "nextMove": "Dalej: {{name}}"
+    },
+    "framingCheck": {
+      "ok": "Jesteś w kadrze",
+      "back": "Cofnij się",
+      "closer": "Podejdź bliżej",
+      "searching": "Stań tak, żeby barki i dłonie były w obrysie",
+      "back2": "Wstecz",
+      "startNow": "Zacznij teraz"
+    },
+    "shareRound": {
+      "button": "Udostępnij rundę",
+      "title": "Twoja runda, gotowa na Reels i TikTok",
+      "making": "Wycinamy twoje najlepsze 20 sekund…",
+      "failed": "Nie udało się zrobić klipu na tym telefonie. Spróbować jeszcze raz?",
+      "retry": "Spróbuj ponownie",
+      "share": "Udostępnij",
+      "save": "Zapisz wideo",
+      "note": "Pionowo 9:16 z komendami trenera. Bez hałasu z siłowni."
     }
   },
   "feedback": {

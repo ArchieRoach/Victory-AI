@@ -2559,7 +2559,18 @@
       "voicePhone": "Handystimme. Nichts zu hören? Lauter stellen.",
       "savingYourSession": "Deine Session wird gespeichert",
       "learnTheNumbers": "Lerne die Zahlen",
-      "bMeansBody": "\"b\" heißt zum Körper: 3b ist ein Körperhaken. Die Namen stehen unter jedem Ruf, während du lernst."
+      "bMeansBody": "\"b\" heißt zum Körper: 3b ist ein Körperhaken. Die Namen stehen unter jedem Ruf, während du lernst.",
+      "adaptsToYou": "passt sich dir an",
+      "boostVoice": "Coach lauter",
+      "boostVoiceDesc": "Glocke und andere Töne werden leiser, damit die Ansagen herausstechen. In einem lauten Gym sind Kopfhörer am besten.",
+      "creatorMode": "Creator-Modus",
+      "creatorModeOn": "Große Kamera, Kombo unten, Schlagzahl in der Ecke. Bereit zum Teilen.",
+      "creatorModeOff": "Zeigt während der Runde alle Live-Werte, wie ein Trainings-Dashboard.",
+      "videoShape": "Videoformat",
+      "portrait": "Hochformat (Reels)",
+      "landscape": "Querformat",
+      "earbudsTip": "Verbinde Kopfhörer für das beste Erlebnis – die Ansagen gehen direkt in deine Ohren.",
+      "dontShowAgain": "Nicht mehr anzeigen"
     },
     "merchSheet": {
       "linkCopiedSendIt": "Link kopiert: schick ihn einem Elternteil",
@@ -3131,6 +3142,29 @@
     "demoPhone": {
       "label": "Eine Runde in Victory AI: Der Coach ruft Kombos, danach deine Bewertung und Auswertung",
       "caption": "Echte App-Bildschirme. Beispielwerte."
+    },
+    "comboDisplay": {
+      "last": "Letzter",
+      "next": "Als Nächstes: {{label}} · {{name}}",
+      "nextMove": "Als Nächstes: {{name}}"
+    },
+    "framingCheck": {
+      "ok": "Du bist im Bild",
+      "back": "Geh einen Schritt zurück",
+      "closer": "Komm näher",
+      "searching": "Stell dich so hin, dass Schultern und Hände im Umriss sind",
+      "back2": "Zurück",
+      "startNow": "Jetzt starten"
+    },
+    "shareRound": {
+      "button": "Teile deine Runde",
+      "title": "Deine Runde, fertig für Reels und TikTok",
+      "making": "Deine besten 20 Sekunden werden geschnitten…",
+      "failed": "Der Clip konnte auf diesem Handy nicht erstellt werden. Nochmal versuchen?",
+      "retry": "Nochmal versuchen",
+      "share": "Teilen",
+      "save": "Video speichern",
+      "note": "Hochformat 9:16 mit den Ansagen des Coachs. Gym-Lärm ist nicht drin."
     }
   },
   "feedback": {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createTracker, createCueGate } from "@/lib/liveCoach";
 import { say } from "@/lib/speech";
+import { framingFrom } from "@/lib/framing";
 
 // Pinned so a library update can never change what counts as a punch mid-season.
 const MEDIAPIPE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1";
@@ -42,8 +43,12 @@ const speak = (text) => say(text);
 // punches, combos, guard drops and head movement while `running`.
 // `cues` swaps the spoken lines (freestyle rounds only praise); `onEvent` lets the combo
 // caller hear each punch as it lands.
-export function useLiveCoach({ enabled, videoRef, running, voice, cues = CUES, onEvent }) {
+// `checkFraming` (before the round starts) reports whether shoulders and hands are in the picture.
+export function useLiveCoach({ enabled, videoRef, running, voice, cues = CUES, onEvent, checkFraming = false }) {
   const [status, setStatus] = useState("off");
+  const [framing, setFraming] = useState("searching");
+  const checkFramingRef = useRef(checkFraming);
+  checkFramingRef.current = checkFraming;
   const [stats, setStats] = useState(null);
   const [airpods, setAirpods] = useState(false);
   const trackerRef = useRef(createTracker());
@@ -78,6 +83,10 @@ export function useLiveCoach({ enabled, videoRef, running, voice, cues = CUES, o
         if (runningRef.current && lastNow != null) activeMs += Math.min(now - lastNow, 100);
         lastNow = now;
         const video = videoRef.current;
+        if (!runningRef.current && checkFramingRef.current && video && video.readyState >= 2 && now - lastPublish > 250) {
+          lastPublish = now;
+          try { setFraming(framingFrom(landmarker.detectForVideo(video, now).landmarks?.[0])); } catch {}
+        }
         if (runningRef.current && video && video.readyState >= 2 && video.currentTime !== lastVideoTime) {
           lastVideoTime = video.currentTime;
           try {
@@ -124,5 +133,5 @@ export function useLiveCoach({ enabled, videoRef, running, voice, cues = CUES, o
     return snap;
   }, []);
 
-  return { status, stats, airpods, takeRound };
+  return { status, stats, airpods, takeRound, framing };
 }

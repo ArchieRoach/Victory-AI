@@ -4,6 +4,7 @@ import RevenueCat
 import RevenueCatUI
 import StoreKit
 import WidgetKit
+import AVFoundation
 
 /// Message handlers the web app calls during training (frontend/src/lib/nativeBridge.js
 /// and frontend/src/hooks/useLiveCoach.js). Like PushBridge, they only answer the main
@@ -139,6 +140,20 @@ final class WidgetBridge: OriginCheckedBridge {
         snapshot.save()
         WidgetCenter.shared.reloadAllTimelines()
         reply(["saved": true], nil)
+    }
+}
+
+/// `victoryAudio`: tells the page whether the coach will play through earbuds or a Bluetooth
+/// speaker, so the "connect earbuds" tip only shows when the phone speaker is in use. iOS already
+/// sends the app's audio to the connected device, so nothing needs re-routing.
+final class AudioRouteBridge: OriginCheckedBridge {
+    static let name = "victoryAudio"
+
+    override func handle(action: String, body: [String: Any], webView: WKWebView?, reply: @escaping (Any?, String?) -> Void) {
+        let wireless: Set<AVAudioSession.Port> = [.bluetoothA2DP, .bluetoothLE, .bluetoothHFP, .headphones, .airPlay, .carAudio]
+        let outputs = AVAudioSession.sharedInstance().currentRoute.outputs
+        let connected = outputs.contains { wireless.contains($0.portType) }
+        reply(["bluetooth": connected, "name": outputs.first?.portName ?? ""], nil)
     }
 }
 

@@ -2901,7 +2901,18 @@
       "voicePhone": "Phone voice. Can't hear it? Turn the volume up.",
       "savingYourSession": "Saving your session",
       "learnTheNumbers": "Learn the numbers",
-      "bMeansBody": "\"b\" means to the body: 3b is a body hook. The names show under every call while you learn."
+      "bMeansBody": "\"b\" means to the body: 3b is a body hook. The names show under every call while you learn.",
+      "adaptsToYou": "adapts to you",
+      "boostVoice": "Boost the coach",
+      "boostVoiceDesc": "Turns the bell and other sounds down so the calls stand out. Earbuds work best in a loud gym.",
+      "creatorMode": "Creator Mode",
+      "creatorModeOn": "Big camera, combo at the bottom, punch count in the corner. Ready to share.",
+      "creatorModeOff": "Shows every live stat during the round, like a training dashboard.",
+      "videoShape": "Video shape",
+      "portrait": "Portrait (Reels)",
+      "landscape": "Landscape",
+      "earbudsTip": "Connect earbuds for best experience — callouts go straight to your ears.",
+      "dontShowAgain": "Don't show again"
     },
     "trendingClipsPage": {
       "viral": "VIRAL",
@@ -3147,6 +3158,29 @@
     "demoPhone": {
       "label": "A round in Victory AI: the coach calls combos, then your score and breakdown",
       "caption": "Real app screens. Sample scores."
+    },
+    "comboDisplay": {
+      "last": "Last one",
+      "next": "Next: {{label}} · {{name}}",
+      "nextMove": "Next: {{name}}"
+    },
+    "framingCheck": {
+      "ok": "You're in frame",
+      "back": "Step back",
+      "closer": "Step closer",
+      "searching": "Stand where your shoulders and hands are in the outline",
+      "back2": "Back",
+      "startNow": "Start now"
+    },
+    "shareRound": {
+      "button": "Share your round",
+      "title": "Your round, ready for Reels and TikTok",
+      "making": "Cutting your best 20 seconds…",
+      "failed": "Couldn't make the clip on this phone. Try again?",
+      "retry": "Try again",
+      "share": "Share",
+      "save": "Save video",
+      "note": "Vertical 9:16 with the coach's calls. Gym noise isn't in it."
     }
   },
   "lib": {
